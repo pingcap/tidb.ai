@@ -21,4 +21,6 @@ const OpenaiIcon = forwardRef(({ className }: { className?: string }, ref: Forwa
   );
 });
 
+OpenaiIcon.displayName = 'OpenaiIcon';
+
 export default OpenaiIcon;
