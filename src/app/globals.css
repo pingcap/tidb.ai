@@ -1,76 +1,157 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
- 
+
+
 @layer base {
   :root {
+    --base-primary: 338 24% 32%;
+    --base-foreground: 338 24% 30%;
+
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    /*--foreground: 0 0% 3.9%;*/
+    --foreground: var(--base-foreground);
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
- 
+    /*--card-foreground: 0 0% 3.9%;*/
+    --card-foreground: var(--base-foreground);
+
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
- 
-    --primary: 0 0% 9%;
+    /*--popover-foreground: 0 0% 3.9%;*/
+    --popover-foreground: var(--base-foreground);
+
+    /*--primary: 0 0% 9%;*/
+    --primary: var(--base-primary);
     --primary-foreground: 0 0% 98%;
- 
+
     --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
- 
+    /*--secondary-foreground: 0 0% 9%;*/
+    --secondary-foreground: var(--base-foreground);
+
     --muted: 0 0% 96.1%;
     --muted-foreground: 0 0% 45.1%;
- 
+
     --accent: 0 0% 96.1%;
-    --accent-foreground: 0 0% 9%;
- 
+    /*--accent-foreground: 0 0% 9%;*/
+    --accent-foreground: var(--base-primary);
+
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
 
     --border: 0 0% 89.8%;
     --input: 0 0% 89.8%;
-    --ring: 0 0% 3.9%;
- 
+    /*--ring: 0 0% 3.9%;*/
+    --ring: var(--base-foreground);
+
     --radius: 0.5rem;
   }
- 
+
   .dark {
+    --base-primary: 30 30% 90%;
+    --base-foreground: var(--base-primary);
+
     --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
- 
+    /*--foreground: 0 0% 98%;*/
+    --foreground: var(--base-foreground);
+
     --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
- 
+    /*--card-foreground: 0 0% 98%;*/
+    --card-foreground: var(--base-foreground);
+
     --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
- 
-    --primary: 0 0% 98%;
+    /*--popover-foreground: 0 0% 98%;*/
+    --popover-foreground: var(--base-foreground);
+
+    /*--primary: 0 0% 98%;*/
+    --primary: var(--base-primary);
     --primary-foreground: 0 0% 9%;
- 
+
     --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
- 
+    /*--secondary-foreground: 0 0% 98%;*/
+    --secondary-foreground: var(--base-foreground);
+
     --muted: 0 0% 14.9%;
     --muted-foreground: 0 0% 63.9%;
- 
+
     --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
- 
+    /*--accent-foreground: 0 0% 98%;*/
+    --accent-foreground: var(--base-foreground);
+
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
- 
+    /*--destructive-foreground: 0 0% 98%;*/
+    --destructive-foreground: var(--base-foreground);
+
     --border: 0 0% 14.9%;
     --input: 0 0% 14.9%;
     --ring: 0 0% 83.1%;
   }
 }
- 
+
 @layer base {
   * {
     @apply border-border;
   }
+
   body {
     @apply bg-background text-foreground;
   }
 }
+
+
+.branding {
+  background: linear-gradient(90deg, #3B5579 -1.23%, #505471 3.07%, #74695F 6.96%, #818A84 14.35%, #557992 23.63%, #285E89 32.46%, #1B417B 38.1%, #193370 44.46%, #502C4A 51.11%, #663E4D 55.88%, #774A41 62.53%, #9D7955 71.35%, #B4A291 78.15%, #BEBCB7 86.68%, #A1A29F 100%);
+}
+
+.dark .branding {
+  background: linear-gradient(90deg, #3B5579 -1.23%, #505471 3.07%, #74695F 6.96%, #818A84 14.35%, #557992 23.63%, #285E89 32.46%, #1B417B 38.1%, #193370 44.46%, #502C4A 51.11%, #663E4D 55.88%, #774A41 62.53%, #9D7955 71.35%, #B4A291 78.15%, #BEBCB7 86.68%, #A1A29F 100%);
+}
+
+.branding {
+  --base-primary: 338 24% 32%;
+  --base-foreground: 338 24% 30%;
+}
+
+.dark .branding {
+  --base-primary: 30 30% 40%;
+  --base-foreground: 30 30% 40%;
+}
+
+.branding {
+  --background: 0 0% 100%;
+  /*--foreground: 0 0% 3.9%;*/
+  --foreground: var(--base-foreground);
+
+  --card: 0 0% 100%;
+  /*--card-foreground: 0 0% 3.9%;*/
+  --card-foreground: var(--base-foreground);
+
+  --popover: 0 0% 100%;
+  /*--popover-foreground: 0 0% 3.9%;*/
+  --popover-foreground: var(--base-foreground);
+
+  /*--primary: 0 0% 9%;*/
+  --primary: var(--base-primary);
+  --primary-foreground: 0 0% 98%;
+
+  --secondary: 0 0% 96.1%;
+  /*--secondary-foreground: 0 0% 9%;*/
+  --secondary-foreground: var(--base-foreground);
+
+  --muted: 0 0% 96.1%;
+  --muted-foreground: 0 0% 45.1%;
+
+  --accent: 0 0% 96.1%;
+  /*--accent-foreground: 0 0% 9%;*/
+  --accent-foreground: var(--base-primary);
+
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 0 0% 98%;
+
+  --border: 0 0% 89.8%;
+  --input: 0 0% 89.8%;
+  /*--ring: 0 0% 3.9%;*/
+  --ring: var(--base-foreground);
+
+  --radius: 0.5rem;
+}
+

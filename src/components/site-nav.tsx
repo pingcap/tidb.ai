@@ -1,6 +1,8 @@
 'use client';
 
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { type ComponentType, type ReactNode } from 'react';
@@ -49,7 +51,7 @@ function SiteNavGroup ({ group, current }: { group: NavGroup, current: string })
 function SiteNavItem ({ item, active }: { item: NavItem, active: boolean }) {
   return (
     <li>
-      <Button asChild className="flex w-full justify-start gap-2 font-semibold" variant={active ? 'default' : 'ghost'}>
+      <Button asChild className={cn('flex w-full justify-start gap-2 font-semibold')} variant={active ? 'default' : 'ghost'}>
         <Link href={item.href} prefetch={false}>
           {item.icon && <item.icon className="w-5 h-5 opacity-70" />}
           {item.title}
