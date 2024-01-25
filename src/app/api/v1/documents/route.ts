@@ -36,6 +36,7 @@ export async function PUT (req: NextRequest) {
 }
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 300;
 
 const toStoragePath = (id: string) => path.join('blob', id.slice(0, 2), id.slice(2));
 

@@ -19,12 +19,15 @@ export async function POST (req: NextRequest, { params }: { params: { name: stri
 
   const flow = getFlow(baseRegistry);
 
-  const docs = await database.document.listByNotIndexed(name, 100);
+  const docs = await database.document.listByNotIndexed(name, 25);
 
-  reIndex(flow, index, docs);
+  await reIndex(flow, index, docs);
 
   return NextResponse.json({ scheduled: docs.length });
 }
+
+export const dynamic = 'force-dynamic';
+export const maxDuration = 300;
 
 async function reIndex (flow: Flow, index: Selectable<DB['index']>, documents: Selectable<DB['document']>[]) {
   const storage = flow.getStorage();
