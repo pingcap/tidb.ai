@@ -38,3 +38,5 @@ next-env.d.ts
 gen.sh
 openapi.yml
 test.http
+
+.store
