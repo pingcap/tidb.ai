@@ -15,7 +15,7 @@ export class VercelBlobDocumentStorage extends rag.DocumentStorage<VercelBlobDoc
   static identifier = 'rag.document-storage.vercel-blob';
   static displayName = 'Vercel Blob';
   static optionsSchema = z.object({
-    token: env('VERCEL_BLOB_STORAGE_TOKEN').optional(),
+    token: env('VERCEL_BLOB_STORAGE_TOKEN'),
     prefix: env('VERCEL_BLOB_STORAGE_PREFIX').optional(),
   });
 

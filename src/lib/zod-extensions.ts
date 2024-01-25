@@ -1,4 +1,4 @@
-import { addIssueToContext, type ParseInput, type ParseReturnType, undefined, ZodType, type ZodTypeDef } from 'zod';
+import { addIssueToContext, type ParseInput, type ParseReturnType, ZodFirstPartyTypeKind, ZodOptional, type ZodOptionalDef, ZodType, type ZodTypeDef } from 'zod';
 
 interface ZodEnvDef extends ZodTypeDef {
   typeName: 'ZodEnvString';
@@ -28,7 +28,38 @@ class ZodEnvString extends ZodType<string, ZodEnvDef> {
       value,
     };
   }
+
+  optional () {
+    class ZodOptionalEnvString extends ZodOptional<this> {
+
+      constructor (def: any) {
+        super(def);
+      }
+
+      _parse (input: ParseInput): ParseReturnType<this['_output']> {
+
+        let value: any;
+        if (input.data == null) {
+          value = process.env[this._def.innerType._def.env];
+          if (value == null) {
+            return {
+              status: 'valid',
+              value,
+            };
+          }
+        }
+
+        return super._parse(input);
+      }
+    }
+
+    return new ZodOptionalEnvString({
+      innerType: this,
+      typeName: ZodFirstPartyTypeKind.ZodOptional,
+    });
+  }
 }
+
 
 export function env (name: string, def?: ZodTypeDef) {
   return new ZodEnvString({
