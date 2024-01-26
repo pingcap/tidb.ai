@@ -10,7 +10,7 @@
     }
   ],
   "functions": {
-    "api/v1/ask.ts": {
+    "/api/v1/ask": {
       "memory": 3008
     }
   }
