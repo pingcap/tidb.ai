@@ -30,6 +30,9 @@ export async function GET (req: NextRequest, { params }: { params: { name: strin
   while (Date.now() - start < maxDuration * 1000 * 0.75) {
     const flow = getFlow(baseRegistry);
     const docs = await database.document.listByNotIndexed(name, 5);
+    if (docs.length === 0) {
+      break;
+    }
 
     await reIndex(flow, index, docs);
     handled += docs.length;
