@@ -17,7 +17,6 @@ export async function GET (req: NextRequest) {
 
   const start = Date.now();
 
-  const max = parseInt(req.nextUrl.searchParams.get('max') ?? '100');
   const concurrent = parseInt(req.nextUrl.searchParams.get('concurrent') ?? '10');
   let i = 0;
 
@@ -27,13 +26,8 @@ export async function GET (req: NextRequest) {
   let succeed = 0;
   let failed = 0;
 
-  while (i < max) {
-    // If reach 75% time limitation, force stop.
-    if (Date.now() - start > maxDuration * 0.75 * 1000) {
-      break;
-    }
-
-    const tasks = await database.task.dequeue(Math.min(concurrent, max - i), 'pending');
+  while (Date.now() - start > maxDuration * 0.75 * 1000) {
+    const tasks = await database.task.dequeue(concurrent, 'pending');
     if (tasks.length === 0) break;
 
     await Promise.all(tasks.map(async task => {
