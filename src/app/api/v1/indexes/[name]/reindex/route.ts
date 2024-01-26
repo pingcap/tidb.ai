@@ -9,6 +9,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 import EmbeddedContent = rag.EmbeddedContent;
 
 export async function GET (req: NextRequest, { params }: { params: { name: string } }) {
+  const start = Date.now();
   const authHeader = req.headers.get('authorization');
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return new Response('Unauthorized', {
@@ -24,13 +25,17 @@ export async function GET (req: NextRequest, { params }: { params: { name: strin
     throw new Error(`index ${name} not found`);
   }
 
-  const flow = getFlow(baseRegistry);
+  let handled = 0;
 
-  const docs = await database.document.listByNotIndexed(name, 25);
+  while (Date.now() - start > maxDuration * 1000 * 0.75) {
+    const flow = getFlow(baseRegistry);
+    const docs = await database.document.listByNotIndexed(name, 5);
 
-  await reIndex(flow, index, docs);
+    await reIndex(flow, index, docs);
+    handled += docs.length;
+  }
 
-  return NextResponse.json({ scheduled: docs.length });
+  return NextResponse.json({ handled });
 }
 
 export const dynamic = 'force-dynamic';
