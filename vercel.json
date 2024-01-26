@@ -10,7 +10,7 @@
     }
   ],
   "functions": {
-    "api/v1/ask/route.ts": {
+    "api/v1/ask/route.js": {
       "memory": 3008
     }
   }
