@@ -131,7 +131,7 @@ export const indexDb: IndexDb = {
     const internalResults: { id: string, score: number }[] = [];
 
     await Promise.all(chunked(ids, 5000).map(async ids => {
-      const result = await fetch(`${process.env.FORCE_HTTP ? 'http' : 'https'}://${process.env.VERCEL_URL}/api/v1/shard`, {
+      const result = await fetch(`${process.env.FORCE_HTTP ? 'http' : 'https'}://${process.env.SITE_URL}/api/v1/shard`, {
         method: 'post',
         body: JSON.stringify({
           top_k: top_k,
