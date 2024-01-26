@@ -76,6 +76,28 @@ export interface DocumentIndexChunk {
   text_content: string;
 }
 
+export interface ImportSource {
+  created_at: Date;
+  filter: string | null;
+  filter_runtime: string | null;
+  id: string;
+  type: string;
+  url: string;
+}
+
+export interface ImportSourceTask {
+  created_at: Date;
+  document_id: string | null;
+  error: string | null;
+  finished_at: Date | null;
+  id: Generated<number>;
+  import_source_id: string;
+  parent_task_id: number | null;
+  status: "failed" | "pending" | "processing" | "succeed";
+  type: string;
+  url: string;
+}
+
 export interface Index {
   created_at: Date;
   last_modified_at: Date;
@@ -105,7 +127,7 @@ export interface VDocumentIndexStatus {
   document_id: string;
   index_name: string | null;
   index_state: Generated<string>;
-  mime: string;
+  mime: Generated<string>;
 }
 
 export interface DB {
@@ -115,6 +137,8 @@ export interface DB {
   document: Document;
   document_index: DocumentIndex;
   document_index_chunk: DocumentIndexChunk;
+  import_source: ImportSource;
+  import_source_task: ImportSourceTask;
   index: Index;
   index_query: IndexQuery;
   index_query_result: IndexQueryResult;

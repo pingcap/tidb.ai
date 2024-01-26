@@ -7,6 +7,9 @@ import { HtmlLoader } from '@/rag-spec/loaders/HtmlLoader';
 import { MarkdownLoader } from '@/rag-spec/loaders/MarkdownLoader';
 import { TextLoader } from '@/rag-spec/loaders/TextLoader';
 import { RecursiveCharacterTextSplitter } from '@/rag-spec/spliter/RecursiveCharacterTextSplitter';
+import { HtmlTaskProcessor } from '@/rag-spec/task-processor/HtmlTaskProcessor';
+import { RobotsTxtTaskProcessor } from '@/rag-spec/task-processor/RobotsTxtTaskProcessor';
+import { SitemapXmlTaskProcessor } from '@/rag-spec/task-processor/SitemapXmlTaskProcessor';
 
 const baseRegistry = new RagComponentRegistry();
 
@@ -21,5 +24,9 @@ baseRegistry.register(TextLoader);
 baseRegistry.register(RecursiveCharacterTextSplitter);
 baseRegistry.register(OpenaiEmbeddings);
 baseRegistry.register(OpenaiChatModel);
+
+baseRegistry.register(RobotsTxtTaskProcessor);
+baseRegistry.register(SitemapXmlTaskProcessor);
+baseRegistry.register(HtmlTaskProcessor);
 
 export { baseRegistry };

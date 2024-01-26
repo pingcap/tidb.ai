@@ -1,0 +1,12 @@
+{
+  "crons": [
+    {
+      "schedule": "* * * * *",
+      "path": "/api/v1/indexes/default/reindex"
+    },
+    {
+      "schedule": "* * * * *",
+      "path": "/api/v1/sources/tasks/process"
+    }
+  ]
+}

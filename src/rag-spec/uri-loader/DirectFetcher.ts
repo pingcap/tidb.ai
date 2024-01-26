@@ -3,6 +3,9 @@ import { genId } from '@/lib/id';
 import mime from 'mime';
 import path from 'node:path';
 
+/**
+ * @deprecated
+ */
 export class DirectFetcher implements rag.IUriLoader {
   private storage: rag.DocumentStorage<any>;
 

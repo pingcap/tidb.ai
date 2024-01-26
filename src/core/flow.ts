@@ -9,6 +9,8 @@ export namespace Flow {
     addEmbeddings (embeddings: rag.Embeddings<any>): void;
 
     addDocumentStorage (storage: rag.DocumentStorage<any>): void;
+
+    addImportSourceTaskProcessor (processor: rag.ImportSourceTaskProcessor<any>): void;
   }
 
   export interface IExtension<Options extends any[]> {
@@ -33,6 +35,7 @@ export class Flow implements Flow.ExtensionApi {
   private splitters = new Map<string, rag.Splitter<any, any, any>>();
   private embeddings = new Map<string, rag.Embeddings<any>>();
   private chatModels = new Map<string, rag.ChatModel<any>>();
+  private importSourceTaskProcessor = new Map<string, rag.ImportSourceTaskProcessor<any>>();
 
   add (base: rag.Base<any>) {
     if (base instanceof rag.Loader) {
@@ -45,6 +48,8 @@ export class Flow implements Flow.ExtensionApi {
       this.addChatModel(base);
     } else if (base instanceof rag.DocumentStorage) {
       this.addDocumentStorage(base);
+    } else if (base instanceof rag.ImportSourceTaskProcessor) {
+      this.addImportSourceTaskProcessor(base);
     } else {
       throw new Error(`what is ${base.displayName} (${base.identifier})?`);
     }
@@ -83,6 +88,13 @@ export class Flow implements Flow.ExtensionApi {
       throw new Error(`Chat model identifier '${chatModel.identifier}' has already been registered.`);
     }
     this.chatModels.set(chatModel.identifier, chatModel);
+  }
+
+  addImportSourceTaskProcessor (processor: rag.ImportSourceTaskProcessor<any>) {
+    if (this.importSourceTaskProcessor.has(processor.identifier)) {
+      throw new Error(`Import source task processor identifier '${processor.identifier}' has already been registered.`);
+    }
+    this.importSourceTaskProcessor.set(processor.identifier, processor);
   }
 
   addExtension<Options extends any[]> (extension: Flow.IExtension<Options>, ...options: Options) {
@@ -124,12 +136,12 @@ export class Flow implements Flow.ExtensionApi {
     });
   }
 
-  getStorage (identifier?: string) {
+  getStorage (identifier?: string): rag.DocumentStorage<any> {
     if (identifier) {
       const storage = this.documentStorages.get(identifier);
 
       if (!storage?.available()) {
-        throw new Error(`No document storage ${identifier} not available.`)
+        throw new Error(`No document storage ${identifier} not available.`);
       }
 
       return storage;
@@ -177,5 +189,14 @@ export class Flow implements Flow.ExtensionApi {
     }
 
     return chatModel;
+  }
+
+  getImportSourceTaskProcessor (type: string): rag.ImportSourceTaskProcessor<any> {
+    for (let processor of Array.from(this.importSourceTaskProcessor.values())) {
+      if (processor.support(type)) {
+        return processor;
+      }
+    }
+    throw new Error(`No available ImportSourceTaskProcessor for task type ${type}.`);
   }
 }

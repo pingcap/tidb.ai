@@ -1,4 +1,6 @@
-import { StreamingTextResponse } from 'ai';
+import type { DB } from '@/core/db/schema';
+import type { TaskResult } from '@/core/db/task';
+import type { Insertable, Selectable } from 'kysely';
 import { z } from 'zod';
 
 export namespace rag {
@@ -94,6 +96,19 @@ export namespace rag {
     abstract chatStream (history: ChatMessage[]): Promise<ReadableStream>
   }
 
+  export abstract class ImportSourceResolver<Options> extends Base<Options> {
+    abstract createTasks (source: Selectable<DB['import_source']>): Promise<Insertable<DB['import_source_task']>[]>
+  }
+
+  export abstract class ImportSourceTaskProcessor<Options> extends Base<Options> {
+    abstract support (taskType: string): boolean;
+
+    abstract process (task: Selectable<DB['import_source_task']>): Promise<TaskResult>
+  }
+
+  /**
+   * @deprecated
+   */
   export interface RawContent {
     storage: string;
     uri: string;
@@ -101,6 +116,9 @@ export namespace rag {
     mime?: string;
   }
 
+  /**
+   * @deprecated
+   */
   export interface IUriLoader {
 
     support (uri: string): boolean;

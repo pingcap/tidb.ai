@@ -22,17 +22,15 @@ export async function GET (req: NextRequest) {
 export async function PUT (req: NextRequest) {
   const contentType = req.headers.get('Content-Type');
 
-  let res: any;
-
   switch (contentType) {
     case 'text/uri-list':
-      res = await handleUriList(req);
+      await handleUriListV2(req);
       break;
     default:
       return new NextResponse(undefined, { status: 406 });
   }
 
-  return NextResponse.json({ res });
+  return NextResponse.json({});
 }
 
 export const dynamic = 'force-dynamic';
@@ -40,6 +38,31 @@ export const maxDuration = 300;
 
 const toStoragePath = (id: string) => path.join('blob', id.slice(0, 2), id.slice(2));
 
+async function handleUriListV2 (req: NextRequest) {
+  await Promise.all((await req.text())
+    .split('\n')
+    .map(s => s.trim())
+    .filter(Boolean)
+    .map(async uri => {
+      const url = new URL(uri);
+      if (url.pathname === '' || url.pathname === '/') {
+        await database.importSource.create({
+          id: genId(),
+          type: 'robots',
+          created_at: new Date(),
+          url: url.toString(),
+        });
+      } else {
+        throw new Error('only support site root dir now.');
+      }
+    }));
+
+}
+
+/**
+ * @deprecated
+ * @param req
+ */
 async function handleUriList (req: NextRequest) {
   const storage = getFlow(baseRegistry).getStorage();
 
@@ -63,6 +86,10 @@ async function handleUriList (req: NextRequest) {
     .then(tmpFileList => handleUploadContents(tmpFileList));
 }
 
+/**
+ * @deprecated
+ * @param contents
+ */
 async function handleUploadContents (contents: RawContent[]) {
   const flow = getFlow(baseRegistry);
 

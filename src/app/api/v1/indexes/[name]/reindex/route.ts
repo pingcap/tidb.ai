@@ -8,7 +8,14 @@ import type { Selectable } from 'kysely';
 import { type NextRequest, NextResponse } from 'next/server';
 import EmbeddedContent = rag.EmbeddedContent;
 
-export async function POST (req: NextRequest, { params }: { params: { name: string } }) {
+export async function GET (req: NextRequest, { params }: { params: { name: string } }) {
+  const authHeader = req.headers.get('authorization');
+  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+    return new Response('Unauthorized', {
+      status: 401,
+    });
+  }
+
   const name = decodeURIComponent(params.name);
 
   const index = await database.index.findByName(name);
@@ -27,12 +34,12 @@ export async function POST (req: NextRequest, { params }: { params: { name: stri
 }
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 300;
+export const maxDuration = 60;
 
 async function reIndex (flow: Flow, index: Selectable<DB['index']>, documents: Selectable<DB['document']>[]) {
   const storage = flow.getStorage();
 
-  for (const document of documents) {
+  await Promise.all(documents.map(async document => {
     try {
       console.log('[index] start', document.id, document.mime);
       await database.index.startIndexing(index.name, document.id, { digest: '', content: '', metadata: {}, chunks: [] });
@@ -56,5 +63,5 @@ async function reIndex (flow: Flow, index: Selectable<DB['index']>, documents: S
       await database.index.terminateIndexing(index.name, document.id, e);
       console.error('[index] failed', document.id, document.mime, e);
     }
-  }
+  }));
 }

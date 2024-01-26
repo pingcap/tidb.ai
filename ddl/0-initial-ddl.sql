@@ -137,3 +137,34 @@ SELECT d.id                              AS document_id,
 FROM document d
          LEFT JOIN document_index di ON d.id = di.document_id
          LEFT JOIN `index` i ON di.index_name = i.name;
+
+
+CREATE TABLE import_source
+(
+    id             VARCHAR(32)  NOT NULL,
+    url            VARCHAR(256) NOT NULL,
+    created_at     DATETIME     NOT NULL,
+    type           VARCHAR(64)  NOT NULL, -- github, sitemap
+    filter_runtime VARCHAR(64)  NULL,     -- `host` (NodeJS 20)
+    filter         TEXT         NULL,     -- filter script
+    PRIMARY KEY (id),
+    UNIQUE INDEX (url)
+);
+
+CREATE TABLE import_source_task
+(
+    id               INT AUTO_INCREMENT                                  NOT NULL,
+    import_source_id VARCHAR(32)                                         NOT NULL,
+    parent_task_id   INT                                                 NULL,     -- null if triggered by import source
+    url              VARCHAR(256)                                        NOT NULL,
+    type             VARCHAR(32)                                         NOT NULL, -- document, robots.txt, sitemap,
+    created_at       DATETIME                                            NOT NULL,
+    finished_at      DATETIME                                            NULL,     -- when status in [succeed, failed]
+    status           ENUM ('succeed', 'failed', 'pending', 'processing') NOT NULL,
+    document_id      VARCHAR(32)                                         NULL,     -- created document
+    error            TEXT                                                NULL,
+    PRIMARY KEY (id),
+    FOREIGN KEY (parent_task_id) REFERENCES import_source_task (id),
+    FOREIGN KEY (import_source_id) REFERENCES import_source (id),
+    FOREIGN KEY (document_id) REFERENCES document (id)
+);

@@ -5,6 +5,9 @@ import mime from 'mime';
 
 const REGEXP = /^https?:\/\/github\.com\/([^\/]+)\/([^\/]+)(?:\/tree\/([^/]+))?$/;
 
+/**
+ * @deprecated
+ */
 export class GithubRepoUriLoader implements rag.IUriLoader {
   private storage: rag.DocumentStorage<any>;
 
