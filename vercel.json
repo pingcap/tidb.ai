@@ -8,5 +8,10 @@
       "schedule": "* * * * *",
       "path": "/api/v1/sources/tasks/process"
     }
-  ]
+  ],
+  "functions": {
+    "api/v1/ask/**/*": {
+      "memory": 3008
+    }
+  }
 }
