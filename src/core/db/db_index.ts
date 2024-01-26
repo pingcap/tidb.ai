@@ -16,7 +16,7 @@ export interface IndexDb {
 
   terminateIndexing (index: string, documentId: string, error: unknown): Promise<void>;
 
-  _query (index: string, vector: Float64Array): Promise<SearchResult[]>;
+  _query (index: string, vector: Float64Array, top_k: number): Promise<SearchResult[]>;
 
   startQuery (partial: Insertable<DB['index_query']>): Promise<void>;
 
@@ -121,31 +121,54 @@ export const indexDb: IndexDb = {
       .execute();
   },
 
-  async _query (index: string, vector: Float64Array) {
-    const chunks = await db.selectFrom('document_index_chunk')
-      .innerJoin('document', 'document_id', 'document.id')
-      .select([
-        'document_id',
-        'source_uri',
-        'text_content',
-        'document_index_chunk.metadata',
-        'document_index_chunk.id',
-        eb => eb.ref('embedding').$castTo<number[]>().as('embedding'),
-      ])
+  async _query (index: string, vector: Float64Array, top_k: number) {
+    const ids = await db.selectFrom('document_index_chunk')
+      .select('id')
       .where('index_name', '=', eb => eb.val(index))
       .execute();
 
-    type InternalResult = {
-      chunk: Selectable<DB['document_index_chunk']>
-      score: number
-    }
+    const internalResults: { chunk: { embedding: number[], id: string }, score: number }[] = [];
 
-    const results = chunks.map(chunk => ({
-      chunk,
-      score: cosineSimilarity(Float64Array.from(chunk.embedding as number[]), vector),
+    await Promise.all(chunked(ids, 5000).map(async ids => {
+      const chunks = await db.selectFrom('document_index_chunk')
+        .select([
+          'document_index_chunk.id',
+          eb => eb.ref('embedding').$castTo<number[]>().as('embedding'),
+        ])
+        .where('document_index_chunk.id', 'in', ids.map(t => t.id))
+        .execute();
+
+      internalResults.push(...chunks.map(chunk => ({
+        chunk,
+        score: cosineSimilarity(Float64Array.from(chunk.embedding as number[]), vector),
+      })));
     }));
 
-    return results.sort((a, b) => b.score - a.score)
+    const orderedResult = internalResults.sort((a, b) => b.score - a.score).slice(0, top_k);
+
+    const results = await db.selectFrom('document_index_chunk')
+      .innerJoin('document', 'document_id', 'document.id')
+      .select([
+        'document_index_chunk.id',
+        'document_id',
+        'document_index_chunk.text_content',
+        'document_index_chunk.metadata',
+        'source_uri',
+        eb => eb.ref('embedding').$castTo<number[]>().as('embedding'),
+      ])
+      .execute();
+
+    return orderedResult.map(res => {
+      const r = results.find(item => item.id === res.chunk.id);
+      if (!r) {
+        return undefined;
+      }
+      return {
+        chunk: r,
+        score: res.score,
+      };
+    })
+      .filter((x): x is NonNullable<{ chunk: typeof results[0], score: number }> => !!x)
       .map(res => ({
         document_index_chunk_id: res.chunk.id,
         document_id: res.chunk.document_id,
@@ -219,4 +242,15 @@ function cosineSimilarity (a: rag.Vector, b: rag.Vector) {
 
 function cosineDistance (a: rag.Vector, b: rag.Vector) {
   return 1 - cosineSimilarity(a, b);
+}
+
+function chunked<T> (array: T[], chunkSize: number) {
+  const res: T[][] = [];
+  let i = 0;
+  while (i < array.length) {
+    res.push(array.slice(i, i + chunkSize));
+    i += chunkSize;
+  }
+
+  return res;
 }

@@ -28,7 +28,7 @@ export async function query (indexName: string, { text, top_k }: z.infer<typeof 
     index_name: indexName,
   });
 
-  const top = (await database.index._query('default', vector)).slice(0, top_k);
+  const top = (await database.index._query('default', vector, top_k));
 
   await database.index.finishQuery(id, top.map(res => ({
     document_index_chunk_id: res.document_index_chunk_id,
