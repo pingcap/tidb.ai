@@ -10,7 +10,7 @@
     }
   ],
   "functions": {
-    "api/v1/**/*": {
+    "app/api/v1/**/*": {
       "memory": 3008
     }
   }
