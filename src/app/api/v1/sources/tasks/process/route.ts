@@ -26,7 +26,7 @@ export async function GET (req: NextRequest) {
   let succeed = 0;
   let failed = 0;
 
-  while (Date.now() - start > maxDuration * 0.75 * 1000) {
+  while (Date.now() - start < maxDuration * 0.75 * 1000) {
     const tasks = await database.task.dequeue(concurrent, 'pending');
     if (tasks.length === 0) break;
 
