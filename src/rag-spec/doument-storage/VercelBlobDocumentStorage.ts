@@ -40,6 +40,9 @@ export class VercelBlobDocumentStorage extends rag.DocumentStorage<VercelBlobDoc
   }
 
   private getUrl (name: string) {
+    if (/^https?:\/\//.test(name)) {
+      return name;
+    }
     return this.host + '/' + this.getName(name, false);
   }
 
