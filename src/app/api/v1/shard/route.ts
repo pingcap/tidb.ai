@@ -32,4 +32,6 @@ export async function POST (req: NextRequest) {
   return NextResponse.json(res);
 }
 
+export const maxDuration = 300;
+
 export const dynamic = 'force-dynamic';
