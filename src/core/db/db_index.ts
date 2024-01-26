@@ -1,6 +1,7 @@
 import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
 import { rag } from '@/core/interface';
+import { handeErrors } from '@/lib/fetch';
 import { genId } from '@/lib/id';
 import type { Insertable, Selectable } from 'kysely';
 import ChunkedContent = rag.ChunkedContent;
@@ -127,21 +128,18 @@ export const indexDb: IndexDb = {
       .where('index_name', '=', eb => eb.val(index))
       .execute();
 
-    const internalResults: { chunk: { embedding: number[], id: string }, score: number }[] = [];
+    const internalResults: { id: string, score: number }[] = [];
 
     await Promise.all(chunked(ids, 5000).map(async ids => {
-      const chunks = await db.selectFrom('document_index_chunk')
-        .select([
-          'document_index_chunk.id',
-          eb => eb.ref('embedding').$castTo<number[]>().as('embedding'),
-        ])
-        .where('document_index_chunk.id', 'in', ids.map(t => t.id))
-        .execute();
-
-      internalResults.push(...chunks.map(chunk => ({
-        chunk,
-        score: cosineSimilarity(Float64Array.from(chunk.embedding as number[]), vector),
-      })));
+      const result = await fetch(`${process.env.FORCE_HTTP ? 'http' : 'https'}://${process.env.VERCEL_URL}/api/v1/shard`, {
+        method: 'post',
+        body: JSON.stringify({
+          top_k: top_k,
+          q: Array.from(vector),
+          ids: ids.map(t => t.id),
+        }),
+      }).then(handeErrors);
+      internalResults.push(...(await result.json()));
     }));
 
     const orderedResult = internalResults.sort((a, b) => b.score - a.score).slice(0, top_k);
@@ -154,12 +152,12 @@ export const indexDb: IndexDb = {
         'document_index_chunk.text_content',
         'document_index_chunk.metadata',
         'source_uri',
-        eb => eb.ref('embedding').$castTo<number[]>().as('embedding'),
       ])
+      .where('document_index_chunk.id', 'in', orderedResult.map(item => item.id))
       .execute();
 
     return orderedResult.map(res => {
-      const r = results.find(item => item.id === res.chunk.id);
+      const r = results.find(item => item.id === res.id);
       if (!r) {
         return undefined;
       }
@@ -227,7 +225,7 @@ export const indexDb: IndexDb = {
   },
 };
 
-function cosineSimilarity (a: rag.Vector, b: rag.Vector) {
+export function cosineSimilarity (a: rag.Vector, b: rag.Vector) {
   let p = 0;
   let qa = 0;
   let qb = 0;
