@@ -1,7 +1,7 @@
 import type { DB } from '@/core/db/schema';
 import type { TaskResult } from '@/core/db/task';
 import { rag } from '@/core/interface';
-import { handeErrors } from '@/lib/fetch';
+import { handleErrors } from '@/lib/fetch';
 import { XMLParser } from 'fast-xml-parser';
 import type { Selectable } from 'kysely';
 import { z } from 'zod';
@@ -50,7 +50,7 @@ export class SitemapXmlTaskProcessor extends rag.ImportSourceTaskProcessor<{}> {
   }
 
   private async fetchSitemap (url: string): Promise<string[]> {
-    const response = await fetch(url).then(handeErrors);
+    const response = await fetch(url).then(handleErrors);
 
     const sitemap: Sitemap = this.parser.parse(Buffer.from(await response.arrayBuffer()));
 

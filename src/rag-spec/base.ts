@@ -5,8 +5,10 @@ import { VercelBlobDocumentStorage } from '@/rag-spec/doument-storage/VercelBlob
 import { OpenaiEmbeddings } from '@/rag-spec/embeddings/OpenaiEmbeddings';
 import { HtmlLoader } from '@/rag-spec/loaders/HtmlLoader';
 import { MarkdownLoader } from '@/rag-spec/loaders/MarkdownLoader';
+import { PdfLoader } from '@/rag-spec/loaders/PdfLoader';
 import { TextLoader } from '@/rag-spec/loaders/TextLoader';
 import { RecursiveCharacterTextSplitter } from '@/rag-spec/spliter/RecursiveCharacterTextSplitter';
+import { FileTaskProcessor } from '@/rag-spec/task-processor/FileTaskProcessor';
 import { HtmlTaskProcessor } from '@/rag-spec/task-processor/HtmlTaskProcessor';
 import { RobotsTxtTaskProcessor } from '@/rag-spec/task-processor/RobotsTxtTaskProcessor';
 import { SitemapXmlTaskProcessor } from '@/rag-spec/task-processor/SitemapXmlTaskProcessor';
@@ -18,9 +20,12 @@ if (process.env.VERCEL === '1') {
 } else {
   baseRegistry.register(FileSystemDocumentStorage);
 }
+
 baseRegistry.register(HtmlLoader);
 baseRegistry.register(MarkdownLoader);
 baseRegistry.register(TextLoader);
+baseRegistry.register(PdfLoader);
+
 baseRegistry.register(RecursiveCharacterTextSplitter);
 baseRegistry.register(OpenaiEmbeddings);
 baseRegistry.register(OpenaiChatModel);
@@ -28,5 +33,6 @@ baseRegistry.register(OpenaiChatModel);
 baseRegistry.register(RobotsTxtTaskProcessor);
 baseRegistry.register(SitemapXmlTaskProcessor);
 baseRegistry.register(HtmlTaskProcessor);
+baseRegistry.register(FileTaskProcessor);
 
 export { baseRegistry };

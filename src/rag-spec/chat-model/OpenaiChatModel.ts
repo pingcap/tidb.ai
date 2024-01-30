@@ -1,6 +1,6 @@
 import { rag } from '@/core/interface';
 import { env } from '@/lib/zod-extensions';
-import { OpenAIStream } from 'ai';
+import { type AIStreamCallbacksAndOptions, OpenAIStream } from 'ai';
 import { type ClientOptions, OpenAI } from 'openai';
 import { z } from 'zod';
 
@@ -39,7 +39,7 @@ export class OpenaiChatModel extends rag.ChatModel<OpenaiChatModel.Options> {
       });
   }
 
-  async chatStream (history: rag.ChatMessage[]) {
+  async chatStream (history: rag.ChatMessage[], callbacks: AIStreamCallbacksAndOptions) {
     const response = await this.agent.chat.completions
       .create({
         stream: true,
@@ -51,7 +51,7 @@ export class OpenaiChatModel extends rag.ChatModel<OpenaiChatModel.Options> {
         n: 1,
       });
 
-    return OpenAIStream(response);
+    return OpenAIStream(response, callbacks);
   }
 }
 

@@ -16,7 +16,7 @@ export async function POST (req: NextRequest) {
   const chunks = await db.selectFrom('document_index_chunk')
     .select([
       'document_index_chunk.id',
-      eb => eb.ref('embedding').$castTo<number[]>().as('embedding'),
+      eb => eb.ref('embedding').as('embedding'),
     ])
     .where('document_index_chunk.id', 'in', data.ids)
     .execute();
@@ -24,9 +24,10 @@ export async function POST (req: NextRequest) {
   const res = chunks
     .map(chunk => ({
       id: chunk.id,
-      score: cosineSimilarity(vec, Float64Array.from(chunk.embedding)),
+      score: cosineSimilarity(vec, new Float64Array(chunk.embedding)),
     }))
     .sort((a, b) => b.score - a.score)
+    .filter(a => isFinite(a.score))
     .slice(0, data.top_k);
 
   return NextResponse.json(res);

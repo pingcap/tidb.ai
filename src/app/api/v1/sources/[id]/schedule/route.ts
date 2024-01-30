@@ -1,4 +1,6 @@
 import database from '@/core/db';
+import { scheduleImportSourceTask } from '@/jobs/scheduleImportSourceTask';
+import { getErrorMessage } from '@/lib/error';
 import { notFound } from 'next/navigation';
 import { type NextRequest, NextResponse } from 'next/server';
 
@@ -9,23 +11,13 @@ export async function POST (req: NextRequest, { params }: { params: { id: string
   if (!source) {
     notFound();
   }
-
-  switch (source.type) {
-    case 'robots':
-      await database.task.enqueue({
-        type: 'robots',
-        url: source.url,
-        import_source_id: source.id,
-        created_at: new Date(),
-        status: 'pending',
-      });
-      break;
-    default:
-      return NextResponse.json({
-        message: `Does not support import source type ${source.type}`,
-      });
+  try {
+    await scheduleImportSourceTask(source);
+  } catch (e) {
+    return NextResponse.json({
+      message: getErrorMessage(e),
+    }, { status: 400 });
   }
-
   return NextResponse.json({
     scheduled: true,
   });

@@ -18,6 +18,18 @@ const config = {
       },
     },
     extend: {
+      minHeight: {
+        body: "var(--body-height)",
+        content: "var(--content-height)"
+      },
+      height: {
+        header: "var(--header-height)",
+        body: "var(--body-height)",
+        content: "var(--content-height)"
+      },
+      padding: {
+        body: "var(--body-padding)"
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -67,10 +79,20 @@ const config = {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        "fade-in-right": {
+          from: { transform: 'translate3d(30%, 0, 0)', opacity: '0' },
+          to: { transform: 'translate3d(0, 0, 0)', opacity: '1' }
+        },
+        "fade-in-left": {
+          from: { transform: 'translate3d(-30%, 0, 0)', opacity: '0' },
+          to: { transform: 'translate3d(0, 0, 0)', opacity: '1' }
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        "fade-in-right": "fade-in-right 0.5s ease-out",
+        "fade-in-left": "fade-in-left 0.5s ease-out",
       },
     },
   },

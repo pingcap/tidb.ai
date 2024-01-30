@@ -5,6 +5,13 @@
 
 @layer base {
   :root {
+    --header-height: 3rem;
+    --body-height: calc(100vh - var(--header-height));
+    --body-padding: 1rem;
+    --content-height: calc(var(--body-height) - var(--body-padding) * 2);
+  }
+
+  :root {
     --base-primary: 338 24% 32%;
     --base-foreground: 338 24% 30%;
 

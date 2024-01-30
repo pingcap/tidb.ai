@@ -18,22 +18,26 @@ export type FinishTaskParameters = {
 }
 
 export interface TaskDb {
-  enqueue (partial: Insertable<DB['import_source_task']>): Promise<void>;
+  enqueue (partial: Insertable<DB['import_source_task']>): Promise<number>;
 
   dequeue (n: number, state?: TaskStatus): Promise<Selectable<DB['import_source_task']>[]>;
 
-  finish (task: Selectable<DB['import_source_task']>, result: FinishTaskParameters): Promise<void>;
+  dequeueById (id: number, state?: TaskStatus): Promise<Selectable<DB['import_source_task']> | undefined>;
+
+  finish (task: Selectable<DB['import_source_task']>, result: FinishTaskParameters): Promise<number[]>;
 
   fail (task: Selectable<DB['import_source_task']>, error: unknown): Promise<void>;
 
-  stats (): Promise<{ status: DB['import_source_task']['status'], count: number }[]>;
+  stats (): Promise<Record<DB['import_source_task']['status'], number>>;
 }
 
 export const taskDb: TaskDb = {
   async enqueue (partial) {
-    await db.insertInto('import_source_task')
+    const { insertId } = await db.insertInto('import_source_task')
       .values(partial)
-      .execute();
+      .executeTakeFirstOrThrow();
+
+    return Number(insertId);
   },
 
   async dequeue (n: number, status: TaskStatus = 'pending') {
@@ -63,11 +67,34 @@ export const taskDb: TaskDb = {
     });
   },
 
+  async dequeueById (id: number, status: TaskStatus = 'pending') {
+    return await db.transaction().execute(async db => {
+      const task = await db.selectFrom('import_source_task')
+        .selectAll()
+        .where('id', '=', eb => eb.val(id))
+        .where('status', '=', eb => eb.val(status))
+        .orderBy('created_at asc')
+        .executeTakeFirst();
+
+      if (task) {
+        await db.updateTable('import_source_task')
+          .where('id', '=', eb => eb.val(id))
+          .set({
+            status: 'processing',
+          })
+          .execute();
+      }
+
+      return task;
+    });
+  },
+
   async finish (task: Selectable<DB['import_source_task']>, result: FinishTaskParameters) {
     const now = new Date();
-    await db.transaction().execute(async db => {
+    return await db.transaction().execute(async db => {
+      let newIds: number[] = [];
       if (result.enqueue?.length) {
-        await db.insertInto('import_source_task')
+        const { numInsertedOrUpdatedRows } = await db.insertInto('import_source_task')
           .values(result.enqueue.map(childTask => ({
             parent_task_id: task.id,
             type: childTask.type,
@@ -79,7 +106,13 @@ export const taskDb: TaskDb = {
             status: 'pending',
             error: null,
           })))
-          .execute();
+          .executeTakeFirst();
+        const { id: insertId } = await db.selectFrom('import_source_task')
+          .select(eb => eb.fn.max('id').as('id'))
+          .executeTakeFirstOrThrow();
+        for (let i = Number(insertId) - Number(numInsertedOrUpdatedRows) + 1; i <= Number(insertId); i++) {
+          newIds.push(i);
+        }
       }
 
       await db.updateTable('import_source_task')
@@ -90,6 +123,8 @@ export const taskDb: TaskDb = {
           document_id: result.documentId,
         })
         .execute();
+
+      return newIds;
     });
   },
 
@@ -105,7 +140,7 @@ export const taskDb: TaskDb = {
   },
 
   async stats () {
-    const stats = db.selectFrom('import_source_task')
+    const stats = await db.selectFrom('import_source_task')
       .select([
         'status',
         eb => eb.fn.countAll<number>().as('count'),
@@ -113,7 +148,10 @@ export const taskDb: TaskDb = {
       .groupBy('status')
       .execute();
 
-    return stats;
+    return stats.reduce((res, item) => {
+      res[item.status] = item.count;
+      return res;
+    }, {} as Record<DB['import_source_task']['status'], number>);
   },
 };
 

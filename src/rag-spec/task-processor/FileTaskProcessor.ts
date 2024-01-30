@@ -3,15 +3,16 @@ import type { TaskResult } from '@/core/db/task';
 import { rag } from '@/core/interface';
 import { handleErrors } from '@/lib/fetch';
 import type { Selectable } from 'kysely';
+import mime from 'mime';
 import { z } from 'zod';
 
-export class HtmlTaskProcessor extends rag.ImportSourceTaskProcessor<{}> {
-  static identifier = 'rag.import-source-task.html';
-  static displayName = 'HTML processor';
+export class FileTaskProcessor extends rag.ImportSourceTaskProcessor<{}> {
+  static identifier = 'rag.import-source-task.file';
+  static displayName = 'File processor';
   static optionsSchema = z.object({});
 
   support (taskType: string): boolean {
-    return taskType === 'html';
+    return taskType === 'file';
   }
 
   async process (task: Selectable<DB['import_source_task']>): Promise<TaskResult> {
@@ -20,7 +21,7 @@ export class HtmlTaskProcessor extends rag.ImportSourceTaskProcessor<{}> {
     return {
       content: {
         buffer: Buffer.from(await response.arrayBuffer()),
-        mime: 'text/html',
+        mime: mime.getType(task.url) || 'unknown',
       },
     };
   }

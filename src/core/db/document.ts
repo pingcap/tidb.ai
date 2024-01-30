@@ -2,8 +2,15 @@ import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
 import type { Insertable, Selectable, Updateable } from 'kysely';
 
+const accept = [
+  'text/plain',
+  'text/html',
+  'text/markdown',
+  'application/pdf',
+];
+
 export interface DocumentDb {
-  listAll(): Promise<Selectable<DB['document']>[]>
+  listAll (): Promise<Selectable<DB['document']>[]>;
 
   listByCreatedAt (from: Date | null, limit: number): Promise<Selectable<DB['document']>[]>;
 
@@ -50,7 +57,7 @@ const documentDb = {
         eb('index_name', '=', eb => eb.val(indexName)),
         eb('index_name', 'is', null),
       ]))
-      .where('v_document_index_status.mime', 'in', ['text/plain', 'text/html', 'text/markdown'])
+      .where('v_document_index_status.mime', 'in', accept)
       .limit(limit)
       .orderBy('document.last_modified_at desc')
       .execute();
@@ -66,12 +73,12 @@ const documentDb = {
         cb('index_name', '=', eb => eb.val(indexName)),
         cb('index_name', 'is', null),
       ]))
-      .where('mime', 'in', ['text/plain', 'text/html', 'text/markdown'])
+      .where('mime', 'in', accept)
       .groupBy('index_state')
       .execute();
 
     return result.reduce((map, item) => {
-      map[item.index_state] = Number(item.count);
+      map[item.index_state || ''] = Number(item.count);
       return map;
     }, {} as Record<string, number>);
   },

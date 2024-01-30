@@ -1,5 +1,6 @@
 import type { DB } from '@/core/db/schema';
 import type { TaskResult } from '@/core/db/task';
+import type { AIStreamCallbacksAndOptions } from 'ai';
 import type { Insertable, Selectable } from 'kysely';
 import { z } from 'zod';
 
@@ -91,9 +92,12 @@ export namespace rag {
   }
 
   export abstract class ChatModel<Options> extends Base<Options> {
+    /**
+     * @deprecated
+     */
     abstract chat (history: ChatMessage[]): Promise<ChatMessage>
 
-    abstract chatStream (history: ChatMessage[]): Promise<ReadableStream>
+    abstract chatStream (history: ChatMessage[], callbacks?: AIStreamCallbacksAndOptions): Promise<ReadableStream>
   }
 
   export abstract class ImportSourceResolver<Options> extends Base<Options> {
@@ -101,7 +105,7 @@ export namespace rag {
   }
 
   export abstract class ImportSourceTaskProcessor<Options> extends Base<Options> {
-    abstract support (taskType: string): boolean;
+    abstract support (taskType: string, url: string): boolean;
 
     abstract process (task: Selectable<DB['import_source_task']>): Promise<TaskResult>
   }

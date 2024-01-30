@@ -17,11 +17,10 @@ export type JsonPrimitive = boolean | number | string | null;
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
 export interface Chat {
-  created_at: string;
+  created_at: Date;
   created_by: string;
   id: string;
   index_name: string;
-  last_seen_at: Date | null;
   llm: string;
   llm_model: string;
   name: string;
@@ -35,7 +34,7 @@ export interface ChatMessage {
   id: string;
   index_query_id: string | null;
   ordinal: number;
-  role: "ai" | "assistant" | "user";
+  role: "assistant" | "system" | "user";
 }
 
 export interface ChatMessageContextDocuments {
@@ -68,11 +67,12 @@ export interface DocumentIndex {
 
 export interface DocumentIndexChunk {
   document_id: string;
-  embedding: Json;
+  embedding: Buffer;
   id: string;
   index_name: string;
   metadata: Json;
-  staled: number | null;
+  ordinal: number;
+  staled: number;
   text_content: string;
 }
 
@@ -110,7 +110,7 @@ export interface Index {
 
 export interface IndexQuery {
   created_at: Date;
-  embedding: Json | null;
+  embedding: Buffer;
   finished_at: Date | null;
   id: string;
   index_name: string;
@@ -126,8 +126,8 @@ export interface IndexQueryResult {
 export interface VDocumentIndexStatus {
   document_id: string;
   index_name: string | null;
-  index_state: Generated<string>;
-  mime: Generated<string>;
+  index_state: string | null;
+  mime: string | null;
 }
 
 export interface DB {

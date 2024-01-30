@@ -1,7 +1,7 @@
 import type { DB } from '@/core/db/schema';
 import type { TaskResult } from '@/core/db/task';
 import { rag } from '@/core/interface';
-import { handeErrors } from '@/lib/fetch';
+import { handleErrors } from '@/lib/fetch';
 import type { Selectable } from 'kysely';
 import robotsParser from 'robots-parser';
 import { z } from 'zod';
@@ -16,7 +16,7 @@ export class RobotsTxtTaskProcessor extends rag.ImportSourceTaskProcessor<{}> {
   }
 
   async process (task: Selectable<DB['import_source_task']>): Promise<TaskResult> {
-    const response = await fetch(new URL('robots.txt', task.url)).then(handeErrors);
+    const response = await fetch(new URL('robots.txt', task.url)).then(handleErrors);
     const text = await response.text();
 
     const robots = robotsParser(task.url, text);

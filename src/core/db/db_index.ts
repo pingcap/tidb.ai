@@ -1,7 +1,7 @@
 import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
 import { rag } from '@/core/interface';
-import { handeErrors } from '@/lib/fetch';
+import { handleErrors } from '@/lib/fetch';
 import { genId } from '@/lib/id';
 import type { Insertable, Selectable } from 'kysely';
 import ChunkedContent = rag.ChunkedContent;
@@ -34,6 +34,7 @@ type SearchResult = {
   text_content: string
   metadata: any
   source_uri: string
+  source_name: string
   score: number
 }
 
@@ -98,14 +99,15 @@ export const indexDb: IndexDb = {
 
       // insert new index chunks
       await db.insertInto('document_index_chunk')
-        .values(content.chunks.map(c => ({
+        .values(content.chunks.map((c, i) => ({
           id: genId(16),
           document_id: documentId,
           index_name: index,
           metadata: JSON.stringify(c.metadata),
           text_content: c.content,
-          embedding: JSON.stringify(Array.from(c.vector)),
+          embedding: Buffer.from(c.vector.buffer),
           staled: 0,
+          ordinal: i + 1,
         })))
         .execute();
     });
@@ -138,7 +140,7 @@ export const indexDb: IndexDb = {
           q: Array.from(vector),
           ids: ids.map(t => t.id),
         }),
-      }).then(handeErrors);
+      }).then(handleErrors);
       internalResults.push(...(await result.json()));
     }));
 
@@ -152,6 +154,7 @@ export const indexDb: IndexDb = {
         'document_index_chunk.text_content',
         'document_index_chunk.metadata',
         'source_uri',
+        'document.name as source_name'
       ])
       .where('document_index_chunk.id', 'in', orderedResult.map(item => item.id))
       .execute();
@@ -174,6 +177,7 @@ export const indexDb: IndexDb = {
         metadata: res.chunk.metadata,
         source_uri: res.chunk.source_uri,
         score: res.score,
+        source_name: res.chunk.source_name,
       }));
   },
 
@@ -220,6 +224,7 @@ export const indexDb: IndexDb = {
         'document_index_chunk.metadata',
         'score',
         'source_uri',
+        'document.name as source_name'
       ])
       .execute();
   },

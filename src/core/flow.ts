@@ -191,9 +191,9 @@ export class Flow implements Flow.ExtensionApi {
     return chatModel;
   }
 
-  getImportSourceTaskProcessor (type: string): rag.ImportSourceTaskProcessor<any> {
+  getImportSourceTaskProcessor (type: string, url: string): rag.ImportSourceTaskProcessor<any> {
     for (let processor of Array.from(this.importSourceTaskProcessor.values())) {
-      if (processor.support(type)) {
+      if (processor.support(type, url)) {
         return processor;
       }
     }

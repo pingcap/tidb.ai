@@ -22,7 +22,7 @@ export async function query (indexName: string, { text, top_k }: z.infer<typeof 
   const id = genId();
   await database.index.startQuery({
     id,
-    embedding: JSON.stringify(Array.from(vector)),
+    embedding: Buffer.from(vector.buffer),
     text,
     created_at: new Date(),
     index_name: indexName,

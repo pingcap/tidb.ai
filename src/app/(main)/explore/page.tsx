@@ -3,13 +3,12 @@
 import { DataTable } from '@/components/data-table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { DB } from '@/core/db/schema';
+import { withToast } from '@/lib/toast';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';
 import type { Selectable } from 'kysely';
 import { GithubIcon } from 'lucide-react';
-import { useEffect } from 'react';
-import { toast } from 'sonner';
 import useSWR from 'swr';
 
 const helper = createColumnHelper<Selectable<DB['document']>>();
@@ -57,16 +56,7 @@ const columns = [
 ] as ColumnDef<Selectable<DB['document']>>[];
 
 export default function Page () {
-  const { data, isLoading, isValidating } = useDocuments();
-
-  useEffect(() => {
-    if (isLoading || isValidating) {
-      const id = toast('Loading...');
-      return () => {
-        toast.dismiss(id);
-      };
-    }
-  }, [isLoading, isValidating]);
+  const { data, isLoading } = useDocuments();
 
   return (
     <TooltipProvider>
@@ -78,19 +68,23 @@ export default function Page () {
   );
 }
 
-const fetcher = async ([url]: [string]) => {
+const fetcher = withToast(async ([url]: [string]) => {
   const res = await fetch(url);
   if (!res.ok || res.redirected) {
-    const error = new Error(`${res.status} ${res.statusText}`);
-    throw error;
+    throw new Error(`${res.status} ${res.statusText}`);
   }
 
-  return res.json();
-};
+  return (await res.json()) as Selectable<DB['document']>[];
+}, {
+  loading: () => 'Loading...',
+  success: (res) => `${res.length} documents`,
+});
 
 function useDocuments () {
-  return useSWR<Selectable<DB['document']>[]>(['/api/v1/documents'], fetcher, {
+  return useSWR(['/api/v1/documents'], fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
+    refreshWhenOffline: false,
+    refreshWhenHidden: false,
   });
 }

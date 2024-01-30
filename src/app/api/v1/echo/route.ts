@@ -1,22 +1,13 @@
+import { PdfLoader } from '@/rag-spec/loaders/PdfLoader';
 import { SitemapXmlTaskProcessor } from '@/rag-spec/task-processor/SitemapXmlTaskProcessor';
+import * as fs from 'fs';
 import { NextResponse } from 'next/server';
 
 export async function GET () {
-  const p = new SitemapXmlTaskProcessor({});
-  const res = await p.process({
-    type: 'sitemap',
-    url: 'https://docs.pingcap.com/sitemap/sitemap-0.xml',
-    created_at: new Date(),
-    import_source_id: '1',
-    error: null,
-    finished_at: null,
-    document_id: null,
-    parent_task_id: null,
-    id: 1,
-    status: 'pending',
-  });
+  const loader = new PdfLoader({});
 
-  return NextResponse.json(res);
+
+  return NextResponse.json(await loader.load(fs.readFileSync('.store/blob/D0/Ibk5PFFI0W')));
 }
 
 export const dynamic = 'force-dynamic';

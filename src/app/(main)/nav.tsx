@@ -4,7 +4,7 @@ import { type NavGroup, SiteNav } from '@/components/site-nav';
 import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { BinaryIcon, ImportIcon, LibraryIcon, MenuIcon, MessageSquareTextIcon } from 'lucide-react';
+import { ActivitySquareIcon, BinaryIcon, ImportIcon, LibraryIcon, MenuIcon, MessageSquareTextIcon } from 'lucide-react';
 
 export function Nav () {
   return <SiteNav groups={groups} />;
@@ -30,12 +30,10 @@ export function NavDrawer () {
 const groups: NavGroup[] = [
   {
     items: [
-      { href: '/', title: 'Overview', exact: true },
-      // { href: '/chat', title: 'Chat!', icon: MessageSquareTextIcon },
+      { href: '/', title: 'Overview', exact: true, icon: ActivitySquareIcon },
       { href: '/ask', title: 'Ask', icon: MessageSquareTextIcon },
-      { href: '/import', title: 'Import', icon: ImportIcon },
-      { href: '/explore', title: 'Explore Documents', icon: LibraryIcon },
-      { href: '/embeddings', title: 'Embeddings', icon: BinaryIcon },
+      { href: '/explore', title: 'Documents', icon: LibraryIcon },
+      { href: '/sources', title: 'Sources', icon: ImportIcon },
     ],
   },
   // {
