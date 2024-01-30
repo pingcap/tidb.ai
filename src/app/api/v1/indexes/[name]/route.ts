@@ -12,3 +12,5 @@ export async function GET (req: NextRequest, { params }: { params: { name: strin
 
   return NextResponse.json(index);
 }
+
+export const dynamic = 'force-dynamic';

@@ -8,3 +8,5 @@ export async function POST (req: NextRequest, { params }: { params: { name: stri
 
   return NextResponse.json(top);
 }
+
+export const dynamic = 'force-dynamic';

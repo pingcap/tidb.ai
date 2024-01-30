@@ -6,3 +6,5 @@ export async function GET (req: NextRequest, { params }: { params: { name: strin
 
   return NextResponse.json(await database.document.getIndexState(name))
 }
+
+export const dynamic = 'force-dynamic';

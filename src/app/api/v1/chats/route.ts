@@ -109,3 +109,5 @@ export async function POST (req: NextRequest) {
     },
   }, streamData);
 }
+
+export const dynamic = 'force-dynamic';

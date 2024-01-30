@@ -13,3 +13,5 @@ export async function GET (req: NextRequest, { params }: { params: { query_id: s
 
   return NextResponse.json(query);
 }
+
+export const dynamic = 'force-dynamic';

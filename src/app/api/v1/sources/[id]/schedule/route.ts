@@ -22,3 +22,5 @@ export async function POST (req: NextRequest, { params }: { params: { id: string
     scheduled: true,
   });
 }
+
+export const dynamic = 'force-dynamic';
