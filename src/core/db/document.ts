@@ -52,7 +52,7 @@ const documentDb = {
     return await db.selectFrom('document')
       .selectAll('document')
       .leftJoin('v_document_index_status', 'document.id', 'v_document_index_status.document_id')
-      .where('index_state', '<>', 'indexed')
+      .where('index_state', 'not in', ['indexed', 'fail', 'indexing'])
       .where(eb => eb.or([
         eb('index_name', '=', eb => eb.val(indexName)),
         eb('index_name', 'is', null),

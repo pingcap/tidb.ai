@@ -116,7 +116,7 @@ export const indexDb: IndexDb = {
     await db.updateTable('document_index')
       .set({
         status: 'fail',
-        trace: JSON.stringify({ name: error, message: error.message }),
+        trace: JSON.stringify({ name: error.name, message: error.message }),
       })
       .where('index_name', '=', eb => eb.val(index))
       .where('document_id', '=', eb => eb.val(documentId))
