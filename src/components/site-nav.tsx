@@ -13,24 +13,38 @@ import { useUser } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { type ComponentType, Fragment, type ReactElement, type ReactNode } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+import { type ComponentType, Fragment, type MouseEvent, type ReactElement, type ReactNode } from 'react';
 
 export interface NavGroup {
   title?: ReactNode;
   items: NavItem[];
 }
 
-export interface NavItem {
-  href: string;
+export interface NavBaseItem {
   icon?: ComponentType<{ className?: string }>;
   title: ReactNode;
   details?: ReactNode;
   className?: string;
-  variant?: ButtonProps['variant'];
-  exact?: boolean;
   disabled?: ReactNode | boolean;
 }
+
+export interface NavLinkItem extends NavBaseItem {
+  href: string;
+  exact?: boolean;
+  variant?: ButtonProps['variant'] | ((active: boolean) => ButtonProps['variant']);
+}
+
+export interface NavButtonItem extends NavBaseItem {
+  key: string;
+  onClick: (ev: MouseEvent<HTMLButtonElement>) => void;
+  variant?: ButtonProps['variant'];
+}
+
+export type NavItem = NavLinkItem | NavButtonItem
+
+const isNavLinkItem = (item: NavBaseItem): item is NavLinkItem => 'href' in item;
+const isNavButtonItem = (item: NavBaseItem): item is NavButtonItem => 'onClick' in item;
 
 export interface SiteNavProps {
   groups: NavGroup[];
@@ -48,44 +62,8 @@ export function SiteNav ({ groups }: SiteNavProps) {
             <SiteNavGroup group={group} current={pathname} />
           </Fragment>
         ))}
-        <div className="absolute bottom-0 left-0 w-full border-t pt-2 flex gap-0.5 items-center">
-          <User />
-          <ThemeToggle />
-
-          <Button size="icon" variant="ghost" className="ml-auto rounded-full">
-            <GithubSvg />
-          </Button>
-          <Button size="icon" variant="ghost" className="rounded-full">
-            <TwitterXSvg />
-          </Button>
-        </div>
       </nav>
     </TooltipProvider>
-  );
-}
-
-function User () {
-  const user = useUser();
-
-  if (!user) {
-    return null;
-  }
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger>
-        <Avatar className="border dark:bg-primary bg-primary-foreground p-0.5">
-          {user.image && <AvatarImage src={user.image} />}
-          <AvatarFallback className="text-xs">
-            {user.image ? <Skeleton className='w-full h-full' /> : user.name}
-          </AvatarFallback>
-        </Avatar>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent collisionPadding={8}>
-        <DropdownMenuItem onClick={() => signOut()}>
-          Sign out
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
   );
 }
 
@@ -95,20 +73,33 @@ function SiteNavGroup ({ group, current }: { group: NavGroup, current: string })
       {group.title && <h6 className="text-sm font-semibold text-foreground/40">{group.title}</h6>}
       <ul className="space-y-1.5">
         {group.items.map(item => (
-          <SiteNavItem key={item.href} item={item} active={current === item.href || (!item.exact && current.startsWith(item.href))} />
+          isNavLinkItem(item)
+            ? <SiteNavLinkItem key={item.href} item={item} active={current === item.href || (!item.exact && current.startsWith(item.href))} />
+            : <SiteNavButtonItem key={item.key} item={item} />
         ))}
       </ul>
     </section>
   );
 }
 
-function SiteNavItem ({ item, active }: { item: NavItem, active: boolean }) {
+function resolveVariant<T extends ButtonProps['variant']> (fnOrValue: T | ((active: boolean) => T | undefined) | null | undefined, active: boolean) {
+  if (!fnOrValue) {
+    return fnOrValue;
+  }
+  if (typeof fnOrValue === 'string') {
+    return fnOrValue;
+  } else {
+    return fnOrValue(active);
+  }
+}
+
+function SiteNavLinkItem ({ item, active }: { item: NavLinkItem, active: boolean }) {
   let el: ReactElement;
 
   if (!!item.disabled) {
     el = (
       <span className="cursor-not-allowed">
-        <Button className={cn('flex w-full justify-start gap-2 font-semibold', item.className)} variant={item.variant ?? (active ? 'default' : 'ghost')} disabled={!!item.disabled}>
+        <Button className={cn('flex w-full justify-start gap-2 font-semibold', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'default' : 'ghost')} disabled={!!item.disabled}>
           {item.icon && <item.icon className="w-5 h-5 opacity-70" />}
           {item.title}
           {item.details && <span className="ml-auto">{item.details}</span>}
@@ -117,7 +108,7 @@ function SiteNavItem ({ item, active }: { item: NavItem, active: boolean }) {
     );
   } else {
     el = (
-      <Button asChild className={cn('flex w-full justify-start gap-2 font-semibold', item.className)} variant={item.variant ?? (active ? 'default' : 'ghost')}>
+      <Button asChild className={cn('flex w-full justify-start gap-2 font-semibold', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'default' : 'ghost')} data-active={active ? 'true' : undefined}>
         <Link href={item.href} prefetch={false}>
           {item.icon && <item.icon className="w-5 h-5 opacity-70" />}
           {item.title}
@@ -126,6 +117,48 @@ function SiteNavItem ({ item, active }: { item: NavItem, active: boolean }) {
       </Button>
     );
   }
+  if (item.disabled && typeof item.disabled !== 'boolean') {
+    el = (
+      <Tooltip>
+        <TooltipTrigger asChild disabled={!!item.disabled}>
+          {el}
+        </TooltipTrigger>
+        <TooltipContent>
+          {item.disabled}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+  return (
+    <li>
+      {el}
+    </li>
+  );
+}
+
+function SiteNavButtonItem ({ item }: { item: NavButtonItem }) {
+  let el: ReactElement;
+
+  if (!!item.disabled) {
+    el = (
+      <span className="cursor-not-allowed">
+        <Button className={cn('flex w-full justify-start gap-2 font-semibold', item.className)} variant={item.variant} disabled={!!item.disabled}>
+          {item.icon && <item.icon className="w-5 h-5 opacity-70" />}
+          {item.title}
+          {item.details && <span className="ml-auto">{item.details}</span>}
+        </Button>
+      </span>
+    );
+  } else {
+    el = (
+      <Button className={cn('flex w-full justify-start gap-2 font-semibold', item.className)} variant={item.variant} onClick={item.onClick}>
+        {item.icon && <item.icon className="w-5 h-5 opacity-70" />}
+        {item.title}
+        {item.details && <span className="ml-auto">{item.details}</span>}
+      </Button>
+    );
+  }
+
   if (item.disabled && typeof item.disabled !== 'boolean') {
     el = (
       <Tooltip>

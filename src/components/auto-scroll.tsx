@@ -20,13 +20,11 @@ export function AutoScroll<T extends HTMLElement> ({ children }: AutoScrollProps
         throw new Error('invalid radix scroll area.');
       }
       if (children.length > 1) {
-        console.log(children)
         console.warn('invalid radix scroll area.');
       }
       const child = children.item(0)!;
 
       const ro = new ResizeObserver(() => {
-        console.log('resize');
         el.scrollTo({
           top: el.scrollHeight - el.clientHeight,
           behavior: 'smooth',

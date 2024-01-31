@@ -136,4 +136,13 @@ export const POST = auth(async function POST (req) {
   }, streamData);
 }) as any;
 
+export const GET = auth(async function GET (req) {
+  const userId = req.auth?.user?.id;
+  if (!userId) {
+    return new NextResponse('Need authorization', { status: 401 });
+  }
+
+  return NextResponse.json(await database.chat.listChatsByCreator(userId, 10));
+}) as any;
+
 export const dynamic = 'force-dynamic';

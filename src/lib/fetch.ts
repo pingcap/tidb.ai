@@ -19,7 +19,7 @@ export async function handleErrors (input: Promise<Response> | Response) {
 
 export type DefaultFetcherParams = [method: string, input: string | URL, params?: Record<string, string | string[] | undefined>, body?: any]
 
-export const fetcher = <T> ([method, input, params, body]: DefaultFetcherParams) => {
+export function fetcher<T> ([method, input, params, body]: DefaultFetcherParams) {
   const usp = new URLSearchParams();
 
   if (params) {

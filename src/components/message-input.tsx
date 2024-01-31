@@ -1,21 +1,39 @@
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
-import { SendIcon } from 'lucide-react';
-import type { InputHTMLAttributes, RefObject } from 'react';
+import { ArrowRightIcon } from 'lucide-react';
+import { type ChangeEvent, type RefObject, useCallback, useRef, useState } from 'react';
+import TextareaAutosize, { type TextareaAutosizeProps } from 'react-textarea-autosize';
 
-export function MessageInput ({ className, disabled, inputRef, inputProps }: { className?: string, disabled?: boolean, inputRef?: RefObject<HTMLInputElement>, inputProps?: InputHTMLAttributes<HTMLInputElement> }) {
+export function MessageInput ({ className, disabled, inputRef, inputProps }: { className?: string, disabled?: boolean, inputRef?: RefObject<HTMLTextAreaElement>, inputProps?: TextareaAutosizeProps }) {
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const [empty, setEmpty] = useState(true);
+
+  const onChangeRef = useRef(inputProps?.onChange);
+  onChangeRef.current = inputProps?.onChange;
+  const handleChange = useCallback((ev: ChangeEvent<HTMLTextAreaElement>) => {
+    setEmpty(!ev.currentTarget.value.trim());
+    onChangeRef.current?.(ev);
+  }, []);
+
   return (
-    <div className={cn('bg-background flex gap-2 items-center border-2 p-2 rounded-full focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-ring', className)}>
-      <Input
+    <div className={cn('bg-background flex gap-2 items-end border-2 p-2 rounded-lg', className)}>
+      <TextareaAutosize
         placeholder="Edit..."
+        onKeyDown={e => {
+          if (!e.nativeEvent.isComposing && e.key === 'Enter' && !disabled) {
+            e.preventDefault();
+            buttonRef.current?.click();
+          }
+        }}
         {...inputProps}
+        onChange={handleChange}
         ref={inputRef}
-        className="border-none rounded-full ring-0 outline-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+        className="flex-1 border-none ring-0 outline-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 resize-none"
         disabled={disabled || inputProps?.disabled}
+        minRows={2}
       />
-      <Button size="icon" className="rounded-full flex-shrink-0" disabled={disabled}>
-        <SendIcon size="1em" />
+      <Button size="icon" className="rounded-full flex-shrink-0 w-8 h-8 p-2" disabled={empty || disabled} ref={buttonRef}>
+        <ArrowRightIcon className="w-full h-full" />
       </Button>
     </div>
   );

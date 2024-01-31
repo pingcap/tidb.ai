@@ -25,51 +25,48 @@ export function Conversation ({ open, history, context }: { open: boolean, histo
   const { handleInputChange, isWaiting, handleSubmit, input, isLoading, data, error, messages } = useMyChat(history, context);
 
   return (
-    <div className="p-body space-y-4">
-      <div className={cn(
-        'max-w-screen-sm mx-auto space-y-4 transition-all relative',
-        (messages.length === 0 && !error) ? 'h-0' : 'h-content',
-      )}>
-        <AutoScroll>
-          <ScrollArea className="h-full">
-            <ScrollBar orientation="vertical" />
-            <ul className="space-y-6 p-6 pb-24">
-              {messages.map((item, index) => (
-                <ChatMessage key={item.id} role={item.role} content={item.content}>
-                  {data[String(index + 1)] && (
-                    <ul className="flex gap-2 flex-wrap">
-                      {data[String(index + 1)].context.map((item: { uri: string, title: string }) => (
-                        <li key={item.uri} className="max-w-[400px] rounded-lg border bg-card text-xs transition-all hover:shadow-lg hover:-translate-y-0.5">
-                          <a className="block space-y-1 p-2" href={item.uri}>
-                            <div className="font-semibold">
-                              <LinkIcon size="1em" className="inline-flex mr-1" />
-                              {item.title}
-                            </div>
-                            <div className="opacity-70">
-                              {parseSource(item.uri)}
-                            </div>
-                          </a>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </ChatMessage>
-              ))}
-              {isWaiting && <ChatMessagePlaceholder role="assistant" />}
-              {error && <li><Alert>
-                <AlertTitle>Something wrong TaT</AlertTitle>
-                <AlertDescription>
-                  {getErrorMessage(error)}
-                </AlertDescription>
-              </Alert>
-              </li>}
-            </ul>
-          </ScrollArea>
-        </AutoScroll>
-        {open && <form className="w-full absolute bottom-0 p-4" onSubmit={handleSubmit}>
-          <MessageInput className="w-full transition-all" disabled={isLoading} inputProps={{ value: input, onChange: handleInputChange, disabled: isLoading }} />
-        </form>}
-      </div>
+    <div className={cn(
+      'max-w-screen-sm mx-auto space-y-4 transition-all relative h-screen p-body',
+    )}>
+      <AutoScroll>
+        <ScrollArea className="h-full">
+          <ScrollBar orientation="vertical" />
+          <ul className="space-y-6 p-6 pb-24">
+            {messages.map((item, index) => (
+              <ChatMessage key={item.id} role={item.role} content={item.content}>
+                {data[String(index + 1)] && (
+                  <ul className="flex gap-2 flex-wrap">
+                    {data[String(index + 1)].context.map((item: { uri: string, title: string }) => (
+                      <li key={item.uri} className="max-w-[400px] rounded-lg border bg-card text-xs transition-all hover:shadow-lg hover:-translate-y-0.5">
+                        <a className="block space-y-1 p-2" href={item.uri}>
+                          <div className="font-semibold">
+                            <LinkIcon size="1em" className="inline-flex mr-1" />
+                            {item.title}
+                          </div>
+                          <div className="opacity-70">
+                            {parseSource(item.uri)}
+                          </div>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </ChatMessage>
+            ))}
+            {isWaiting && <ChatMessagePlaceholder role="assistant" />}
+            {error && <li><Alert>
+              <AlertTitle>Something wrong TaT</AlertTitle>
+              <AlertDescription>
+                {getErrorMessage(error)}
+              </AlertDescription>
+            </Alert>
+            </li>}
+          </ul>
+        </ScrollArea>
+      </AutoScroll>
+      {open && <form className="w-full absolute bottom-0 p-4" onSubmit={handleSubmit}>
+        <MessageInput className="w-full transition-all" disabled={isLoading} inputProps={{ value: input, onChange: handleInputChange, disabled: isLoading }} />
+      </form>}
     </div>
   );
 }
@@ -195,7 +192,6 @@ function useMyChat (history: Selectable<DB['chat_message']>[], context: { ordina
       res[String(item.ordinal)].context.push(item);
       return res;
     }, {} as any);
-    console.log(ssrData);
 
     return Object.assign({}, ssrData, ...(chat.data || []) as any);
   }, [chat.data, context]);

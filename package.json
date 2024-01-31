@@ -65,6 +65,7 @@
     "react-dom": "^18",
     "react-hook-form": "^7.49.3",
     "react-resizable-panels": "^1.0.9",
+    "react-textarea-autosize": "^8.5.3",
     "rehype-document": "^7.0.3",
     "rehype-parse": "^9.0.0",
     "remark-gfm": "^4.0.0",

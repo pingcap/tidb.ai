@@ -7,6 +7,8 @@ export interface ChatDb {
 
   getChat (chatId: string): Promise<Selectable<DB['chat']> | undefined>;
 
+  listChatsByCreator (userId: string, n?: number): Promise<Selectable<DB['chat']>[]>;
+
   getHistory (chatId: string): Promise<Selectable<DB['chat_message']>[]>;
 
   getContext (chatId: string): Promise<{ ordinal: number, title: string, uri: string }[]>;
@@ -34,6 +36,14 @@ export const chatDb: ChatDb = {
       .selectAll()
       .where('id', '=', eb => eb.val(id))
       .executeTakeFirst();
+  },
+  async listChatsByCreator (userId: string, n: number = 10): Promise<Selectable<DB['chat']>[]> {
+    return await db.selectFrom('chat')
+      .selectAll()
+      .where('created_by', '=', userId)
+      .orderBy('created_at', 'desc')
+      .limit(n)
+      .execute();
   },
   async getHistory (id: string) {
     return await db.selectFrom('chat_message')
