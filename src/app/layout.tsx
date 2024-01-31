@@ -11,9 +11,6 @@ const font = Font({ subsets: ['latin', 'latin-ext'] });
 export const metadata: Metadata = {
   title: 'RAG Template',
   description: 'TiDB Cloud!',
-  icons: [
-    '/tidb-ai.svg',
-  ],
 };
 
 export default async function RootLayout ({
@@ -25,6 +22,9 @@ export default async function RootLayout ({
 
   return (
     <html lang="en">
+    <head>
+      <link rel="icon" href="/tidb-ai-light.svg" sizes="any" />
+    </head>
     <body className={font.className}>
     <ThemeProvider
       attribute="class"
