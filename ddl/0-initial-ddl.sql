@@ -130,8 +130,9 @@ SELECT d.id                              AS document_id,
        IFNULL(
                CASE
                    WHEN di.created_at IS NULL THEN 'notIndexed'
+                   WHEN di.status = 'indexing' THEN 'indexing'
+                   WHEN di.status = 'fail' THEN 'fail'
                    WHEN di.created_at < i.created_at THEN 'staled'
-                   WHEN di.status <> 'ok' THEN 'staled'
                    ELSE 'indexed'
                    END COLLATE utf8mb4_general_ci,
                'notIndexed' COLLATE utf8mb4_general_ci
