@@ -1,7 +1,6 @@
 import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
 import { rag } from '@/core/interface';
-import { handleErrors } from '@/lib/fetch';
 import { genId } from '@/lib/id';
 import type { Insertable, Selectable } from 'kysely';
 import ChunkedContent = rag.ChunkedContent;
@@ -130,21 +129,23 @@ export const indexDb: IndexDb = {
       .where('index_name', '=', eb => eb.val(index))
       .execute();
 
-    const internalResults: { id: string, score: number }[] = [];
+    const vec = Float64Array.from(vector);
 
-    await Promise.all(chunked(ids, 5000).map(async ids => {
-      const result = await fetch(`${process.env.FORCE_HTTP ? 'http' : 'https'}://${process.env.SITE_URL}/api/v1/shard`, {
-        method: 'post',
-        body: JSON.stringify({
-          top_k: top_k,
-          q: Array.from(vector),
-          ids: ids.map(t => t.id),
-        }),
-      }).then(handleErrors);
-      internalResults.push(...(await result.json()));
-    }));
+    const chunks = await db.selectFrom('document_index_chunk')
+      .select([
+        'document_index_chunk.id',
+        eb => eb.ref('embedding').as('embedding'),
+      ])
+      .execute();
 
-    const orderedResult = internalResults.sort((a, b) => b.score - a.score).slice(0, top_k);
+    const internalResults = chunks
+      .map(chunk => ({
+        id: chunk.id,
+        score: cosineSimilarity(vec, new Float64Array(chunk.embedding)),
+      }))
+      .sort((a, b) => a.score - b.score)
+      .filter(a => isFinite(a.score))
+      .slice(0, top_k);
 
     const results = await db.selectFrom('document_index_chunk')
       .innerJoin('document', 'document_id', 'document.id')
@@ -154,12 +155,12 @@ export const indexDb: IndexDb = {
         'document_index_chunk.text_content',
         'document_index_chunk.metadata',
         'source_uri',
-        'document.name as source_name'
+        'document.name as source_name',
       ])
-      .where('document_index_chunk.id', 'in', orderedResult.map(item => item.id))
+      .where('document_index_chunk.id', 'in', internalResults.map(item => item.id))
       .execute();
 
-    return orderedResult.map(res => {
+    return internalResults.map(res => {
       const r = results.find(item => item.id === res.id);
       if (!r) {
         return undefined;
@@ -224,7 +225,7 @@ export const indexDb: IndexDb = {
         'document_index_chunk.metadata',
         'score',
         'source_uri',
-        'document.name as source_name'
+        'document.name as source_name',
       ])
       .execute();
   },

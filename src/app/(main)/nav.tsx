@@ -4,9 +4,46 @@ import { type NavGroup, SiteNav } from '@/components/site-nav';
 import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { ActivitySquareIcon, BinaryIcon, ImportIcon, LibraryIcon, MenuIcon, MessageSquareTextIcon } from 'lucide-react';
+import { useUser } from '@/lib/auth';
+import { ActivitySquareIcon, ImportIcon, LibraryIcon, LogInIcon, MenuIcon, MessagesSquareIcon, SearchIcon } from 'lucide-react';
+import Link from 'next/link';
+import { useMemo } from 'react';
 
 export function Nav () {
+  const user = useUser();
+
+  const groups = useMemo(() => {
+    const disableIfNotAuthenticated = !user ? <><Link className="font-semibold underline" href="/auth/login">Login</Link> to continue</> : false;
+
+    const groups: NavGroup[] = [
+      {
+        items: [
+          { href: '/', title: 'Ask', icon: SearchIcon, exact: true },
+          { href: '/conversations', title: 'Conversations', exact: true, icon: MessagesSquareIcon, disabled: disableIfNotAuthenticated },
+        ],
+      },
+    ];
+
+    if (!user) {
+      groups.push({
+        items: [
+          { href: '/auth/login', title: 'Login', icon: LogInIcon, className: 'justify-center', variant: 'secondary' },
+        ],
+      });
+    } else {
+      groups.push({
+        title: 'Management',
+        items: [
+          { href: '/overview', title: 'Overview', exact: true, icon: ActivitySquareIcon },
+          { href: '/explore', title: 'Documents', icon: LibraryIcon },
+          { href: '/sources', title: 'Sources', icon: ImportIcon },
+        ],
+      });
+    }
+
+    return groups;
+  }, [user]);
+
   return <SiteNav groups={groups} />;
 }
 
@@ -26,30 +63,3 @@ export function NavDrawer () {
     </Drawer>
   );
 }
-
-const groups: NavGroup[] = [
-  {
-    items: [
-      { href: '/', title: 'Overview', exact: true, icon: ActivitySquareIcon },
-      { href: '/ask', title: 'Ask', icon: MessageSquareTextIcon },
-      { href: '/explore', title: 'Documents', icon: LibraryIcon },
-      { href: '/sources', title: 'Sources', icon: ImportIcon },
-    ],
-  },
-  // {
-  //   title: 'Settings',
-  //   items: [
-  //     { href: '/settings/prompts', title: 'Prompts', icon: TerminalIcon },
-  //     { href: '/settings/database', title: 'Database', details: <Status title="Connected" status="green" />, icon: DatabaseIcon },
-  //     { href: '/settings/openai', title: 'OpenAI', details: <Status title="Offline" status="red" />, icon: OpenaiIcon },
-  //   ],
-  // },
-  // {
-  //   title: 'Security',
-  //   items: [
-  //     { href: '/settings/security/users', title: 'Users', icon: UsersRound },
-  //     { href: '/settings/security/api', title: 'API', icon: Link2Icon, details: <Status title="Disabled" status="gray" /> },
-  //     { href: '/settings/security/access-token', title: 'Access Tokens', icon: Fingerprint },
-  //   ],
-  // },
-];

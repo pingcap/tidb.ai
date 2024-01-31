@@ -1,8 +1,10 @@
+const withSvgr = require('next-plugin-svgr')
+
 /** @type {import('next').NextConfig} */
-const nextConfig = {
+let nextConfig = withSvgr({
   experimental: {
     serverComponentsExternalPackages: ['pdfjs-dist'],
-  }
-}
+  },
+})
 
 module.exports = nextConfig
