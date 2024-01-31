@@ -3,7 +3,7 @@ import AnonymousSessionProvider from '@/components/anonymous-session-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 import type { Metadata } from 'next';
 import { SessionProvider } from 'next-auth/react';
-import {  Noto_Sans as Font } from 'next/font/google';
+import { Noto_Sans as Font } from 'next/font/google';
 import './globals.css';
 
 const font = Font({ subsets: ['latin', 'latin-ext'] });
