@@ -1,0 +1,174 @@
+'use client';
+
+import { Loader } from '@/components/loader';
+import { Button } from '@/components/ui/button';
+import { RowCheckbox } from '@/components/ui/row-checkbox';
+
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import type { Page } from '@/lib/database';
+import { fetcher } from '@/lib/fetch';
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import type { PaginationState } from '@tanstack/table-core';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import useSWR from 'swr';
+
+interface DataTableRemoteProps<TData, TValue> {
+  idColumn: keyof TData;
+  api: string;
+  columns: ColumnDef<TData, TValue>[];
+  selectable?: boolean;
+  batchOperations?: (rows: string[], revalidate: () => void) => ReactNode;
+  refreshInterval?: number | ((data: Page<TData> | undefined) => number);
+}
+
+export function DataTableRemote<TData, TValue> ({
+  idColumn,
+  api,
+  columns,
+  selectable = false,
+  batchOperations,
+  refreshInterval,
+}: DataTableRemoteProps<TData, TValue>) {
+  const [pagination, setPagination] = useState<PaginationState>(() => {
+    return { pageIndex: 0, pageSize: 10 };
+  });
+  const [rowSelection, setRowSelection] = useState({});
+  const idSelection = useMemo(() => {
+    return Object.keys(rowSelection);
+  }, [rowSelection]);
+
+  const { data, mutate, isLoading, isValidating } = useSWR(['get', api, { page: pagination.pageIndex + 1, page_size: pagination.pageSize }], fetcher<Page<TData>>, {
+    refreshInterval,
+  });
+
+  useEffect(() => {
+    void mutate();
+  }, [pagination.pageSize, pagination.pageIndex]);
+
+  columns = useMemo(() => {
+    if (!selectable) {
+      return columns;
+    }
+
+    return [
+      {
+        id: 'select',
+        header: ({ table }) => (
+          <RowCheckbox
+            onClick={table.getToggleAllRowsSelectedHandler()}
+            checked={table.getIsAllRowsSelected()}
+            indeterminate={table.getIsSomeRowsSelected()}
+          />
+        ),
+        cell: ({ row }) => (
+          <div>
+            <RowCheckbox
+              onClick={row.getToggleSelectedHandler()}
+              checked={row.getIsSelected()}
+              indeterminate={row.getIsSomeSelected()}
+              disabled={!row.getCanSelect()}
+            />
+          </div>
+        ),
+      },
+      ...columns,
+    ];
+  }, [columns, selectable]);
+
+  const table = useReactTable({
+    data: data?.data ?? [],
+    columns,
+    state: {
+      pagination,
+      rowSelection,
+    },
+    pageCount: data ? Math.ceil(data.total / data.pageSize) : 1,
+    manualPagination: true,
+    enableRowSelection: selectable,
+    enableMultiRowSelection: selectable,
+    onPaginationChange: setPagination,
+    onRowSelectionChange: setRowSelection,
+    getCoreRowModel: getCoreRowModel(),
+    getRowId: item => String(item[idColumn]),
+  });
+
+  return (
+    <div className="">
+      <TooltipProvider>
+        <div className="rounded-md border relative">
+          <Table className="text-xs whitespace-nowrap">
+            <TableHeader>
+              {table.getHeaderGroups().map((headerGroup) => (
+                <TableRow key={headerGroup.id}>
+                  {headerGroup.headers.map((header) => {
+                    return (
+                      <TableHead key={header.id}>
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                      </TableHead>
+                    );
+                  })}
+                </TableRow>
+              ))}
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows?.length ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && 'selected'}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={columns.length} className="h-24 text-center">
+                    No results.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+          <Loader loading={isLoading || isValidating} />
+        </div>
+        <div className="flex w-full items-center gap-2 py-4">
+          {selectable && (
+            <>
+              <span className="text-xs text-secondary-foreground">
+                Selected {Object.keys(rowSelection).length} rows
+              </span>
+              {batchOperations?.(idSelection, () => mutate())}
+            </>
+          )}
+          <Button
+            className="ml-auto"
+            variant="outline"
+            size="sm"
+            onClick={() => table.previousPage()}
+            disabled={!table.getCanPreviousPage()}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => table.nextPage()}
+            disabled={!table.getCanNextPage()}
+          >
+            Next
+          </Button>
+        </div>
+      </TooltipProvider>
+    </div>
+  );
+}

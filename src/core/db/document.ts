@@ -1,5 +1,6 @@
 import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
+import { executePage, type Page, type PageRequest } from '@/lib/database';
 import type { Insertable, Selectable, Updateable } from 'kysely';
 
 const accept = [
@@ -10,7 +11,7 @@ const accept = [
 ];
 
 export interface DocumentDb {
-  listAll (): Promise<Selectable<DB['document']>[]>;
+  listAll (request: PageRequest): Promise<Page<Selectable<DB['document']> & { index_state: DB['v_document_index_status']['index_state'] }>>;
 
   listByCreatedAt (from: Date | null, limit: number): Promise<Selectable<DB['document']>[]>;
 
@@ -30,10 +31,13 @@ export interface DocumentDb {
 }
 
 const documentDb = {
-  async listAll () {
-    return await db.selectFrom('document')
-      .selectAll()
-      .execute();
+  async listAll (request: PageRequest) {
+    return await executePage(
+      db.selectFrom('document')
+        .innerJoin('v_document_index_status', 'document.id', 'v_document_index_status.document_id')
+        .selectAll('document')
+        .select('index_state'),
+      request);
   },
 
   async listByCreatedAt (from, limit) {

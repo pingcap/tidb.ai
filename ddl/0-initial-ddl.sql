@@ -60,7 +60,7 @@ CREATE TABLE document_index_chunk
     PRIMARY KEY (id),
     FOREIGN KEY (document_id) REFERENCES document (id),
     FOREIGN KEY (index_name) REFERENCES `index` (name),
-    UNIQUE KEY (document_id, ordinal ASC)
+    INDEX (document_id, ordinal ASC, staled)
 );
 
 CREATE TABLE index_query

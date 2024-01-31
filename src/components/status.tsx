@@ -11,7 +11,7 @@ export interface StatusProps {
 export function Status ({ className, simple, status, title }: StatusProps) {
   return (
     <div className={cn(
-      'inline-flex items-center bg-primary/40 text-primary-foreground rounded-full justify-center gap-2 flex-shrink-0 px-1.5 py-0.5',
+      'inline-flex items-center bg-primary/10 text-foreground rounded-full justify-center gap-2 flex-shrink-0 px-1.5 py-0.5 select-none',
       simple && 'bg-transparent text-foreground',
       className
     )}>

@@ -134,8 +134,9 @@ export const indexDb: IndexDb = {
     const chunks = await db.selectFrom('document_index_chunk')
       .select([
         'document_index_chunk.id',
-        eb => eb.ref('embedding').as('embedding'),
+        'embedding',
       ])
+      .where('staled', '<>', 0)
       .execute();
 
     const internalResults = chunks

@@ -29,6 +29,8 @@ export interface TaskDb {
   fail (task: Selectable<DB['import_source_task']>, error: unknown): Promise<void>;
 
   stats (): Promise<Record<DB['import_source_task']['status'], number>>;
+
+  retry (ids: number[]): Promise<number>;
 }
 
 export const taskDb: TaskDb = {
@@ -152,6 +154,18 @@ export const taskDb: TaskDb = {
       res[item.status] = item.count;
       return res;
     }, {} as Record<DB['import_source_task']['status'], number>);
+  },
+
+  async retry (ids: number[]) {
+    const { numUpdatedRows } = await db.updateTable('import_source_task')
+      .set({
+        status: 'pending',
+      })
+      .where('status', 'not in', ['processing', 'pending'])
+      .where('id', 'in', ids)
+      .executeTakeFirstOrThrow();
+
+    return Number(numUpdatedRows);
   },
 };
 

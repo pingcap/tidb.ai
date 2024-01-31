@@ -1,5 +1,6 @@
 import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
+import { executePage, type Page, type PageRequest } from '@/lib/database';
 import type { Insertable, Selectable } from 'kysely';
 
 export interface ImportSourceDb {
@@ -7,7 +8,9 @@ export interface ImportSourceDb {
 
   find (id: string): Promise<Selectable<DB['import_source']> | undefined>;
 
-  list(): Promise<Selectable<DB['import_source']>[]>
+  list (): Promise<Selectable<DB['import_source']>[]>;
+
+  listTasks (request: PageRequest): Promise<Page<Selectable<DB['import_source_task']>>>;
 }
 
 export const importSourceDb: ImportSourceDb = {
@@ -27,5 +30,11 @@ export const importSourceDb: ImportSourceDb = {
       .selectAll()
       .where('id', '=', eb => eb.val(id))
       .executeTakeFirst();
+  },
+  async listTasks (request: PageRequest): Promise<Page<Selectable<DB['import_source_task']>>> {
+    let builder = db.selectFrom('import_source_task')
+      .selectAll()
+      .orderBy('created_at desc');
+    return await executePage(builder, request);
   },
 };

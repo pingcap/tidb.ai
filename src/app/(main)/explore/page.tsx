@@ -1,17 +1,16 @@
 'use client';
 
-import { DataTable } from '@/components/data-table';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { DataTableRemote } from '@/components/data-table-remote';
+import { Status } from '@/components/status';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { DB } from '@/core/db/schema';
-import { withToast } from '@/lib/toast';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';
 import type { Selectable } from 'kysely';
 import { GithubIcon } from 'lucide-react';
-import useSWR from 'swr';
 
-const helper = createColumnHelper<Selectable<DB['document']>>();
+const helper = createColumnHelper<Selectable<DB['document']> & { index_state: string }>();
 
 const mono = (cell: CellContext<any, any>) => <span className="font-mono">{cell.getValue()}</span>;
 
@@ -47,6 +46,20 @@ const datetime = (cell: CellContext<any, any>) => <time>{format(cell.getValue(),
 
 const columns = [
   helper.accessor('id', { cell: mono }),
+  helper.accessor('index_state', {
+    cell: props => {
+      switch (props.getValue()) {
+        case 'notIndexed':
+          return <Status title="Not indexed" status="gray" />;
+        case 'indexed':
+          return <Status title="Indexed" status="green" />;
+        case 'indexing':
+          return <Status title="Indexing" status="blue" />;
+        case 'fail':
+          return <Status title="Fail" status="red" />;
+      }
+    },
+  }),
   helper.accessor('name', { cell: mono }),
   helper.accessor('mime', { cell: mono }),
   helper.accessor('source_uri', { cell: sourceUri }),
@@ -56,35 +69,14 @@ const columns = [
 ] as ColumnDef<Selectable<DB['document']>>[];
 
 export default function Page () {
-  const { data, isLoading } = useDocuments();
-
   return (
-    <TooltipProvider>
-      <div className="p-4 space-y-4">
-        <h1 className="text-2xl font-semibold">Explore all documents</h1>
-        <DataTable columns={columns} data={data ?? []} />
-      </div>
-    </TooltipProvider>
+    <div className="p-4 space-y-4">
+      <h1 className="text-2xl font-semibold">Explore all documents</h1>
+      <DataTableRemote
+        columns={columns}
+        api="/api/v1/documents"
+        idColumn="id"
+      />
+    </div>
   );
-}
-
-const fetcher = withToast(async ([url]: [string]) => {
-  const res = await fetch(url);
-  if (!res.ok || res.redirected) {
-    throw new Error(`${res.status} ${res.statusText}`);
-  }
-
-  return (await res.json()) as Selectable<DB['document']>[];
-}, {
-  loading: () => 'Loading...',
-  success: (res) => `${res.length} documents`,
-});
-
-function useDocuments () {
-  return useSWR(['/api/v1/documents'], fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    refreshWhenOffline: false,
-    refreshWhenHidden: false,
-  });
 }

@@ -13,7 +13,7 @@ import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import type { Selectable } from 'kysely';
-import { ActivitySquareIcon, CommandIcon, HomeIcon, ImportIcon, LibraryIcon, MenuIcon, MessagesSquareIcon, SearchIcon } from 'lucide-react';
+import { ActivitySquareIcon, CommandIcon, HomeIcon, ImportIcon, LibraryIcon, ListIcon, MenuIcon, MessagesSquareIcon, SearchIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
@@ -67,6 +67,7 @@ export function Nav () {
         { href: '/overview', title: 'Overview', exact: true, icon: ActivitySquareIcon },
         { href: '/explore', title: 'Documents', icon: LibraryIcon },
         { href: '/sources', title: 'Sources', icon: ImportIcon },
+        { href: '/import-tasks', title: 'Import Tasks', icon: ListIcon },
       ],
     });
 

@@ -1,25 +1,14 @@
 import db from '@/core/db';
-import database from '@/core/db';
-import type { DB } from '@/core/db/schema';
-import { rag } from '@/core/interface';
 import { addImportSources } from '@/jobs/addImportSources';
 import { saveDocument } from '@/jobs/saveDocument';
-import { md5 } from '@/lib/digest';
+import { toPageRequest } from '@/lib/database';
 import { genId } from '@/lib/id';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
-import { DirectFetcher } from '@/rag-spec/uri-loader/DirectFetcher';
-import { GithubRepoUriLoader } from '@/rag-spec/uri-loader/GithubZipFetcher';
-import { createHash } from 'crypto';
-import type { Insertable } from 'kysely';
 import { type NextRequest, NextResponse } from 'next/server';
-import path from 'node:path';
-import RawContent = rag.RawContent;
 
 export async function GET (req: NextRequest) {
-  const allDocuments = await db.document.listAll();
-
-  return NextResponse.json(allDocuments);
+  return NextResponse.json(await db.document.listAll(toPageRequest(req)));
 }
 
 export async function PUT (req: NextRequest) {
@@ -67,5 +56,5 @@ async function handleMultipart (req: NextRequest) {
     sourceUrl: sourceUri,
     mime: file.type,
     buffer: Buffer.from(await file.arrayBuffer()),
-  })
+  });
 }

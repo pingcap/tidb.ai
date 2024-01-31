@@ -17,18 +17,18 @@ export async function handleErrors (input: Promise<Response> | Response) {
   return response;
 }
 
-export type DefaultFetcherParams = [method: string, input: string | URL, params?: Record<string, string | string[] | undefined>, body?: any]
+export type DefaultFetcherParams = [method: string, input: string | URL, params?: Record<string, (string | number) | (string | number)[] | undefined>, body?: any]
 
-export function fetcher<T> ([method, input, params, body]: DefaultFetcherParams) {
+export async function fetcher<T> ([method, input, params, body]: DefaultFetcherParams) {
   const usp = new URLSearchParams();
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
       if (value) {
-        if (typeof value === 'string') {
-          usp.set(key, value);
+        if (!(value instanceof Array)) {
+          usp.set(key, String(value));
         } else {
-          value.forEach(v => usp.append(key, v));
+          value.forEach(v => usp.append(key, String(v)));
         }
       }
     });
@@ -53,4 +53,4 @@ export function fetcher<T> ([method, input, params, body]: DefaultFetcherParams)
     },
     body,
   }).then(handleErrors).then(res => res.json() as Promise<T>);
-};
+}
