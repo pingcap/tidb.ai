@@ -87,7 +87,7 @@ function TaskStats () {
 }
 
 function ChatStats () {
-  type ChatStatsData = Partial<Record<'chats' | 'chat_messages', number>>;
+  type ChatStatsData = Partial<Record<'chats' | 'chat_messages' | 'sessions', number>>;
   const { data, isLoading } = useSWR(['get', '/api/v1/chats/stats'], fetcher<ChatStatsData>);
 
   return (
@@ -95,6 +95,7 @@ function ChatStats () {
       <StatsList>
         <StatsEntry label="Conversations" loading={isLoading}>{data?.chats ?? 0}</StatsEntry>
         <StatsEntry label="User Messages" loading={isLoading}>{data?.chat_messages ?? 0}</StatsEntry>
+        <StatsEntry label="Sessions" loading={isLoading}>{data?.sessions ?? 0}</StatsEntry>
       </StatsList>
     </StatsCard>
   );
