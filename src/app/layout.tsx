@@ -3,10 +3,10 @@ import AnonymousSessionProvider from '@/components/anonymous-session-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 import type { Metadata } from 'next';
 import { SessionProvider } from 'next-auth/react';
-import { Inter } from 'next/font/google';
+import {  Noto_Sans as Font } from 'next/font/google';
 import './globals.css';
 
-const inter = Inter({ subsets: ['latin'] });
+const font = Font({ subsets: ['latin', 'latin-ext'] });
 
 export const metadata: Metadata = {
   title: 'RAG Template',
@@ -25,7 +25,7 @@ export default async function RootLayout ({
 
   return (
     <html lang="en">
-    <body className={inter.className}>
+    <body className={font.className}>
     <ThemeProvider
       attribute="class"
       defaultTheme="system"

@@ -7,7 +7,7 @@ export function SiteHeader ({ prefix }: { prefix?: ReactNode, }) {
       {prefix}
       <span className="flex items-center gap-1">
         <img src="/tidb-ai.svg" alt="logo" width={24} height={24} />
-        <span className="text-lg font-semibold flex-shrink-0 font-serif">
+        <span className="text-lg font-semibold flex-shrink-0">
           TiDB.AI
         </span>
       </span>
