@@ -74,9 +74,9 @@ export namespace rag {
   }
 
   export abstract class Loader<Options, ContentMetadata> extends Base<Options> {
-    abstract support (mime: string): boolean | Promise<boolean>;
+    abstract support (mime: string, uri: string): boolean | Promise<boolean>;
 
-    abstract load (buffer: Buffer): Content<ContentMetadata> | Promise<Content<ContentMetadata>>;
+    abstract load (buffer: Buffer, uri: string): Content<ContentMetadata> | Promise<Content<ContentMetadata>>;
   }
 
   export abstract class Splitter<Options, ContentMetadata, ChunkMetadata> extends Base<Options> {

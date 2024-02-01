@@ -8,7 +8,7 @@ export async function GET (req: NextRequest) {
       status: 401,
     });
   }
-  const concurrent = parseInt(req.nextUrl.searchParams.get('concurrent') ?? '10');
+  const concurrent = parseInt(req.nextUrl.searchParams.get('concurrent') ?? '1');
 
   const { processed, succeed, failed } = await processImportSourceTasks(concurrent, maxDuration);
 

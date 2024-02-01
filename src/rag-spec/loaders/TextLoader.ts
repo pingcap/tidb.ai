@@ -16,7 +16,8 @@ export class TextLoader extends rag.Loader<TextLoader.Options, {}> {
     return {
       content: content,
       digest: md5(content),
-      metadata: { loader: this.identifier },
+      metadata: {
+      },
     } satisfies rag.Content<{}>;
   }
 

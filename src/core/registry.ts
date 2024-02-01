@@ -31,8 +31,8 @@ export class RagComponentRegistry {
     return constructComponent(ctor, options);
   }
 
-  createAll () {
-    return Array.from(this.registry.keys()).map(identifier => this.create(identifier, {}));
+  createAll (options: any = {}) {
+    return Array.from(this.registry.keys()).map(identifier => this.create(identifier, options[identifier] ?? {}));
   }
 }
 

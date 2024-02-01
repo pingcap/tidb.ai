@@ -1,6 +1,8 @@
 import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
 import { rag } from '@/core/interface';
+import { toFloat64Array } from '@/lib/buffer';
+import { executePage, type Page, type PageRequest } from '@/lib/database';
 import { genId } from '@/lib/id';
 import type { Insertable, Selectable } from 'kysely';
 import ChunkedContent = rag.ChunkedContent;
@@ -25,6 +27,8 @@ export interface IndexDb {
   getQuery (id: string): Promise<Selectable<DB['index_query']> | undefined>;
 
   getQueryResults (id: string): Promise<SearchResult[] | undefined>;
+
+  listEmbeddings (request: PageRequest): Promise<Page<Selectable<DB['document_index_chunk']>>>;
 }
 
 type SearchResult = {
@@ -124,11 +128,6 @@ export const indexDb: IndexDb = {
   },
 
   async _query (index: string, vector: Float64Array, top_k: number) {
-    const ids = await db.selectFrom('document_index_chunk')
-      .select('id')
-      .where('index_name', '=', eb => eb.val(index))
-      .execute();
-
     const vec = Float64Array.from(vector);
 
     const chunks = await db.selectFrom('document_index_chunk')
@@ -137,26 +136,16 @@ export const indexDb: IndexDb = {
         'embedding',
       ])
       .where('staled', '=', 0)
+      .where('index_name', '=', eb => eb.val(index))
       .execute();
     if (chunks.length === 0) {
       return [];
     }
 
-    function read (buffer: Buffer) {
-      const ab = new ArrayBuffer(buffer.byteLength);
-      const array = new Float64Array(ab);
-
-      for (let i = 0; i < buffer.byteLength; i += 8) {
-        array[i / 8] = buffer.readDoubleLE(i);
-      }
-
-      return array;
-    }
-
     const internalResults = chunks
       .map(chunk => ({
         id: chunk.id,
-        score: cosineSimilarity(vec, read(chunk.embedding)),
+        score: cosineSimilarity(vec, toFloat64Array(chunk.embedding)),
       }))
       .sort((a, b) => b.score - a.score)
       .filter(a => isFinite(a.score))
@@ -243,6 +232,13 @@ export const indexDb: IndexDb = {
         'document.name as source_name',
       ])
       .execute();
+  },
+
+  async listEmbeddings (request) {
+    const builder = db.selectFrom('document_index_chunk')
+      .selectAll();
+
+    return executePage(builder, request);
   },
 };
 

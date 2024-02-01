@@ -27,7 +27,8 @@ export class PdfLoader extends rag.Loader<{}, {}> {
     return {
       content,
       digest: md5(buffer),
-      metadata: {},
+      metadata: {
+      },
     };
   }
 

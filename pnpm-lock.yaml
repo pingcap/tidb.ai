@@ -149,6 +149,12 @@ dependencies:
   langchain:
     specifier: ^0.1.5
     version: 0.1.5(fast-xml-parser@4.3.3)(mysql2@3.7.1)
+  match-url-wildcard:
+    specifier: ^0.0.5
+    version: 0.0.5
+  micromatch:
+    specifier: ^4.0.5
+    version: 4.0.5
   mime:
     specifier: ^4.0.1
     version: 4.0.1
@@ -241,6 +247,9 @@ devDependencies:
   '@types/mdast':
     specifier: ^4.0.3
     version: 4.0.3
+  '@types/micromatch':
+    specifier: ^4.0.6
+    version: 4.0.6
   '@types/mime':
     specifier: ^3.0.4
     version: 3.0.4
@@ -3849,6 +3858,10 @@ packages:
       '@types/estree': 1.0.5
     dev: false
 
+  /@types/braces@3.0.4:
+    resolution: {integrity: sha512-0WR3b8eaISjEW7RpZnclONaLFDf7buaowRHdqLp4vLj54AsSAYWfh3DRbfiYJY9XDxMgx1B4sE1Afw2PGpuHOA==}
+    dev: true
+
   /@types/cookie@0.6.0:
     resolution: {integrity: sha512-4Kh9a6B2bQciAhf7FSuMRRkUWecJgJu9nPnx3yzpsfXX/c50REIqpHY4C82bXP90qrLtXtkDxTZosYO3UpOwlA==}
     dev: false
@@ -3940,6 +3953,12 @@ packages:
   /@types/mdx@2.0.11:
     resolution: {integrity: sha512-HM5bwOaIQJIQbAYfax35HCKxx7a3KrK3nBtIqJgSOitivTD1y3oW9P3rxY9RkXYPUk7y/AjAohfHKmFpGE79zw==}
     dev: false
+
+  /@types/micromatch@4.0.6:
+    resolution: {integrity: sha512-2eulCHWqjEpk9/vyic4tBhI8a9qQEl6DaK2n/sF7TweX9YESlypgKyhXMDGt4DAOy/jhLPvVrZc8pTDAMsplJA==}
+    dependencies:
+      '@types/braces': 3.0.4
+    dev: true
 
   /@types/mime@3.0.4:
     resolution: {integrity: sha512-iJt33IQnVRkqeqC7PzBHPTC6fDlRNRW8vjrgqtScAhrmMwe8c4Eo7+fUGTa+XdWrpEgpyKWMYmi2dIwMAYRzPw==}
@@ -7100,6 +7119,12 @@ packages:
 
   /markdown-table@3.0.3:
     resolution: {integrity: sha512-Z1NL3Tb1M9wH4XESsCDEksWoKTdlUafKc4pt0GRwjUyXaCFZ+dc3g2erqB6zm3szA2IUSi7VnPI+o/9jnxh9hw==}
+    dev: false
+
+  /match-url-wildcard@0.0.5:
+    resolution: {integrity: sha512-2H9OwYxMOjrwE31am07hjtKi9P1HEHfc+FkGbhUOK1XSxICK+pMyhLbmXh3bNyc/5XVsJ7uXUvRmM6lwwRzziQ==}
+    dependencies:
+      escape-string-regexp: 1.0.5
     dev: false
 
   /matchmediaquery@0.3.1:

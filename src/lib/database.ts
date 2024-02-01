@@ -14,8 +14,8 @@ export type PageRequest<P extends Record<string, any> = {}> = P & {
   pageSize: number
 }
 
-export async function executePage<TB extends keyof DB, O> (builder: SelectQueryBuilder<DB, TB, O>, request: PageRequest) {
-  const { total } = await builder
+export async function executePage<DB, TB extends keyof DB, O> (builder: SelectQueryBuilder<DB, TB, O>, request: PageRequest) {
+  const res = await builder
     .clearSelect()
     .select(eb => eb.fn.countAll<number>().as('total'))
     .executeTakeFirstOrThrow();
@@ -26,7 +26,7 @@ export async function executePage<TB extends keyof DB, O> (builder: SelectQueryB
     .execute();
 
   return {
-    total,
+    total: (res as any).total,
     data,
     page: request.page,
     pageSize: request.pageSize,

@@ -22,7 +22,7 @@ interface IndexFlowConfig {
   chatModels: IndexFlowConfig.ChatModel[];
 }
 
-export function getFlow (registry: RagComponentRegistry, config?: IndexFlowConfig) {
+export function getFlow (registry: RagComponentRegistry, config?: IndexFlowConfig, options?: any) {
   const flow = new Flow();
 
   function add (component: IndexFlowConfig.BaseComponentConfig) {
@@ -40,7 +40,7 @@ export function getFlow (registry: RagComponentRegistry, config?: IndexFlowConfi
     config.embeddings.forEach(add);
     config.chatModels.forEach(add);
   } else {
-    registry.createAll().forEach(comp => flow.add(comp));
+    registry.createAll(options).forEach(comp => flow.add(comp));
   }
 
   flow.resolve();

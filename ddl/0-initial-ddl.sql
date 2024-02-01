@@ -24,8 +24,7 @@ CREATE TABLE `index`
     name             VARCHAR(32) NOT NULL,
     llm              VARCHAR(32) NOT NULL,
     llm_model        VARCHAR(64) NOT NULL,
-    splitter_type    VARCHAR(64) NOT NULL,
-    splitter_options JSON        NOT NULL,
+    config           JSON        NOT NULL,
     created_at       DATETIME    NOT NULL,
     last_modified_at DATETIME    NOT NULL,
     PRIMARY KEY (name)
@@ -172,5 +171,40 @@ CREATE TABLE import_source_task
     FOREIGN KEY (document_id) REFERENCES document (id)
 );
 
-INSERT INTO `index`(name, llm, llm_model, splitter_type, splitter_options, created_at, last_modified_at)
-VALUES ('default', 'openai', 'openai', 'whatever', '{}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+INSERT INTO `index`(name, llm, llm_model, config, created_at, last_modified_at)
+VALUES ('default', 'openai', 'openai', '{
+  "rag.loader.html": {
+    "contentExtraction": {
+      "www.pingcap.com": [
+        {
+          "pattern": "/blog/*",
+          "contentSelector": ".wysiwyg--post-content"
+        }
+      ]
+    }
+  }
+}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+
+
+ALTER TABLE `index`
+    DROP COLUMN splitter_type,
+    DROP COLUMN splitter_options;
+
+ALTER TABLE `index`
+    ADD COLUMN config JSON NOT NULL;
+
+UPDATE `index`
+SET `index`.config = '{
+  "rag.loader.html": {
+    "contentExtraction": {
+      "www.pingcap.com": [
+        {
+          "pattern": "/blog/*",
+          "contentSelector": ".wysiwyg--post-content"
+        }
+      ]
+    }
+  }
+}'
+WHERE name = 'default';

@@ -155,9 +155,9 @@ export class Flow implements Flow.ExtensionApi {
     throw new Error('No available document storage.');
   }
 
-  getLoader (mime: string) {
+  getLoader (mime: string, uri: string) {
     for (let loader of Array.from(this.loaders.values())) {
-      if (loader.support(mime)) {
+      if (loader.support(mime, uri)) {
         return loader;
       }
     }

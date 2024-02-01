@@ -99,13 +99,12 @@ export interface ImportSourceTask {
 }
 
 export interface Index {
+  config: Json;
   created_at: Date;
   last_modified_at: Date;
   llm: string;
   llm_model: string;
   name: string;
-  splitter_options: Json;
-  splitter_type: string;
 }
 
 export interface IndexQuery {

@@ -11,7 +11,7 @@ const accept = [
 ];
 
 export interface DocumentDb {
-  listAll (request: PageRequest): Promise<Page<Selectable<DB['document']> & { index_state: DB['v_document_index_status']['index_state'] }>>;
+  listAll (request: PageRequest): Promise<Page<Selectable<DB['document']> & { index_state: string, metadata: any, trace: string | null }>>;
 
   listByCreatedAt (from: Date | null, limit: number): Promise<Selectable<DB['document']>[]>;
 
@@ -32,11 +32,27 @@ export interface DocumentDb {
 
 const documentDb = {
   async listAll (request: PageRequest) {
+    const builder = db.selectFrom('document')
+      .leftJoin('document_index', 'document_id', 'document.id')
+      .leftJoin('index', 'index.name', 'document_index.index_name')
+      .selectAll('document')
+      .select(eb => eb.ref('document_index.metadata').$castTo<any>().as('metadata'))
+      .select(eb => eb.case()
+        .when('document_index.status', 'is', null).then('notIndexed')
+        .when('document_index.status', '=', 'indexing').then('indexing')
+        .when('document_index.status', '=', 'fail').then('fail')
+        .when('document_index.created_at', '<', eb => eb.ref('index.last_modified_at')).then('staled')
+        .else('indexed')
+        .end().as('index_state'))
+      .select('document_index.trace')
+      .where(eb => eb.or([
+        eb('index_name', '=', eb => eb.val('default')),
+        eb('index_name', 'is', null),
+      ]))
+      .orderBy('document_index.created_at desc');
+
     return await executePage(
-      db.selectFrom('document')
-        .innerJoin('v_document_index_status', 'document.id', 'v_document_index_status.document_id')
-        .selectAll('document')
-        .select('index_state'),
+      builder,
       request);
   },
 

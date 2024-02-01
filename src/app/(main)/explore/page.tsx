@@ -2,6 +2,7 @@
 
 import { DataTableRemote } from '@/components/data-table-remote';
 import { Status } from '@/components/status';
+import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { DB } from '@/core/db/schema';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
@@ -10,7 +11,7 @@ import { format } from 'date-fns';
 import type { Selectable } from 'kysely';
 import { GithubIcon } from 'lucide-react';
 
-const helper = createColumnHelper<Selectable<DB['document']> & { index_state: string }>();
+const helper = createColumnHelper<Selectable<DB['document']> & { index_state: string, metadata: any, trace: string | null }>();
 
 const mono = (cell: CellContext<any, any>) => <span className="font-mono">{cell.getValue()}</span>;
 
@@ -42,12 +43,30 @@ const sourceUri = (cell: CellContext<any, any>) => {
   return <a href={value} target="_blank">{value}</a>;
 };
 
+const json = (cell: CellContext<any, any>) => {
+  const metadata = cell.getValue();
+  if (!metadata) {
+    return '-';
+  }
+  return (
+    <Tooltip>
+      <TooltipTrigger>
+        JSON
+      </TooltipTrigger>
+      <TooltipContent className="text-xs">
+        <pre>{JSON.stringify(metadata, undefined, 2)}</pre>
+      </TooltipContent>
+    </Tooltip>
+  );
+};
+
 const datetime = (cell: CellContext<any, any>) => <time>{format(cell.getValue(), 'yyyy-MM-dd HH:mm')}</time>;
 
 const columns = [
   helper.accessor('id', { cell: mono }),
   helper.accessor('index_state', {
     cell: props => {
+      const error = props.row.original.trace;
       switch (props.getValue()) {
         case 'notIndexed':
           return <Status title="Not indexed" status="gray" />;
@@ -56,9 +75,28 @@ const columns = [
         case 'indexing':
           return <Status title="Indexing" status="blue" />;
         case 'fail':
-          return <Status title="Fail" status="red" />;
+          return (
+            <Tooltip>
+              <TooltipTrigger>
+                <Status title="Fail" status="red" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <h6 className="font-semibold mb-2">Error message</h6>
+                <ScrollArea className="w-80 h-40">
+                  <pre className="text-xs">
+                     {error}
+                  </pre>
+                  <ScrollBar orientation="horizontal" />
+                  <ScrollBar orientation="vertical" />
+                </ScrollArea>
+              </TooltipContent>
+            </Tooltip>
+          );
       }
     },
+  }),
+  helper.accessor('metadata', {
+    cell: json,
   }),
   helper.accessor('name', { cell: mono }),
   helper.accessor('mime', { cell: mono }),

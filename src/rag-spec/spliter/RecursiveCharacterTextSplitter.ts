@@ -43,7 +43,6 @@ export class RecursiveCharacterTextSplitter<ContentMetadata> extends rag.Splitte
       chunks: results.map(chunk => ({
         content: chunk.pageContent,
         metadata: {
-          ...content.metadata,
           ...chunk.metadata,
         } as never,
       })),
