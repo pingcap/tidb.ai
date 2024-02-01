@@ -17,6 +17,8 @@ export default function TasksPage ({}: {}) {
 
   return (
     <div className="p-body">
+      <h1 className="text-2xl font-semibold mb-4">Tasks</h1>
+
       <DataTableRemote
         idColumn="id"
         selectable

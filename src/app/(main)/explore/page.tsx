@@ -71,7 +71,8 @@ const columns = [
 export default function Page () {
   return (
     <div className="p-4 space-y-4">
-      <h1 className="text-2xl font-semibold">Explore all documents</h1>
+      <h1 className="text-2xl font-semibold mb-4">Explore all documents</h1>
+
       <DataTableRemote
         columns={columns}
         api="/api/v1/documents"

@@ -6,6 +6,7 @@ import { SemanticSearch } from '@/components/semantic-search';
 import { SiteNavFooter } from '@/components/site-nav-footer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Toaster } from '@/components/ui/sonner';
+import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 export default function Layout ({ children }: {
@@ -22,9 +23,9 @@ export default function Layout ({ children }: {
           <SemanticSearch />
         </div>
         <aside className="flex-shrink-0 gap-4 w-side h-screen hidden md:block border-r fixed top-0 left-0">
-          <div className="h-header flex gap-4 items-center px-4 bg-background border-b">
+          <Link className="h-header flex gap-4 items-center justify-center px-4 bg-background" href='/' prefetch={false}>
             <Branding />
-          </div>
+          </Link>
           <ScrollArea className="h-[calc(100vh-9rem)] pr-2">
             <Nav />
           </ScrollArea>

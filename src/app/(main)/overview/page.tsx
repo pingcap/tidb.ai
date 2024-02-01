@@ -21,6 +21,7 @@ export default function Page () {
 
   return (
     <div className="p-body space-y-6">
+      <h1 className="text-2xl font-semibold">Overview</h1>
       <section className="grid grid-cols-4 gap-4">
         <IndexStats />
         <TaskStats />
