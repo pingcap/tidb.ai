@@ -13,7 +13,7 @@ export default function Layout ({ children }: {
   return (
     <>
       <div className="md:flex md:min-h-screen">
-        <header className="md:hidden px-4 p-2 sticky top-0 bg-background border-b z-10 flex gap-2 items-center">
+        <header className="md:hidden h-header px-2 sticky top-0 bg-background border-b z-10 flex gap-2 items-center">
           <NavDrawer />
           <Branding />
         </header>

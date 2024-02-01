@@ -8,15 +8,15 @@ export default function Page () {
   const { loading, ask } = useAsk();
 
   return (
-    <div className="h-screen flex flex-col items-center justify-center gap-4">
+    <div className="h-body md:h-screen flex flex-col items-center justify-center gap-4">
       <h1 className="text-xl font-semibold">
         Get Knowledge Here
       </h1>
-      <Ask className="w-1/2" loading={loading} ask={ask} />
-      <ul className="flex gap-2 flex-wrap max-w-[50%]">
+      <Ask className="px-4 w-full lg:w-2/3" loading={loading} ask={ask} />
+      <ul className="flex gap-2 flex-wrap px-4 w-full lg:w-2/3">
         {prompts.map(item => (
           <li key={item}>
-            <Button className='font-normal text-xs' disabled={loading} variant="secondary" size="sm" onClick={() => {
+            <Button className="font-normal text-xs" disabled={loading} variant="secondary" size="sm" onClick={() => {
               ask(item);
             }}>
               {item}

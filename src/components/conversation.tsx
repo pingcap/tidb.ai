@@ -8,21 +8,41 @@ import { cn } from '@/lib/utils';
 import { useChat } from 'ai/react';
 import type { Selectable } from 'kysely';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 
 export function Conversation ({ open, history, context }: { open: boolean, history: Selectable<DB['chat_message']>[], context: { ordinal: number, title: string, uri: string }[] }) {
   const { handleInputChange, isWaiting, handleSubmit, input, isLoading, data, error, messages } = useMyChat(history, context);
+  const [size, setSize] = useState<DOMRectReadOnly | undefined>(undefined);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (el) {
+      const ro = new ResizeObserver(() => {
+        setSize(el.getBoundingClientRect());
+      });
+
+      setSize(el.getBoundingClientRect());
+      ro.observe(el);
+      ro.observe(document.documentElement)
+      return () => {
+        ro.disconnect();
+      };
+    }
+  }, []);
 
   return (
-    <div className={cn(
-      'max-w-screen-sm mx-auto space-y-4 transition-all relative min-h-screen md:p-body',
-    )}>
-      <ConversationMessageGroups messages={messages} data={data} isLoading={isLoading} />
-      <div className="h-24"></div>
-      {open && <form className="w-full absolute bottom-0 p-4" onSubmit={handleSubmit}>
+    <>
+      <div ref={ref} className={cn(
+        'md:max-w-screen-sm mx-auto space-y-4 transition-all relative md:min-h-screen md:p-body',
+      )}>
+        <ConversationMessageGroups messages={messages} data={data} isLoading={isLoading || isWaiting} />
+        <div className="h-24"></div>
+      </div>
+      {size && open && <form className="block h-max p-4 fixed bottom-0" onSubmit={handleSubmit} style={{ left: size.x, width: size.width }}>
         <MessageInput className="w-full transition-all" disabled={isLoading} inputProps={{ value: input, onChange: handleInputChange, disabled: isLoading }} />
       </form>}
-    </div>
+    </>
   );
 }
 
