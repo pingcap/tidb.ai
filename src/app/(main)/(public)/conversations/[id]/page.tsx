@@ -18,5 +18,9 @@ export default async function Conversations ({ params }: { params: { id: string 
     database.chat.getContext(id),
   ]);
 
-  return <Conversation history={history} context={context} open={!!chat && !!user && chat.created_by === user.id} />;
+  return (
+    <div className='pr-side'>
+      <Conversation history={history} context={context} open={!!chat && !!user && chat.created_by === user.id} />
+    </div>
+  );
 }

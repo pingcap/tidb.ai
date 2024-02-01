@@ -9,6 +9,8 @@
     --body-height: calc(100vh - var(--header-height));
     --body-padding: 1rem;
     --content-height: calc(var(--body-height) - var(--body-padding) * 2);
+    --side-width: 20rem;
+    --content-width: calc(100vw - var(--side-width));
   }
 
   :root {
