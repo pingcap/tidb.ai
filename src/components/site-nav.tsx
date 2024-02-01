@@ -1,5 +1,6 @@
 'use client';
 
+import { Divider } from '@/components/divider';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
@@ -58,7 +59,6 @@ export function SiteNav ({ groups }: SiteNavProps) {
       <nav className="space-y-6 p-4 relative">
         {groups.map((group, index) => (
           <Fragment key={index}>
-            {index > 0 && <Separator orientation="horizontal" />}
             <SiteNavGroup group={group} current={pathname} />
           </Fragment>
         ))}
@@ -70,7 +70,7 @@ export function SiteNav ({ groups }: SiteNavProps) {
 function SiteNavGroup ({ group, current }: { group: NavGroup, current: string }) {
   return (
     <section className="space-y-2">
-      {group.title && <h6 className="text-sm font-semibold text-foreground/40">{group.title}</h6>}
+      {group.title && <Divider className="text-sm font-semibold text-foreground/70">{group.title}</Divider>}
       <ul className="space-y-1.5">
         {renderItems(group.items, current)}
       </ul>

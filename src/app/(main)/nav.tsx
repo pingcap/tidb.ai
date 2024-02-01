@@ -15,7 +15,7 @@ import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import type { Selectable } from 'kysely';
-import { ActivitySquareIcon, CommandIcon, HomeIcon, ImportIcon, LibraryIcon, ListIcon, MenuIcon, MessagesSquareIcon, SearchIcon, TextIcon } from 'lucide-react';
+import { ActivitySquareIcon, CommandIcon, FingerprintIcon, HomeIcon, ImportIcon, LibraryIcon, ListIcon, MenuIcon, MessagesSquareIcon, SearchIcon, Settings2Icon, ShieldCheckIcon, TextIcon, UsersIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
@@ -72,8 +72,8 @@ export function Nav () {
               {
                 key: 'api', title: 'API v1', href: '/docs/api/v1', children: [
                   { href: '/docs/api/v1/documents', title: '/documents', variant: (active: boolean) => (active ? 'default' : 'ghost'), className: docsItemClassName },
-                ]
-              }
+                ],
+              },
             ],
           } as NavItem,
         ],
@@ -81,12 +81,16 @@ export function Nav () {
     ];
 
     groups.push({
-      title: 'Site status',
+      title: 'Admin',
       items: [
         { href: '/overview', title: 'Overview', exact: true, icon: ActivitySquareIcon },
         { href: '/explore', title: 'Documents', icon: LibraryIcon },
         { href: '/sources', title: 'Sources', icon: ImportIcon },
         { href: '/import-tasks', title: 'Import Tasks', icon: ListIcon },
+        { href: '/settings', title: 'Site settings', icon: Settings2Icon },
+        { key: '/user-management', title: 'User management', variant: 'ghost', disabled: true, onClick: () => {}, icon: UsersIcon },
+        { key: '/security', title: 'Security', variant: 'ghost', disabled: true, onClick: () => {}, icon: ShieldCheckIcon },
+        { key: '/authentication', title: 'Authentication', variant: 'ghost', disabled: true, onClick: () => {}, icon: FingerprintIcon },
       ],
     });
 
