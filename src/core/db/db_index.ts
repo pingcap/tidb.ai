@@ -136,8 +136,11 @@ export const indexDb: IndexDb = {
         'document_index_chunk.id',
         'embedding',
       ])
-      .where('staled', '<>', 0)
+      .where('staled', '=', 0)
       .execute();
+    if (chunks.length === 0) {
+      return []
+    }
 
     const internalResults = chunks
       .map(chunk => ({
