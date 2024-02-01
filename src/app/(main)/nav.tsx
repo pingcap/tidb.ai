@@ -37,7 +37,7 @@ export function Nav () {
 
   useEffect(() => {
     const handle = (e: KeyboardEvent) => {
-      if (e.key === 'k' && e.metaKey) {
+      if (e.key === 'k' && (e.metaKey || e.ctrlKey) && !(e.shiftKey)) {
         setOpen(true);
         e.preventDefault();
         e.stopPropagation();

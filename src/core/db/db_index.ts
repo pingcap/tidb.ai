@@ -139,15 +139,26 @@ export const indexDb: IndexDb = {
       .where('staled', '=', 0)
       .execute();
     if (chunks.length === 0) {
-      return []
+      return [];
+    }
+
+    function read (buffer: Buffer) {
+      const ab = new ArrayBuffer(buffer.byteLength);
+      const array = new Float64Array(ab);
+
+      for (let i = 0; i < buffer.byteLength; i += 8) {
+        array[i / 8] = buffer.readDoubleLE(i);
+      }
+
+      return array;
     }
 
     const internalResults = chunks
       .map(chunk => ({
         id: chunk.id,
-        score: cosineSimilarity(vec, new Float64Array(chunk.embedding)),
+        score: cosineSimilarity(vec, read(chunk.embedding)),
       }))
-      .sort((a, b) => a.score - b.score)
+      .sort((a, b) => b.score - a.score)
       .filter(a => isFinite(a.score))
       .slice(0, top_k);
 
@@ -250,15 +261,4 @@ export function cosineSimilarity (a: rag.Vector, b: rag.Vector) {
 
 function cosineDistance (a: rag.Vector, b: rag.Vector) {
   return 1 - cosineSimilarity(a, b);
-}
-
-function chunked<T> (array: T[], chunkSize: number) {
-  const res: T[][] = [];
-  let i = 0;
-  while (i < array.length) {
-    res.push(array.slice(i, i + chunkSize));
-    i += chunkSize;
-  }
-
-  return res;
 }

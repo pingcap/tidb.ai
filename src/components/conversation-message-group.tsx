@@ -82,7 +82,7 @@ function useGroupedConversationMessages (messages: Message[], data: any, isLoadi
   }, [messages, data, isLoading]);
 }
 
-function parseSource (uri: string) {
+export function parseSource (uri: string) {
   if (!uri) {
     return 'Unknown';
   }
