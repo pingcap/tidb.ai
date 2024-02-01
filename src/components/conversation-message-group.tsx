@@ -116,7 +116,7 @@ function ConversationMessageGroup ({ group }: { group: ConversationMessageGroupP
             Sources
           </div>
           <ScrollArea className="h-max w-full">
-            <ul className="flex gap-2 p-4">
+            <ul className="flex gap-2 py-4">
               {group.assistantContext.map(context => (
                 <MessageContextSource key={context.uri} context={context} />
               ))}
@@ -167,9 +167,9 @@ function MessageContextSource ({ context }: { context: MessageContext }) {
   }, [context.uri]);
 
   return (
-    <li key={context.uri} className="max-w-[400px] rounded-lg border bg-card text-xs transition-all hover:shadow-lg hover:-translate-y-0.5">
-      <a className="block space-y-1 p-2 whitespace-nowrap" href={context.uri}>
-        <div className="font-semibold">
+    <li key={context.uri} className="bg-card hover:bg-accent transition-colors w-[200px] overflow-hidden rounded-lg border text-xs">
+      <a className="block space-y-1 p-2 max-w-full h-full" href={context.uri} target='_blank'>
+        <div className="font-semibold line-clamp-3">
           <LinkIcon size="1em" className="inline-flex mr-1" />
           {context.title}
         </div>
