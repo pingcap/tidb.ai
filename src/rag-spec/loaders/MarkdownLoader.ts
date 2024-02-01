@@ -4,6 +4,7 @@ import type { Root } from 'hast';
 import { Options as HastUtilToText, toText } from 'hast-util-to-text';
 import type { Root as MdastRoot } from 'mdast';
 import rehypeDocument from 'rehype-document';
+import remarkGfm from 'remark-gfm';
 import remarkParse, { Options as RemarkParseOptions } from 'remark-parse';
 import remarkRehype, { type Options as RemarkRehypeOptions } from 'remark-rehype';
 
@@ -28,6 +29,7 @@ export class MarkdownLoader extends rag.Loader<MarkdownLoader.Options, {}> {
 
     this.processor = unified()
       .use(remarkParse, this.options.remarkParse)
+      .use(remarkGfm)
       .use(remarkRehype, this.options.remarkRehype)
       .use(rehypeDocument, {})
       .freeze();

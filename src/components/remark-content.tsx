@@ -1,6 +1,7 @@
 import { cache, Suspense, use, useDeferredValue } from 'react';
 import * as prod from 'react/jsx-runtime';
 import rehypeReact from 'rehype-react';
+import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import { unified } from 'unified';
@@ -9,6 +10,7 @@ const production = { Fragment: (prod as any).Fragment, jsx: (prod as any).jsx, j
 
 const processor = unified()
   .use(remarkParse)
+  .use(remarkGfm)
   .use(remarkRehype)
   .use(rehypeReact, production)
   .freeze();
