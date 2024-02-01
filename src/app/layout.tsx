@@ -25,7 +25,7 @@ export default async function RootLayout ({
     <html lang="en" suppressHydrationWarning>
     <head>
       <link rel="icon" href="/tidb-ai-light.svg" sizes="any" />
-      <script async src="https://conversation-search-box-git-test-cookie-shczhen-pingcap.vercel.app/assets/index-KaY9SOi_.js" />
+      <script async src="https://conversation-search-box.vercel.app/assets/index-gZ_krR4M.js" />
     </head>
     <body className={font.className}>
     <ThemeProvider
