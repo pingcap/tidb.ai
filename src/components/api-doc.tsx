@@ -27,8 +27,8 @@ export function ApiDoc ({ method, url, description, request, response }: ApiDocP
       </p>
       <h3>Request</h3>
       <ul>
-        {request.map(req => (
-          <li>
+        {request.map((req, i) => (
+          <li key={i}>
             {req.contentType ? <p>
               Content-Type: {req.contentType}
             </p> : undefined}
@@ -38,8 +38,8 @@ export function ApiDoc ({ method, url, description, request, response }: ApiDocP
       </ul>
       <h3>Response</h3>
       <ul>
-        {response.map(res => (
-          <li>
+        {response.map((res, i) => (
+          <li key={i}>
             <p>
               Content-Type: {res.status}
             </p>
