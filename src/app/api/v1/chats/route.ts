@@ -143,7 +143,7 @@ export const GET = auth(async function GET (req) {
     return new NextResponse('Need authorization', { status: 401 });
   }
 
-  return NextResponse.json(await database.chat.listChatsByCreator(userId, 10));
+  return NextResponse.json(await database.chat.listChatsByCreator(userId, 5));
 }) as any;
 
 export const dynamic = 'force-dynamic';

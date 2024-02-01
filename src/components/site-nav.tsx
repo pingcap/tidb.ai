@@ -1,19 +1,12 @@
 'use client';
 
-import GithubSvg from '@/components/icons/github.svg';
-import TwitterXSvg from '@/components/icons/twitter-x.svg';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button, type ButtonProps } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useUser } from '@/lib/auth';
 import { cn } from '@/lib/utils';
-import { signOut } from 'next-auth/react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { type ComponentType, Fragment, type MouseEvent, type ReactElement, type ReactNode } from 'react';
 
 export interface NavGroup {
@@ -41,9 +34,16 @@ export interface NavButtonItem extends NavBaseItem {
   variant?: ButtonProps['variant'];
 }
 
-export type NavItem = NavLinkItem | NavButtonItem
+export interface NavParentItem extends NavBaseItem {
+  key: string;
+  href?: string;
+  variant?: ButtonProps['variant'] | ((active: boolean) => ButtonProps['variant']);
+  children: Array<NavLinkItem | NavButtonItem>;
+}
 
-const isNavLinkItem = (item: NavBaseItem): item is NavLinkItem => 'href' in item;
+export type NavItem = NavLinkItem | NavButtonItem | NavParentItem
+
+const isNavLinkItem = (item: NavBaseItem): item is NavLinkItem => 'href' in item && !('children' in item);
 const isNavButtonItem = (item: NavBaseItem): item is NavButtonItem => 'onClick' in item;
 
 export interface SiteNavProps {
@@ -72,11 +72,7 @@ function SiteNavGroup ({ group, current }: { group: NavGroup, current: string })
     <section className="space-y-2">
       {group.title && <h6 className="text-sm font-semibold text-foreground/40">{group.title}</h6>}
       <ul className="space-y-1.5">
-        {group.items.map(item => (
-          isNavLinkItem(item)
-            ? <SiteNavLinkItem key={item.href} item={item} active={current === item.href || (!item.exact && current.startsWith(item.href))} />
-            : <SiteNavButtonItem key={item.key} item={item} />
-        ))}
+        {renderItems(group.items, current)}
       </ul>
     </section>
   );
@@ -93,6 +89,30 @@ function resolveVariant<T extends ButtonProps['variant']> (fnOrValue: T | ((acti
   }
 }
 
+const renderItems = (items: NavItem[], current: string) => {
+  return (
+    <>
+      {items.map(item => (
+        isNavLinkItem(item)
+          ? <SiteNavLinkItem key={item.href} item={item} active={current === item.href || (!item.exact && current.startsWith(item.href))} />
+          : isNavButtonItem(item)
+            ? <SiteNavButtonItem key={item.key} item={item} />
+            : <SiteNavParentItem key={item.key} item={item} current={current} active={!!item.href && current.startsWith(item.href)} />
+      ))}
+    </>
+  );
+};
+
+const renderBaseItemContent = (item: NavBaseItem) => {
+  return (
+    <>
+      {item.icon && <item.icon className="w-5 h-5 opacity-70 !rotate-0" />}
+      {item.title}
+      {item.details && <span className="ml-auto">{item.details}</span>}
+    </>
+  );
+};
+
 function SiteNavLinkItem ({ item, active }: { item: NavLinkItem, active: boolean }) {
   let el: ReactElement;
 
@@ -100,9 +120,7 @@ function SiteNavLinkItem ({ item, active }: { item: NavLinkItem, active: boolean
     el = (
       <span className="cursor-not-allowed">
         <Button className={cn('flex w-full justify-start gap-2 font-semibold', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'default' : 'ghost')} disabled={!!item.disabled}>
-          {item.icon && <item.icon className="w-5 h-5 opacity-70" />}
-          {item.title}
-          {item.details && <span className="ml-auto">{item.details}</span>}
+          {renderBaseItemContent(item)}
         </Button>
       </span>
     );
@@ -110,9 +128,7 @@ function SiteNavLinkItem ({ item, active }: { item: NavLinkItem, active: boolean
     el = (
       <Button asChild className={cn('flex w-full justify-start gap-2 font-semibold', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'default' : 'ghost')} data-active={active ? 'true' : undefined}>
         <Link href={item.href} prefetch={false}>
-          {item.icon && <item.icon className="w-5 h-5 opacity-70" />}
-          {item.title}
-          {item.details && <span className="ml-auto">{item.details}</span>}
+          {renderBaseItemContent(item)}
         </Link>
       </Button>
     );
@@ -143,18 +159,14 @@ function SiteNavButtonItem ({ item }: { item: NavButtonItem }) {
     el = (
       <span className="cursor-not-allowed">
         <Button className={cn('flex w-full justify-start gap-2 font-semibold', item.className)} variant={item.variant} disabled={!!item.disabled}>
-          {item.icon && <item.icon className="w-5 h-5 opacity-70" />}
-          {item.title}
-          {item.details && <span className="ml-auto">{item.details}</span>}
+          {renderBaseItemContent(item)}
         </Button>
       </span>
     );
   } else {
     el = (
       <Button className={cn('flex w-full justify-start gap-2 font-semibold', item.className)} variant={item.variant} onClick={item.onClick}>
-        {item.icon && <item.icon className="w-5 h-5 opacity-70" />}
-        {item.title}
-        {item.details && <span className="ml-auto">{item.details}</span>}
+        {renderBaseItemContent(item)}
       </Button>
     );
   }
@@ -175,5 +187,25 @@ function SiteNavButtonItem ({ item }: { item: NavButtonItem }) {
     <li>
       {el}
     </li>
+  );
+}
+
+function SiteNavParentItem ({ item, current, active }: { item: NavParentItem, current: string, active: boolean }) {
+  return (
+    <Accordion type="single" collapsible>
+      <AccordionItem value={item.key} className="border-b-0">
+        <Button className={cn('flex justify-start gap-2 font-semibold hover:no-underline', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'secondary' : 'ghost')} data-active={active ? 'true' : undefined} asChild>
+          <AccordionTrigger>
+            {renderBaseItemContent(item)}
+            <span className='flex-1' />
+          </AccordionTrigger>
+        </Button>
+        <AccordionContent>
+          <ul className="space-y-1.5 p-2">
+            {renderItems(item.children, current)}
+          </ul>
+        </AccordionContent>
+      </AccordionItem>
+    </Accordion>
   );
 }

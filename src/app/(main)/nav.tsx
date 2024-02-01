@@ -1,7 +1,7 @@
 'use client';
 
 import { Ask } from '@/components/ask';
-import { type NavGroup, SiteNav } from '@/components/site-nav';
+import { type NavGroup, type NavItem, SiteNav } from '@/components/site-nav';
 import { SiteNavFooter } from '@/components/site-nav-footer';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogOverlay, DialogPortal } from '@/components/ui/dialog';
@@ -15,10 +15,13 @@ import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import type { Selectable } from 'kysely';
-import { ActivitySquareIcon, CommandIcon, HomeIcon, ImportIcon, LibraryIcon, ListIcon, MenuIcon, MessagesSquareIcon, SearchIcon } from 'lucide-react';
+import { ActivitySquareIcon, CommandIcon, HomeIcon, ImportIcon, LibraryIcon, ListIcon, MenuIcon, MessagesSquareIcon, SearchIcon, TextIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
+
+const conversationItemClassName = 'text-xs p-2 py-1.5 h-max font-normal w-[86%] ml-[14%] block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold';
+const docsItemClassName = 'text-xs p-2 py-1.5 h-max font-normal block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold';
 
 export function Nav () {
   const [open, setOpen] = useState(false);
@@ -56,13 +59,23 @@ export function Nav () {
           { href: '/', title: 'Home', icon: HomeIcon, exact: true },
           { href: '/conversations', title: 'Conversations', exact: true, icon: MessagesSquareIcon, disabled: disableIfNotAuthenticated },
           ...(isLoading ? [
-            { key: 'placeholder-1', onClick: () => {}, title: <Skeleton className='w-32 h-[1em] rounded' />, variant: 'ghost', disabled: true, className: 'text-xs p-2 py-1.5 h-max font-normal w-[86%] ml-[14%] block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold' } as const,
-            { key: 'placeholder-2', onClick: () => {}, title: <Skeleton className='w-48 h-[1em] rounded'/>, variant: 'ghost', disabled: true, className: 'text-xs p-2 py-1.5 h-max font-normal w-[86%] ml-[14%] block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold' } as const,
-            { key: 'placeholder-3', onClick: () => {}, title: <Skeleton className='w-24 h-[1em] rounded'/>, variant: 'ghost', disabled: true, className: 'text-xs p-2 py-1.5 h-max font-normal w-[86%] ml-[14%] block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold' } as const,
+            { key: 'placeholder-1', onClick: () => {}, title: <Skeleton className="w-32 h-[1em] rounded" />, variant: 'ghost', disabled: true, className: conversationItemClassName } as const,
+            { key: 'placeholder-2', onClick: () => {}, title: <Skeleton className="w-48 h-[1em] rounded" />, variant: 'ghost', disabled: true, className: conversationItemClassName } as const,
+            { key: 'placeholder-3', onClick: () => {}, title: <Skeleton className="w-24 h-[1em] rounded" />, variant: 'ghost', disabled: true, className: conversationItemClassName } as const,
           ] : []),
           ...history.map(chat => (
-            { href: `/conversations/${chat.id}`, title: chat.name, variant: (active: boolean) => (active ? 'secondary' : 'ghost'), className: 'text-xs p-2 py-1.5 h-max font-normal w-[86%] ml-[14%] block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold' }
+            { href: `/conversations/${chat.id}`, title: chat.name, variant: (active: boolean) => (active ? 'secondary' : 'ghost'), className: conversationItemClassName }
           )),
+          {
+            key: 'docs', title: 'Docs', href: '/docs', icon: TextIcon, children: [
+              { href: '/docs/deploy-your-own-rag-application', title: 'Deploy your own rag application', variant: (active: boolean) => (active ? 'default' : 'ghost'), className: docsItemClassName },
+              {
+                key: 'api', title: 'API v1', href: '/docs/api/v1', children: [
+                  { href: '/docs/api/v1/documents', title: '/documents', variant: (active: boolean) => (active ? 'default' : 'ghost'), className: docsItemClassName },
+                ]
+              }
+            ],
+          } as NavItem,
         ],
       },
     ];
