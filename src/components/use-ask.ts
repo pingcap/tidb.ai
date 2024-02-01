@@ -2,6 +2,7 @@ import { __setMessage } from '@/app/(main)/(public)/conversations/[id]/internal'
 import { handleErrors } from '@/lib/fetch';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState, useTransition } from 'react';
+import { mutate } from 'swr'
 
 export function useAsk (onFinish?: () => void) {
   const router = useRouter();
@@ -15,6 +16,7 @@ export function useAsk (onFinish?: () => void) {
         method: 'post',
         body: JSON.stringify({
           messages: [],
+          name: message,
         }),
       }).then(handleErrors)
         .then(res => res.json())
@@ -27,6 +29,7 @@ export function useAsk (onFinish?: () => void) {
         })
         .finally(() => {
           setLoading(false);
+          void mutate(['get', '/api/v1/chats']);
         });
     });
   }, []);

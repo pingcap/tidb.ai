@@ -22,7 +22,6 @@ export function Nav () {
   const [open, setOpen] = useState(false);
   const ask = useAsk(() => {
     setOpen(false);
-    void mutate();
   });
   const user = useUser();
   const { data: history = [], mutate } = useSWR(['get', '/api/v1/chats'], fetcher<Selectable<DB['chat']>[]>, {});

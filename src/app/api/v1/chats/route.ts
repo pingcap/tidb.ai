@@ -20,9 +20,10 @@ export const POST = auth(async function POST (req) {
   }
   const now = new Date();
 
-  const { messages, sessionId } = z.object({
+  const { name, messages, sessionId } = z.object({
     messages: z.object({ role: z.string(), content: z.string() }).array(),
     sessionId: z.string().optional(),
+    name: z.string().optional(),
   }).parse(await req.json());
 
   if (messages.length === 0) {
@@ -32,7 +33,7 @@ export const POST = auth(async function POST (req) {
       id,
       llm: 'openai',
       llm_model: 'gpt-3.5-turbo',
-      name: `New chat at ${formatDate(new Date(), 'yyyy-MM-dd HH:mm')}`,
+      name: name?.slice(0, 64) ?? `New chat at ${formatDate(new Date(), 'yyyy-MM-dd HH:mm')}`,
       index_name: 'default',
       created_at: now,
       created_by: userId,
@@ -66,7 +67,7 @@ export const POST = auth(async function POST (req) {
       id,
       llm: 'openai',
       llm_model: 'gpt-3.5-turbo',
-      name: `New chat at ${formatDate(new Date(), 'yyyy-MM-dd HH:mm')}`,
+      name: name?.slice(0, 64) ?? message.slice(0, 63),
       index_name: 'default',
       created_at: now,
       created_by: userId,
