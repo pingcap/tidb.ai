@@ -34,7 +34,7 @@ export function Conversation ({ open, history, context }: { open: boolean, histo
   return (
     <>
       <div ref={ref} className={cn(
-        'md:max-w-screen-sm mx-auto space-y-4 transition-all relative md:min-h-screen md:p-body',
+        'md:max-w-screen-md mx-auto space-y-4 transition-all relative md:min-h-screen md:p-body',
       )}>
         <ConversationMessageGroups messages={messages} data={data} isLoading={isLoading || isWaiting} />
         <div className="h-24"></div>
