@@ -102,7 +102,7 @@ function InternalSearchBox () {
         <Loader loading={disabled} />
         {result && <CommandGroup heading="Search results">
           {result.top.map(item => (
-            <CommandItem className="space-y-1 text-xs block cursor-pointer" onSelect={() => window.open(item.source_uri, '_blank')}>
+            <CommandItem key={item.source_uri} className="space-y-1 text-xs block cursor-pointer" onSelect={() => window.open(item.source_uri, '_blank')}>
               <div className="flex gap-1 items-center whitespace-nowrap overflow-hidden overflow-ellipsis">
                 <LinkIcon size="1em" />
                 {item.source_name}
