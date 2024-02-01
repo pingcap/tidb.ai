@@ -55,7 +55,7 @@ export function SiteNav ({ groups }: SiteNavProps) {
 
   return (
     <TooltipProvider>
-      <nav className="space-y-6 px-2 pb-14 relative h-content">
+      <nav className="space-y-6 p-4 relative">
         {groups.map((group, index) => (
           <Fragment key={index}>
             {index > 0 && <Separator orientation="horizontal" />}

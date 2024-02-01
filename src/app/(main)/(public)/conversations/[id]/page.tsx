@@ -19,7 +19,7 @@ export default async function Conversations ({ params }: { params: { id: string 
   ]);
 
   return (
-    <div className='pr-side'>
+    <div className='xl:pr-side'>
       <Conversation history={history} context={context} open={!!chat && !!user && chat.created_by === user.id} />
     </div>
   );

@@ -107,7 +107,7 @@ export function ConversationMessageGroups ({ messages, data, isLoading }: { mess
 
 function ConversationMessageGroup ({ group }: { group: ConversationMessageGroupProps }) {
   return (
-    <section className="space-y-4 border-b p-4">
+    <section className="space-y-4 p-4 border-b pb-10 last-of-type:border-b-0 last-of-type:border-pb-4">
       <h2 className="text-2xl font-semibold">{group.userMessage.content}</h2>
       {group.assistantContext.length > 0 && (
         <section className="space-y-2">

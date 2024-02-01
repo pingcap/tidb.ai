@@ -2,6 +2,7 @@
 
 import { Ask } from '@/components/ask';
 import { type NavGroup, SiteNav } from '@/components/site-nav';
+import { SiteNavFooter } from '@/components/site-nav-footer';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogOverlay, DialogPortal } from '@/components/ui/dialog';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
@@ -104,6 +105,7 @@ export function NavDrawer () {
       <DrawerContent className="px-2">
         <ScrollArea className="h-[50vh]">
           <Nav />
+          <SiteNavFooter className="bg-background" />
         </ScrollArea>
       </DrawerContent>
     </Drawer>

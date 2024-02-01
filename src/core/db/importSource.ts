@@ -34,7 +34,7 @@ export const importSourceDb: ImportSourceDb = {
   async listTasks (request: PageRequest): Promise<Page<Selectable<DB['import_source_task']>>> {
     let builder = db.selectFrom('import_source_task')
       .selectAll()
-      .orderBy('created_at desc');
+      .orderBy('finished_at desc');
     return await executePage(builder, request);
   },
 };
