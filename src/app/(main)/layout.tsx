@@ -25,7 +25,7 @@ export default function Layout ({ children }: {
   return (
     <>
       <div className="md:flex min-h-screen">
-        <aside className="pr-0 flex-shrink-0 gap-4 w-80 hidden md:block border-r relative">
+        <aside className="pr-0 flex-shrink-0 gap-4 w-80 hidden md:block border-r fixed top-0 left-0">
           <SiteHeader prefix={<NavDrawer />} />
           <ScrollArea className="h-body p-4 pr-8">
             <Nav />
