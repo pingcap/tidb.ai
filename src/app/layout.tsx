@@ -5,6 +5,7 @@ import type { Metadata } from 'next';
 import { SessionProvider } from 'next-auth/react';
 import { Noto_Sans as Font } from 'next/font/google';
 import './globals.css';
+import './more.css';
 
 const font = Font({ subsets: ['latin', 'latin-ext'] });
 

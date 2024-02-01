@@ -2,6 +2,7 @@
 
 import { Nav, NavDrawer } from '@/app/(main)/nav';
 import { Branding } from '@/components/branding';
+import { Highlight } from '@/components/highlight';
 import { SemanticSearch } from '@/components/semantic-search';
 import { SiteNavFooter } from '@/components/site-nav-footer';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -20,7 +21,12 @@ export default function Layout ({ children }: {
           <Branding />
         </header>
         <div className="fixed top-1.5 right-2 md:top-4 md:right-4 z-10">
-          <SemanticSearch />
+          <div className='flex gap-2 items-center'>
+            <span className='text-lg font-semibold'>
+              <Highlight>Scenario 2:</Highlight> Semantic Search
+            </span>
+            <SemanticSearch />
+          </div>
         </div>
         <aside className="flex-shrink-0 gap-4 w-side h-screen hidden md:block border-r fixed top-0 left-0">
           <Link className="h-header flex gap-4 items-center justify-center px-4 bg-background" href='/' prefetch={false}>

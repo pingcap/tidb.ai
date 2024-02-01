@@ -1,6 +1,7 @@
 'use client';
 
 import { Ask } from '@/components/ask';
+import { Highlight } from '@/components/highlight';
 import { Button } from '@/components/ui/button';
 import { useAsk } from '@/components/use-ask';
 
@@ -9,8 +10,8 @@ export default function Page () {
 
   return (
     <div className="h-body md:h-screen flex flex-col items-center justify-center gap-4">
-      <h1 className="text-xl font-semibold">
-        Get Knowledge Here
+      <h1 className="text-4xl font-semibold">
+        <Highlight>Scenario 1:</Highlight> Conversational Ask
       </h1>
       <Ask className="px-4 w-full lg:w-2/3" loading={loading} ask={ask} />
       <ul className="flex gap-2 flex-wrap px-4 w-full lg:w-2/3">
