@@ -18,7 +18,7 @@ export function MessageInput ({ className, disabled, inputRef, inputProps }: { c
   }, []);
 
   return (
-    <div className={cn('bg-background flex gap-2 items-end border-2 p-2 rounded-lg', className)}>
+    <div className={cn('bg-background flex gap-2 items-end border p-2 rounded-lg', className)}>
       <TextareaAutosize
         placeholder="Edit..."
         onKeyDown={e => {
