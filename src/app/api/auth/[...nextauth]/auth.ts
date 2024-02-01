@@ -10,6 +10,8 @@ declare module 'next-auth' {
 
 const anonymous_prefix = '$$a_';
 
+const cookie_prefix = 'tidb-ai';
+
 export const {
   handlers: { GET, POST },
   auth,
@@ -19,6 +21,17 @@ export const {
   },
   session: {
     strategy: 'jwt',
+  },
+  cookies: {
+    sessionToken: {
+      name: `${cookie_prefix}.session-token`,
+    },
+    callbackUrl: {
+      name: `${cookie_prefix}.callback-url`,
+    },
+    csrfToken: {
+      name: `${cookie_prefix}.csrf-token`,
+    },
   },
   callbacks: {
     session (params) {
