@@ -2,6 +2,7 @@
 
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { indexStateCell } from '@/components/cells/index-state';
+import { metadataCell } from '@/components/cells/metadata';
 import { DocumentIndexStatusFilter } from '@/components/data-filters/document-index-status-filter';
 import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
@@ -46,31 +47,12 @@ const sourceUri = (cell: CellContext<any, any>) => {
   return <a href={value} target="_blank">{value}</a>;
 };
 
-const json = (cell: CellContext<any, any>) => {
-  const metadata = cell.getValue();
-  if (!metadata) {
-    return '-';
-  }
-  return (
-    <Tooltip>
-      <TooltipTrigger>
-        JSON
-      </TooltipTrigger>
-      <TooltipContent className="text-xs">
-        <pre>{JSON.stringify(metadata, undefined, 2)}</pre>
-      </TooltipContent>
-    </Tooltip>
-  );
-};
-
 const datetime = (cell: CellContext<any, any>) => <time>{format(cell.getValue(), 'yyyy-MM-dd HH:mm')}</time>;
 
 const columns = [
   helper.accessor('id', { cell: mono }),
   helper.accessor('index_state', { cell: indexStateCell }),
-  helper.accessor('metadata', {
-    cell: json,
-  }),
+  helper.accessor('metadata', { cell: metadataCell }),
   helper.accessor('name', { cell: mono }),
   helper.accessor('mime', { cell: mono }),
   helper.accessor('source_uri', { cell: sourceUri }),

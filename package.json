@@ -104,6 +104,7 @@
     "next-plugin-svgr": "^1.1.10",
     "next-themes": "^0.2.1",
     "postcss": "^8",
+    "react-json-view-lite": "^1.2.1",
     "react-responsive": "^9.0.2",
     "recharts": "^2.10.4",
     "rehype-react": "^8.0.0",
