@@ -26,11 +26,11 @@ export class HtmlLoader extends rag.Loader<HtmlLoader.Options, {}> {
   load (buffer: Buffer, url: string): rag.Content<{}> {
     const { result, warning } = this.process(url, buffer);
 
-    const content = result.map(item => item.content).join('\n\n');
+    const content = result.map(item => item.content);
 
     return {
       content: content,
-      digest: md5(content),
+      digest: md5(content.join('\n\n\n\n')),
       metadata: {
         partitions: result.map(item => ({
           selector: item.selector,

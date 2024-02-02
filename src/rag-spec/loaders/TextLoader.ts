@@ -14,7 +14,7 @@ export class TextLoader extends rag.Loader<TextLoader.Options, {}> {
   async load (buffer: Buffer) {
     const content = buffer.toString(this.options.encoding ?? 'utf8');
     return {
-      content: content,
+      content: [content],
       digest: md5(content),
       metadata: {
       },

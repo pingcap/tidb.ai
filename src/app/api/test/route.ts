@@ -1,21 +1,16 @@
-import { baseRegistry } from '@/rag-spec/base';
-import { getFlow } from '@/rag-spec/createFlow';
-import { HtmlLoader } from '@/rag-spec/loaders/HtmlLoader';
+import database from '@/core/db';
+import { reIndexDocument } from '@/jobs/reIndexDocument';
 import { NextResponse } from 'next/server';
 
 export async function GET () {
-  const store = getFlow(baseRegistry).getStorage();
+  const index = await database.index.findByName('default');
+  if (!index) {
+    return;
+  }
 
-  const buffer = await store.get('blob/0g/3YmIyuyK4a');
-  const htmlLoader = new HtmlLoader({
-    contentExtraction: {
-      'www.pingcap.com': [
-        { pattern: '/blog/*', contentSelector: '.wysiwyg--post-content' },
-      ],
-    },
-  });
+  await reIndexDocument(index, (await database.document.findById('LDrSonjzNijS'))!);
 
-  return NextResponse.json(await htmlLoader.load(buffer, 'https://www.pingcap.com/blog/tide-developing-a-distributed-database-in-a-breeze/'));
+  return NextResponse.json({});
 }
 
 export const dynamic = 'force-dynamic';

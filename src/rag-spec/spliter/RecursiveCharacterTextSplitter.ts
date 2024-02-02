@@ -1,6 +1,6 @@
 import { rag } from '@/core/interface';
 import { Document as LangChainDocument } from '@langchain/core/documents';
-import { RecursiveCharacterTextSplitter as LangChainRecursiveCharacterTextSplitter, RecursiveCharacterTextSplitterParams } from 'langchain/text_splitter';
+import { RecursiveCharacterTextSplitter as LangChainRecursiveCharacterTextSplitter, type RecursiveCharacterTextSplitterParams } from 'langchain/text_splitter';
 import { z } from 'zod';
 
 export namespace RecursiveCharacterTextSplitter {
@@ -35,8 +35,7 @@ export class RecursiveCharacterTextSplitter<ContentMetadata> extends rag.Splitte
   }
 
   async split (content: rag.Content<ContentMetadata>): Promise<rag.ChunkedContent<ContentMetadata, RecursiveCharacterTextSplitter.Metadata>> {
-    const document = new LangChainDocument({ pageContent: content.content });
-    const results = await this.agent.splitDocuments([document]);
+    const results = await this.agent.splitDocuments(content.content.map(content => new LangChainDocument({ pageContent: content })));
 
     return {
       ...content,

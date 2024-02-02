@@ -43,7 +43,7 @@ export class MarkdownLoader extends rag.Loader<MarkdownLoader.Options, {}> {
     const content = toText(hast, this.options.toText);
 
     return {
-      content: content,
+      content: [content],
       digest: md5(content),
       metadata: { },
     } satisfies rag.Content<{}>;

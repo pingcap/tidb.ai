@@ -12,9 +12,10 @@ export async function reIndexDocument (index: Selectable<DB['index']>, document:
   const storage = flow.getStorage();
   try {
     console.log('[index] start', document.id, document.mime);
+    console.debug(JSON.stringify(index.config, undefined, 2))
     const metadata: any = {};
 
-    await database.index.startIndexing(index.name, document.id, { digest: '', content: '', metadata: {}, chunks: [] });
+    await database.index.startIndexing(index.name, document.id, { digest: '', content: [], metadata: {}, chunks: [] });
     const loader = flow.getLoader(document.mime, document.source_uri);
     const buffer = await storage.get(document.content_uri);
     const content = await loader.load(buffer, document.source_uri);

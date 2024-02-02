@@ -9,7 +9,7 @@ export class PdfLoader extends rag.Loader<{}, {}> {
     const Pdf = await import('pdfjs-dist');
 
     const document = await Pdf.getDocument(buffer.buffer).promise;
-    let content = '';
+    const content: string[] = [];
 
     for (let i = 1; i <= document.numPages; i++) {
       const page = await document.getPage(i);
@@ -17,11 +17,9 @@ export class PdfLoader extends rag.Loader<{}, {}> {
 
       for (let item of textContent.items) {
         if ('str' in item) {
-          content += item.str;
+          content.push(item.str);
         }
       }
-
-      content += '\n\n';
     }
 
     return {

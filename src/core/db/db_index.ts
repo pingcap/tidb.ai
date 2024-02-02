@@ -57,7 +57,7 @@ export const indexDb: IndexDb = {
         index_name: index,
         status: 'indexing',
         created_at: new Date(),
-        text_content: content.content,
+        text_content: content.content.join('\n\n\n\n'),
         trace: null,
         metadata: JSON.stringify(content.metadata),
       })
@@ -78,13 +78,13 @@ export const indexDb: IndexDb = {
           index_name: index,
           status: 'ok',
           created_at: now,
-          text_content: content.content,
+          text_content: content.content.join('\n\n\n\n'),
           trace: null,
           metadata: JSON.stringify(content.metadata),
         })
         .onDuplicateKeyUpdate({
           status: 'ok',
-          text_content: content.content,
+          text_content: content.content.join('\n\n\n\n'),
           created_at: now,
           metadata: JSON.stringify(content.metadata),
         })

@@ -6,7 +6,7 @@ import { z } from 'zod';
 
 export namespace rag {
   export interface Content<ContentMetadata> {
-    content: string;
+    content: string[];
     digest: string;
     metadata: ContentMetadata;
   }
