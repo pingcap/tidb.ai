@@ -57,7 +57,7 @@ export class SitemapXmlTaskProcessor extends rag.ImportSourceTaskProcessor<{}> {
     if ('sitemapindex' in sitemap) {
       return Promise.all(sitemap.sitemapindex.sitemap.map(sitemap => this.fetchSitemap(sitemap.loc))).then(urls => urls.flatMap(url => url));
     } else {
-      return sitemap.urlset.url.map(url => url.loc);
+      return sitemap.urlset.url?.map(url => url.loc) ?? [];
     }
   }
 }

@@ -1,7 +1,7 @@
 import { rag } from '@/core/interface';
 import { md5 } from '@/lib/digest';
 import type { Element, Root } from 'hast';
-import { select } from 'hast-util-select';
+import { select, selectAll } from 'hast-util-select';
 import { toText } from 'hast-util-to-text';
 import matchUrl from 'match-url-wildcard';
 import { isMatch } from 'micromatch';
@@ -56,13 +56,18 @@ export class HtmlLoader extends rag.Loader<HtmlLoader.Options, {}> {
   private process (url: string, buffer: Buffer) {
     const pathname = this.getPathname(url);
 
-    const selectors: string[] = [];
+    const selectors: { selector: string, multiple: boolean }[] = [];
 
     for (let [domain, rules] of Object.entries(this.options.contentExtraction ?? {})) {
       if (matchUrl(url, domain)) {
         for (let rule of rules) {
           if (isMatch(pathname, rule.pattern)) {
-            selectors.push(rule.contentSelector);
+            if (rule.all) {
+            }
+            selectors.push({
+              selector: rule.contentSelector,
+              multiple: rule.all ?? false,
+            });
           }
         }
       }
@@ -72,21 +77,32 @@ export class HtmlLoader extends rag.Loader<HtmlLoader.Options, {}> {
     const warning: string[] = [];
 
     if (!selectors.length) {
-      selectors.push('body');
+      selectors.push({ selector: 'body', multiple: false });
       warning.push('No selector provided for this URL. the default selector `body` always contains redundancy content.');
     }
 
     const root = this.processor.parse(Uint8Array.from(buffer));
 
     const result: { content: string, selector: string, element: Element }[] = [];
-    for (let selector of selectors) {
-      const element = select(selector, root);
-      if (element) {
-        result.push({
-          content: toText(element), selector, element,
-        });
+    for (let { selector, multiple } of selectors) {
+      if (multiple) {
+        const elements = selectAll(selector, root);
+        if (elements.length > 0) {
+          result.push(...elements.map(element => ({
+            content: toText(element), selector, element,
+          })));
+        } else {
+          failed.push(selector);
+        }
       } else {
-        failed.push(selector);
+        const element = select(selector, root);
+        if (element) {
+          result.push({
+            content: toText(element), selector, element,
+          });
+        } else {
+          failed.push(selector);
+        }
       }
     }
 
@@ -102,6 +118,7 @@ export namespace HtmlLoader {
   const contentExtractionConfigSchema = z.record(z.object({
     pattern: z.string(),
     contentSelector: z.string(),
+    all: z.boolean().optional(),
   }).array());
 
   export interface Options {

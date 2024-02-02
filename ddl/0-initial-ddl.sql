@@ -90,7 +90,7 @@ CREATE TABLE chat
     index_name VARCHAR(32) NOT NULL,
     llm        VARCHAR(32) NOT NULL,
     llm_model  VARCHAR(32) NOT NULL,
-    name       VARCHAR(32) NOT NULL,
+    name       VARCHAR(64) NOT NULL,
     created_at DATETIME    NOT NULL,
     created_by VARCHAR(32) NOT NULL COMMENT 'a user id or session id',
     PRIMARY KEY (id)
@@ -158,7 +158,7 @@ CREATE TABLE import_source_task
     id               INT AUTO_INCREMENT                                  NOT NULL,
     import_source_id VARCHAR(32)                                         NOT NULL,
     parent_task_id   INT                                                 NULL,     -- null if triggered by import source
-    url              VARCHAR(256)                                        NOT NULL,
+    url              VARCHAR(2048)                                        NOT NULL,
     type             VARCHAR(32)                                         NOT NULL, -- document, robots.txt, sitemap,
     created_at       DATETIME                                            NOT NULL,
     finished_at      DATETIME                                            NULL,     -- when status in [succeed, failed]
@@ -179,6 +179,13 @@ VALUES ('default', 'openai', 'openai', '{
         {
           "pattern": "/blog/*",
           "contentSelector": ".wysiwyg--post-content"
+        }
+      ],
+      "ask.pingcap.com": [
+        {
+          "pattern":"/t/*",
+          "contentSelector": ".cooked",
+          "all": true
         }
       ]
     }
