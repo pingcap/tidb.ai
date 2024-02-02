@@ -204,8 +204,12 @@ UPDATE `index` set config = '{
       "ask.pingcap.com": [
         {
           "pattern":"/t/**",
-          "contentSelector": ".post",
+          "contentSelector": "#topic-title > h1",
           "all": true
+        },
+        {
+          "pattern": "/t/**",
+          "contentSelector": ".post"
         }
       ]
     }

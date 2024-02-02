@@ -10,7 +10,7 @@ export interface ImportSourceDb {
 
   list (): Promise<Selectable<DB['import_source']>[]>;
 
-  listTasks (request: PageRequest): Promise<Page<Selectable<DB['import_source_task']>>>;
+  listTasks (request: PageRequest<{ status?: string[] }>): Promise<Page<Selectable<DB['import_source_task']>>>;
 }
 
 export const importSourceDb: ImportSourceDb = {
@@ -31,10 +31,15 @@ export const importSourceDb: ImportSourceDb = {
       .where('id', '=', eb => eb.val(id))
       .executeTakeFirst();
   },
-  async listTasks (request: PageRequest): Promise<Page<Selectable<DB['import_source_task']>>> {
+  async listTasks (request): Promise<Page<Selectable<DB['import_source_task']>>> {
     let builder = db.selectFrom('import_source_task')
       .selectAll()
       .orderBy('finished_at desc');
+
+    if (request.status?.length) {
+      builder = builder.where('status', 'in', request.status as any);
+    }
+
     return await executePage(builder, request);
   },
 };
