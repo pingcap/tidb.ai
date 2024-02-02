@@ -1,8 +1,11 @@
 'use client';
 
+import { AdminPageHeading } from '@/components/admin-page-heading';
+import { indexStateCell } from '@/components/cells/index-state';
+import { DocumentIndexStatusFilter } from '@/components/data-filters/document-index-status-filter';
+import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
-import { Status } from '@/components/status';
-import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
+import { ImportFileDialog } from '@/components/dialogs/import-file-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { DB } from '@/core/db/schema';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
@@ -64,37 +67,7 @@ const datetime = (cell: CellContext<any, any>) => <time>{format(cell.getValue(),
 
 const columns = [
   helper.accessor('id', { cell: mono }),
-  helper.accessor('index_state', {
-    cell: props => {
-      const error = props.row.original.trace;
-      switch (props.getValue()) {
-        case 'notIndexed':
-          return <Status title="Not indexed" status="gray" />;
-        case 'indexed':
-          return <Status title="Indexed" status="green" />;
-        case 'indexing':
-          return <Status title="Indexing" status="blue" />;
-        case 'fail':
-          return (
-            <Tooltip>
-              <TooltipTrigger>
-                <Status title="Fail" status="red" />
-              </TooltipTrigger>
-              <TooltipContent>
-                <h6 className="font-semibold mb-2">Error message</h6>
-                <ScrollArea className="w-80 h-40">
-                  <pre className="text-xs">
-                     {error}
-                  </pre>
-                  <ScrollBar orientation="horizontal" />
-                  <ScrollBar orientation="vertical" />
-                </ScrollArea>
-              </TooltipContent>
-            </Tooltip>
-          );
-      }
-    },
-  }),
+  helper.accessor('index_state', { cell: indexStateCell }),
   helper.accessor('metadata', {
     cell: json,
   }),
@@ -104,18 +77,24 @@ const columns = [
   helper.accessor('digest', { cell: mono }),
   helper.accessor('created_at', { cell: datetime }),
   helper.accessor('last_modified_at', { cell: datetime }),
-] as ColumnDef<Selectable<DB['document']>>[];
+] as ColumnDef<Selectable<DB['document']> & { index_state: string, metadata: any }>[];
 
 export default function Page () {
   return (
-    <div className="p-4 space-y-4">
-      <h1 className="text-2xl font-semibold mb-4">Explore all documents</h1>
-
+    <>
+      <AdminPageHeading title="Explore all documents" />
       <DataTableRemote
+        before={(
+          <DataTableHeading>
+            <DocumentIndexStatusFilter />
+            <span className="ml-auto" />
+            <ImportFileDialog />
+          </DataTableHeading>
+        )}
         columns={columns}
         api="/api/v1/documents"
         idColumn="id"
       />
-    </div>
+    </>
   );
 }

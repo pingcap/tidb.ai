@@ -1,7 +1,7 @@
 import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
 import { executePage, type Page, type PageRequest } from '@/lib/database';
-import type { Insertable, Selectable, Updateable } from 'kysely';
+import type { ExpressionBuilder, Insertable, Selectable, Updateable } from 'kysely';
 
 const accept = [
   'text/plain',
@@ -31,19 +31,21 @@ export interface DocumentDb {
 }
 
 const documentDb = {
-  async listAll (request: PageRequest) {
-    const builder = db.selectFrom('document')
+  async listAll (request: PageRequest<{ index_state?: string[] }>) {
+    const computed_index_state = (eb: ExpressionBuilder<DB, 'document' | 'document_index' | 'index'>) => eb.case()
+      .when('document_index.status', 'is', null).then('notIndexed')
+      .when('document_index.status', '=', 'indexing').then('indexing')
+      .when('document_index.status', '=', 'fail').then('fail')
+      .when('document_index.created_at', '<', eb => eb.ref('index.last_modified_at')).then('staled')
+      .else('indexed')
+      .end();
+
+    let builder = db.selectFrom('document')
       .leftJoin('document_index', 'document_id', 'document.id')
       .leftJoin('index', 'index.name', 'document_index.index_name')
       .selectAll('document')
       .select(eb => eb.ref('document_index.metadata').$castTo<any>().as('metadata'))
-      .select(eb => eb.case()
-        .when('document_index.status', 'is', null).then('notIndexed')
-        .when('document_index.status', '=', 'indexing').then('indexing')
-        .when('document_index.status', '=', 'fail').then('fail')
-        .when('document_index.created_at', '<', eb => eb.ref('index.last_modified_at')).then('staled')
-        .else('indexed')
-        .end().as('index_state'))
+      .select(eb => computed_index_state(eb).as('index_state'))
       .select('document_index.trace')
       .where(eb => eb.or([
         eb('index_name', '=', eb => eb.val('default')),
@@ -51,9 +53,14 @@ const documentDb = {
       ]))
       .orderBy('document_index.created_at desc');
 
+    if (request.index_state?.length) {
+      builder = builder.where(computed_index_state, 'in', request.index_state);
+    }
+
     return await executePage(
       builder,
-      request);
+      request,
+    );
   },
 
   async listByCreatedAt (from, limit) {

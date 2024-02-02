@@ -83,7 +83,7 @@ export function Nav () {
     groups.push({
       title: 'Admin',
       items: [
-        { href: '/overview', title: 'Overview', exact: true, icon: ActivitySquareIcon },
+        { href: '/dashboard', title: 'Dashboard', icon: ActivitySquareIcon },
         { href: '/explore', title: 'Documents', icon: LibraryIcon },
         { href: '/sources', title: 'Sources', icon: ImportIcon },
         { href: '/import-tasks', title: 'Import Tasks', icon: ListIcon },

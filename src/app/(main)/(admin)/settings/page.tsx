@@ -15,7 +15,7 @@ const tabs = [
 
 export default function Page () {
   return (
-    <div className="p-4 space-y-4">
+    <>
       <h1 className="text-2xl font-semibold mb-4">Site settings</h1>
       <nav>
         <ul className="flex gap-2 items-center">
@@ -49,6 +49,6 @@ export default function Page () {
           Update
         </Button>
       </div>
-    </div>
+    </>
   );
 }

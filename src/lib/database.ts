@@ -1,4 +1,3 @@
-import type { DB } from '@/core/db/schema';
 import type { SelectQueryBuilder } from 'kysely';
 import type { NextRequest } from 'next/server';
 
@@ -33,7 +32,7 @@ export async function executePage<DB, TB extends keyof DB, O> (builder: SelectQu
   };
 }
 
-export function toPageRequest (req: NextRequest): PageRequest {
+export function toPageRequest<K extends string[]> (req: NextRequest, filters?: Readonly<K>): PageRequest<K extends (infer K0 extends string)[] ? { [P in K0]: string[] } : {}> {
   const rawPage = req.nextUrl.searchParams.get('page') || '1';
   const rawPageSize = req.nextUrl.searchParams.get('page_size') || '10';
 
@@ -50,5 +49,15 @@ export function toPageRequest (req: NextRequest): PageRequest {
     pageSize = 100;
   }
 
-  return { page, pageSize };
+  const request = {
+    page, pageSize,
+  } as any;
+
+  if (filters) {
+    filters.forEach(filter => {
+      request[filter] = req.nextUrl.searchParams.getAll(filter);
+    });
+  }
+
+  return request;
 }

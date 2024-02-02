@@ -184,27 +184,3 @@ VALUES ('default', 'openai', 'openai', '{
     }
   }
 }', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-
-
-
-ALTER TABLE `index`
-    DROP COLUMN splitter_type,
-    DROP COLUMN splitter_options;
-
-ALTER TABLE `index`
-    ADD COLUMN config JSON NOT NULL;
-
-UPDATE `index`
-SET `index`.config = '{
-  "rag.loader.html": {
-    "contentExtraction": {
-      "www.pingcap.com": [
-        {
-          "pattern": "/blog/*",
-          "contentSelector": ".wysiwyg--post-content"
-        }
-      ]
-    }
-  }
-}'
-WHERE name = 'default';

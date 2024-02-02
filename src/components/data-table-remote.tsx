@@ -6,9 +6,10 @@ import { RowCheckbox } from '@/components/ui/row-checkbox';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import { DataTableProvider } from '@/components/use-data-table';
 import type { Page } from '@/lib/database';
 import { fetcher } from '@/lib/fetch';
-import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import { ColumnDef, type ColumnFilter, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import type { PaginationState } from '@tanstack/table-core';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
@@ -20,6 +21,8 @@ interface DataTableRemoteProps<TData, TValue> {
   selectable?: boolean;
   batchOperations?: (rows: string[], revalidate: () => void) => ReactNode;
   refreshInterval?: number | ((data: Page<TData> | undefined) => number);
+  before?: ReactNode;
+  after?: ReactNode;
 }
 
 export function DataTableRemote<TData, TValue> ({
@@ -29,18 +32,35 @@ export function DataTableRemote<TData, TValue> ({
   selectable = false,
   batchOperations,
   refreshInterval,
+  before,
+  after,
 }: DataTableRemoteProps<TData, TValue>) {
   const [pagination, setPagination] = useState<PaginationState>(() => {
     return { pageIndex: 0, pageSize: 10 };
   });
   const [rowSelection, setRowSelection] = useState({});
+  const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
+
   const idSelection = useMemo(() => {
     return Object.keys(rowSelection);
   }, [rowSelection]);
 
-  const { data, mutate, isLoading, isValidating } = useSWR(['get', api, { page: pagination.pageIndex + 1, page_size: pagination.pageSize }], fetcher<Page<TData>>, {
-    refreshInterval,
-  });
+  const { data, mutate, isLoading, isValidating } = useSWR(
+    [
+      'get',
+      api,
+      {
+        page: pagination.pageIndex + 1,
+        page_size: pagination.pageSize,
+        ...columnFilters.reduce((res, column) => {
+          res[column.id] = column.value;
+          return res;
+        }, {} as any),
+      },
+    ],
+    fetcher<Page<TData>>, {
+      refreshInterval,
+    });
 
   useEffect(() => {
     void mutate();
@@ -82,19 +102,24 @@ export function DataTableRemote<TData, TValue> ({
     state: {
       pagination,
       rowSelection,
+      columnFilters,
     },
     pageCount: data ? Math.ceil(data.total / data.pageSize) : 1,
     manualPagination: true,
+    manualFiltering: true,
     enableRowSelection: selectable,
     enableMultiRowSelection: selectable,
+    enableColumnFilters: true,
     onPaginationChange: setPagination,
     onRowSelectionChange: setRowSelection,
+    onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
     getRowId: item => String(item[idColumn]),
   });
 
   return (
-    <div className="">
+    <DataTableProvider value={table}>
+      {before}
       <TooltipProvider>
         <div className="rounded-md border relative">
           <Table className="text-xs whitespace-nowrap">
@@ -169,6 +194,7 @@ export function DataTableRemote<TData, TValue> ({
           </Button>
         </div>
       </TooltipProvider>
-    </div>
+      {after}
+    </DataTableProvider>
   );
 }

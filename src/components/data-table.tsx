@@ -3,9 +3,13 @@
 import { Button } from '@/components/ui/button';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { DataTableProvider } from '@/components/use-data-table';
 import { ColumnDef, flexRender, getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table';
+import type { ReactNode } from 'react';
 
 interface DataTableProps<TData, TValue> {
+  before?: ReactNode;
+  after?: ReactNode;
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
@@ -13,6 +17,8 @@ interface DataTableProps<TData, TValue> {
 export function DataTable<TData, TValue> ({
   columns,
   data,
+  before,
+  after
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -22,7 +28,8 @@ export function DataTable<TData, TValue> ({
   });
 
   return (
-    <div>
+    <DataTableProvider value={table}>
+      {before}
       <div className="rounded-md border">
         <Table className='text-xs whitespace-nowrap'>
           <TableHeader>
@@ -85,6 +92,7 @@ export function DataTable<TData, TValue> ({
           Next
         </Button>
       </div>
-    </div>
+      {after}
+    </DataTableProvider>
   );
 }

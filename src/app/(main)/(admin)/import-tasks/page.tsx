@@ -2,6 +2,8 @@
 
 import { DataTableRemote } from '@/components/data-table-remote';
 import { Status } from '@/components/status';
+import { AdminPageHeading } from '@/components/admin-page-heading';
+import { AdminPageLayout } from '@/components/admin-page-layout';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
@@ -16,9 +18,8 @@ import type { Selectable } from 'kysely';
 export default function TasksPage ({}: {}) {
 
   return (
-    <div className="p-body">
-      <h1 className="text-2xl font-semibold mb-4">Tasks</h1>
-
+    <>
+      <AdminPageHeading title='Importing tasks' />
       <DataTableRemote
         idColumn="id"
         selectable
@@ -39,7 +40,7 @@ export default function TasksPage ({}: {}) {
           return 5000;
         }}
       />
-    </div>
+    </>
   );
 }
 

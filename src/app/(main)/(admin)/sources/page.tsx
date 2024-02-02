@@ -1,6 +1,9 @@
 'use client';
 
 import { DataTable } from '@/components/data-table';
+import { ImportSiteDialog } from '@/components/dialogs/import-site-dialog';
+import { AdminPageHeading } from '@/components/admin-page-heading';
+import { AdminPageLayout } from '@/components/admin-page-layout';
 import type { DB } from '@/core/db/schema';
 import type { CellContext } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
@@ -19,10 +22,10 @@ export default function Page () {
   ];
 
   return (
-    <div className="p-4">
-      <h1 className='text-2xl font-semibold mb-4'>Sources</h1>
+    <>
+      <AdminPageHeading title="Sources" actions={<ImportSiteDialog />} />
       <DataTable columns={columns} data={data} />
-    </div>
+    </>
   );
 }
 
