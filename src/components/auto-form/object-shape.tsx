@@ -10,7 +10,7 @@ export function ObjectShape ({ name, schema }: { name: string | undefined, schem
   return (
     <fieldset className="space-y-4">
       {fields.map(({ component: Field, ...props }) => (
-        <Field {...props} />
+        <Field key={props.name} {...props} />
       ))}
     </fieldset>
   );

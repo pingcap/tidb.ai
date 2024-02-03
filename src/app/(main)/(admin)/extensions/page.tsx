@@ -11,7 +11,7 @@ import Link from 'next/link';
 
 import useSWR from 'swr';
 
-export function useExtensions () {
+function useExtensions () {
   const { data: extensions = [] } = useSWR(['get', '/api/v1/extensions'], fetcher<{ identifier: string, displayName: string }[]>);
 
   return extensions;
