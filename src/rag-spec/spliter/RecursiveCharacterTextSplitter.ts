@@ -21,10 +21,10 @@ export class RecursiveCharacterTextSplitter<ContentMetadata> extends rag.Splitte
   static identifier = 'rag.splitter.langchain.recursive-character';
   static displayName = 'Recursive Character Text Splitter';
   static optionsSchema = z.object({
-    separators: z.string().array().optional(),
-    chunkSize: z.number().int().optional(),
-    chunkOverlap: z.number().int().optional(),
-    keepSeparator: z.boolean().optional(),
+    separators: z.string().array().optional().default(['\n\n', '\n', ' ', '']),
+    chunkSize: z.coerce.number().int().optional().default(512),
+    chunkOverlap: z.coerce.number().int().optional().default(10),
+    keepSeparator: z.boolean().optional().default(false),
   });
 
   private readonly agent: LangChainRecursiveCharacterTextSplitter;

@@ -13,7 +13,7 @@ export namespace FileSystemDocumentStorage {
 
 export class FileSystemDocumentStorage extends rag.DocumentStorage<FileSystemDocumentStorage.Options> {
   static identifier = 'rag.document-storage.fs';
-  static displayName = 'File system';
+  static displayName = 'File system storage';
   static optionsSchema = z.object({
     path: env('DOCUMENT_STORE_PATH'),
   });

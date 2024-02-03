@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 type ExtractOptions<T> = T extends rag.Base<infer O> ? O : never;
 
-interface ComponentConstructor<Type> {
+export interface ComponentConstructor<Type> {
   new (options: ExtractOptions<Type>): Type;
 
   optionsSchema: z.ZodType<ExtractOptions<Type>>;
@@ -33,6 +33,24 @@ export class RagComponentRegistry {
 
   createAll (options: any = {}) {
     return Array.from(this.registry.keys()).map(identifier => this.create(identifier, options[identifier] ?? {}));
+  }
+
+  list () {
+    return Array.from(this.registry.keys()).map(id => this.getDef(id)!);
+  }
+
+  getComponent (identifier: string) {
+    return this.registry.get(identifier);
+  }
+
+  getDef (identifier: string) {
+    const component = this.registry.get(identifier);
+    if (component) {
+      return {
+        identifier: component.identifier,
+        displayName: component.displayName,
+      };
+    }
   }
 }
 

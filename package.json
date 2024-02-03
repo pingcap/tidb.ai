@@ -46,6 +46,7 @@
     "@types/mdx": "^2.0.11",
     "@vercel/blob": "^0.19.0",
     "ai": "^2.2.31",
+    "change-case": "^5.4.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^0.2.0",
