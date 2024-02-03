@@ -3,8 +3,11 @@
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { OverviewCard } from '@/components/overview-card';
 import { fetcher } from '@/lib/fetch';
-import { ArrowRightIcon, BinaryIcon, ListTodoIcon, MessageSquareTextIcon, MessagesSquareIcon, UserIcon } from 'lucide-react';
+import { differenceInDays } from 'date-fns';
+import { ArrowRightIcon, BarChartIcon, BinaryIcon, ListTodoIcon, MessageSquareTextIcon, MessagesSquareIcon, UserIcon } from 'lucide-react';
 import Link from 'next/link';
+import { useMemo } from 'react';
+import { Bar, BarChart, ResponsiveContainer } from 'recharts';
 import useSWR from 'swr';
 
 export default function Page () {
@@ -17,20 +20,16 @@ export default function Page () {
         <TaskStats />
         <ChatStats />
       </section>
+      <section>
+        <ChatDailyStats />
+      </section>
     </>
   );
 }
 
 function IndexStats ({}: {}) {
   type IndexStatsData = Partial<Record<'notIndexed' | 'indexed' | 'staled', number>>
-  const { data, isLoading } = useSWR(['get', '/api/v1/indexes/default/stats'], fetcher<IndexStatsData>, {
-    refreshInterval: data => {
-      if (data?.notIndexed || data?.staled) {
-        return 1000;
-      }
-      return 5000;
-    },
-  });
+  const { data, isLoading } = useSWR(['get', '/api/v1/indexes/default/stats'], fetcher<IndexStatsData>, {});
 
   const sum = (data?.indexed ?? 0) + (data?.staled ?? 0);
 
@@ -51,15 +50,7 @@ function IndexStats ({}: {}) {
 
 function TaskStats () {
   type TaskStatsData = Partial<Record<'pending' | 'processing' | 'succeed' | 'failed', number>>
-  const { data, isLoading } = useSWR(['get', '/api/v1/sources/tasks/stats'], fetcher<TaskStatsData>, {
-    refreshInterval: data => {
-      if (data?.processing || data?.pending) {
-        return 1000;
-      }
-
-      return 5000;
-    },
-  });
+  const { data, isLoading } = useSWR(['get', '/api/v1/sources/tasks/stats'], fetcher<TaskStatsData>, {});
 
   return (
     <OverviewCard
@@ -76,13 +67,15 @@ function TaskStats () {
   );
 }
 
+type ChatStatsData = Partial<Record<'chats' | 'chat_messages' | 'sessions', number>>;
+type DailyChatStatsData = (ChatStatsData & { date: string })[];
+
 function ChatStats () {
-  type ChatStatsData = Partial<Record<'chats' | 'chat_messages' | 'sessions', number>>;
   const { data, isLoading } = useSWR(['get', '/api/v1/chats/stats'], fetcher<ChatStatsData>);
 
   return (
     <OverviewCard
-      title="Conversations"
+      title="All Conversations"
       icon={MessagesSquareIcon}
       value={data?.chats ?? 0}
     >
@@ -103,4 +96,45 @@ function ChatStats () {
       </div>
     </OverviewCard>
   );
+}
+
+function ChatDailyStats () {
+  const { data = [] } = useSWR(['get', '/api/v1/chats/daily-stats'], fetcher<DailyChatStatsData>);
+
+  const refinedData = useMemo(() => {
+    const res: { day: number, value: number }[] = [];
+    for (let i = 0; i < 28; i++) {
+      res[i] = { day: 0, value: 0 };
+    }
+    const now = new Date();
+    data.forEach(item => {
+      const i = differenceInDays(now, item.date);
+      if (i >= 0 && i < 28) {
+        res[i].value = item.chat_messages ?? 0;
+      }
+    });
+    return res;
+  }, [data]);
+
+  return (
+    <OverviewCard
+      title="Conversations Trends"
+      value={refinedData[0].value} icon={BarChartIcon}
+      description={diff(refinedData[0].value, refinedData[1].value) + ' compared to yesterday'}
+    >
+      <ResponsiveContainer width="100%" height="100%" minHeight={160}>
+        <BarChart data={refinedData}>
+          <Bar dataKey="value" className="fill-primary" radius={[4, 4, 0, 0]} />
+        </BarChart>
+      </ResponsiveContainer>
+    </OverviewCard>
+  );
+}
+
+function diff (a: number, b: number) {
+  if (b === 0) {
+    return `+${a}`;
+  } else {
+    return ((a - b) / b * 100).toFixed(0) + '%';
+  }
 }
