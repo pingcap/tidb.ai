@@ -14,7 +14,6 @@ export function NumberFieldInput ({ name, defaultValue, children }: { name: stri
             <Input
               {...field}
               type="number"
-              defaultValue={defaultValue}
               placeholder={defaultValue != null ? String(defaultValue) : defaultValue}
               onBlur={(event) => {
                 if (defaultValue != null) {
