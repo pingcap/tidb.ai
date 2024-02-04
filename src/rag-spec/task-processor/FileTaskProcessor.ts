@@ -15,7 +15,7 @@ export class FileTaskProcessor extends rag.ImportSourceTaskProcessor<{}> {
     return taskType === 'file';
   }
 
-  async process (task: Selectable<DB['import_source_task']>): Promise<TaskResult> {
+  async process (task: { url: string }): Promise<TaskResult> {
     const response = await fetch(task.url).then(handleErrors);
 
     return {

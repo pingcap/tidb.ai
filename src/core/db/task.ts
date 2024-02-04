@@ -1,16 +1,11 @@
 import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
+import { rag } from '@/core/interface';
 import type { Insertable, Selectable } from 'kysely';
 
 export type TaskStatus = DB['import_source_task']['status'];
 
-export type TaskResult = {
-  enqueue?: Array<{ type: string, url: string }>
-  content?: {
-    buffer: Buffer
-    mime: string
-  }
-}
+export type TaskResult = rag.ImportSourceTaskResult
 
 export type FinishTaskParameters = {
   enqueue?: Array<{ type: string, url: string }>

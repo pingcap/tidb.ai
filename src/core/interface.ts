@@ -1,7 +1,4 @@
-import type { DB } from '@/core/db/schema';
-import type { TaskResult } from '@/core/db/task';
 import type { AIStreamCallbacksAndOptions } from 'ai';
-import type { Insertable, Selectable } from 'kysely';
 import { z } from 'zod';
 
 export namespace rag {
@@ -100,14 +97,18 @@ export namespace rag {
     abstract chatStream (history: ChatMessage[], callbacks?: AIStreamCallbacksAndOptions): Promise<ReadableStream>
   }
 
-  export abstract class ImportSourceResolver<Options> extends Base<Options> {
-    abstract createTasks (source: Selectable<DB['import_source']>): Promise<Insertable<DB['import_source_task']>[]>
+  export type ImportSourceTaskResult = {
+    enqueue?: Array<{ type: string, url: string }>
+    content?: {
+      buffer: Buffer
+      mime: string
+    }
   }
 
   export abstract class ImportSourceTaskProcessor<Options> extends Base<Options> {
     abstract support (taskType: string, url: string): boolean;
 
-    abstract process (task: Selectable<DB['import_source_task']>): Promise<TaskResult>
+    abstract process (task: { url: string }): Promise<ImportSourceTaskResult>
   }
 
   /**

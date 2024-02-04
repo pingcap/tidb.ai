@@ -184,26 +184,6 @@ VALUES ('default', 'openai', 'openai', '{
       "ask.pingcap.com": [
         {
           "pattern":"/t/**",
-          "contentSelector": ".post",
-          "all": true
-        }
-      ]
-    }
-  }
-}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
-
-UPDATE `index` set config = '{
-  "rag.loader.html": {
-    "contentExtraction": {
-      "www.pingcap.com": [
-        {
-          "pattern": "/blog/*",
-          "contentSelector": ".wysiwyg--post-content"
-        }
-      ],
-      "ask.pingcap.com": [
-        {
-          "pattern":"/t/**",
           "contentSelector": "#topic-title > h1",
           "all": true
         },
@@ -214,9 +194,4 @@ UPDATE `index` set config = '{
       ]
     }
   }
-}' WHERE name = 'default';
-
-ALTER TABLE chat
-    MODIFY COLUMN name VARCHAR (64) NOT NULL;
-
-ALTER TABLE import_source_task MODIFY COLUMN url VARCHAR(2048) NOT NULL ;
+}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

@@ -1,9 +1,7 @@
-import type { DB } from '@/core/db/schema';
 import type { TaskResult } from '@/core/db/task';
 import { rag } from '@/core/interface';
 import { handleErrors } from '@/lib/fetch';
 import { XMLParser } from 'fast-xml-parser';
-import type { Selectable } from 'kysely';
 import { z } from 'zod';
 
 interface Entry {
@@ -38,7 +36,7 @@ export class SitemapXmlTaskProcessor extends rag.ImportSourceTaskProcessor<{}> {
     return taskType === 'sitemap';
   }
 
-  async process (task: Selectable<DB['import_source_task']>): Promise<TaskResult> {
+  async process (task: { url: string }): Promise<TaskResult> {
     const urls = await this.fetchSitemap(task.url);
 
     return {

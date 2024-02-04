@@ -15,7 +15,7 @@ export class RobotsTxtTaskProcessor extends rag.ImportSourceTaskProcessor<{}> {
     return taskType === 'robots';
   }
 
-  async process (task: Selectable<DB['import_source_task']>): Promise<TaskResult> {
+  async process (task: { url: string }): Promise<TaskResult> {
     const response = await fetch(new URL('robots.txt', task.url)).then(handleErrors);
     const text = await response.text();
 
