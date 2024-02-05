@@ -21,9 +21,6 @@ export default function Layout ({ children }: {
         </header>
         <div className="fixed top-1.5 right-2 md:top-4 md:right-4 z-10">
           <div className="flex gap-2 items-center">
-            <span className="text-lg font-semibold">
-              Semantic Search
-            </span>
             <SemanticSearch />
           </div>
         </div>
