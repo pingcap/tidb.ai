@@ -1,4 +1,5 @@
 import database from '@/core/db';
+import { vectorToVal } from '@/core/db/db_index';
 import { genId } from '@/lib/id';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
@@ -18,7 +19,7 @@ export async function query (indexName: string, llm: string, { text, top_k }: z.
   const id = genId();
   await database.index.startQuery({
     id,
-    embedding: Buffer.from(vector.buffer),
+    embedding: vectorToVal(vector) as never,
     text,
     created_at: new Date(),
     index_name: indexName,

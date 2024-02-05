@@ -1,13 +1,13 @@
 import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
 import { rag } from '@/core/interface';
-import { toFloat64Array } from '@/lib/buffer';
 import { executePage, type Page, type PageRequest } from '@/lib/database';
 import { genId } from '@/lib/id';
 import type { Insertable, Selectable, Updateable } from 'kysely';
 import { notFound } from 'next/navigation';
 import ChunkedContent = rag.ChunkedContent;
 import EmbeddedContent = rag.EmbeddedContent;
+import Vector = rag.Vector;
 
 export interface IndexDb {
 
@@ -130,7 +130,7 @@ export const indexDb: IndexDb = {
           index_name: index,
           metadata: JSON.stringify(c.metadata),
           text_content: c.content,
-          embedding: Buffer.from(c.vector.buffer),
+          embedding: vectorToVal(c.vector) as never,
           staled: 0,
           ordinal: i + 1,
         })))
@@ -152,60 +152,22 @@ export const indexDb: IndexDb = {
   async _query (index: string, vector: Float64Array, top_k: number) {
     const vec = Float64Array.from(vector);
 
-    const chunks = await db.selectFrom('document_index_chunk')
-      .select([
-        'document_index_chunk.id',
-        'embedding',
-      ])
-      .where('staled', '=', 0)
-      .where('index_name', '=', eb => eb.val(index))
-      .execute();
-    if (chunks.length === 0) {
-      return [];
-    }
-
-    const internalResults = chunks
-      .map(chunk => ({
-        id: chunk.id,
-        score: cosineSimilarity(vec, toFloat64Array(chunk.embedding)),
-      }))
-      .sort((a, b) => b.score - a.score)
-      .filter(a => isFinite(a.score))
-      .slice(0, top_k);
-
-    const results = await db.selectFrom('document_index_chunk')
+    return await db.selectFrom('document_index_chunk')
       .innerJoin('document', 'document_id', 'document.id')
       .select([
-        'document_index_chunk.id',
+        'document_index_chunk.id as document_index_chunk_id',
         'document_id',
         'document_index_chunk.text_content',
         'document_index_chunk.metadata',
         'source_uri',
         'document.name as source_name',
+        eb => eb.fn<number>('cosine_similarity', ['embedding', eb => eb.val(vectorToVal(vec))]).as('score'),
       ])
-      .where('document_index_chunk.id', 'in', internalResults.map(item => item.id))
+      .where('staled', '=', 0)
+      .where('index_name', '=', eb => eb.val(index))
+      .orderBy('score desc')
+      .limit(top_k)
       .execute();
-
-    return internalResults.map(res => {
-      const r = results.find(item => item.id === res.id);
-      if (!r) {
-        return undefined;
-      }
-      return {
-        chunk: r,
-        score: res.score,
-      };
-    })
-      .filter((x): x is NonNullable<{ chunk: typeof results[0], score: number }> => !!x)
-      .map(res => ({
-        document_index_chunk_id: res.chunk.id,
-        document_id: res.chunk.document_id,
-        text_content: res.chunk.text_content,
-        metadata: res.chunk.metadata,
-        source_uri: res.chunk.source_uri,
-        score: res.score,
-        source_name: res.chunk.source_name,
-      }));
   },
 
   async startQuery (partial) {
@@ -279,4 +241,8 @@ export function cosineSimilarity (a: rag.Vector, b: rag.Vector) {
 
 function cosineDistance (a: rag.Vector, b: rag.Vector) {
   return 1 - cosineSimilarity(a, b);
+}
+
+export function vectorToVal (vector: Vector | number[]) {
+  return `[${vector.join(',')}]`;
 }
