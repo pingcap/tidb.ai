@@ -4,13 +4,16 @@ import { rag } from '@/core/interface';
 import { toFloat64Array } from '@/lib/buffer';
 import { executePage, type Page, type PageRequest } from '@/lib/database';
 import { genId } from '@/lib/id';
-import type { Insertable, Selectable } from 'kysely';
+import type { Insertable, Selectable, Updateable } from 'kysely';
+import { notFound } from 'next/navigation';
 import ChunkedContent = rag.ChunkedContent;
 import EmbeddedContent = rag.EmbeddedContent;
 
 export interface IndexDb {
 
   findByName (name: string): Promise<Selectable<DB['index']> | undefined>;
+
+  update (name: string, updater: (index: Selectable<DB['index']>) => Updateable<DB['index']>): Promise<void>;
 
   startIndexing (index: string, documentId: string, content: ChunkedContent<any, any>): Promise<void>;
 
@@ -47,6 +50,25 @@ export const indexDb: IndexDb = {
       .selectAll()
       .where('name', '=', eb => eb.val(name))
       .executeTakeFirst();
+  },
+
+  async update (name, updater) {
+    await db.transaction().execute(async db => {
+      const index = await db.selectFrom('index')
+        .selectAll()
+        .where('name', '=', eb => eb.val(name))
+        .executeTakeFirst();
+      if (!index) {
+        throw notFound();
+      }
+
+      const partial = updater(index);
+
+      await db.updateTable('index')
+        .set(partial)
+        .where('name', '=', eb => eb.val(name))
+        .execute();
+    });
   },
 
   async startIndexing (index, documentId, content) {

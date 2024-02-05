@@ -111,6 +111,23 @@ export namespace rag {
     abstract process (task: { url: string }): Promise<ImportSourceTaskResult>
   }
 
+  export type Retriever = (query: string, top_k: number) => Promise<{ id: string, top: RetrievedContext[] }>;
+
+  export type PromptingContext = {
+    model: ChatModel<any>;
+    retriever: Retriever;
+  }
+
+  export type RetrievedContext = {
+    text_content: string,
+    source_uri: string,
+    source_name: string
+  }
+
+  export abstract class Prompting<Options> extends Base<Options> {
+    abstract refine (ctx: PromptingContext, query: string): Promise<{ queryId: string, messages: ChatMessage[], context: RetrievedContext[] }>
+  }
+
   /**
    * @deprecated
    */

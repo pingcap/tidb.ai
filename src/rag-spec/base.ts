@@ -7,6 +7,7 @@ import { HtmlLoader } from '@/rag-spec/loaders/HtmlLoader';
 import { MarkdownLoader } from '@/rag-spec/loaders/MarkdownLoader';
 import { PdfLoader } from '@/rag-spec/loaders/PdfLoader';
 import { TextLoader } from '@/rag-spec/loaders/TextLoader';
+import { DirectPrompting } from '@/rag-spec/promptings/DirectPrompting';
 import { RecursiveCharacterTextSplitter } from '@/rag-spec/spliter/RecursiveCharacterTextSplitter';
 import { FileTaskProcessor } from '@/rag-spec/task-processor/FileTaskProcessor';
 import { HtmlTaskProcessor } from '@/rag-spec/task-processor/HtmlTaskProcessor';
@@ -35,4 +36,5 @@ baseRegistry.register(SitemapXmlTaskProcessor);
 baseRegistry.register(HtmlTaskProcessor);
 baseRegistry.register(FileTaskProcessor);
 
+baseRegistry.register(DirectPrompting);
 export { baseRegistry };

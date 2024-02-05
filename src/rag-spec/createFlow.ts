@@ -12,6 +12,7 @@ namespace IndexFlowConfig {
   export type Embeddings = BaseComponentConfig
   export type DocumentStorage = BaseComponentConfig
   export type ChatModel = BaseComponentConfig
+  export type Prompting = BaseComponentConfig;
 }
 
 interface IndexFlowConfig {
@@ -20,6 +21,7 @@ interface IndexFlowConfig {
   splitters: IndexFlowConfig.Splitter[];
   embeddings: IndexFlowConfig.Embeddings[];
   chatModels: IndexFlowConfig.ChatModel[];
+  promptings: IndexFlowConfig.Prompting[];
 }
 
 export function getFlow (registry: RagComponentRegistry, config?: IndexFlowConfig, options?: any) {
@@ -39,6 +41,7 @@ export function getFlow (registry: RagComponentRegistry, config?: IndexFlowConfi
     config.splitters.forEach(add);
     config.embeddings.forEach(add);
     config.chatModels.forEach(add);
+    config.promptings.forEach(add);
   } else {
     registry.createAll(options).forEach(comp => flow.add(comp));
   }

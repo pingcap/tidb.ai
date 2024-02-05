@@ -9,13 +9,9 @@ export const querySchema = z.object({
   top_k: z.number(),
 });
 
-export async function query (indexName: string, { text, top_k }: z.infer<typeof querySchema>) {
-  const index = await database.index.findByName(indexName);
-  if (!index) {
-    return undefined;
-  }
+export async function query (indexName: string, llm: string, { text, top_k }: z.infer<typeof querySchema>) {
 
-  const embeddings = getFlow(baseRegistry).getEmbeddings(index.llm);
+  const embeddings = getFlow(baseRegistry).getEmbeddings(llm);
 
   const vector = await embeddings.embedQuery(text);
 

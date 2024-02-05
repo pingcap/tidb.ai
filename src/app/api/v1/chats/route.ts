@@ -5,7 +5,6 @@ import { query } from '@/core/query';
 import { genId } from '@/lib/id';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
-import { prompts } from '@/rag-spec/prompts';
 import { experimental_StreamData, StreamingTextResponse } from 'ai';
 import { formatDate } from 'date-fns';
 import type { Selectable } from 'kysely';
@@ -18,7 +17,6 @@ export const POST = auth(async function POST (req) {
   if (!userId) {
     return new NextResponse('Need authorization', { status: 401 });
   }
-  const now = new Date();
 
   const { name, messages, sessionId } = z.object({
     messages: z.object({ role: z.string(), content: z.string() }).array(),
@@ -26,71 +24,38 @@ export const POST = auth(async function POST (req) {
     name: z.string().optional(),
   }).parse(await req.json());
 
+  // Create session request
   if (messages.length === 0) {
-    // Create a new empty chat
-    const id = genId();
-    await database.chat.create({
-      id,
-      llm: 'openai',
-      llm_model: 'gpt-3.5-turbo',
-      name: name?.slice(0, 64) ?? `New chat at ${formatDate(new Date(), 'yyyy-MM-dd HH:mm')}`,
-      index_name: 'default',
-      created_at: now,
-      created_by: userId,
-    }, []);
+    if (sessionId) {
+      return NextResponse.json({
+        message: 'Cannot assign sessionId when creating chats.',
+      }, { status: 400 });
+    }
 
+    const id = await createSession(name, userId);
     return NextResponse.json({ id });
   }
 
+  // Only answering the last message
   const message = messages.findLast(message => message.role === 'user')!.content;
 
-  let history: Selectable<DB['chat_message']>[];
-  let id: string;
+  const { id, history } = await appendMessage(name, sessionId, message, userId);
 
-  if (sessionId) {
-    const chat = await database.chat.getChat(sessionId);
-    if (!chat) {
-      notFound();
-    }
-    if (chat.created_by !== userId) {
-      return NextResponse.json({ message: 'Not creator of chat' }, { status: 403 });
-    }
-    history = await database.chat.getHistory(sessionId);
-    id = sessionId;
-    await database.chat.addMessages([
-      { id: genId(), chat_id: id, ordinal: history.length + 1, role: 'user', content: message, created_at: now, finished_at: now },
-    ]);
-  } else {
-    history = [];
-    id = genId();
-    await database.chat.create({
-      id,
-      llm: 'openai',
-      llm_model: 'gpt-3.5-turbo',
-      name: name?.slice(0, 64) ?? message.slice(0, 63),
-      index_name: 'default',
-      created_at: now,
-      created_by: userId,
-    }, [
-      { id: genId(), chat_id: id, ordinal: 0, role: 'user', content: message, created_at: now, finished_at: now },
-    ]);
-  }
-
-  const flow = getFlow(baseRegistry);
-
-  const { id: queryId, top: data } = (await query('default', {
-    text: message,
-    top_k: 3,
-  }))!;
+  const index = (await database.index.findByName('default'))!;
+  const flow = getFlow(baseRegistry, undefined, index.config);
 
   const answerId = genId();
 
-  const context = data!.map(item => `> url: ${item.source_uri}\n${item.text_content}`).join('\n\n');
+  const model = flow.getChatModel('openai');
+  const prompting = flow.getPrompting();
 
-  const model = flow.getChatModel('openai')!;
+  const { queryId, messages: ragMessages, context } = await prompting.refine({
+    model,
+    retriever: (text, top_k) => query('default', index.llm, { text, top_k }),
+  }, message);
 
   const stream = await model.chatStream([
-    { role: 'system', content: prompts.system.start({ context }) },
+    ...ragMessages,
     { role: 'user', content: message },
   ], {
     onStart: async () => {
@@ -114,12 +79,13 @@ export const POST = auth(async function POST (req) {
   });
 
   const contextUris = new Map<string, { title: string, uri: string }>();
-  data.forEach(item => {
+  context.forEach(item => {
     contextUris.set(item.source_uri, {
       title: item.source_name,
       uri: item.source_uri,
     });
   });
+
   const streamData = new experimental_StreamData();
   streamData.append({
     [String(history.length + 2)]: {
@@ -146,4 +112,58 @@ export const GET = auth(async function GET (req) {
   return NextResponse.json(await database.chat.listChatsByCreator(userId, 5));
 }) as any;
 
+async function createSession (name: string | undefined, userId: string) {
+  // Create a new empty chat
+  const id = genId();
+  await database.chat.create({
+    id,
+    llm: 'openai',
+    llm_model: 'gpt-3.5-turbo',
+    name: name?.slice(0, 64) ?? `New chat at ${formatDate(new Date(), 'yyyy-MM-dd HH:mm')}`,
+    index_name: 'default',
+    created_at: new Date(),
+    created_by: userId,
+  }, []);
+
+  return id;
+}
+
+async function appendMessage (name: string | undefined, sessionId: string | undefined, message: string, userId: string) {
+  const now = new Date();
+  let history: Selectable<DB['chat_message']>[];
+  let id: string;
+
+  if (sessionId) {
+    const chat = await database.chat.getChat(sessionId);
+    if (!chat) {
+      notFound();
+    }
+    if (chat.created_by !== userId) {
+      notFound();
+    }
+    history = await database.chat.getHistory(sessionId);
+    id = sessionId;
+    await database.chat.addMessages([
+      { id: genId(), chat_id: id, ordinal: history.length + 1, role: 'user', content: message, created_at: now, finished_at: now },
+    ]);
+  } else {
+    history = [];
+    id = genId();
+    await database.chat.create({
+      id,
+      llm: 'openai',
+      llm_model: 'gpt-3.5-turbo',
+      name: name?.slice(0, 64) ?? message.slice(0, 63),
+      index_name: 'default',
+      created_at: now,
+      created_by: userId,
+    }, [
+      { id: genId(), chat_id: id, ordinal: 0, role: 'user', content: message, created_at: now, finished_at: now },
+    ]);
+  }
+
+  return { id, history };
+}
+
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;

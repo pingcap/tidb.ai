@@ -158,7 +158,7 @@ CREATE TABLE import_source_task
     id               INT AUTO_INCREMENT                                  NOT NULL,
     import_source_id VARCHAR(32)                                         NOT NULL,
     parent_task_id   INT                                                 NULL,     -- null if triggered by import source
-    url              VARCHAR(2048)                                        NOT NULL,
+    url              VARCHAR(2048)                                       NOT NULL,
     type             VARCHAR(32)                                         NOT NULL, -- document, robots.txt, sitemap,
     created_at       DATETIME                                            NOT NULL,
     finished_at      DATETIME                                            NULL,     -- when status in [succeed, failed]
@@ -183,7 +183,7 @@ VALUES ('default', 'openai', 'openai', '{
       ],
       "ask.pingcap.com": [
         {
-          "pattern":"/t/**",
+          "pattern": "/t/**",
           "contentSelector": "#topic-title > h1",
           "all": true
         },
@@ -193,5 +193,18 @@ VALUES ('default', 'openai', 'openai', '{
         }
       ]
     }
+  },
+  "rag.prompting.direct": {
+    "top_k": 5,
+    "template": "Use the following pieces of context to answer the user question. This context retrieved from a knowledge base and you should use only the facts from the context to answer.\\nYour answer must be based on the context. If the context not contain the answer, just say that ''I don''t know'', don''t try to make up an answer, use the context.\\n\\n<contexts>\\n{%- for context in contexts %}\\n  <context source_uri=\\"{{context.source_uri}}\\" name=\\"{{context.source_name}}\\">\\n    <name>{{context.source_name}}</name>\\n    <source_uri>{{context.source_uri}}</source_uri>\\n    <content>{{context.text_content}}</content>\\n  </context>\\n{%- endfor %}\\n</contexts>\\n\\nYour answer must be based on the context, don''t use your own knowledge. \\n\\nUse markdown to answer. Write down uri reference you used for answer the question.\\n"
   }
 }', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+UPDATE `index`
+SET config = JSON_MERGE(config, '{
+  "rag.prompting.direct": {
+    "top_k": 5,
+    "template": "Use the following pieces of context to answer the user question. This context retrieved from a knowledge base and you should use only the facts from the context to answer.\\nYour answer must be based on the context. If the context not contain the answer, just say that ''I don''t know'', don''t try to make up an answer, use the context.\\n\\n<contexts>\\n{%- for context in contexts %}\\n  <context source_uri=\\"{{context.source_uri}}\\" name=\\"{{context.source_name}}\\">\\n    <name>{{context.source_name}}</name>\\n    <source_uri>{{context.source_uri}}</source_uri>\\n    <content>{{context.text_content}}</content>\\n  </context>\\n{%- endfor %}\\n</contexts>\\n\\nYour answer must be based on the context, don''t use your own knowledge. \\n\\nUse markdown to answer. Write down uri reference you used for answer the question.\\n"
+  }
+}')
+WHERE name = 'default';

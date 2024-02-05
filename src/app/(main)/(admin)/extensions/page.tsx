@@ -6,7 +6,7 @@ import { AdminPageLayout } from '@/components/admin-page-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetcher } from '@/lib/fetch';
-import { DotIcon, PlayIcon, ShieldCheckIcon } from 'lucide-react';
+import { DotIcon, PlayIcon, Settings2, ShieldCheckIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import useSWR from 'swr';
@@ -23,7 +23,7 @@ export default function ExtensionsPage () {
   return (
     <AdminPageLayout>
       <AdminPageHeading title="Extensions" />
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl::grid-cols-4">
         {extensions.map(component => <Card key={component.identifier}>
           <CardHeader>
             <CardTitle className="text-sm">
@@ -64,6 +64,14 @@ const match = (identifier: string) => {
             <Link href={`/extensions/${identifier}`}>
               Try
               <PlayIcon size="1em" />
+            </Link>
+          </Button>
+        )}
+        {item.configurable && (
+          <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="outline" asChild>
+            <Link href={`/extensions/${identifier}/config`}>
+              Config
+              <Settings2 size="1em" />
             </Link>
           </Button>
         )}

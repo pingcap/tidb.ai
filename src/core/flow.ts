@@ -36,6 +36,7 @@ export class Flow implements Flow.ExtensionApi {
   private embeddings = new Map<string, rag.Embeddings<any>>();
   private chatModels = new Map<string, rag.ChatModel<any>>();
   private importSourceTaskProcessor = new Map<string, rag.ImportSourceTaskProcessor<any>>();
+  private promptings = new Map<string, rag.Prompting<any>>();
 
   add (base: rag.Base<any>) {
     if (base instanceof rag.Loader) {
@@ -50,6 +51,8 @@ export class Flow implements Flow.ExtensionApi {
       this.addDocumentStorage(base);
     } else if (base instanceof rag.ImportSourceTaskProcessor) {
       this.addImportSourceTaskProcessor(base);
+    } else if (base instanceof rag.Prompting) {
+      this.addPrompting(base);
     } else {
       throw new Error(`what is ${base.displayName} (${base.identifier})?`);
     }
@@ -95,6 +98,13 @@ export class Flow implements Flow.ExtensionApi {
       throw new Error(`Import source task processor identifier '${processor.identifier}' has already been registered.`);
     }
     this.importSourceTaskProcessor.set(processor.identifier, processor);
+  }
+
+  addPrompting (prompting: rag.Prompting<any>) {
+    if (this.promptings.has(prompting.identifier)) {
+      throw new Error(`Prompting identifier '${prompting.identifier}' has already been registered.`);
+    }
+    this.promptings.set(prompting.identifier, prompting);
   }
 
   addExtension<Options extends any[]> (extension: Flow.IExtension<Options>, ...options: Options) {
@@ -198,5 +208,20 @@ export class Flow implements Flow.ExtensionApi {
       }
     }
     throw new Error(`No available ImportSourceTaskProcessor for task type ${type}.`);
+  }
+
+  getPrompting (identifier?: string): rag.Prompting<any> {
+    let prompting: rag.Prompting<any> | undefined;
+    if (!identifier) {
+      prompting = Array.from(this.promptings.values())[0];
+    } else {
+      prompting = this.promptings.get(identifier);
+    }
+
+    if (!prompting) {
+      throw new Error(`No available prompting.`);
+    }
+
+    return prompting;
   }
 }
