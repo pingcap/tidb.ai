@@ -28,13 +28,12 @@ export async function GET (req: NextRequest, { params }: { params: { name: strin
   let handled = 0;
 
   while (Date.now() - start < maxDuration * 1000 * 0.75) {
-    const flow = getFlow(baseRegistry);
     const docs = await database.document.listByNotIndexed(name, 5);
     if (docs.length === 0) {
       break;
     }
 
-    await reIndex(flow, index, docs);
+    await reIndex(index, docs);
     handled += docs.length;
   }
 
@@ -44,7 +43,7 @@ export async function GET (req: NextRequest, { params }: { params: { name: strin
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-async function reIndex (flow: Flow, index: Selectable<DB['index']>, documents: Selectable<DB['document']>[]) {
+async function reIndex (index: Selectable<DB['index']>, documents: Selectable<DB['document']>[]) {
   await Promise.all(documents.map(async document => {
     await reIndexDocument(index, document);
   }));
