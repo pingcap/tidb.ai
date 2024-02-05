@@ -171,7 +171,6 @@ export const indexDb: IndexDb = {
       .orderBy('score asc')
       .limit(top_k);
 
-    console.log(builder.compile().sql)
     return await builder.execute();
   },
 
