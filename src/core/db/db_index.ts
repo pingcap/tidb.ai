@@ -152,7 +152,7 @@ export const indexDb: IndexDb = {
   async _query (index: string, vector: Float64Array, top_k: number) {
     const vec = Float64Array.from(vector);
 
-    return await db.selectFrom('document_index_chunk')
+    const builder = db.selectFrom('document_index_chunk')
       .innerJoin('document', 'document_id', 'document.id')
       .select([
         'document_index_chunk.id as document_index_chunk_id',
@@ -161,13 +161,18 @@ export const indexDb: IndexDb = {
         'document_index_chunk.metadata',
         'source_uri',
         'document.name as source_name',
-        eb => eb.fn<number>('cosine_similarity', ['embedding', eb => eb.val(vectorToVal(vec))]).as('score'),
+        eb => eb(eb => eb.lit<number>(1), '-', eb.fn<number>('vec_cosine_distance', [
+          'embedding',
+          eb => eb.val(vectorToVal(vec))],
+        )).as('score'),
       ])
       .where('staled', '=', 0)
       .where('index_name', '=', eb => eb.val(index))
-      .orderBy('score desc')
-      .limit(top_k)
-      .execute();
+      .orderBy('score asc')
+      .limit(top_k);
+
+    console.log(builder.compile().sql)
+    return await builder.execute();
   },
 
   async startQuery (partial) {
