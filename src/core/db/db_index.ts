@@ -168,7 +168,7 @@ export const indexDb: IndexDb = {
       ])
       .where('staled', '=', 0)
       .where('index_name', '=', eb => eb.val(index))
-      .orderBy('score asc')
+      .orderBy('score desc')
       .limit(top_k);
 
     return await builder.execute();
