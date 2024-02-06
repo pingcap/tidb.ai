@@ -18,10 +18,11 @@ export const POST = auth(async function POST (req) {
     return new NextResponse('Need authorization', { status: 401 });
   }
 
-  const { name, messages, sessionId } = z.object({
+  const { name, messages, sessionId, source_uri_prefixes } = z.object({
     messages: z.object({ role: z.string(), content: z.string() }).array(),
     sessionId: z.string().optional(),
     name: z.string().optional(),
+    source_uri_prefixes: z.string().array().optional(),
   }).parse(await req.json());
 
   // Create session request
@@ -51,7 +52,7 @@ export const POST = auth(async function POST (req) {
 
   const { queryId, messages: ragMessages, context } = await prompting.refine({
     model,
-    retriever: (text, top_k) => query('default', index.llm, { text, top_k }),
+    retriever: (text, top_k) => query('default', index.llm, { text, top_k, source_uri_prefixes }),
   }, message);
 
   const stream = await model.chatStream([

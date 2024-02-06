@@ -9,6 +9,10 @@ import ChunkedContent = rag.ChunkedContent;
 import EmbeddedContent = rag.EmbeddedContent;
 import Vector = rag.Vector;
 
+export type _QueryOptions = {
+  source_uri_prefixes?: string[];
+}
+
 export interface IndexDb {
 
   findByName (name: string): Promise<Selectable<DB['index']> | undefined>;
@@ -21,7 +25,7 @@ export interface IndexDb {
 
   terminateIndexing (index: string, documentId: string, error: unknown): Promise<void>;
 
-  _query (index: string, vector: Float64Array, top_k: number): Promise<SearchResult[]>;
+  _query (index: string, vector: Float64Array, top_k: number, options: _QueryOptions): Promise<SearchResult[]>;
 
   startQuery (partial: Insertable<DB['index_query']>): Promise<void>;
 
@@ -149,10 +153,8 @@ export const indexDb: IndexDb = {
       .execute();
   },
 
-  async _query (index: string, vector: Float64Array, top_k: number) {
-    const vec = Float64Array.from(vector);
-
-    const builder = db.selectFrom('document_index_chunk')
+  async _query (index, vector, top_k, options) {
+    let builder = db.selectFrom('document_index_chunk')
       .innerJoin('document', 'document_id', 'document.id')
       .select([
         'document_index_chunk.id as document_index_chunk_id',
@@ -163,13 +165,20 @@ export const indexDb: IndexDb = {
         'document.name as source_name',
         eb => eb(eb => eb.lit<number>(1), '-', eb.fn<number>('vec_cosine_distance', [
           'embedding',
-          eb => eb.val(vectorToVal(vec))],
+          eb => eb.val(vectorToVal(vector))],
         )).as('score'),
       ])
       .where('staled', '=', 0)
       .where('index_name', '=', eb => eb.val(index))
       .orderBy('score desc')
       .limit(top_k);
+
+    if (options.source_uri_prefixes && options.source_uri_prefixes.length > 0) {
+      const prefixes = options.source_uri_prefixes;
+      builder = builder.where(eb => eb.or(prefixes.map(prefix => (
+        eb('document.source_uri', 'like', eb => eb.val(prefix + '%'))
+      ))));
+    }
 
     return await builder.execute();
   },

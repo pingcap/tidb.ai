@@ -4,6 +4,7 @@ import { __useHandleInitialMessage } from '@/app/(main)/(public)/conversations/[
 import { ConversationMessageGroups } from '@/components/conversation-message-group';
 import { MessageInput } from '@/components/message-input';
 import type { DB } from '@/core/db/schema';
+import { searching_uri_prefix } from '@/lib/site-data';
 import { cn } from '@/lib/utils';
 import { useChat } from 'ai/react';
 import type { Selectable } from 'kysely';
@@ -24,7 +25,7 @@ export function Conversation ({ open, history, context }: { open: boolean, histo
 
       setSize(el.getBoundingClientRect());
       ro.observe(el);
-      ro.observe(document.documentElement)
+      ro.observe(document.documentElement);
       return () => {
         ro.disconnect();
       };
@@ -66,6 +67,7 @@ function useMyChat (history: Selectable<DB['chat_message']>[], context: { ordina
     api: '/api/v1/chats',
     body: {
       sessionId: session,
+      source_uri_prefixes: searching_uri_prefix,
     },
     key: session,
     initialMessages: history,

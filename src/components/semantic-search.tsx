@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { handleErrors } from '@/lib/fetch';
+import { searching_uri_prefix } from '@/lib/site-data';
 import { CommandIcon, LinkIcon } from 'lucide-react';
 import { useEffect, useState, useTransition } from 'react';
 
@@ -45,7 +46,7 @@ type SearchResult = {
     'document_id': string,
     'text_content': string,
     'source_uri': string,
-    'score': 0.8222879055389999,
+    'score': number,
     'source_name': string
   }[]
 }
@@ -65,6 +66,7 @@ function InternalSearchBox () {
         body: JSON.stringify({
           text,
           top_k: 5,
+          source_uri_prefixes: searching_uri_prefix,
         }),
       }).then(handleErrors)
         .then(res => res.json())
