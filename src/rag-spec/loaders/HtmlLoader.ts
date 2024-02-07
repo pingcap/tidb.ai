@@ -1,16 +1,16 @@
 import { rag } from '@/core/interface';
 import { md5 } from '@/lib/digest';
+import { createUrlMatcher } from '@/lib/url-matcher';
+import { htmlSelectorArray, type HtmlSelectorItemType } from '@/lib/zod-extensions/types/html-selector-array';
 import type { Element, Root } from 'hast';
 import { select, selectAll } from 'hast-util-select';
 import { toText } from 'hast-util-to-text';
-import matchUrl from 'match-url-wildcard';
-import { isMatch } from 'micromatch';
 import rehypeParse, { Options as RehypeParseOptions } from 'rehype-parse';
 import { Processor, unified } from 'unified';
 import { z } from 'zod';
 
 export class HtmlLoader extends rag.Loader<HtmlLoader.Options, {}> {
-  static identifier = 'rag.loader.html';
+  static identifier = 'rag.loader.html2';
   static displayName = 'HTML loader';
 
   private readonly processor: Processor<Root>;
@@ -45,30 +45,14 @@ export class HtmlLoader extends rag.Loader<HtmlLoader.Options, {}> {
     return /html/.test(mime);
   }
 
-  private getPathname (url: string) {
-    try {
-      return new URL(url).pathname;
-    } catch {
-      return url;
-    }
-  }
-
   private process (url: string, buffer: Buffer) {
-    const pathname = this.getPathname(url);
+    const selectors: HtmlSelectorItemType[] = [];
 
-    const selectors: { selector: string, multiple: boolean }[] = [];
-
-    for (let [domain, rules] of Object.entries(this.options.contentExtraction ?? {})) {
-      if (matchUrl(url, domain)) {
-        for (let rule of rules) {
-          if (isMatch(pathname, rule.pattern)) {
-            if (rule.all) {
-            }
-            selectors.push({
-              selector: rule.contentSelector,
-              multiple: rule.all ?? false,
-            });
-          }
+    for (let rule of (this.options.contentExtraction ?? [])) {
+      const matcher = createUrlMatcher(rule.url);
+      if (matcher(url)) {
+        for (let selector of rule.selectors) {
+          selectors.push(selector);
         }
       }
     }
@@ -76,20 +60,20 @@ export class HtmlLoader extends rag.Loader<HtmlLoader.Options, {}> {
     const failed: string[] = [];
     const warning: string[] = [];
 
-    if (!selectors.length) {
-      selectors.push({ selector: 'body', multiple: false });
-      warning.push('No selector provided for this URL. the default selector `body` always contains redundancy content.');
+    if (!selectors.length || !selectors.find(s => s.type == undefined || s.type == 'dom-text')) {
+      selectors.push({ selector: 'body', all: false, type: 'dom-text' });
+      warning.push('No content selector provided for this URL. the default selector `body` always contains redundancy content.');
     }
 
     const root = this.processor.parse(Uint8Array.from(buffer));
 
     const result: { content: string, selector: string, element: Element }[] = [];
-    for (let { selector, multiple } of selectors) {
+    for (let { selector, all: multiple, type } of selectors) {
       if (multiple) {
         const elements = selectAll(selector, root);
         if (elements.length > 0) {
           result.push(...elements.map(element => ({
-            content: toText(element), selector, element,
+            content: getContent(element, type), selector, element,
           })));
         } else {
           failed.push(selector);
@@ -98,7 +82,7 @@ export class HtmlLoader extends rag.Loader<HtmlLoader.Options, {}> {
         const element = select(selector, root);
         if (element) {
           result.push({
-            content: toText(element), selector, element,
+            content: getContent(element, type), selector, element,
           });
         } else {
           failed.push(selector);
@@ -114,12 +98,19 @@ export class HtmlLoader extends rag.Loader<HtmlLoader.Options, {}> {
   }
 }
 
+function getContent (element: Element, type: HtmlSelectorItemType['type']) {
+  if (type === 'dom-content-attr') {
+    return String(element.properties['content'] ?? '');
+  } else {
+    return toText(element);
+  }
+}
+
 export namespace HtmlLoader {
-  const contentExtractionConfigSchema = z.record(z.object({
-    pattern: z.string(),
-    contentSelector: z.string(),
-    all: z.boolean().optional(),
-  }).array());
+  const contentExtractionConfigSchema = z.object({
+    url: z.string(),
+    selectors: htmlSelectorArray(),
+  }).array();
 
   export interface Options {
     rehypeParse?: RehypeParseOptions;

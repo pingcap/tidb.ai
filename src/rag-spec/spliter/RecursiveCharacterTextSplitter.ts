@@ -1,30 +1,18 @@
 import { rag } from '@/core/interface';
+import { separators } from '@/lib/zod-extensions/types/separator-array';
 import { Document as LangChainDocument } from '@langchain/core/documents';
 import { RecursiveCharacterTextSplitter as LangChainRecursiveCharacterTextSplitter, type RecursiveCharacterTextSplitterParams } from 'langchain/text_splitter';
 import { z } from 'zod';
 
-export namespace RecursiveCharacterTextSplitter {
-  export interface Options extends Partial<RecursiveCharacterTextSplitterParams> {
-  }
-
-  export interface Metadata {
-    loc: {
-      lines: {
-        from: number
-        to: number
-      }
-    };
-  }
-}
 
 export class RecursiveCharacterTextSplitter<ContentMetadata> extends rag.Splitter<RecursiveCharacterTextSplitter.Options, ContentMetadata, RecursiveCharacterTextSplitter.Metadata> {
   static identifier = 'rag.splitter.langchain.recursive-character';
   static displayName = 'Recursive Character Text Splitter';
   static optionsSchema = z.object({
-    separators: z.string().array().optional().default(['\n\n', '\n', ' ', '']),
+    separators: separators().optional().default(['\n\n', '\n', ' ', '']),
     chunkSize: z.coerce.number().int().optional().default(512),
     chunkOverlap: z.coerce.number().int().optional().default(10),
-    keepSeparator: z.boolean().optional().default(false),
+    keepSeparator: z.boolean().optional(),
   });
 
   private readonly agent: LangChainRecursiveCharacterTextSplitter;
@@ -52,4 +40,18 @@ export class RecursiveCharacterTextSplitter<ContentMetadata> extends rag.Splitte
     return true;
   }
 
+}
+
+export namespace RecursiveCharacterTextSplitter {
+  export interface Options extends Partial<RecursiveCharacterTextSplitterParams> {
+  }
+
+  export interface Metadata {
+    loc: {
+      lines: {
+        from: number
+        to: number
+      }
+    };
+  }
 }

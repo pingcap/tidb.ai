@@ -61,7 +61,7 @@ const match = (identifier: string) => {
         </span>
         {item.playground && (
           <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="outline" asChild>
-            <Link href={`/extensions/${identifier}`}>
+            <Link href={`/extensions/${identifier}/playground`}>
               Try
               <PlayIcon size="1em" />
             </Link>
