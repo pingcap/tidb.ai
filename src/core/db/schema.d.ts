@@ -16,6 +16,12 @@ export type JsonPrimitive = boolean | number | string | null;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
+export interface AuthenticationProviders {
+  config: Json;
+  enabled: number;
+  name: string;
+}
+
 export interface Chat {
   created_at: Date;
   created_by: string;
@@ -130,6 +136,7 @@ export interface VDocumentIndexStatus {
 }
 
 export interface DB {
+  authentication_providers: AuthenticationProviders;
   chat: Chat;
   chat_message: ChatMessage;
   chat_message_context_documents: ChatMessageContextDocuments;

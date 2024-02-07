@@ -171,6 +171,15 @@ CREATE TABLE import_source_task
     FOREIGN KEY (document_id) REFERENCES document (id)
 );
 
+CREATE TABLE authentication_providers
+(
+    name    VARCHAR(32) NOT NULL,
+    config  JSON        NOT NULL,
+    enabled BOOLEAN     NOT NULL,
+    PRIMARY KEY (name)
+);
+
+
 INSERT INTO `index`(name, llm, llm_model, config, created_at, last_modified_at)
 VALUES ('default', 'openai', 'openai', '{
   "rag.loader.html": {
