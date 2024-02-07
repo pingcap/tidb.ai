@@ -18,8 +18,6 @@ export async function POST (req: NextRequest, { params }: { params: { name: stri
       notFound();
   }
 
-  console.log(name, action, affected)
-
   if (!affected) {
     notFound();
   }
