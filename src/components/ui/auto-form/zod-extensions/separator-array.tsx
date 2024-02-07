@@ -7,7 +7,7 @@ import { FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { Plus, TrashIcon } from 'lucide-react';
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 
 export function SeparatorArrayInput ({
   field,
@@ -27,7 +27,7 @@ export function SeparatorArrayInput ({
       {showLabel && <AutoFormLabel label={label} isRequired={isRequired} />}
       <div className="space-y-2">
         {value.map((item, index) => (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" key={index}>
             <InputDisplay
               className="flex-shrink-0 flex-1"
               key={index}
@@ -75,12 +75,12 @@ function InputDisplay ({ value, onChange, className, ...props }: { className?: s
       <div className={cn(show ? 'invisible' : 'visible', 'absolute left-0 top-0 w-full h-full rounded-lg border pointer-events-none px-3 py-2 text-sm space-x-1')}>
         {chars.map(char => (
           char === '\n'
-            ? <Badge variant="secondary">\n</Badge>
+            ? <Badge variant="secondary" key={char}>\n</Badge>
             : char === '\t' ?
-              <Badge variant="secondary">\t</Badge>
+              <Badge variant="secondary" key={char}>\t</Badge>
               : char === ' '
-                ? <Badge variant="secondary">SPACE</Badge>
-                : char
+                ? <Badge variant="secondary" key={char}>SPACE</Badge>
+                : <Fragment key={char}>{char}</Fragment>
         ))}
       </div>
     </div>
