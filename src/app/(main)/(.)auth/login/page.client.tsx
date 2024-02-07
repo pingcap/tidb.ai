@@ -123,7 +123,7 @@ export function useCustomProviders() {
     string[]> => {
       return new Promise((resolve) => {
         setTimeout(() => {
-          resolve(['github', 'google']);
+          resolve(['github', 'google', 'azure-ad']);
         }, 1000);
       });
     };
