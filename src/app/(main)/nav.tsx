@@ -90,7 +90,8 @@ export function Nav () {
         { href: '/settings', title: 'Site settings', icon: Settings2Icon },
         { key: '/user-management', title: 'User management', variant: 'ghost', disabled: true, onClick: () => {}, icon: UsersIcon },
         { key: '/security', title: 'Security', variant: 'ghost', disabled: true, onClick: () => {}, icon: ShieldCheckIcon },
-        { key: '/authentication', title: 'Authentication', variant: 'ghost', disabled: true, onClick: () => {}, icon: FingerprintIcon },
+        // { key: '/authentication', title: 'Authentication', variant: 'ghost', disabled: true, onClick: () => {}, icon: FingerprintIcon },
+        { href: '/authentication', title: 'Authentication', icon: FingerprintIcon, disabled: disableIfNotAuthenticated },
       ],
     });
 
