@@ -1,5 +1,5 @@
 import { Flow } from '@/core';
-import type { RagExtensionsRegistry } from '@/core/registry2';
+import type { RagExtensionsRegistry } from '@/core/registry';
 
 namespace IndexFlowConfig {
   export type BaseComponentConfig = string | {

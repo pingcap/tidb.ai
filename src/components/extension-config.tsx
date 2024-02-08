@@ -2,7 +2,7 @@
 
 import AutoForm from '@/components/ui/auto-form';
 import type { DB } from '@/core/db/schema';
-import type { ExtensionInfo } from '@/core/registry2';
+import type { ExtensionInfo } from '@/core/registry';
 import { fetcher, handleErrors } from '@/lib/fetch';
 import { baseRegistry } from '@/rag-spec/base';
 import type { Selectable } from 'kysely';

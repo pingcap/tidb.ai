@@ -1,5 +1,5 @@
 declare module '@createrag/extension-*' {
-  import type { ExtensionInfo } from '@/core/registry2';
+  import type { ExtensionInfo } from '@/core/registry';
 
   declare const extension: ExtensionInfo;
 

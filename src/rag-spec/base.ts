@@ -1,4 +1,4 @@
-import { RagExtensionsRegistry } from '@/core/registry2';
+import { RagExtensionsRegistry } from '@/core/registry';
 
 const baseRegistry = new RagExtensionsRegistry();
 
