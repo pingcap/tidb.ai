@@ -68,6 +68,10 @@ function AutoForm<SchemaType extends ZodObjectOrWrapped> ({
       setInitialized(true);
       form.reset(valuesProp);
     }
+    if (!valuesProp && initialized) {
+      setInitialized(false);
+      form.reset({});
+    }
   }, [valuesProp, initialized]);
 
   function onSubmit (values: z.infer<typeof formSchema>) {

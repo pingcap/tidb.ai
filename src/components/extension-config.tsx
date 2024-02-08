@@ -6,7 +6,7 @@ import type { ExtensionInfo } from '@/core/registry';
 import { fetcher, handleErrors } from '@/lib/fetch';
 import { baseRegistry } from '@/rag-spec/base';
 import type { Selectable } from 'kysely';
-import { cache, use, useId, useState } from 'react';
+import { use, useId, useState } from 'react';
 import useSWR from 'swr';
 
 export interface ExtensionConfigProps {
@@ -47,7 +47,7 @@ export function ExtensionConfig ({
 }
 
 export function useExtensionConfig (base: string, extension: ExtensionInfo) {
-  useSWR(['get', base], fetcher<Selectable<DB['index']>>, {
+  const { mutate } = useSWR(['get', base], fetcher<Selectable<DB['index']>>, {
     onSuccess (data) {
       setValue((options: any) => {
         if (options) {
@@ -89,6 +89,25 @@ export function useExtensionConfig (base: string, extension: ExtensionInfo) {
           setSubmitting(false);
         });
     },
+    reset: () => {
+      fetch(base + '/config', {
+        method: 'put',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          [extension.identifier]: {},
+        }),
+      }).then(handleErrors)
+        .then(() => {
+          setValue(undefined);
+          setSubmitError(undefined);
+          mutate(data => data, { revalidate: true });
+        }, setSubmitError)
+        .finally(() => {
+          setSubmitting(false);
+        });
+    },
     submitting,
     submitError,
   };
@@ -96,7 +115,7 @@ export function useExtensionConfig (base: string, extension: ExtensionInfo) {
 
 const getExtension = (i: string) => {
   if (_cached.has(i)) {
-    return _cached.get(i)!
+    return _cached.get(i)!;
   }
   const promise = baseRegistry.getComponent(i).then(res => res!);
   _cached.set(i, promise);
