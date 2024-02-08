@@ -40,7 +40,7 @@ export function auth (...args: any[]): any {
 
   // With no parameters, returns the session promise directly.
   if (args.length === 0) {
-    return generateNextAuth().then(res => res.auth);
+    return generateNextAuth().then(res => res.auth());
   }
 
   // With single parameters (handler fn), wrap the fn with auth info, return the enhanced fn.

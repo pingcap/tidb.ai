@@ -7,11 +7,12 @@ import { Form, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import useSWR from 'swr';
 import { fetcher, handleErrors } from '@/lib/fetch';
 import { Skeleton } from '@/components/ui/skeleton';
+import { supportedProviders } from '@/app/(main)/(admin)/authentication/components';
 
 export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {
   const router = useRouter();
@@ -98,6 +99,9 @@ export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {
 
 export function CustomProviderItem(props: { provider: string }) {
   const { provider } = props;
+  const providerMemo = useMemo(() => {
+    return supportedProviders.find((p) => p.id === provider);
+  }, [provider]);
 
   return (
     <>
@@ -108,14 +112,19 @@ export function CustomProviderItem(props: { provider: string }) {
           signIn(provider);
         }}
       >
-        {provider}
+        {providerMemo?.Icon && (
+          <providerMemo.Icon className='w-6 h-6 inline mr-2' />
+        )}
+        {providerMemo?.name || provider}
       </Button>
     </>
   );
 }
 
 export function useCustomProviders() {
-  const [providers, setProviders] = useState<{ name: string; enabled: number}[]>([]);
+  const [providers, setProviders] = useState<
+    { name: string; enabled: number }[]
+  >([]);
   const [loading, setLoading] = useState(true);
 
   useSWR(
@@ -126,7 +135,7 @@ export function useCustomProviders() {
         enabled: true,
       },
     ],
-    fetcher<{ name: string; enabled: number}[]>,
+    fetcher<{ name: string; enabled: number }[]>,
     {
       onSuccess: (data) => {
         setProviders(data);
