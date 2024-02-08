@@ -1,0 +1,8 @@
+{
+  "name": "@createrag/extension-file-task-processor",
+  "version": "1.0.0",
+  "exports": {
+    "browser": "./meta.ts",
+    "node": "./FileTaskProcessor.ts"
+  }
+}

@@ -43,7 +43,7 @@ export const POST = auth(async function POST (req) {
   const { id, history } = await appendMessage(name, sessionId, message, userId);
 
   const index = (await database.index.findByName('default'))!;
-  const flow = getFlow(baseRegistry, undefined, index.config);
+  const flow = await getFlow(baseRegistry, undefined, index.config);
 
   const answerId = genId();
 

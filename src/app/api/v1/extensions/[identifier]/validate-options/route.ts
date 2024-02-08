@@ -5,7 +5,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 export async function POST (req: NextRequest, { params }: { params: { identifier: string } }) {
   const identifier = decodeURIComponent(params.identifier);
-  const ctor = baseRegistry.getComponent(identifier);
+  const ctor = await baseRegistry.getComponent(identifier);
   if (!ctor) {
     notFound();
   }

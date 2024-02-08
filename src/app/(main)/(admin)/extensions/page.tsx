@@ -27,7 +27,9 @@ export default function ExtensionsPage () {
         {extensions.map(component => <Card key={component.identifier}>
           <CardHeader>
             <CardTitle className="text-sm">
-              {component.displayName}
+              <Link className='hover:underline' href={`/extensions/${component.identifier}`} prefetch={false}>
+                {component.displayName}
+              </Link>
             </CardTitle>
           </CardHeader>
           <CardContent>

@@ -1,0 +1,8 @@
+{
+  "name": "@createrag/extension-vercel-blob-document-storage",
+  "version": "1.0.0",
+  "exports": {
+    "browser": "./meta.ts",
+    "node": "./VercelBlobDocumentStorage.ts"
+  }
+}

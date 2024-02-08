@@ -8,7 +8,7 @@ import ChunkedContent = rag.ChunkedContent;
 import EmbeddedContent = rag.EmbeddedContent;
 
 export async function reIndexDocument (index: Selectable<DB['index']>, document: Selectable<DB['document']>) {
-  const flow = getFlow(baseRegistry, undefined, index.config);
+  const flow = await getFlow(baseRegistry, undefined, index.config);
   const storage = flow.getStorage();
   try {
     console.log('[index] start', document.id, document.mime);

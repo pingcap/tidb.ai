@@ -8,7 +8,7 @@ export async function PUT (req: NextRequest, { params }: { params: { name: strin
 
   const updatingConfig = {} as any;
   for (const [k, v] of Object.entries(data)) {
-    const ctor = baseRegistry.getComponent(k);
+    const ctor = await baseRegistry.getComponent(k);
     if (!ctor) {
       return NextResponse.json({
         message: `unknown extension ${k}`,

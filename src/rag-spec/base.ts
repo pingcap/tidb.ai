@@ -1,40 +1,35 @@
-import { RagComponentRegistry } from '@/core/registry';
-import { OpenaiChatModel } from '@/rag-spec/chat-model/OpenaiChatModel';
-import { FileSystemDocumentStorage } from '@/rag-spec/doument-storage/FileSystemDocumentStorage';
-import { VercelBlobDocumentStorage } from '@/rag-spec/doument-storage/VercelBlobDocumentStorage';
-import { OpenaiEmbeddings } from '@/rag-spec/embeddings/OpenaiEmbeddings';
-import { HtmlLoader } from '@/rag-spec/loaders/HtmlLoader';
-import { MarkdownLoader } from '@/rag-spec/loaders/MarkdownLoader';
-import { PdfLoader } from '@/rag-spec/loaders/PdfLoader';
-import { TextLoader } from '@/rag-spec/loaders/TextLoader';
-import { DirectPrompting } from '@/rag-spec/promptings/DirectPrompting';
-import { RecursiveCharacterTextSplitter } from '@/rag-spec/spliter/RecursiveCharacterTextSplitter';
-import { FileTaskProcessor } from '@/rag-spec/task-processor/FileTaskProcessor';
-import { HtmlTaskProcessor } from '@/rag-spec/task-processor/HtmlTaskProcessor';
-import { RobotsTxtTaskProcessor } from '@/rag-spec/task-processor/RobotsTxtTaskProcessor';
-import { SitemapXmlTaskProcessor } from '@/rag-spec/task-processor/SitemapXmlTaskProcessor';
+import { RagExtensionsRegistry } from '@/core/registry2';
 
-const baseRegistry = new RagComponentRegistry();
+const baseRegistry = new RagExtensionsRegistry();
 
 if (process.env.VERCEL === '1') {
-  baseRegistry.register(VercelBlobDocumentStorage);
+  baseRegistry.register(() => import('@createrag/extension-vercel-blob-document-storage'));
 } else {
-  baseRegistry.register(FileSystemDocumentStorage);
+  baseRegistry.register(() => import('@createrag/extension-fs-document-storage'));
 }
 
-baseRegistry.register(HtmlLoader);
-baseRegistry.register(MarkdownLoader);
-baseRegistry.register(TextLoader);
-baseRegistry.register(PdfLoader);
+// Loaders
+baseRegistry.register(() => import('@createrag/extension-html-loader'));
+baseRegistry.register(() => import('@createrag/extension-markdown-loader'));
+baseRegistry.register(() => import('@createrag/extension-text-loader'));
+baseRegistry.register(() => import('@createrag/extension-pdf-loader'));
 
-baseRegistry.register(RecursiveCharacterTextSplitter);
-baseRegistry.register(OpenaiEmbeddings);
-baseRegistry.register(OpenaiChatModel);
+// Splitters
+baseRegistry.register(() => import('@createrag/extension-langchain-recursive-character-splitter'));
 
-baseRegistry.register(RobotsTxtTaskProcessor);
-baseRegistry.register(SitemapXmlTaskProcessor);
-baseRegistry.register(HtmlTaskProcessor);
-baseRegistry.register(FileTaskProcessor);
+// Embeddings
+baseRegistry.register(() => import('@createrag/extension-openai-embeddings'));
 
-baseRegistry.register(DirectPrompting);
+// Chat models
+baseRegistry.register(() => import('@createrag/extension-openai-chat-model'));
+
+// Task processors
+baseRegistry.register(() => import('@createrag/extension-file-task-processor'));
+baseRegistry.register(() => import('@createrag/extension-html-task-processor'));
+baseRegistry.register(() => import('@createrag/extension-sitemap-task-processor'));
+baseRegistry.register(() => import('@createrag/extension-robots-task-processor'));
+
+// Promptings
+baseRegistry.register(() => import('@createrag/extension-simple-prompting'));
+
 export { baseRegistry };

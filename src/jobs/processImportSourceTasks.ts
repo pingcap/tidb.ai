@@ -17,7 +17,7 @@ export async function processImportSourceTasks (concurrent: number, maxDuration:
 
   let i = 0;
 
-  const flow = getFlow(baseRegistry);
+  const flow = await getFlow(baseRegistry);
 
   let succeed = 0;
   let failed = 0;

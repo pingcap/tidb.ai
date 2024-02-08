@@ -1,5 +1,6 @@
 import type { AIStreamCallbacksAndOptions } from 'ai';
-import { z } from 'zod';
+import type { FC } from 'react';
+import { z, type ZodObject } from 'zod';
 
 export namespace rag {
   export interface Content<ContentMetadata> {
@@ -37,10 +38,18 @@ export namespace rag {
     content: AsyncIterable<string>;
   }
 
+  export type BaseMeta<Options> = {
+    identifier: string;
+    displayName: string;
+    optionsSchema: ZodObject<any, any, any, Options>;
+    description?: FC;
+  }
+
   export abstract class Base<Options> {
     static readonly identifier: string;
     static readonly displayName: string;
     static readonly optionsSchema = z.object({});
+    static readonly description?: FC;
 
     readonly options: Options;
 

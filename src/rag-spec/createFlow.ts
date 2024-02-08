@@ -1,5 +1,5 @@
 import { Flow } from '@/core';
-import type { RagComponentRegistry } from '@/core/registry';
+import type { RagExtensionsRegistry } from '@/core/registry2';
 
 namespace IndexFlowConfig {
   export type BaseComponentConfig = string | {
@@ -24,14 +24,15 @@ interface IndexFlowConfig {
   promptings: IndexFlowConfig.Prompting[];
 }
 
-export function getFlow (registry: RagComponentRegistry, config?: IndexFlowConfig, options?: any) {
+export async function getFlow (registry: RagExtensionsRegistry, config?: IndexFlowConfig, options?: any) {
+  await registry.prepareAll();
   const flow = new Flow();
 
   function add (component: IndexFlowConfig.BaseComponentConfig) {
     if (typeof component === 'string') {
-      flow.add(registry.create(component, {}));
+      flow.add(registry._create(component, {}));
     } else {
-      flow.add(registry.create(component.identifier, component.options));
+      flow.add(registry._create(component.identifier, component.options));
     }
   }
 
@@ -43,7 +44,7 @@ export function getFlow (registry: RagComponentRegistry, config?: IndexFlowConfi
     config.chatModels.forEach(add);
     config.promptings.forEach(add);
   } else {
-    registry.createAll(options).forEach(comp => flow.add(comp));
+    registry._createAll(options).forEach(comp => flow.add(comp));
   }
 
   flow.resolve();

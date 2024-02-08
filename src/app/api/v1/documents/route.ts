@@ -49,7 +49,7 @@ async function handleMultipart (req: NextRequest) {
   if (typeof sourceUri !== 'string') {
     throw new Error('sourceUri is required');
   }
-  const store = getFlow(baseRegistry).getStorage();
+  const store = (await getFlow(baseRegistry)).getStorage();
 
   await saveDocument(store, {
     id: genId(),

@@ -7,7 +7,7 @@ import { z, type ZodObject } from 'zod';
 
 export async function POST (req: NextRequest, { params }: { params: { identifier: string } }) {
   const identifier = decodeURIComponent(params.identifier);
-  const ctor = baseRegistry.getComponent(identifier);
+  const ctor = await baseRegistry.getComponent(identifier);
   if (!ctor) {
     notFound();
   }
@@ -25,7 +25,7 @@ export async function POST (req: NextRequest, { params }: { params: { identifier
       ));
     }
 
-    const component = baseRegistry.create(identifier, options);
+    const component = await baseRegistry.create(identifier, options);
     if (component instanceof rag.Splitter) {
       const result = await component.split({
         content: content,

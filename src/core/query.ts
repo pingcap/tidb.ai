@@ -12,7 +12,7 @@ export const querySchema = z.object({
 });
 
 export async function query (indexName: string, llm: string, { text, top_k, source_uri_prefixes }: z.infer<typeof querySchema>) {
-  const embeddings = getFlow(baseRegistry).getEmbeddings(llm);
+  const embeddings = (await getFlow(baseRegistry)).getEmbeddings(llm);
 
   const vector = await embeddings.embedQuery(text);
 

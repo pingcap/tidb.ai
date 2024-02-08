@@ -1,0 +1,8 @@
+{
+  "name": "@createrag/extension-simple-prompting",
+  "version": "1.0.0",
+  "exports": {
+    "browser": "./meta.ts",
+    "node": "./SimplePrompting.ts"
+  }
+}

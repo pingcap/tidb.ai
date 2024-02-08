@@ -31,8 +31,8 @@ export const LiquidEditor = ({ name, defaultValue }: { name?: string, defaultVal
         theme={theme === 'dark' ? 'cloud_editor_dark' : 'cloud_editor'}
         onChange={e => setValue(e)}
         defaultValue={defaultValue}
-        editorProps={{ $blockScrolling: true }}
-        setOptions={{ showLineNumbers: false, wrap: true }}
+        editorProps={{ $blockScrolling: true, }}
+        setOptions={{ showLineNumbers: false, wrap: true, wrapBehavioursEnabled: false, behavioursEnabled: false }}
       />
     </div>
   );

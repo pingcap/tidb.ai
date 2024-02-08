@@ -2,11 +2,12 @@ import AutoFormLabel from '@/components/ui/auto-form/common/label';
 import { AutoFormInputComponentProps } from '@/components/ui/auto-form/types';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { FormItem } from '@/components/ui/form';
+import { FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import type { HtmlSelectorItemType } from '@/lib/zod-extensions/types/html-selector-array';
+import { useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 type Fake = {
@@ -44,7 +45,7 @@ export function HtmlSelectorArrayInput ({
                 <SelectItem value="dom-content-attr">DOM Attribute <code>content</code></SelectItem>
               </SelectContent>
             </Select>
-            <Input key='css' placeholder="CSS Selector" value={field.selector} onChange={e => update(index, { ...field, selector: e.currentTarget.value })} />
+            <Input key="css" placeholder="CSS Selector" value={field.selector} onChange={e => update(index, { ...field, selector: e.currentTarget.value })} />
             <div className="flex gap-1 items-center flex-shrink-0">
               <Label>
                 Multiple DOM
@@ -54,7 +55,9 @@ export function HtmlSelectorArrayInput ({
           </li>
         ))}
       </ul>
-      <Button type="button" onClick={() => append({ selector: '' })}>
+      <FormField name={field.name} render={() => <FormMessage />} />
+
+      <Button type="button" variant='secondary' onClick={() => append({ selector: '' })}>
         Add selector
       </Button>
     </FormItem>

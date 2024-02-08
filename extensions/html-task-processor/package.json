@@ -1,0 +1,8 @@
+{
+  "name": "@createrag/extension-html-task-processor",
+  "version": "1.0.0",
+  "exports": {
+    "browser": "./meta.ts",
+    "node": "./HtmlTaskProcessor.ts"
+  }
+}

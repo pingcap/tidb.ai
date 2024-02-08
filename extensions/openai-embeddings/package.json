@@ -1,0 +1,8 @@
+{
+  "name": "@createrag/extension-openai-embeddings",
+  "version": "1.0.0",
+  "exports": {
+    "browser": "./meta.ts",
+    "node": "./OpenaiEmbeddings.ts"
+  }
+}

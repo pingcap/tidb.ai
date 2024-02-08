@@ -34,9 +34,9 @@ export async function scheduleImportSourceTask (source: Selectable<DB['import_so
 
   if (process.env.AUTO_TRIGGER) {
     void database.task.dequeueById(id)
-      .then(task => {
+      .then(async task => {
         if (task) {
-          return processImportSourceTask(getFlow(baseRegistry), task);
+          return processImportSourceTask(await getFlow(baseRegistry), task);
         }
       });
   }

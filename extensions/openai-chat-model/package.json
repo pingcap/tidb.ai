@@ -1,0 +1,8 @@
+{
+  "name": "@createrag/extension-openai-chat-model",
+  "version": "1.0.0",
+  "exports": {
+    "browser": "./meta.ts",
+    "node": "./OpenaiChatModel.ts"
+  }
+}

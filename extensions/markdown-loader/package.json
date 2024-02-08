@@ -1,0 +1,8 @@
+{
+  "name": "@createrag/extension-markdown-loader",
+  "version": "1.0.0",
+  "exports": {
+    "browser": "./meta.ts",
+    "node": "./MarkdownLoader.ts"
+  }
+}

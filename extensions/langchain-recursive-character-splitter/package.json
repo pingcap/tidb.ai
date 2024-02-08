@@ -1,0 +1,8 @@
+{
+  "name": "@createrag/extension-langchain-recursive-character-splitter",
+  "version": "1.0.0",
+  "exports": {
+    "browser": "./meta.ts",
+    "node": "./RecursiveCharacterTextSplitter.ts"
+  }
+}

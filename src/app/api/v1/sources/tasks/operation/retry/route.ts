@@ -14,7 +14,7 @@ export async function POST (req: NextRequest) {
 
   if (process.env.AUTO_TRIGGER) {
     void (async () => {
-      const flow = getFlow(baseRegistry);
+      const flow = await getFlow(baseRegistry);
       for (let id of ids) {
         const task = await database.task.dequeueById(id);
         if (task) {
