@@ -13,6 +13,13 @@ export async function listAllProviders (enabled?: true) {
     .execute();
 }
 
+export async function listAllEnabledProvidersWithConfig() {
+  return await db.selectFrom('authentication_providers')
+    .select(['name', 'enabled', 'config'])
+    .where('enabled', '=', 1)
+    .execute();
+}
+
 export async function updateProvider (name: string, config: any) {
   const result = await db.updateTable('authentication_providers')
     .where('name', '=', eb => eb.val(name))

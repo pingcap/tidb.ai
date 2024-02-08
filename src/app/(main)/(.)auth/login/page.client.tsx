@@ -9,6 +9,9 @@ import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
+import useSWR from 'swr';
+import { fetcher, handleErrors } from '@/lib/fetch';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {
   const router = useRouter();
@@ -16,7 +19,7 @@ export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {
   const [error, setError] = useState<string>();
 
   const form = useForm<{ username: string; password: string }>();
-  const {providers, loading: providersLoading} = useCustomProviders();
+  const { providers, loading: providersLoading } = useCustomProviders();
 
   const handleSubmit = form.handleSubmit(async (data) => {
     setError(undefined);
@@ -57,13 +60,16 @@ export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {
           </Alert>
         )}
         <div className='space-y-2'>
-          {providersLoading && <p>Loading...</p>}
+          {providersLoading && <Skeleton className='w-full h-10 rounded' />}
           {!providersLoading &&
             providers.map((provider) => (
-              <CustomProviderItem key={provider} provider={provider} />
+              <CustomProviderItem
+                key={provider.name}
+                provider={provider.name}
+              />
             ))}
         </div>
-        <hr className='my-2' ></hr>
+        {providers?.length > 0 && <hr className='my-2'></hr>}
         <Form {...form}>
           <form className='space-y-2' onSubmit={handleSubmit}>
             <FormItem>
@@ -96,7 +102,7 @@ export function CustomProviderItem(props: { provider: string }) {
   return (
     <>
       <Button
-        className='w-full'
+        className='w-full h-10'
         variant='outline'
         onClick={() => {
           signIn(provider);
@@ -109,30 +115,25 @@ export function CustomProviderItem(props: { provider: string }) {
 }
 
 export function useCustomProviders() {
-  const [providers, setProviders] = useState<string[]>([]);
+  const [providers, setProviders] = useState<{ name: string; enabled: number}[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // fetch('/api/auth/providers')
-    //   .then((res) => res.json())
-    //   .then((res) => {
-    //     setProviders(res);
-    //     setLoading(false);
-    //   });
-    const fetchProviders = async (): Promise<
-    string[]> => {
-      return new Promise((resolve) => {
-        setTimeout(() => {
-          resolve(['github', 'google', 'azure-ad']);
-        }, 1000);
-      });
-    };
-
-    fetchProviders().then((res) => {
-      setProviders(res);
-      setLoading(false);
-    });
-  }, []);
+  useSWR(
+    [
+      'get',
+      `/api/v1/authentication-providers`,
+      {
+        enabled: true,
+      },
+    ],
+    fetcher<{ name: string; enabled: number}[]>,
+    {
+      onSuccess: (data) => {
+        setProviders(data);
+        setLoading(false);
+      },
+    }
+  );
 
   return { providers, loading };
 }
