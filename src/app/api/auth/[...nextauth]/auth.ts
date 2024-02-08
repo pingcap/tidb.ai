@@ -1,17 +1,11 @@
-import { type NextRequest, NextResponse } from 'next/server';
-import { genId } from '@/lib/id';
-import NextAuth, {type Session} from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { handleErrors } from '@/lib/fetch';
-import GoogleProvider from 'next-auth/providers/google';
-import GitHubProvider from 'next-auth/providers/github';
-import AzureAd from 'next-auth/providers/azure-ad';
 import { listAllEnabledProvidersWithConfig } from '@/core/db/auth';
-import type {
-  GetServerSidePropsContext,
-  NextApiRequest,
-  NextApiResponse,
-} from "next"
+import { genId } from '@/lib/id';
+import NextAuth, { type Session } from 'next-auth';
+import AzureAd from 'next-auth/providers/azure-ad';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import GitHubProvider from 'next-auth/providers/github';
+import GoogleProvider from 'next-auth/providers/google';
+import { type NextRequest, NextResponse } from 'next/server';
 
 declare module 'next-auth' {
   interface User {
@@ -23,14 +17,14 @@ const anonymous_prefix = '$$a_';
 
 const cookie_prefix = 'tidb-ai';
 
-export async function GET(req: NextRequest) {
+export async function GET (req: NextRequest) {
   const {
     handlers: { GET },
   } = await generateNextAuth();
   return GET(req);
 }
 
-export async function POST(req: NextRequest) {
+export async function POST (req: NextRequest) {
   const {
     handlers: { POST },
   } = await generateNextAuth();
@@ -38,13 +32,33 @@ export async function POST(req: NextRequest) {
 }
 
 // todo: wrap auth
-export async function auth(...args: any) {
-  const { auth } = await generateNextAuth();
-  // @ts-ignore
-  return auth(...args);
+export function auth<
+  Ctx extends { params?: Record<string, string | string[] | undefined> }
+> (fn: (req: NextRequest & { auth: Session | null }, ctx: Ctx) => Promise<Response>): (req: NextRequest, ctx: Ctx) => Promise<Response>
+export function auth (): Promise<Session>
+export function auth (...args: any[]): any {
+
+  // With no parameters, returns the session promise directly.
+  if (args.length === 0) {
+    return generateNextAuth().then(res => res.auth);
+  }
+
+  // With single parameters (handler fn), wrap the fn with auth info, return the enhanced fn.
+  if (args.length === 1) {
+    return async function (req: NextRequest, ctx: any) {
+      const { auth } = await generateNextAuth();
+      const fn = args[0] as (req: NextRequest) => Promise<NextResponse>;
+      const handler = auth(fn);
+
+      return handler(req, ctx);
+    };
+  }
+
+  // We do not use page router, so no need to handle multiple arguments.
+  throw new Error('why you call auth() like that?');
 }
 
-async function generateNextAuth() {
+async function generateNextAuth () {
   const providers = await getProviders();
   const { handlers, auth } = NextAuth({
     pages: {
@@ -65,7 +79,7 @@ async function generateNextAuth() {
       },
     },
     callbacks: {
-      session(params) {
+      session (params) {
         if ('token' in params) {
           if (params.session.user) {
             params.session.user.id = params.token.sub;
@@ -85,7 +99,7 @@ async function generateNextAuth() {
           username: { label: 'Username', type: 'text', placeholder: 'admin' },
           password: { label: 'Password', type: 'password' },
         },
-        async authorize(credentials) {
+        async authorize (credentials) {
           if (
             credentials.username !== 'admin' ||
             credentials.password !== process.env.ADMIN_PASSWORD
@@ -106,7 +120,7 @@ async function generateNextAuth() {
         id: 'anonymous',
         name: 'anonymous',
         credentials: {},
-        async authorize(credentials, req) {
+        async authorize (credentials, req) {
           return {
             id: anonymous_prefix + genId(12),
             role: 'anonymous',
@@ -129,7 +143,7 @@ async function generateNextAuth() {
   };
 }
 
-async function getProviders() {
+async function getProviders () {
   const result = await listAllEnabledProvidersWithConfig();
   const providers: {
     id: string;
