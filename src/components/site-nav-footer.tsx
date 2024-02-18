@@ -5,6 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useHref } from '@/components/use-href';
 import { useUser } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 import { LogInIcon } from 'lucide-react';
@@ -32,13 +33,14 @@ export function SiteNavFooter ({ className }: { className?: string }) {
 }
 
 function User () {
+  const href = useHref();
   const user = useUser();
   const router = useRouter();
 
   if (!user) {
     return (
       <Button variant="ghost" asChild>
-        <Link href="/auth/login" prefetch={false} className="items-center w-full gap-2">
+        <Link href={`/auth/login?callbackUrl=${encodeURIComponent(href)}`} prefetch={false} className="items-center w-full gap-2">
           <LogInIcon size="1em" />
           Login
         </Link>

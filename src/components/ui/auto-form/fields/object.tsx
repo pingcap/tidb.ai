@@ -101,7 +101,6 @@ export default function AutoFormObject<
           );
         }
         if (zodBaseType === "ZodArray") {
-          console.log(item);
           return (
             <AutoFormArray
               key={key}

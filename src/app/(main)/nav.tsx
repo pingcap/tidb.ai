@@ -9,6 +9,7 @@ import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAsk } from '@/components/use-ask';
+import { useHref } from '@/components/use-href';
 import type { DB } from '@/core/db/schema';
 import { useUser } from '@/lib/auth';
 import { fetcher } from '@/lib/fetch';
@@ -17,6 +18,7 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import type { Selectable } from 'kysely';
 import { ActivitySquareIcon, CommandIcon, FingerprintIcon, HomeIcon, ImportIcon, LibraryIcon, ListIcon, MenuIcon, MessagesSquareIcon, SearchIcon, Settings2Icon, ShieldCheckIcon, TextIcon, UsersIcon } from 'lucide-react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
@@ -24,6 +26,7 @@ const conversationItemClassName = 'text-xs p-2 py-1.5 h-max font-normal w-[86%] 
 const docsItemClassName = 'text-xs p-2 py-1.5 h-max font-normal block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold';
 
 export function Nav () {
+  const href = useHref();
   const [open, setOpen] = useState(false);
   const ask = useAsk(() => {
     setOpen(false);
@@ -50,7 +53,7 @@ export function Nav () {
   }, []);
 
   const groups = useMemo(() => {
-    const disableIfNotAuthenticated = !user ? <><Link className="font-semibold underline" href="/auth/login">Login</Link> to continue</> : false;
+    const disableIfNotAuthenticated = !user ? <><Link className="font-semibold underline" href={`/auth/login?callbackUrl=${encodeURIComponent(href)}`}>Login</Link> to continue</> : false;
 
     const groups: NavGroup[] = [
       {
@@ -96,7 +99,7 @@ export function Nav () {
     });
 
     return groups;
-  }, [user, history]);
+  }, [user, history, href]);
 
   return (
     <>

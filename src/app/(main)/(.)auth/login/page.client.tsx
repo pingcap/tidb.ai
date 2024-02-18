@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
 import { Form, FormField, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useState, useEffect, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import useSWR from 'swr';
@@ -111,6 +111,9 @@ export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {
 }
 
 export function CustomProviderItem(props: { provider: string, className?: string}) {
+  const usp = useSearchParams();
+  const callbackUrl = usp.get('callbackUrl') ?? '/';
+
   const { provider, className } = props;
   const providerMemo = useMemo(() => {
     return supportedProviders.find((p) => p.id === provider);
@@ -122,7 +125,9 @@ export function CustomProviderItem(props: { provider: string, className?: string
         className={clsx('w-full h-10', className)}
         variant='outline'
         onClick={() => {
-          signIn(provider);
+          signIn(provider, {
+            callbackUrl,
+          });
         }}
       >
         {providerMemo?.Icon && (
