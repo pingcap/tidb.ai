@@ -20,8 +20,8 @@ export type ExtensionDef = {
 }
 
 export const extensionsDefs: ExtensionDef[] = [
-  { category: ExtensionCategory.LOADER, test: /\.loader\./, title: 'Loader', icon: ScanTextIcon, playground: false, configurable: false },
-  { category: ExtensionCategory.SPLITTER, test: /\.splitter\./, title: 'Splitter', icon: SplitSquareVerticalIcon, playground: true, configurable: false },
+  { category: ExtensionCategory.LOADER, test: /\.loader\./, title: 'Loader', icon: ScanTextIcon, playground: false, configurable: true },
+  { category: ExtensionCategory.SPLITTER, test: /\.splitter\./, title: 'Splitter', icon: SplitSquareVerticalIcon, playground: false, configurable: true },
   { category: ExtensionCategory.TASK_PROCESSOR, test: /\.import-source-task\./, title: 'Task processor', icon: HardDriveDownloadIcon, playground: false, configurable: false },
   { category: ExtensionCategory.EMBEDDINGS, test: /\.embeddings\./, title: 'Embeddings', icon: BinaryIcon, playground: false, configurable: false },
   { category: ExtensionCategory.CHAT_MODEL, test: /\.chat-model\./, title: 'Chat model', icon: CpuIcon, playground: false, configurable: false },

@@ -1,7 +1,7 @@
 import { rag } from '@/core/interface';
 import { z } from 'zod';
 
-type ExtractOptions<T> = T extends rag.Base<infer O> ? O : never;
+export type ExtractOptions<T> = T extends rag.Base<infer O> ? O : never;
 
 export interface ComponentConstructor<Type> {
   new (options: ExtractOptions<Type>): Type;
