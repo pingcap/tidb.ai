@@ -11,17 +11,17 @@ import {
 // todo: add middleware to redirect to login page(if anonymous)
 
 export default function Page() {
-  const { configuredProviders, add, isLoading, error, act, remove } =
+  const { configuredProviders, add, isLoading, error, act, remove, update } =
     useProvider();
 
   return (
     <>
-      <h1 className='text-2xl font-semibold mb-4'>Authentication Configure</h1>
+      <h1 className='text-2xl font-semibold mb-4'>Authentication Configuration</h1>
       <div>
-        <ul className='flex gap-2'>
+        <ul className='flex flex-col gap-2'>
           {configuredProviders.map((provider) => {
             return (
-              <li key={provider.name} className='w-fit'>
+              <li key={provider.name} className='w-full'>
                 <ProviderCardItem
                   provider={provider.name}
                   enabled={provider.enabled > 0}
@@ -31,6 +31,7 @@ export default function Page() {
                       provider.name
                     );
                   }}
+                  handleUpdate={update}
                   handleRemove={remove}
                   isLoading={isLoading}
                 />
@@ -39,7 +40,9 @@ export default function Page() {
           })}
         </ul>
       </div>
-      <h2 className='text-xl font-semibold mb-4'>Add</h2>
+      {!(configuredProviders?.length >= supportedProviders?.length) && (
+        <h2 className='text-xl font-semibold mb-4'>Supported Providers</h2>
+      )}
       <div>
         <ul className='flex gap-2'>
           {supportedProviders

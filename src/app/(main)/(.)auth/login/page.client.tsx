@@ -13,6 +13,7 @@ import useSWR from 'swr';
 import { fetcher, handleErrors } from '@/lib/fetch';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supportedProviders } from '@/app/(main)/(admin)/authentication/components';
+import clsx from 'clsx';
 
 export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {
   const router = useRouter();
@@ -60,17 +61,29 @@ export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {
             </AlertDescription>
           </Alert>
         )}
-        <div className='space-y-2'>
+        <div className='grid grid-cols-2 gap-x-6 gap-y-2'>
           {providersLoading && <Skeleton className='w-full h-10 rounded' />}
           {!providersLoading &&
             providers.map((provider) => (
               <CustomProviderItem
                 key={provider.name}
                 provider={provider.name}
+                className={providers?.length === 2 ? '' : 'col-span-2'}
               />
             ))}
         </div>
-        {providers?.length > 0 && <hr className='my-2'></hr>}
+        {providers?.length > 0 && (
+          <div className='relative'>
+            <div className='absolute inset-0 flex items-center'>
+              <span className='w-full border-t'></span>
+            </div>
+            <div className='relative flex justify-center text-xs uppercase'>
+              <span className='bg-background px-2 text-muted-foreground'>
+                Or continue with
+              </span>
+            </div>
+          </div>
+        )}
         <Form {...form}>
           <form className='space-y-2' onSubmit={handleSubmit}>
             <FormItem>
@@ -97,8 +110,8 @@ export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {
   );
 }
 
-export function CustomProviderItem(props: { provider: string }) {
-  const { provider } = props;
+export function CustomProviderItem(props: { provider: string, className?: string}) {
+  const { provider, className } = props;
   const providerMemo = useMemo(() => {
     return supportedProviders.find((p) => p.id === provider);
   }, [provider]);
@@ -106,7 +119,7 @@ export function CustomProviderItem(props: { provider: string }) {
   return (
     <>
       <Button
-        className='w-full h-10'
+        className={clsx('w-full h-10', className)}
         variant='outline'
         onClick={() => {
           signIn(provider);
@@ -115,7 +128,7 @@ export function CustomProviderItem(props: { provider: string }) {
         {providerMemo?.Icon && (
           <providerMemo.Icon className='w-6 h-6 inline mr-2' />
         )}
-        {providerMemo?.name || provider}
+        <span className='w-20 text-center'>{providerMemo?.name || provider}</span>
       </Button>
     </>
   );
