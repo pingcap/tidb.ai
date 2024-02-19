@@ -230,3 +230,12 @@ SET config = JSON_MERGE_PATCH(config, '{
     "template": "Use the following pieces of context to answer the user question. This context retrieved from a knowledge base and you should use only the facts from the context to answer.\\nYour answer must be based on the context. If the context not contain the answer, just say that ''I don''t know'', don''t try to make up an answer, use the context.\\n\\n<contexts>\\n{%- for context in contexts %}\\n  <context source_uri=\\"{{context.source_uri}}\\" name=\\"{{context.source_name}}\\">\\n    <name>{{context.source_name}}</name>\\n    <source_uri>{{context.source_uri}}</source_uri>\\n    <content>{{context.text_content}}</content>\\n  </context>\\n{%- endfor %}\\n</contexts>\\n\\nYour answer must be based on the context, don''t use your own knowledge. \\n\\nUse markdown to answer. Write down uri reference you used for answer the question.\\n"
   }
 }');
+
+UPDATE `index`
+SET config = JSON_MERGE_PATCH(config, '{
+  "rag.splitter.langchain.recursive-character": {
+    "chunkOverlap": 10,
+    "chunkSize": 512,
+    "separators": ["\\n\\n", "\\n", " ", ""]
+  }
+}');
