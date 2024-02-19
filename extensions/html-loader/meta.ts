@@ -20,7 +20,7 @@ export const optionsSchema = z.object({
 });
 
 const htmlLoaderMeta: BaseMeta<HtmlLoaderOptions> = {
-  identifier: 'rag.loader.html2',
+  identifier: 'rag.loader.html',
   displayName: 'HTML Loader',
   optionsSchema,
   description: Readme,

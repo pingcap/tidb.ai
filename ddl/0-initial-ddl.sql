@@ -181,33 +181,47 @@ CREATE TABLE authentication_providers
 
 
 INSERT INTO `index`(name, llm, llm_model, config, created_at, last_modified_at)
-VALUES ('default', 'openai', 'openai', '{
+VALUES ('default', 'openai', 'openai', '{}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+
+UPDATE `index`
+SET config = JSON_MERGE_PATCH(config, '{
   "rag.loader.html": {
-    "contentExtraction": {
-      "www.pingcap.com": [
-        {
-          "pattern": "/blog/*",
-          "contentSelector": ".wysiwyg--post-content"
-        }
-      ],
-      "ask.pingcap.com": [
-        {
-          "pattern": "/t/**",
-          "contentSelector": "#topic-title > h1",
-          "all": true
-        },
-        {
-          "pattern": "/t/**",
-          "contentSelector": ".post"
-        }
-      ]
-    }
-  },
-  "rag.prompting.direct": {
-    "top_k": 5,
-    "template": "Use the following pieces of context to answer the user question. This context retrieved from a knowledge base and you should use only the facts from the context to answer.\\nYour answer must be based on the context. If the context not contain the answer, just say that ''I don''t know'', don''t try to make up an answer, use the context.\\n\\n<contexts>\\n{%- for context in contexts %}\\n  <context source_uri=\\"{{context.source_uri}}\\" name=\\"{{context.source_name}}\\">\\n    <name>{{context.source_name}}</name>\\n    <source_uri>{{context.source_uri}}</source_uri>\\n    <content>{{context.text_content}}</content>\\n  </context>\\n{%- endfor %}\\n</contexts>\\n\\nYour answer must be based on the context, don''t use your own knowledge. \\n\\nUse markdown to answer. Write down uri reference you used for answer the question.\\n"
+    "contentExtraction": [
+      {
+        "selectors": [
+          {
+            "selector": "#topic-title > h1",
+            "type": "dom-text"
+          },
+          {
+            "all": true,
+            "selector": ".post",
+            "type": "dom-text"
+          }
+        ],
+        "url": "ask.pingcap.com/t/**"
+      },
+      {
+        "selectors": [
+          {
+            "selector": ".doc-content",
+            "type": "dom-text"
+          }
+        ],
+        "url": "docs.pingcap.com/**"
+      },
+      {
+        "selectors": [
+          {
+            "selector": ".wysiwyg--post-content",
+            "type": "dom-text"
+          }
+        ],
+        "url": "www.pingcap.com/blog/*"
+      }
+    ]
   }
-}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
+}');
 
 UPDATE `index`
 SET config = JSON_MERGE_PATCH(config, '{
@@ -216,19 +230,3 @@ SET config = JSON_MERGE_PATCH(config, '{
     "template": "Use the following pieces of context to answer the user question. This context retrieved from a knowledge base and you should use only the facts from the context to answer.\\nYour answer must be based on the context. If the context not contain the answer, just say that ''I don''t know'', don''t try to make up an answer, use the context.\\n\\n<contexts>\\n{%- for context in contexts %}\\n  <context source_uri=\\"{{context.source_uri}}\\" name=\\"{{context.source_name}}\\">\\n    <name>{{context.source_name}}</name>\\n    <source_uri>{{context.source_uri}}</source_uri>\\n    <content>{{context.text_content}}</content>\\n  </context>\\n{%- endfor %}\\n</contexts>\\n\\nYour answer must be based on the context, don''t use your own knowledge. \\n\\nUse markdown to answer. Write down uri reference you used for answer the question.\\n"
   }
 }');
-
-UPDATE `index`
-SET config = JSON_MERGE(config, '{
-  "rag.loader.html": {
-    "contentExtraction": {
-      "docs.pingcap.com": [
-        {
-          "pattern": "/**",
-          "contentSelector": ".doc-content"
-        }
-      ]
-    }
-  }
-}'),
-    last_modified_at = CURRENT_TIMESTAMP
-WHERE name = 'default';
