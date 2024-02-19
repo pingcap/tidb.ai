@@ -28,7 +28,6 @@ export class RagExtensionsRegistry {
     let n = 0;
     try {
       for (let lazy of this.unresolved) {
-        const module = await lazy();
         this._register((await lazy()).default);
         n++;
       }

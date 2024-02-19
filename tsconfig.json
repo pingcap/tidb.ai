@@ -23,7 +23,7 @@
     },
     "types": [
       "next-plugin-svgr/types/svg.d.ts",
-      "env.d.ts"
+      "./env.d.ts"
     ]
   },
   "include": ["next-env.d.ts", "env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],

@@ -80,7 +80,7 @@ function Try ({ options, identifier }: { options: any, identifier: string }) {
         {result?.metadata?.warning?.length && (
           <div className="space-y-2">
             {result.metadata.warning.map((warning: any) => (
-              <Alert>
+              <Alert key={warning}>
                 <AlertDescription>{warning}</AlertDescription>
               </Alert>
             ))}
