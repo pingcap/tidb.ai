@@ -100,7 +100,7 @@ const documentDb = {
         eb('index_state', 'in', ['staled', 'notIndexed']),
         // failed before an hour ago
         eb.and([
-          eb('index_state', '=', eb.val('error')),
+          eb('index_state', '=', eb.val('fail')),
           eb('created_at', '<', eb.val(subHours(new Date(), -1))),
         ]),
       ]))

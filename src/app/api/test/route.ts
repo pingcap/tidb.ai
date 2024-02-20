@@ -7,10 +7,10 @@ export async function GET () {
   if (!index) {
     return;
   }
+  const docs = await database.document.listByNotIndexed('default', 5);
 
-  await reIndexDocument(index, (await database.document.findById('LDrSonjzNijS'))!);
 
-  return NextResponse.json({});
+  return NextResponse.json(docs);
 }
 
 export const dynamic = 'force-dynamic';
