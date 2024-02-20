@@ -4,6 +4,7 @@ import { AdminPageHeading } from '@/components/admin-page-heading';
 import { indexStateCell } from '@/components/cells/index-state';
 import { metadataCell } from '@/components/cells/metadata';
 import { DocumentIndexStatusFilter } from '@/components/data-filters/document-index-status-filter';
+import { SearchFilter } from '@/components/data-filters/search-filter';
 import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { ImportFileDialog } from '@/components/dialogs/import-file-dialog';
@@ -68,6 +69,7 @@ export default function Page () {
       <DataTableRemote
         before={(
           <DataTableHeading>
+            <SearchFilter />
             <DocumentIndexStatusFilter />
             <span className="ml-auto" />
             <ImportFileDialog />

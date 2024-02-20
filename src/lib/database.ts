@@ -32,6 +32,14 @@ export async function executePage<DB, TB extends keyof DB, O> (builder: SelectQu
   };
 }
 
+export function parseFilters<K extends string[]> (req: NextRequest, filters: Readonly<K>) {
+  const request = {} as any;
+  filters.forEach(filter => {
+    request[filter] = req.nextUrl.searchParams.getAll(filter);
+  });
+  return request;
+}
+
 export function toPageRequest<K extends string[]> (req: NextRequest, filters?: Readonly<K>): PageRequest<K extends (infer K0 extends string)[] ? { [P in K0]: string[] } : {}> {
   const rawPage = req.nextUrl.searchParams.get('page') || '1';
   const rawPageSize = req.nextUrl.searchParams.get('page_size') || '10';
@@ -54,9 +62,7 @@ export function toPageRequest<K extends string[]> (req: NextRequest, filters?: R
   } as any;
 
   if (filters) {
-    filters.forEach(filter => {
-      request[filter] = req.nextUrl.searchParams.getAll(filter);
-    });
+    Object.assign(request, parseFilters(req, filters));
   }
 
   return request;

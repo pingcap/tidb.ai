@@ -65,8 +65,6 @@ export async function processImportSourceTask (flow: Flow, task: Selectable<DB['
         if (node) {
           name = toText(node);
         }
-
-        result.content.buffer
       }
 
       if (document) {

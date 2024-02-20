@@ -8,7 +8,7 @@ import { getFlow } from '@/rag-spec/createFlow';
 import { type NextRequest, NextResponse } from 'next/server';
 
 export async function GET (req: NextRequest) {
-  return NextResponse.json(await db.document.listAll(toPageRequest(req, ['index_state'])));
+  return NextResponse.json(await db.document.listAll(toPageRequest(req, ['index_state', 'q'])));
 }
 
 export async function PUT (req: NextRequest) {

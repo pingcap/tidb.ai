@@ -11,7 +11,7 @@ import type { Page } from '@/lib/database';
 import { fetcher } from '@/lib/fetch';
 import { ColumnDef, type ColumnFilter, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import type { PaginationState } from '@tanstack/table-core';
-import { type ReactNode, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
 interface DataTableRemoteProps<TData, TValue> {
@@ -40,6 +40,7 @@ export function DataTableRemote<TData, TValue> ({
   });
   const [rowSelection, setRowSelection] = useState({});
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
+  const [globalFilter, setGlobalFilter] = useState('');
 
   const idSelection = useMemo(() => {
     return Object.keys(rowSelection);
@@ -56,10 +57,14 @@ export function DataTableRemote<TData, TValue> ({
           res[column.id] = column.value;
           return res;
         }, {} as any),
+        ...globalFilter && {
+          q: globalFilter,
+        },
       },
     ],
     fetcher<Page<TData>>, {
       refreshInterval,
+      focusThrottleInterval: 1000
     });
 
   useEffect(() => {
@@ -103,6 +108,7 @@ export function DataTableRemote<TData, TValue> ({
       pagination,
       rowSelection,
       columnFilters,
+      globalFilter,
     },
     pageCount: data ? Math.ceil(data.total / data.pageSize) : 1,
     manualPagination: true,
@@ -110,9 +116,11 @@ export function DataTableRemote<TData, TValue> ({
     enableRowSelection: selectable,
     enableMultiRowSelection: selectable,
     enableColumnFilters: true,
+    enableGlobalFilter: true,
     onPaginationChange: setPagination,
     onRowSelectionChange: setRowSelection,
     onColumnFiltersChange: setColumnFilters,
+    onGlobalFilterChange: setGlobalFilter,
     getCoreRowModel: getCoreRowModel(),
     getRowId: item => String(item[idColumn]),
   });

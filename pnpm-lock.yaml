@@ -154,7 +154,7 @@ importers:
         version: 0.27.2
       langchain:
         specifier: ^0.1.5
-        version: 0.1.5(fast-xml-parser@4.3.3)(mysql2@3.7.1)
+        version: 0.1.5(fast-xml-parser@4.3.3)(lodash@4.17.21)(mysql2@3.7.1)
       liquidjs:
         specifier: ^10.10.0
         version: 10.10.0
@@ -294,6 +294,9 @@ importers:
       '@types/hast':
         specifier: ^3.0.3
         version: 3.0.3
+      '@types/lodash':
+        specifier: ^4.14.202
+        version: 4.14.202
       '@types/mdast':
         specifier: ^4.0.3
         version: 4.0.3
@@ -327,6 +330,9 @@ importers:
       kysely-codegen:
         specifier: ^0.11.0
         version: 0.11.0(kysely@0.27.2)(mysql2@3.7.1)
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
       lucide-react:
         specifier: ^0.320.0
         version: 0.320.0(react@18.2.0)
@@ -1857,7 +1863,7 @@ packages:
       '@jridgewell/resolve-uri': 3.1.1
       '@jridgewell/sourcemap-codec': 1.4.15
 
-  /@langchain/community@0.0.19(mysql2@3.7.1):
+  /@langchain/community@0.0.19(lodash@4.17.21)(mysql2@3.7.1):
     resolution: {integrity: sha512-4+vpEINOvCZVqjcVVmctvA7ewMSopRbqJ/leDx7hvkeW1iC/aZJDqzWZPxiYNM0VxmB8qeTPFSMB0l4AKwO74w==}
     engines: {node: '>=18'}
     peerDependencies:
@@ -2104,6 +2110,7 @@ packages:
       '@langchain/openai': 0.0.12
       flat: 5.0.2
       langsmith: 0.0.62
+      lodash: 4.17.21
       mysql2: 3.7.1
       uuid: 9.0.1
       zod: 3.22.4
@@ -4030,6 +4037,10 @@ packages:
 
   /@types/json5@0.0.29:
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
+    dev: true
+
+  /@types/lodash@4.14.202:
+    resolution: {integrity: sha512-OvlIYQK9tNneDlS0VN54LLd5uiPCBOp7gS5Z0f1mjoJYBrtStzgmJBxONW3U6OZqdtNzZPmn9BS/7WI7BFFcFQ==}
     dev: true
 
   /@types/mdast@4.0.3:
@@ -6813,7 +6824,7 @@ packages:
     resolution: {integrity: sha512-DmRvEfiR/NLpgsTbSxma2ldekhsdcd65+MNiKXyd/qj7w7X5e3cLkXxcj+MypsRDjPhHQ/CD5u3Eq1sBYzX0bw==}
     engines: {node: '>=14.0.0'}
 
-  /langchain@0.1.5(fast-xml-parser@4.3.3)(mysql2@3.7.1):
+  /langchain@0.1.5(fast-xml-parser@4.3.3)(lodash@4.17.21)(mysql2@3.7.1):
     resolution: {integrity: sha512-ku/4cHV+CaAlaTegjsGhsbaDdtFQi6OQW10Gi6JJvbX093XRADLRtIYYR5XLm7eFt6ZgvHszdQ55nSQqAgfjAg==}
     engines: {node: '>=18'}
     peerDependencies:
@@ -6976,7 +6987,7 @@ packages:
         optional: true
     dependencies:
       '@anthropic-ai/sdk': 0.9.1
-      '@langchain/community': 0.0.19(mysql2@3.7.1)
+      '@langchain/community': 0.0.19(lodash@4.17.21)(mysql2@3.7.1)
       '@langchain/core': 0.1.17
       '@langchain/openai': 0.0.12
       binary-extensions: 2.2.0
@@ -7154,7 +7165,6 @@ packages:
 
   /lodash@4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
-    dev: true
 
   /loglevel@1.8.1:
     resolution: {integrity: sha512-tCRIJM51SHjAayKwC+QAg8hT8vg6z7GSgLJKGvzuPb1Wc+hLzqtuVLxp6/HzSPOozuK+8ErAhy7U/sVzw8Dgfg==}
