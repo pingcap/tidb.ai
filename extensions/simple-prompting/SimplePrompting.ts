@@ -25,6 +25,7 @@ export default class SimplePrompting extends rag.Prompting<SimplePromptingOption
         role: 'system',
         content: content,
       } as const],
+      metadata: {},
     };
   }
 }
