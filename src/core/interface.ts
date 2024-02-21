@@ -134,7 +134,7 @@ export namespace rag {
   }
 
   export abstract class Prompting<Options> extends Base<Options> {
-    abstract refine (ctx: PromptingContext, query: string): Promise<{ queryId: string, messages: ChatMessage[], context: RetrievedContext[] }>
+    abstract refine (ctx: PromptingContext, query: string): Promise<{ queryId: string, messages: ChatMessage[], context: RetrievedContext[] } | { messages: ChatMessage[] }>
   }
 
   /**

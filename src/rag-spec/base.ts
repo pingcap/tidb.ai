@@ -30,6 +30,7 @@ baseRegistry.register(() => import('@createrag/extension-sitemap-task-processor'
 baseRegistry.register(() => import('@createrag/extension-robots-task-processor'));
 
 // Promptings
+baseRegistry.register(() => import('@createrag/extension-refined-prompting'));
 baseRegistry.register(() => import('@createrag/extension-simple-prompting'));
 
 export { baseRegistry };

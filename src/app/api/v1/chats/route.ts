@@ -50,13 +50,13 @@ export const POST = auth(async function POST (req) {
   const model = flow.getChatModel('openai');
   const prompting = flow.getPrompting();
 
-  const { queryId, messages: ragMessages, context } = await prompting.refine({
+  const question = await prompting.refine({
     model,
     retriever: (text, top_k) => query('default', index.llm, { text, top_k, source_uri_prefixes }),
   }, message);
 
   const stream = await model.chatStream([
-    ...ragMessages,
+    ...question.messages,
     { role: 'user', content: message },
   ], {
     onStart: async () => {
@@ -67,7 +67,7 @@ export const POST = auth(async function POST (req) {
         role: 'assistant',
         content: '',
         created_at: new Date(),
-        index_query_id: queryId,
+        index_query_id: 'queryId' in question ? question.queryId : null,
       }]);
     },
     onCompletion: async completion => {
@@ -79,21 +79,24 @@ export const POST = auth(async function POST (req) {
     experimental_streamData: true,
   });
 
-  const contextUris = new Map<string, { title: string, uri: string }>();
-  context.forEach(item => {
-    contextUris.set(item.source_uri, {
-      title: item.source_name,
-      uri: item.source_uri,
-    });
-  });
-
   const streamData = new experimental_StreamData();
-  streamData.append({
-    [String(history.length + 2)]: {
-      queryId,
-      context: Array.from(contextUris.values()),
-    },
-  });
+
+  if ('context' in question) {
+    const contextUris = new Map<string, { title: string, uri: string }>();
+    question.context.forEach(item => {
+      contextUris.set(item.source_uri, {
+        title: item.source_name,
+        uri: item.source_uri,
+      });
+    });
+
+    streamData.append({
+      [String(history.length + 2)]: {
+        queryId: question.queryId,
+        context: Array.from(contextUris.values()),
+      },
+    });
+  }
 
   await streamData.close();
 

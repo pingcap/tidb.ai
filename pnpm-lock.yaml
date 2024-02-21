@@ -267,6 +267,9 @@ importers:
       '@createrag/extension-pdf-loader':
         specifier: workspace:^
         version: link:extensions/pdf-loader
+      '@createrag/extension-refined-prompting':
+        specifier: workspace:^
+        version: link:extensions/refined-prompting
       '@createrag/extension-robots-task-processor':
         specifier: workspace:^
         version: link:extensions/robots-task-processor
@@ -387,6 +390,8 @@ importers:
   extensions/openai-embeddings: {}
 
   extensions/pdf-loader: {}
+
+  extensions/refined-prompting: {}
 
   extensions/robots-task-processor: {}
 
