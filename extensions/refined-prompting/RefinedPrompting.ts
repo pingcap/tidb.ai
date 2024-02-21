@@ -2,9 +2,9 @@ import { rag } from '@/core/interface';
 
 import { Liquid, type Template } from 'liquidjs';
 import ctxTemplate from './contextualTemplate.liquid';
-import nonCtxTemplate from './nonContextualTemplate.liquid';
 import earTemplate from './extract-and-refine-question.liquid';
 import refinedPromptingMeta, { type RefinedPromptingOptions } from './meta';
+import nonCtxTemplate from './nonContextualTemplate.liquid';
 
 export default class RefinedPrompting extends rag.Prompting<RefinedPromptingOptions> {
   private readonly liquid = new Liquid();
@@ -39,15 +39,17 @@ export default class RefinedPrompting extends rag.Prompting<RefinedPromptingOpti
           role: 'system',
           content: content,
         } as const],
+        metadata: { refinedQuestion: question },
       };
     } else {
-      const content = await this.liquid.render(this.nonCtxTmpl, { });
+      const content = await this.liquid.render(this.nonCtxTmpl, {});
 
       return {
         messages: [{
           role: 'system',
           content: content,
         } as const],
+        metadata: {},
       };
     }
   }

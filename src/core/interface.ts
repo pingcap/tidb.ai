@@ -134,7 +134,13 @@ export namespace rag {
   }
 
   export abstract class Prompting<Options> extends Base<Options> {
-    abstract refine (ctx: PromptingContext, query: string): Promise<{ queryId: string, messages: ChatMessage[], context: RetrievedContext[] } | { messages: ChatMessage[] }>
+    abstract refine (ctx: PromptingContext, query: string): Promise<Prompting.RefinedMessages>
+  }
+
+  export namespace Prompting {
+    export type RefinedMessages = ContextualMessages | NonContextualMessages;
+    export type ContextualMessages = { queryId: string, messages: ChatMessage[], context: RetrievedContext[], metadata: Record<string, any> };
+    export type NonContextualMessages = { messages: ChatMessage[], metadata: Record<string, any> }
   }
 
   /**
