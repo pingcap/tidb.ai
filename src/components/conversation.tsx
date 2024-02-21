@@ -1,6 +1,6 @@
 'use client';
 
-import { __useHandleInitialMessage } from '@/app/(main)/(public)/conversations/[id]/internal';
+import { __useHandleInitialMessage } from '@/app/(main)/(public)/c/[id]/internal';
 import { ConversationMessageGroups } from '@/components/conversation-message-group';
 import { MessageInput } from '@/components/message-input';
 import type { DB } from '@/core/db/schema';
@@ -58,7 +58,7 @@ function useMyChat (history: Selectable<DB['chat_message']>[], context: { ordina
   useEffect(() => {
     if (pathname === '/') {
       if (session) {
-        router.push(`/conversations/${session}`);
+        router.push(`/c/${session}`);
       }
     }
   }, [session, pathname]);

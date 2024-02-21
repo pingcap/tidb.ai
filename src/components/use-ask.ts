@@ -1,4 +1,4 @@
-import { __setMessage } from '@/app/(main)/(public)/conversations/[id]/internal';
+import { __setMessage } from '@/app/(main)/(public)/c/[id]/internal';
 import { handleErrors } from '@/lib/fetch';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState, useTransition } from 'react';
@@ -24,7 +24,7 @@ export function useAsk (onFinish?: () => void) {
           __setMessage(message);
           startTransition(() => {
             onFinish?.()
-            router.push(`/conversations/${encodeURIComponent(res.id)}`);
+            router.push(`/c/${encodeURIComponent(res.id)}`);
           });
         })
         .finally(() => {

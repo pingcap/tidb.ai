@@ -60,14 +60,14 @@ export function Nav () {
         items: [
           { key: 'new', onClick: () => { setOpen(true); }, title: 'New Thread', variant: 'outline', className: 'rounded-full cursor-text font-normal text-foreground/70', icon: SearchIcon, details: <span className="flex-shrink-0 flex gap-1 items-center rounded-full"><CommandIcon size="1em" /> K</span> },
           { href: '/', title: 'Home', icon: HomeIcon, exact: true },
-          { href: '/conversations', title: 'Conversations', exact: true, icon: MessagesSquareIcon, disabled: disableIfNotAuthenticated },
+          { href: '/c', title: 'Conversations', exact: true, icon: MessagesSquareIcon, disabled: disableIfNotAuthenticated },
           ...(isLoading ? [
             { key: 'placeholder-1', onClick: () => {}, title: <Skeleton className="w-32 h-[1em] rounded" />, variant: 'ghost', disabled: true, className: conversationItemClassName } as const,
             { key: 'placeholder-2', onClick: () => {}, title: <Skeleton className="w-48 h-[1em] rounded" />, variant: 'ghost', disabled: true, className: conversationItemClassName } as const,
             { key: 'placeholder-3', onClick: () => {}, title: <Skeleton className="w-24 h-[1em] rounded" />, variant: 'ghost', disabled: true, className: conversationItemClassName } as const,
           ] : []),
           ...history.map(chat => (
-            { href: `/conversations/${chat.id}`, title: chat.name, variant: (active: boolean) => (active ? 'secondary' : 'ghost'), className: conversationItemClassName }
+            { href: `/c/${chat.id}`, title: chat.name, variant: (active: boolean) => (active ? 'secondary' : 'ghost'), className: conversationItemClassName }
           )),
           {
             key: 'docs', title: 'Docs', href: '/docs', icon: TextIcon, children: [
