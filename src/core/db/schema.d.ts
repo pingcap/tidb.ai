@@ -135,6 +135,20 @@ export interface VDocumentIndexStatus {
   mime: string | null;
 }
 
+export enum OptionTypes {
+  STRING = 'string',
+  NUMBER = 'number',
+  OBJECT = 'object',
+  ARRAY = 'array'
+}
+
+export interface Option {
+  option_name: string;
+  option_type: OptionTypes;
+  option_value: Object | string | number | Array;
+  group_name: string;
+}
+
 export interface DB {
   authentication_providers: AuthenticationProviders;
   chat: Chat;
@@ -149,4 +163,5 @@ export interface DB {
   index_query: IndexQuery;
   index_query_result: IndexQueryResult;
   v_document_index_status: VDocumentIndexStatus;
+  option: Option;
 }

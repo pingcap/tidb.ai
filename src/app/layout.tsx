@@ -1,18 +1,32 @@
 import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import AnonymousSessionProvider from '@/components/anonymous-session-provider';
 import { ThemeProvider } from '@/components/theme-provider';
-import type { Metadata } from 'next';
+import type {Metadata} from 'next';
 import { SessionProvider } from 'next-auth/react';
 import { Noto_Sans as Font } from 'next/font/google';
 import './globals.css';
 import './more.css';
+import {getCachedSetting} from "@/core/setting";
+import WebsiteSettingProvider from "@/components/website-setting-provider";
+import {GroupName} from "@/core/schema/setting";
+import {Toaster} from "@/components/ui/toaster";
 
 const font = Font({ subsets: ['latin', 'latin-ext'] });
 
-export const metadata: Metadata = {
-  title: 'RAG Template',
-  description: 'TiDB Cloud!',
-};
+export async function generateMetadata(): Promise<Metadata> {
+  // TODO: react cache is only for per request, need global cache to optimize performance.
+  const setting = await getCachedSetting(GroupName.enum.website)
+
+  return {
+    title: setting?.title || 'RAG Template',
+    description: setting?.description || 'Hello TiDB Cloud!',
+    icons: [
+      {
+        url: setting?.logo_in_dark_mode || setting?.logo_in_light_mode  || '/tidb-ai-light.svg',
+      }
+    ]
+  }
+}
 
 export default async function RootLayout ({
   children,
@@ -36,10 +50,13 @@ export default async function RootLayout ({
     >
       <SessionProvider session={session}>
         <AnonymousSessionProvider>
-          {children}
+          <WebsiteSettingProvider>
+            {children}
+          </WebsiteSettingProvider>
         </AnonymousSessionProvider>
       </SessionProvider>
     </ThemeProvider>
+    <Toaster />
     </body>
     </html>
   );
