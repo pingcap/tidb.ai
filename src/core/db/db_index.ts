@@ -7,7 +7,7 @@ import type { Insertable, Selectable, Updateable } from 'kysely';
 import { notFound } from 'next/navigation';
 import ChunkedContent = rag.ChunkedContent;
 import EmbeddedContent = rag.EmbeddedContent;
-import {cosineSimilarity, toSql} from "@/lib/kysely";
+import {cosineSimilarity, vectorToSql} from "@/lib/kysely";
 
 export type _QueryOptions = {
   source_uri_prefixes?: string[];
@@ -134,7 +134,7 @@ export const indexDb: IndexDb = {
           index_name: index,
           metadata: JSON.stringify(c.metadata),
           text_content: c.content,
-          embedding: toSql(c.vector) as never,
+          embedding: vectorToSql(c.vector) as never,
           staled: 0,
           ordinal: i + 1,
         })))

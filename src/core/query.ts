@@ -3,7 +3,7 @@ import { genId } from '@/lib/id';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
 import { z } from 'zod';
-import {toSql} from "@/lib/kysely";
+import {vectorToSql} from "@/lib/kysely";
 
 export const querySchema = z.object({
   text: z.string(),
@@ -19,7 +19,7 @@ export async function query (indexName: string, llm: string, { text, top_k, sour
   const id = genId();
   await database.index.startQuery({
     id,
-    embedding: toSql(vector) as never,
+    embedding: vectorToSql(vector) as never,
     text,
     created_at: new Date(),
     index_name: indexName,
