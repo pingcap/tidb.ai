@@ -179,20 +179,6 @@ CREATE TABLE authentication_providers
     PRIMARY KEY (name)
 );
 
-CREATE TABLE `option` (
-    option_name VARCHAR(100) PRIMARY KEY,
-    group_name VARCHAR(32),
-    option_type ENUM('number', 'string', 'object', 'array') NOT NULL,
-    option_value JSON,
-    KEY idx_o_on_group_name(group_name)
-);
-
-INSERT INTO `option` VALUES
-    ('title', 'website', 'string', '"tidb.ai"'),
-    ('description', 'website', 'string', '"Hello TiDB Cloud!"'),
-    ('logo_in_dark_mode', 'website', 'string', '"https://tidb.ai/tidb-ai-light.svg"'),
-    ('logo_in_light_mode', 'website', 'string', '"https://tidb.ai/tidb-ai.svg"'),
-    ('language', 'website', 'string', '"en-US"');
 
 INSERT INTO `index`(name, llm, llm_model, config, created_at, last_modified_at)
 VALUES ('default', 'openai', 'openai', '{}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
