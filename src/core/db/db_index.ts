@@ -36,6 +36,8 @@ export interface IndexDb {
   getQueryResults (id: string): Promise<SearchResult[] | undefined>;
 
   listEmbeddings (request: PageRequest): Promise<Page<Selectable<DB['document_index_chunk']>>>;
+
+  getDocumentIndex (name: string, documentId: string): Promise<Selectable<DB['document_index']> | undefined>;
 }
 
 type SearchResult = {
@@ -236,6 +238,14 @@ export const indexDb: IndexDb = {
       .selectAll();
 
     return executePage(builder, request);
+  },
+
+  async getDocumentIndex (name: string, documentId: string) {
+    return await db.selectFrom('document_index')
+      .selectAll()
+      .where('index_name', '=', name)
+      .where('document_id', '=', documentId)
+      .executeTakeFirst();
   },
 };
 
