@@ -11,6 +11,8 @@ export namespace Flow {
     addDocumentStorage (storage: rag.DocumentStorage<any>): void;
 
     addImportSourceTaskProcessor (processor: rag.ImportSourceTaskProcessor<any>): void;
+
+    addReranker (reranker: rag.Reranker<any>): void;
   }
 
   export interface IExtension<Options extends any[]> {
@@ -37,6 +39,7 @@ export class Flow implements Flow.ExtensionApi {
   private chatModels = new Map<string, rag.ChatModel<any>>();
   private importSourceTaskProcessor = new Map<string, rag.ImportSourceTaskProcessor<any>>();
   private promptings = new Map<string, rag.Prompting<any>>();
+  private rerankers = new Map<string, rag.Reranker<any>>();
 
   add (base: rag.Base<any>) {
     if (base instanceof rag.Loader) {
@@ -53,6 +56,8 @@ export class Flow implements Flow.ExtensionApi {
       this.addImportSourceTaskProcessor(base);
     } else if (base instanceof rag.Prompting) {
       this.addPrompting(base);
+    } else if (base instanceof rag.Reranker) {
+      this.addReranker(base);
     } else {
       throw new Error(`what is ${base.displayName} (${base.identifier})?`);
     }
@@ -105,6 +110,13 @@ export class Flow implements Flow.ExtensionApi {
       throw new Error(`Prompting identifier '${prompting.identifier}' has already been registered.`);
     }
     this.promptings.set(prompting.identifier, prompting);
+  }
+
+  addReranker (reranker: rag.Reranker<any>) {
+    if (this.rerankers.has(reranker.identifier)) {
+      throw new Error(`Reranker identifier '${reranker.identifier}' has already been registered.`);
+    }
+    this.rerankers.set(reranker.identifier, reranker);
   }
 
   addExtension<Options extends any[]> (extension: Flow.IExtension<Options>, ...options: Options) {
@@ -223,5 +235,20 @@ export class Flow implements Flow.ExtensionApi {
     }
 
     return prompting;
+  }
+
+  getReranker (identifier?: string): rag.Reranker<any> {
+    let reranker: rag.Reranker<any> | undefined;
+    if (!identifier) {
+      reranker = Array.from(this.rerankers.values())[0];
+    } else {
+      reranker = this.rerankers.get(identifier);
+    }
+
+    if (!reranker) {
+      throw new Error(`No available reranker.`);
+    }
+
+    return reranker;
   }
 }

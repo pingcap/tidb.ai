@@ -51,6 +51,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^0.2.0",
+    "cohere-ai": "^7.7.5",
     "date-fns": "^3.2.0",
     "embla-carousel-react": "8.0.0-rc19",
     "fast-xml-parser": "^4.3.3",
@@ -89,6 +90,7 @@
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@createrag/extension-cohere-reranker": "workspace:^",
     "@createrag/extension-file-task-processor": "workspace:^",
     "@createrag/extension-fs-document-storage": "workspace:^",
     "@createrag/extension-html-loader": "workspace:^",

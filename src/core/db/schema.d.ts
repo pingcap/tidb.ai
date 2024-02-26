@@ -119,34 +119,30 @@ export interface IndexQuery {
   finished_at: Date | null;
   id: string;
   index_name: string;
+  metadata: Json | null;
+  reranked_at: Date | null;
   text: string;
 }
 
 export interface IndexQueryResult {
   document_index_chunk_id: string;
   index_query_id: string;
+  relevance_score: number | null;
   score: number;
 }
 
+export interface Option {
+  group_name: string | null;
+  option_name: string;
+  option_type: "array" | "number" | "object" | "string";
+  option_value: Json | null;
+}
+
 export interface VDocumentIndexStatus {
-  document_id: string;
+  document_id: string | null;
   index_name: string | null;
   index_state: string | null;
   mime: string | null;
-}
-
-export enum OptionTypes {
-  STRING = 'string',
-  NUMBER = 'number',
-  OBJECT = 'object',
-  ARRAY = 'array'
-}
-
-export interface Option {
-  option_name: string;
-  option_type: OptionTypes;
-  option_value: Object | string | number | Array;
-  group_name: string;
 }
 
 export interface DB {
@@ -162,6 +158,6 @@ export interface DB {
   index: Index;
   index_query: IndexQuery;
   index_query_result: IndexQueryResult;
-  v_document_index_status: VDocumentIndexStatus;
   option: Option;
+  v_document_index_status: VDocumentIndexStatus;
 }

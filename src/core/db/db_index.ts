@@ -31,6 +31,8 @@ export interface IndexDb {
 
   finishQuery (id: string, results: Insertable<DB['index_query_result']>[]): Promise<void>;
 
+  finishRerank (id: string, metadata: any, results: Insertable<DB['index_query_result']>[]): Promise<void>;
+
   getQuery (id: string): Promise<Selectable<DB['index_query']> | undefined>;
 
   getQueryResults (id: string): Promise<SearchResult[] | undefined>;
@@ -197,6 +199,26 @@ export const indexDb: IndexDb = {
         .where('id', '=', eb => eb.val(id))
         .execute();
 
+      //// Update results after reranking.
+      // await db.deleteFrom('index_query_result')
+      //   .where('index_query_id', '=', eb => eb.val(id))
+      //   .execute();
+      //
+      // await db.insertInto('index_query_result')
+      //   .values(results)
+      //   .execute();
+    });
+  },
+  async finishRerank (id, metadata, results) {
+    await db.transaction().execute(async db => {
+      await db.updateTable('index_query')
+        .set({
+          metadata: JSON.stringify({ reranker: metadata }),
+          reranked_at: new Date()
+        })
+        .where('id', '=', id)
+        .execute();
+
       await db.deleteFrom('index_query_result')
         .where('index_query_id', '=', eb => eb.val(id))
         .execute();
@@ -204,7 +226,7 @@ export const indexDb: IndexDb = {
       await db.insertInto('index_query_result')
         .values(results)
         .execute();
-    });
+    })
   },
   async getQuery (id) {
     return await db.selectFrom('index_query')

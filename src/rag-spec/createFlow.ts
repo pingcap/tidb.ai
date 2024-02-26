@@ -13,6 +13,7 @@ namespace IndexFlowConfig {
   export type DocumentStorage = BaseComponentConfig
   export type ChatModel = BaseComponentConfig
   export type Prompting = BaseComponentConfig;
+  export type Reranker = BaseComponentConfig;
 }
 
 interface IndexFlowConfig {
@@ -22,6 +23,7 @@ interface IndexFlowConfig {
   embeddings: IndexFlowConfig.Embeddings[];
   chatModels: IndexFlowConfig.ChatModel[];
   promptings: IndexFlowConfig.Prompting[];
+  rerankers: IndexFlowConfig.Reranker[];
 }
 
 export async function getFlow (registry: RagExtensionsRegistry, config?: IndexFlowConfig, options?: any) {

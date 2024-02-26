@@ -97,6 +97,10 @@ export namespace rag {
     abstract embedQuery (query: string): Promise<Vector>;
   }
 
+  export abstract class Reranker<Options> extends Base<Options> {
+    abstract rerank (query: string, content: RetrievedContext[], top_n: number): Promise<{ results: RerankedContext[], metadata: Record<string, any> }>
+  }
+
   export abstract class ChatModel<Options> extends Base<Options> {
     /**
      * @deprecated
@@ -127,10 +131,15 @@ export namespace rag {
     retriever: Retriever;
   }
 
-  export type RetrievedContext = {
+  export interface RetrievedContext {
     text_content: string,
     source_uri: string,
     source_name: string
+  }
+
+  export interface RerankedContext extends RetrievedContext {
+    semantic_search_index: number;
+    relevance_score: number;
   }
 
   export abstract class Prompting<Options> extends Base<Options> {

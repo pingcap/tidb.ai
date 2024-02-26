@@ -71,7 +71,6 @@ function useDownloadZip () {
       input: doc.text_content,
     })))
 
-
     const link = document.createElement("a")
     link.href = URL.createObjectURL(await zip.blob())
     link.download = "text_contents.zip"
