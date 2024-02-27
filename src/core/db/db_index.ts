@@ -149,6 +149,7 @@ export const indexDb: IndexDb = {
   async terminateIndexing (index, documentId, error: any) {
     await db.updateTable('document_index')
       .set({
+        created_at: new Date(),
         status: 'fail',
         trace: JSON.stringify({ name: error.name, message: error.message }),
       })
