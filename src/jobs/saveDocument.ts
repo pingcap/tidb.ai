@@ -40,10 +40,13 @@ export async function updateDocument (storage: rag.DocumentStorage<any>, documen
   // do not update if digest not changed.
   if (digest !== document.digest) {
     const now = new Date();
-    await storage.put(document.content_uri, doc.buffer);
+    const contentPath = toStoragePath(doc.id);
+    const contentUri = await storage.put(contentPath, doc.buffer);
+    await storage.put(contentUri, doc.buffer);
 
     await database.document.update(document.id, {
       last_modified_at: now,
+      content_uri: contentUri,
       digest,
       mime: doc.mime,
       name: doc.name,
