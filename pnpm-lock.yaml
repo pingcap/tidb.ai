@@ -236,6 +236,9 @@ importers:
       unified:
         specifier: ^11.0.4
         version: 11.0.4
+      unist-util-remove:
+        specifier: ^4.0.0
+        version: 4.0.0
       vaul:
         specifier: ^0.8.0
         version: 0.8.7(@types/react-dom@18.2.18)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
@@ -9739,6 +9742,14 @@ packages:
     dependencies:
       '@types/unist': 3.0.2
       unist-util-visit: 5.0.0
+
+  /unist-util-remove@4.0.0:
+    resolution: {integrity: sha512-b4gokeGId57UVRX/eVKej5gXqGlc9+trkORhFJpu9raqZkZhU0zm8Doi05+HaiBsMEIJowL+2WtQ5ItjsngPXg==}
+    dependencies:
+      '@types/unist': 3.0.2
+      unist-util-is: 6.0.0
+      unist-util-visit-parents: 6.0.1
+    dev: false
 
   /unist-util-stringify-position@4.0.0:
     resolution: {integrity: sha512-0ASV06AAoKCDkS2+xw5RXJywruurpbC4JZSm7nr7MOt1ojAzvyyaO+UxZf18j8FCF6kmzCZKcAgN/yu2gm2XgQ==}

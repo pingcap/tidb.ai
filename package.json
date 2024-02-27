@@ -86,6 +86,7 @@
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
     "unified": "^11.0.4",
+    "unist-util-remove": "^4.0.0",
     "vaul": "^0.8.0",
     "zod": "^3.22.4"
   },
