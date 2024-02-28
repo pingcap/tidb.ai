@@ -6,7 +6,7 @@ export interface OptionDb {
 
   findByName(name: string): Promise<Selectable<DB['option']> | undefined>;
 
-  findByGroup(group: string): Promise<DB['option'][]>;
+  findByGroup(group: string): Promise<Selectable<DB['option']>[]>;
 
   updateByName(name: string, value: any): Promise<UpdateResult[]>
 

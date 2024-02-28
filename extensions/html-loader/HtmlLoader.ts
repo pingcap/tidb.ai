@@ -7,6 +7,7 @@ import { select, selectAll } from 'hast-util-select';
 import { toText } from 'hast-util-to-text';
 import rehypeParse from 'rehype-parse';
 import { Processor, unified } from 'unified';
+import { remove } from 'unist-util-remove';
 import htmlLoaderMeta, { type HtmlLoaderOptions } from './meta';
 
 export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
@@ -43,6 +44,7 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
   }
 
   private process (url: string, buffer: Buffer) {
+    const excludeSelectors: HtmlSelectorItemType[] = [];
     const selectors: HtmlSelectorItemType[] = [];
 
     for (let rule of (this.options.contentExtraction ?? [])) {
@@ -50,6 +52,9 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
       if (matcher(url)) {
         for (let selector of rule.selectors) {
           selectors.push(selector);
+        }
+        for (let excludeSelector of rule.excludeSelectors) {
+          excludeSelectors.push(excludeSelector);
         }
       }
     }
@@ -62,7 +67,27 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
       warning.push('No content selector provided for this URL. the default selector `body` always contains redundancy content.');
     }
 
+    if (!excludeSelectors.length) {
+      excludeSelectors.push({
+        selector: 'script',
+        type: 'dom-text',
+        all: true,
+      });
+    }
+
     const root = this.processor.parse(Uint8Array.from(buffer));
+
+    const excludedNodes = excludeSelectors.reduce((set, item) => {
+      if (item.all) {
+        selectAll(item.selector, root).forEach(node => set.add(node));
+      } else {
+        const node = select(item.selector, root);
+        if (node) set.add(node);
+      }
+      return set;
+    }, new Set<any>());
+
+    remove(root, (node) => excludedNodes.has(node) || node.type === 'comment');
 
     const result: { content: string, selector: string, element: Element }[] = [];
     for (let { selector, all: multiple, type } of selectors) {

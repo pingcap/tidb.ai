@@ -51,6 +51,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
     "cmdk": "^0.2.0",
+    "cohere-ai": "^7.7.5",
     "date-fns": "^3.2.0",
     "embla-carousel-react": "8.0.0-rc19",
     "fast-xml-parser": "^4.3.3",
@@ -85,10 +86,12 @@
     "tailwind-merge": "^2.2.0",
     "tailwindcss-animate": "^1.0.7",
     "unified": "^11.0.4",
+    "unist-util-remove": "^4.0.0",
     "vaul": "^0.8.0",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@createrag/extension-cohere-reranker": "workspace:^",
     "@createrag/extension-file-task-processor": "workspace:^",
     "@createrag/extension-fs-document-storage": "workspace:^",
     "@createrag/extension-html-loader": "workspace:^",
@@ -117,6 +120,7 @@
     "@types/react-dom": "^18",
     "ace-builds": "^1.32.5",
     "autoprefixer": "^10.0.1",
+    "client-zip": "^2.4.4",
     "eslint": "^8",
     "eslint-config-next": "14.0.4",
     "kysely-codegen": "^0.11.0",

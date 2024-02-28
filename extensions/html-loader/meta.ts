@@ -6,6 +6,9 @@ import BaseMeta = rag.BaseMeta;
 
 const contentExtractionConfigSchema = z.object({
   url: z.string(),
+  excludeSelectors: htmlSelectorArray().default([
+    { selector: 'script', type: 'dom-text', all: true },
+  ]),
   selectors: htmlSelectorArray(),
 }).array();
 
