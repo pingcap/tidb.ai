@@ -23,13 +23,13 @@ export default function Page () {
         const summary = cell.row.original.summary;
         return (
           <div className="flex h-5 items-center space-x-4">
-            <div>Queued: {summary.failed || 0}</div>
+            <div>Pending: {summary.pending || 0}</div>
             <Separator orientation="vertical"/>
-            <div>Running: {summary.processing || 0}</div>
+            <div>Processing: {summary.processing || 0}</div>
             <Separator orientation="vertical"/>
-            <div>Finished: {summary.succeed || 0}</div>
+            <div>Succeed: {summary.succeed || 0}</div>
             <Separator orientation="vertical"/>
-            <div>Failed: {summary.pending || 0}</div>
+            <div>Failed: {summary.failed || 0}</div>
           </div>
         )
       }
