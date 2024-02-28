@@ -3,21 +3,37 @@
 import { DataTable } from '@/components/data-table';
 import { ImportSiteDialog } from '@/components/dialogs/import-site-dialog';
 import { AdminPageHeading } from '@/components/admin-page-heading';
-import { AdminPageLayout } from '@/components/admin-page-layout';
 import type { DB } from '@/core/db/schema';
 import type { CellContext } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';
 import type { Selectable } from 'kysely';
 import useSWR from 'swr';
+import {Separator} from "@/components/ui/separator";
 
 export default function Page () {
-  const { data = [] } = useSWR<Selectable<DB['import_source']>[]>(['/api/v1/sources'], { fetcher });
-
+  const { data = [] } = useSWR<ColumnDef[]>(['/api/v1/sources'], { fetcher });
   const columns = [
     helper.accessor('id', {}),
     helper.accessor('url', {}),
     helper.accessor('type', {}),
+    helper.accessor('summary', {
+      header: 'Process',
+      cell: (cell: CellContext<ColumnDef, any>) => {
+        const summary = cell.row.original.summary;
+        return (
+          <div className="flex h-5 items-center space-x-4">
+            <div>Queued: {summary.failed || 0}</div>
+            <Separator orientation="vertical"/>
+            <div>Running: {summary.processing || 0}</div>
+            <Separator orientation="vertical"/>
+            <div>Finished: {summary.succeed || 0}</div>
+            <Separator orientation="vertical"/>
+            <div>Failed: {summary.pending || 0}</div>
+          </div>
+        )
+      }
+    }),
     helper.accessor('created_at', { cell: datetime }),
   ];
 
@@ -31,7 +47,11 @@ export default function Page () {
 
 const datetime = (cell: CellContext<any, any>) => <time>{format(cell.getValue(), 'yyyy-MM-dd HH:mm')}</time>;
 
-const helper = createColumnHelper<Selectable<DB['import_source']>>();
+interface ColumnDef extends Selectable<DB['import_source']> {
+  summary: Record<string, string>;
+}
+
+const helper = createColumnHelper<ColumnDef>();
 
 const fetcher = async ([url]: [string]) => {
   const res = await fetch(url);
