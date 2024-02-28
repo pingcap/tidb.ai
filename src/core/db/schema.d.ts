@@ -104,6 +104,12 @@ export interface ImportSourceTask {
   url: string;
 }
 
+export interface TaskSummaryItem {
+  import_source_id: string;
+  status: string;
+  tasks: number;
+}
+
 export interface Index {
   config: Json;
   created_at: Date;
