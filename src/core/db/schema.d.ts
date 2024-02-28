@@ -149,6 +149,7 @@ export interface VDocumentIndexStatus {
   index_name: string | null;
   index_state: string | null;
   mime: string | null;
+  indexed_at: Date | null;
 }
 
 export interface DB {

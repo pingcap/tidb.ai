@@ -101,7 +101,7 @@ const documentDb = {
         // failed before an hour ago
         eb.and([
           eb('index_state', '=', eb.val('fail')),
-          eb('created_at', '<', eb.val(subHours(new Date(), -1))),
+          eb('indexed_at', '<', eb.val(subHours(new Date(), -1))),
         ]),
       ]))
       .where(eb => eb.or([
