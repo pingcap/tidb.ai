@@ -130,19 +130,21 @@ export const indexDb: IndexDb = {
         .where('staled', '=', 0)
         .execute();
 
-      // insert new index chunks
-      await db.insertInto('document_index_chunk')
-        .values(content.chunks.map((c, i) => ({
-          id: genId(16),
-          document_id: documentId,
-          index_name: index,
-          metadata: JSON.stringify(c.metadata),
-          text_content: c.content,
-          embedding: vectorToVal(c.vector) as never,
-          staled: 0,
-          ordinal: i + 1,
-        })))
-        .execute();
+      if (content.chunks.length > 0) {
+        // insert new index chunks
+        await db.insertInto('document_index_chunk')
+          .values(content.chunks.map((c, i) => ({
+            id: genId(16),
+            document_id: documentId,
+            index_name: index,
+            metadata: JSON.stringify(c.metadata),
+            text_content: c.content,
+            embedding: vectorToVal(c.vector) as never,
+            staled: 0,
+            ordinal: i + 1,
+          })))
+          .execute();
+      }
     });
   },
 

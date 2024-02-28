@@ -12,7 +12,6 @@ export async function reIndexDocument (index: Selectable<DB['index']>, document:
   const storage = flow.getStorage();
   try {
     console.log('[index] start', document.id, document.mime);
-    console.debug(JSON.stringify(index.config, undefined, 2))
     const metadata: any = {};
 
     await database.index.startIndexing(index.name, document.id, { digest: '', content: [], metadata: {}, chunks: [] });

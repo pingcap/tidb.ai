@@ -12,7 +12,7 @@ AS
 SELECT d.id                              AS document_id,
        i.name COLLATE utf8mb4_general_ci AS index_name,
        d.mime COLLATE utf8mb4_general_ci AS mime,
-       i.created_at                      AS indexed_at,
+       di.created_at                     AS indexed_at,
        IFNULL(
                CASE
                    WHEN di.created_at IS NULL THEN 'notIndexed'
