@@ -42,7 +42,6 @@ export async function updateDocument (storage: rag.DocumentStorage<any>, documen
     const now = new Date();
     const contentPath = toStoragePath(doc.id);
     const contentUri = await storage.put(contentPath, doc.buffer);
-    await storage.put(contentUri, doc.buffer);
 
     await database.document.update(document.id, {
       last_modified_at: now,
