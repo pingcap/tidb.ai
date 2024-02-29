@@ -39,7 +39,16 @@ export default async function RootLayout ({
     <html lang="en" suppressHydrationWarning>
     <head>
       <link rel="icon" href="/tidb-ai-light.svg" sizes="any" />
-      <script async src="https://conversation-search-box.vercel.app/assets/index-DqdV-xFu.js" />
+      <script
+          async
+          src='https://s3.us-west-2.amazonaws.com/rag.tidb.ai/rag-widget.js'
+          data-id='tidb-ai-widget'
+          data-name='tidb-ai-widget'
+          data-btn-label='Ask AI'
+          data-btn-img-src='https://tidb.ai/tidb-ai.svg'
+          data-example-questions='["What is TiDB","Does TiDB support Foreign Key","What is TiDB Serverless","How to use TiDB Serverless"]'
+          data-logo-src='https://tidb.ai/tidb-ai.svg'
+        />
     </head>
     <body className={font.className}>
     <ThemeProvider
