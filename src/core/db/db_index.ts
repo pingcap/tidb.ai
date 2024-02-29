@@ -1,5 +1,5 @@
 import { db } from '@/core/db/db';
-import type {DB, DocumentIndexChunk} from '@/core/db/schema';
+import type {DB} from '@/core/db/schema';
 import { rag } from '@/core/interface';
 import { executePage, type Page, type PageRequest } from '@/lib/database';
 import { genId } from '@/lib/id';
@@ -130,19 +130,21 @@ export const indexDb: IndexDb = {
         .where('staled', '=', 0)
         .execute();
 
-      // insert new index chunks
-      await db.insertInto('document_index_chunk')
-        .values(content.chunks.map((c, i) => ({
-          id: genId(16),
-          document_id: documentId,
-          index_name: index,
-          metadata: JSON.stringify(c.metadata),
-          text_content: c.content,
-          embedding: vectorToSql(c.vector) as never,
-          staled: 0,
-          ordinal: i + 1,
-        })))
-        .execute();
+      if (content.chunks.length > 0) {
+        // insert new index chunks
+        await db.insertInto('document_index_chunk')
+          .values(content.chunks.map((c, i) => ({
+            id: genId(16),
+            document_id: documentId,
+            index_name: index,
+            metadata: JSON.stringify(c.metadata),
+            text_content: c.content,
+            embedding: vectorToSql(c.vector) as never,
+            staled: 0,
+            ordinal: i + 1,
+          })))
+          .execute();
+      }
     });
   },
 
@@ -168,16 +170,19 @@ export const indexDb: IndexDb = {
         'document_index_chunk.metadata',
         'source_uri',
         'document.name as source_name',
+        'document_index_chunk.staled',
+        'document_index_chunk.index_name',
+        'document.source_uri',
         cosineSimilarity('embedding', vector).as('score'),
       ])
-      .where('staled', '=', 0)
-      .where('index_name', '=', eb => eb.val(index))
+      .having('staled', '=', 0)
+      .having('index_name', '=', eb => eb.val(index))
       .orderBy('score desc')
       .limit(top_k);
 
     if (options.source_uri_prefixes && options.source_uri_prefixes.length > 0) {
       const prefixes = options.source_uri_prefixes;
-      builder = builder.where(eb => eb.or(prefixes.map(prefix => (
+      builder = builder.having(eb => eb.or(prefixes.map(prefix => (
         eb('document.source_uri', 'like', eb => eb.val(prefix + '%'))
       ))));
     }

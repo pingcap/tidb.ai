@@ -54,6 +54,7 @@ const documentDb = {
       .select(eb => eb.ref('document_index.metadata').$castTo<any>().as('metadata'))
       .select(eb => computed_index_state(eb).as('index_state'))
       .select('document_index.trace')
+      .select('document_index.created_at as indexed_at')
       .where(eb => eb.or([
         eb('index_name', '=', eb => eb.val('default')),
         eb('index_name', 'is', null),
@@ -101,7 +102,7 @@ const documentDb = {
         // failed before an hour ago
         eb.and([
           eb('index_state', '=', eb.val('fail')),
-          eb('created_at', '<', eb.val(subHours(new Date(), -1))),
+          eb('indexed_at', '<', eb.val(subHours(new Date(), 1))),
         ]),
       ]))
       .where(eb => eb.or([

@@ -16,7 +16,7 @@ import { format } from 'date-fns';
 import type { Selectable } from 'kysely';
 import { GithubIcon } from 'lucide-react';
 
-const helper = createColumnHelper<Selectable<DB['document']> & { index_state: string, metadata: any, trace: string | null }>();
+const helper = createColumnHelper<Selectable<DB['document']> & { index_state: string, metadata: any, trace: string | null, indexed_at: Date | null }>();
 
 const mono = (cell: CellContext<any, any>) => <span className="font-mono">{cell.getValue()}</span>;
 
@@ -60,7 +60,8 @@ const columns = [
   helper.accessor('digest', { cell: mono }),
   helper.accessor('created_at', { cell: datetime }),
   helper.accessor('last_modified_at', { cell: datetime }),
-] as ColumnDef<Selectable<DB['document']> & { index_state: string, metadata: any }>[];
+  helper.accessor('indexed_at', { cell: datetime }),
+] as ColumnDef<Selectable<DB['document']> & { index_state: string, metadata: any, indexed_at: Date | null }>[];
 
 export default function Page () {
   return (

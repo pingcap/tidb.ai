@@ -31,8 +31,6 @@ export async function query (indexName: string, llm: string, { text, search_top_
   // Semantic search for chunks
   const searchedTop = (await database.index._query('default', vector, search_top_k ?? top_k * 10, { source_uri_prefixes }));
 
-  console.info(searchedTop.length);
-
   await database.index.finishQuery(id, searchedTop.map(res => ({
     document_index_chunk_id: res.document_index_chunk_id,
     index_query_id: id,
