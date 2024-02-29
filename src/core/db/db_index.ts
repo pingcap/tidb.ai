@@ -170,19 +170,22 @@ export const indexDb: IndexDb = {
         'document_index_chunk.metadata',
         'source_uri',
         'document.name as source_name',
+        'document_index_chunk.staled',
+        'document_index_chunk.index_name',
+        'document.source_uri',
         eb => eb(eb => eb.lit<number>(1), '-', eb.fn<number>('vec_cosine_distance', [
           'embedding',
           eb => eb.val(vectorToVal(vector))],
         )).as('score'),
       ])
-      .where('staled', '=', 0)
-      .where('index_name', '=', eb => eb.val(index))
+      .having('staled', '=', 0)
+      .having('index_name', '=', eb => eb.val(index))
       .orderBy('score desc')
       .limit(top_k);
 
     if (options.source_uri_prefixes && options.source_uri_prefixes.length > 0) {
       const prefixes = options.source_uri_prefixes;
-      builder = builder.where(eb => eb.or(prefixes.map(prefix => (
+      builder = builder.having(eb => eb.or(prefixes.map(prefix => (
         eb('document.source_uri', 'like', eb => eb.val(prefix + '%'))
       ))));
     }
