@@ -1,4 +1,4 @@
-import {ExpressionBuilder, expressionBuilder, RawBuilder, ReferenceExpression, sql} from 'kysely';
+import {ExpressionBuilder, ReferenceExpression} from 'kysely';
 import {rag} from "@/core/interface";
 import Vector = rag.Vector;
 
