@@ -10,7 +10,16 @@ export async function POST (req: NextRequest) {
       return (newDate.getTime() - oldDate.getTime()) > 10 * 60 * 1000;
     }, async () => {
       console.log('Preloading TiFlash replicas ...')
-      await preloadTiFlashReplicas(['document', 'document_index_chunk']);
+      await preloadTiFlashReplicas([
+        {
+          table: 'document',
+          columns: ['source_uri']
+        },
+        {
+          table: 'document_index_chunk',
+          columns: ['embedding']
+        }
+      ]);
       return;
     });
 
@@ -31,12 +40,20 @@ export async function POST (req: NextRequest) {
   }
 }
 
-async function preloadTiFlashReplicas(tables: string[]){
-  for (const table of tables) {
+interface PreloadConfig {
+  table: string,
+  columns: string[]
+}
+
+async function preloadTiFlashReplicas(configs: PreloadConfig[]){
+  for (const cfg of configs) {
     const duration = await measure(async () => {
-      return await sql`SELECT /*+ READ_FROM_STORAGE(TIFLASH[${sql.ref(table)}]) */ COUNT(*) FROM ${sql.ref(table)};`.execute(db);
+      const columns = cfg.columns.map((c) => sql.ref(c));
+      const stmt = sql`SELECT /*+ READ_FROM_STORAGE(TIFLASH[${sql.ref(cfg.table)}]) */ 1 FROM ${sql.ref(cfg.table)} ORDER BY ${sql.join(columns, sql.lit(','))} LIMIT 1;`;
+      console.log(`Preloading table <${cfg.table}> with sql:`, stmt.compile(db).sql);
+      return await stmt.execute(db);
     });
-    console.log(`Preload table <${table}> in ${duration} ms`);
+    console.log(`Preload table <${cfg.table}> in ${duration} ms`);
   }
 }
 
