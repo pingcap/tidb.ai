@@ -31,7 +31,7 @@ export async function POST (req: NextRequest) {
   }
 }
 
-export async function preloadTiFlashReplicas(tables: string[]){
+async function preloadTiFlashReplicas(tables: string[]){
   for (const table of tables) {
     const duration = await measure(async () => {
       return await sql`SELECT /*+ READ_FROM_STORAGE(TIFLASH[${sql.ref(table)}]) */ COUNT(*) FROM ${sql.ref(table)};`.execute(db);
@@ -40,7 +40,7 @@ export async function preloadTiFlashReplicas(tables: string[]){
   }
 }
 
-export async function measure(action: () => Promise<any>){
+async function measure(action: () => Promise<any>){
   const start = new Date();
   await action();
   const end = new Date();
