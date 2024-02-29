@@ -173,7 +173,7 @@ export const indexDb: IndexDb = {
         'document_index_chunk.staled',
         'document_index_chunk.index_name',
         'document.source_uri',
-        cosineSimilarity('embedding', vector).as('score'),
+        (eb) => cosineSimilarity(eb, 'embedding', vector).as('score')
       ])
       .having('staled', '=', 0)
       .having('index_name', '=', eb => eb.val(index))
