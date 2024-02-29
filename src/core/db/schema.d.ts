@@ -144,6 +144,12 @@ export interface Option {
   option_value: Json | null;
 }
 
+export interface Status {
+  status_name: string;
+  status_type: "array" | "number" | "object" | "string" | "date";
+  status_value: Json | null;
+}
+
 export interface VDocumentIndexStatus {
   document_id: string | null;
   index_name: string | null;
@@ -166,5 +172,6 @@ export interface DB {
   index_query: IndexQuery;
   index_query_result: IndexQueryResult;
   option: Option;
+  status: Status;
   v_document_index_status: VDocumentIndexStatus;
 }
