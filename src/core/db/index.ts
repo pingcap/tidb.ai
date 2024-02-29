@@ -4,6 +4,7 @@ import { documentDb, type DocumentDb } from '@/core/db/document';
 import { importSourceDb, type ImportSourceDb } from '@/core/db/importSource';
 import { taskDb, type TaskDb } from '@/core/db/task';
 import {OptionDb, optionDb} from "@/core/db/options";
+import {statusDb, StatusDb} from "@/core/db/status";
 
 export interface Database {
   document: DocumentDb;
@@ -12,6 +13,7 @@ export interface Database {
   task: TaskDb;
   importSource: ImportSourceDb,
   chat: ChatDb,
+  status: StatusDb;
 }
 
 const database = {
@@ -21,6 +23,7 @@ const database = {
   task: taskDb,
   importSource: importSourceDb,
   chat: chatDb,
+  status: statusDb
 } satisfies Database;
 
 export default database;
