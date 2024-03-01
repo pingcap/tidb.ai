@@ -1,6 +1,7 @@
 import db from '@/core/db';
 import { addImportSources } from '@/jobs/addImportSources';
 import { saveDocument } from '@/jobs/saveDocument';
+import { apiAuthGuard } from '@/lib/auth-server';
 import { toPageRequest } from '@/lib/database';
 import { genId } from '@/lib/id';
 import { baseRegistry } from '@/rag-spec/base';
@@ -12,6 +13,10 @@ export async function GET (req: NextRequest) {
 }
 
 export async function PUT (req: NextRequest) {
+  const authStatus = await apiAuthGuard('admin');
+  if (authStatus) {
+    return new NextResponse(null, { status: authStatus });
+  }
   const contentType = req.headers.get('Content-Type')?.split(';')[0];
 
   switch (contentType) {
