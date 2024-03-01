@@ -2,12 +2,9 @@
 
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import AutoForm from '@/components/ui/auto-form';
 import * as z from 'zod';
-import { fetcher, handleErrors } from '@/lib/fetch';
-import useSWR from 'swr';
+import { handleErrors } from '@/lib/fetch';
 import {
   Dialog,
   DialogContent,
@@ -17,16 +14,32 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Switch } from '@/components/ui/switch';
-import { set } from 'date-fns';
+import NextLink from 'next/link';
+import { usePathname } from 'next/navigation';
+
+export function SettingsNavigation(props: {
+  tabs: { id: string; name: string; href: string }[];
+}) {
+  const { tabs } = props;
+  const pathname = usePathname();
+
+  return (
+    <ul className='flex gap-2 items-center'>
+      {tabs.map((tab) => (
+        <NextLink key={tab.id} href={tab.href}>
+          <Button
+            className='rounded-full'
+            variant={pathname === tab.href ? 'secondary' : 'ghost'}
+            disabled={pathname === tab.href}
+          >
+            {tab.name}
+          </Button>
+        </NextLink>
+      ))}
+    </ul>
+  );
+}
 
 export function NewProviderCardItem(props: {
   provider: string;

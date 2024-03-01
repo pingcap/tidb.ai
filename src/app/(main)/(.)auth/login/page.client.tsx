@@ -12,7 +12,7 @@ import { useForm } from 'react-hook-form';
 import useSWR from 'swr';
 import { fetcher, handleErrors } from '@/lib/fetch';
 import { Skeleton } from '@/components/ui/skeleton';
-import { supportedProviders } from '@/app/(main)/(admin)/authentication/components';
+import { supportedProviders } from '@/app/(main)/(admin)/settings/components';
 import clsx from 'clsx';
 
 export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {

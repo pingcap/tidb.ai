@@ -81,7 +81,6 @@ export function Nav () {
         { href: '/sources', title: 'Data Sources', icon: ImportIcon },
         { href: '/import-tasks', title: 'Import Tasks', icon: ListIcon },
         { href: '/settings', title: 'Settings', icon: Settings2Icon },
-        { href: '/authentication', title: 'Authentication', icon: FingerprintIcon, disabled: disableIfNotAuthenticated },
       ],
     });
 
