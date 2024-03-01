@@ -49,7 +49,7 @@ async function preloadTiFlashReplicas(configs: PreloadConfig[]){
   for (const cfg of configs) {
     const duration = await measure(async () => {
       const columns = cfg.columns.map((c) => sql.ref(c));
-      const stmt = sql`SELECT /*+ READ_FROM_STORAGE(TIFLASH[${sql.ref(cfg.table)}]) */ 1 FROM ${sql.ref(cfg.table)} ORDER BY ${sql.join(columns, sql.lit(','))} LIMIT 1;`;
+      const stmt = sql`SELECT /*+ READ_FROM_STORAGE(TIFLASH[${sql.ref(cfg.table)}]) */ COUNT(${sql.join(columns, sql.lit(','))}) FROM ${sql.ref(cfg.table)};`;
       console.log(`Preloading table <${cfg.table}> with sql:`, stmt.compile(db).sql);
       return await stmt.execute(db);
     });
