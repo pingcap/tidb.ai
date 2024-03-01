@@ -69,16 +69,6 @@ export function Nav () {
           ...history.map(chat => (
             { href: `/c/${chat.id}`, title: chat.name, variant: (active: boolean) => (active ? 'secondary' : 'ghost'), className: conversationItemClassName }
           )),
-          {
-            key: 'docs', title: 'Docs', href: '/docs', icon: TextIcon, children: [
-              { href: '/docs/deploy-your-own-rag-application', title: 'Deploy your own rag application', variant: (active: boolean) => (active ? 'default' : 'ghost'), className: docsItemClassName },
-              {
-                key: 'api', title: 'API v1', href: '/docs/api/v1', children: [
-                  { href: '/docs/api/v1/documents', title: '/documents', variant: (active: boolean) => (active ? 'default' : 'ghost'), className: docsItemClassName },
-                ],
-              },
-            ],
-          } as NavItem,
         ],
       },
     ];
@@ -86,14 +76,11 @@ export function Nav () {
     groups.push({
       title: 'Admin',
       items: [
-        { href: '/dashboard', title: 'Dashboard', icon: ActivitySquareIcon },
+        { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon },
         { href: '/explore', title: 'Documents', icon: LibraryIcon },
-        { href: '/sources', title: 'Sources', icon: ImportIcon },
+        { href: '/sources', title: 'Data Sources', icon: ImportIcon },
         { href: '/import-tasks', title: 'Import Tasks', icon: ListIcon },
-        { href: '/settings', title: 'Site settings', icon: Settings2Icon },
-        { key: '/user-management', title: 'User management', variant: 'ghost', disabled: true, onClick: () => {}, icon: UsersIcon },
-        { key: '/security', title: 'Security', variant: 'ghost', disabled: true, onClick: () => {}, icon: ShieldCheckIcon },
-        // { key: '/authentication', title: 'Authentication', variant: 'ghost', disabled: true, onClick: () => {}, icon: FingerprintIcon },
+        { href: '/settings', title: 'Settings', icon: Settings2Icon },
         { href: '/authentication', title: 'Authentication', icon: FingerprintIcon, disabled: disableIfNotAuthenticated },
       ],
     });
