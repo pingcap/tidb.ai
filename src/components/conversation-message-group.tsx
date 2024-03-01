@@ -1,9 +1,11 @@
 import { RemarkContent } from '@/components/remark-content';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import { getErrorMessage } from '@/lib/error';
 import { Message } from 'ai';
-import { AlignLeftIcon, ClipboardIcon, LinkIcon, RefreshCwIcon, ShareIcon, TextSearchIcon, ThumbsDown } from 'lucide-react';
+import { AlertTriangleIcon, AlignLeftIcon, ClipboardIcon, LinkIcon, RefreshCwIcon, ShareIcon, TextSearchIcon, ThumbsDown } from 'lucide-react';
 import { useMemo } from 'react';
 
 type MessageContext = { uri: string, title: string };
@@ -26,7 +28,7 @@ type PendingConversationMessage = {
   finished: false
 }
 
-function useGroupedConversationMessages (messages: Message[], data: any, isLoading: boolean) {
+function useGroupedConversationMessages (messages: Message[], data: any, isLoading: boolean, error: unknown) {
   return useMemo(() => {
     const groups: ConversationMessageGroupProps[] = [];
     let userMessage: Message | undefined;
@@ -78,8 +80,12 @@ function useGroupedConversationMessages (messages: Message[], data: any, isLoadi
       groups[groups.length - 1].finished = false;
     }
 
+    if (error) {
+      groups[groups.length - 1].finished = true;
+    }
+
     return groups;
-  }, [messages, data, isLoading]);
+  }, [messages, data, isLoading, error]);
 }
 
 export function parseSource (uri: string) {
@@ -93,14 +99,19 @@ export function parseSource (uri: string) {
   }
 }
 
-export function ConversationMessageGroups ({ messages, data, isLoading }: { messages: Message[], data: any, isLoading: boolean }) {
-  const groups = useGroupedConversationMessages(messages, data, isLoading);
+export function ConversationMessageGroups ({ messages, data, error, isLoading }: { messages: Message[], data: any, error: unknown, isLoading: boolean }) {
+  const groups = useGroupedConversationMessages(messages, data, isLoading, error);
 
   return (
     <div className="space-y-8">
       {groups.map(group => (
         <ConversationMessageGroup key={group.id} group={group} />
       ))}
+      {!!error && <Alert variant="destructive">
+        <AlertTriangleIcon />
+        <AlertTitle>Fail to chat with TiDB.ai</AlertTitle>
+        <AlertDescription>{getErrorMessage(error)}</AlertDescription>
+      </Alert>}
     </div>
   );
 }
@@ -168,7 +179,7 @@ function MessageContextSource ({ context }: { context: MessageContext }) {
 
   return (
     <li key={context.uri} className="bg-card hover:bg-accent transition-colors w-[200px] overflow-hidden rounded-lg border text-xs">
-      <a className="block space-y-1 p-2 max-w-full h-full" href={context.uri} target='_blank'>
+      <a className="block space-y-1 p-2 max-w-full h-full" href={context.uri} target="_blank">
         <div className="font-semibold line-clamp-3">
           <LinkIcon size="1em" className="inline-flex mr-1" />
           {context.title}
