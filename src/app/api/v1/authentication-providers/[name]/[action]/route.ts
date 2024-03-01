@@ -1,8 +1,9 @@
 import { toggleProvider } from '@/core/db/auth';
+import { adminHandlerGuard } from '@/lib/auth-server';
 import { notFound } from 'next/navigation';
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function POST (req: NextRequest, { params }: { params: { name: string, action: string } }) {
+export const POST = adminHandlerGuard(async (req, { params }: { params: { name: string, action: string } }) => {
   const name = decodeURIComponent(params.name);
   const action = decodeURIComponent(params.action);
 
@@ -23,4 +24,4 @@ export async function POST (req: NextRequest, { params }: { params: { name: stri
   }
 
   return new NextResponse();
-}
+});

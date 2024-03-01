@@ -1,5 +1,7 @@
 import { auth } from '@/app/api/auth/[...nextauth]/auth';
+import type { Session } from 'next-auth';
 import { redirect } from 'next/navigation';
+import { type NextRequest, NextResponse } from 'next/server';
 
 export async function authGuard (role?: 'admin') {
   const session = await auth();
@@ -15,16 +17,14 @@ export async function authGuard (role?: 'admin') {
   }
 }
 
-export async function apiAuthGuard (role?: 'admin'): Promise<number | undefined> {
-  const session = await auth();
-
-  if (!session?.user || session.user.role === 'anonymous') {
-    return 401;
-  }
-
-  if (role === 'admin') {
-    if (session.user.role !== 'admin') {
-      return 403;
+export function adminHandlerGuard<Context extends { params: Record<string, string | string[] | undefined> }> (handler: (request: NextRequest & { auth: Session }, ctx: Context) => Promise<Response>): (req: NextRequest, ctx: Context) => Promise<Response> {
+  return auth(async (req, ctx) => {
+    if (!req.auth?.user || req.auth.user.role === 'anonymous') {
+      return new NextResponse(null, { status: 401 });
     }
-  }
+    if (req.auth.user.role !== 'admin') {
+      return new NextResponse(null, { status: 403 });
+    }
+    return handler(req as NextRequest & { auth: Session }, ctx);
+  });
 }
