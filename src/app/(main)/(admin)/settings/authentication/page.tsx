@@ -6,7 +6,7 @@ import {
   supportedProviders,
   NewProviderCardItem,
   ProviderCardItem,
-} from '@/app/(main)/(admin)/authentication/components';
+} from '@/app/(main)/(admin)/settings/components';
 
 // todo: add middleware to redirect to login page(if anonymous)
 
@@ -16,7 +16,9 @@ export default function Page() {
 
   return (
     <>
-      <h1 className='text-2xl font-semibold mb-4'>Authentication Configuration</h1>
+      <h2 className='text-xl font-semibold mb-4'>
+        Authentication Configuration
+      </h2>
       <div>
         <ul className='flex flex-col gap-2'>
           {configuredProviders.map((provider) => {
