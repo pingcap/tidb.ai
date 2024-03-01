@@ -6,6 +6,7 @@ import { SemanticSearch } from '@/components/semantic-search';
 import { SiteNavFooter } from '@/components/site-nav-footer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Toaster } from '@/components/ui/sonner';
+import { usePreloadServerlessTiflashReplicas } from '@/lib/tiflash';
 import Link from 'next/link';
 import {ReactNode, useContext} from 'react';
 import {WebsiteSettingContext} from "@/components/website-setting-provider";
@@ -14,6 +15,7 @@ export default function Layout ({ children }: {
   children: ReactNode
 }) {
   const setting = useContext(WebsiteSettingContext);
+  usePreloadServerlessTiflashReplicas();
 
   return (
     <>
