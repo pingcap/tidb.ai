@@ -84,8 +84,6 @@ function useGroupedConversationMessages (messages: Message[], data: any, isLoadi
       groups[groups.length - 1].finished = true;
     }
 
-    console.log(error, groups);
-
     return groups;
   }, [messages, data, isLoading, error]);
 }
