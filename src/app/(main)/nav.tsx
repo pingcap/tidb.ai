@@ -69,16 +69,6 @@ export function Nav () {
           ...history.map(chat => (
             { href: `/conversations/${chat.id}`, title: chat.name, variant: (active: boolean) => (active ? 'secondary' : 'ghost'), className: conversationItemClassName }
           )),
-          {
-            key: 'docs', title: 'Docs', href: '/docs', icon: TextIcon, children: [
-              { href: '/docs/deploy-your-own-rag-application', title: 'Deploy your own rag application', variant: (active: boolean) => (active ? 'default' : 'ghost'), className: docsItemClassName },
-              {
-                key: 'api', title: 'API v1', href: '/docs/api/v1', children: [
-                  { href: '/docs/api/v1/documents', title: '/documents', variant: (active: boolean) => (active ? 'default' : 'ghost'), className: docsItemClassName },
-                ],
-              },
-            ],
-          } as NavItem,
         ],
       },
     ];
