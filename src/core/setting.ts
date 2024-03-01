@@ -14,7 +14,6 @@ type ListSettingsReturnType<G extends IGroupName> =
         {};
 
 export const getSetting = async <G extends IGroupName>(group: G) => {
-    console.log("get setting")
     const options = await database.option.findByGroup(group);
     const settings: any = {};
     for (const option of options) {
