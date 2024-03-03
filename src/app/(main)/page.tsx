@@ -11,7 +11,7 @@ export default function Page () {
   return (
     <div className="h-body md:h-screen flex flex-col items-center justify-center gap-4 relative">
       <h1 className="text-4xl font-semibold">
-        Ask anything about TiDB & TiDB Cloud
+        Ask anything about TiDB
       </h1>
       <Ask className="px-4 w-full lg:w-2/3" loading={loading} ask={ask} />
       <ul className="flex gap-2 flex-wrap px-4 w-full lg:w-2/3">
