@@ -11,6 +11,14 @@
   ],
   "rewrites": [
     {
+      "source": "/docs",
+      "destination": "https://rag-docs-pingcap.vercel.app/docs"
+    },
+    {
+      "source": "/docs/",
+      "destination": "https://rag-docs-pingcap.vercel.app/docs/"
+    },
+    {
       "source": "/docs/:match*",
       "destination": "https://rag-docs-pingcap.vercel.app/docs/:match*"
     }
