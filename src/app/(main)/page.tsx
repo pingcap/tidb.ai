@@ -12,9 +12,12 @@ export default function Page () {
   return (
     <div className='h-body md:h-screen'>
       <div className="h-[calc(100%-var(--ask-referral-height))] flex flex-col items-center justify-center gap-4 relative">
-        <h1 className="text-4xl font-semibold">
+        <h1 className="text-4xl font-light">
           Ask anything about TiDB
         </h1>
+        <p className="font-light text-gray-500 mb-8">
+        Including company intro, user cases, product intro and usage, FAQ, etc.
+        </p>
         <Ask className="px-4 w-full lg:w-2/3" loading={loading} ask={ask} />
         <ul className="flex gap-2 flex-wrap px-4 w-full lg:w-2/3">
           {prompts.map(item => (
@@ -28,7 +31,7 @@ export default function Page () {
           ))}
         </ul>
       </div>
-      <div className='h-[var(--ask-referral-height)] flex justify-center items-center gap-4' style={{display: 'none'}}>
+      <div className='h-[var(--ask-referral-height)] flex justify-center items-center gap-4' style={{display: 'auto'}}>
         {socials.map(social => (
           <NextLink key={social.id} href={social.href} target='_blank' className='font-normal text-xs hover:underline'>
             {social.name}

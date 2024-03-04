@@ -16,7 +16,7 @@ import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import type { Selectable } from 'kysely';
-import { ActivitySquareIcon, CommandIcon, FingerprintIcon, HomeIcon, ImportIcon, LibraryIcon, ListIcon, MenuIcon, MessagesSquareIcon, SearchIcon, Settings2Icon, ShieldCheckIcon, TextIcon, UsersIcon } from 'lucide-react';
+import { ActivitySquareIcon, CommandIcon, FingerprintIcon, HomeIcon, ImportIcon, LibraryIcon, ListIcon, MenuIcon, MessagesSquareIcon, SearchIcon, CogIcon, ShieldCheckIcon, TextIcon, UsersIcon, FileIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
@@ -58,7 +58,7 @@ export function Nav () {
     const groups: NavGroup[] = [
       {
         items: [
-          { key: 'new', onClick: () => { setOpen(true); }, title: 'New Thread', variant: 'outline', className: 'rounded-full cursor-text font-normal text-foreground/70', icon: SearchIcon, details: <span className="flex-shrink-0 flex gap-1 items-center rounded-full"><CommandIcon size="1em" /> K</span> },
+          { key: 'new', onClick: () => { setOpen(true); }, title: 'New Thread', variant: 'outline', className: 'mb-4 rounded-full cursor-text font-normal text-foreground/70', icon: SearchIcon, details: <span className="flex-shrink-0 flex gap-1 items-center rounded-full"><CommandIcon size="1em" /> K</span> },
           { href: '/', title: 'Home', icon: HomeIcon, exact: true },
           { href: '/c', title: 'Conversations', exact: true, icon: MessagesSquareIcon, disabled: disableIfNotAuthenticated },
           ...(isLoading ? [
@@ -77,10 +77,10 @@ export function Nav () {
       title: 'Admin',
       items: [
         { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon },
-        { href: '/explore', title: 'Documents', icon: LibraryIcon },
+        { href: '/explore', title: 'Documents', icon: FileIcon },
         { href: '/sources', title: 'Data Sources', icon: ImportIcon },
         { href: '/import-tasks', title: 'Import Tasks', icon: ListIcon },
-        { href: '/settings', title: 'Settings', icon: Settings2Icon },
+        { href: '/settings', title: 'Settings', icon: CogIcon },
       ],
     });
 

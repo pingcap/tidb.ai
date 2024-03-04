@@ -56,7 +56,7 @@ export function SiteNav ({ groups }: SiteNavProps) {
 
   return (
     <TooltipProvider>
-      <nav className="space-y-6 p-4 relative">
+      <nav className="space-y-6 p-4 pt-0 relative">
         {groups.map((group, index) => (
           <Fragment key={index}>
             <SiteNavGroup group={group} current={pathname} />
