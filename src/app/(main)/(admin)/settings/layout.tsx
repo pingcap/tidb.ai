@@ -8,7 +8,7 @@ export default function SettingsLayout({
 }) {
   return (
     <>
-      <h1 className='text-2xl font-semibold mb-4'>Site settings</h1>
+      <h1 className='text-2xl font-semibold mb-4'>Settings</h1>
       <nav>
         <SettingsNavigation
           tabs={tabs.map((tab) => ({
