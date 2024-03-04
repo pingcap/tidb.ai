@@ -20,7 +20,7 @@ export function MessageInput ({ className, disabled, inputRef, inputProps }: { c
   return (
     <div className={cn('bg-background flex gap-2 items-end border p-2 rounded-lg', className)}>
       <TextareaAutosize
-        placeholder="Edit..."
+        placeholder="Input your question here..."
         onKeyDown={e => {
           if (!e.nativeEvent.isComposing && e.key === 'Enter' && !disabled) {
             e.preventDefault();
@@ -30,9 +30,9 @@ export function MessageInput ({ className, disabled, inputRef, inputProps }: { c
         {...inputProps}
         onChange={handleChange}
         ref={inputRef}
-        className="flex-1 border-none ring-0 outline-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 resize-none"
+        className="flex-1 border-none ring-0 outline-none bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 resize-none placeholder:font-thin placeholder:text-gray-700"
         disabled={disabled || inputProps?.disabled}
-        minRows={2}
+        minRows={4}
       />
       <Button size="icon" className="rounded-full flex-shrink-0 w-8 h-8 p-2" disabled={empty || disabled} ref={buttonRef}>
         <ArrowRightIcon className="w-full h-full" />
