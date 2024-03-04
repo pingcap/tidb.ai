@@ -11,6 +11,7 @@
     --content-height: calc(var(--body-height) - var(--body-padding) * 6);
     --side-width: 20rem;
     --content-width: calc(100vw - var(--side-width));
+    --ask-referral-height: 4rem;
   }
 
   :root {

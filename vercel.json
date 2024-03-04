@@ -8,5 +8,11 @@
       "schedule": "* * * * *",
       "path": "/api/v1/sources/tasks/process"
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/docs/:match*",
+      "destination": "https://rag-docs-pingcap.vercel.app/:match*"
+    }
   ]
 }
