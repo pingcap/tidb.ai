@@ -3,6 +3,7 @@ import nextra from 'nextra';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  basePath: '/docs',
 };
 
 const withNextra = nextra({
@@ -10,4 +11,4 @@ const withNextra = nextra({
   themeConfig: './theme.config.tsx',
 });
 
-export default withNextra;
+export default withNextra(nextConfig);

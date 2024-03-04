@@ -24,22 +24,14 @@ const themeConfig = {
         fill='none'
         className='logo'
       >
-        <rect
-          x='12'
-          y='12'
-          width='721'
-          height='721'
-          rx='108'
-          stroke='currentColor'
-          strokeWidth='24'
-        />
+        <rect width='745' height='745' rx='120' className='logo-bg' />
         <rect
           x='298'
           y='172'
           width='150'
           height='150'
           rx='24'
-          fill='currentColor'
+          className='logo-circle'
         />
         <rect
           x='298'
@@ -47,10 +39,10 @@ const themeConfig = {
           width='150'
           height='150'
           rx='24'
-          fill='currentColor'
+          className='logo-circle'
         />
       </svg>
-      <span style={{ marginLeft: '.4em', fontWeight: 800 }}>
+      <span style={{ marginLeft: '.5em', fontWeight: 800, fontSize: '20px' }}>
         RAG Documentation
       </span>
     </>
@@ -59,13 +51,13 @@ const themeConfig = {
     text: (
       <span>
         {new Date().getFullYear()} ©{' '}
-        <a href="https://pingcap.com" target="_blank">
+        <a href='https://pingcap.com' target='_blank'>
           PingCAP
         </a>
         .
       </span>
-    )
-  }
+    ),
+  },
   // ... other theme options
 };
 

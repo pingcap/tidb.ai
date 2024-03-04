@@ -10,7 +10,7 @@
   --logo-color: #212121;
 }
 
-@media (prefers-color-scheme: dark){
+@media (prefers-color-scheme: dark) {
   :root {
     --foreground-rgb: 255, 255, 255;
     --background-start-rgb: 0, 0, 0;
@@ -37,11 +37,21 @@
 }
 
 .dark {
-  .color {
-    color: #f5f5f5;
+  .logo {
+    .logo-bg {
+      fill: #f5f5f5;
+    }
+    .logo-circle {
+      fill: #212121;
+    }
   }
 }
 
 .logo {
-  color: var(--logo-color);
+  .logo-bg {
+    fill: var(--logo-color);
+  }
+  .logo-circle {
+    fill: #f5f5f5;
+  }
 }
