@@ -12,7 +12,7 @@
   "rewrites": [
     {
       "source": "/docs/:match*",
-      "destination": "https://rag-docs-pingcap.vercel.app/docs/:match*"
+      "destination": "https://rag-docs-git-docs-fix-rewrite-pingcap.vercel.app/docs/:match*"
     }
   ]
 }
