@@ -12,6 +12,7 @@ import { LogInIcon } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import clsx from 'clsx';
 
 export function SiteNavFooter ({ className }: { className?: string }) {
   return (
@@ -19,15 +20,26 @@ export function SiteNavFooter ({ className }: { className?: string }) {
       <div className={'h-header p-2 w-full border-t flex gap-0.5 items-center'}>
         <User />
       </div>
-      <div className={'h-header p-2 w-full border-t flex gap-0.5 items-center'}>
-        <ThemeToggle />
-        <Button size="icon" variant="ghost" className="ml-auto rounded-full">
-          <GithubSvg />
-        </Button>
-        <Button size="icon" variant="ghost" className="rounded-full">
-          <TwitterXSvg />
-        </Button>
-      </div>
+      <SiteNavActionBar className='border-t flex md:hidden' />
+    </div>
+  );
+}
+
+export function SiteNavActionBar(props: { className?: string }) {
+  return (
+    <div
+      className={clsx(
+        'h-header p-2 w-full gap-0.5 items-center',
+        props?.className
+      )}
+    >
+      <ThemeToggle />
+      <Button size='icon' variant='ghost' className='ml-auto rounded-full'>
+        <GithubSvg />
+      </Button>
+      <Button size='icon' variant='ghost' className='rounded-full'>
+        <TwitterXSvg />
+      </Button>
     </div>
   );
 }
