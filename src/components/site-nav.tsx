@@ -9,10 +9,14 @@ import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { type ComponentType, Fragment, type MouseEvent, type ReactElement, type ReactNode } from 'react';
+import clsx from 'clsx';
 
 export interface NavGroup {
   title?: ReactNode;
   items: NavItem[];
+  sectionProps?: {
+    className?: string;
+  };
 }
 
 export interface NavBaseItem {
@@ -56,7 +60,7 @@ export function SiteNav ({ groups }: SiteNavProps) {
 
   return (
     <TooltipProvider>
-      <nav className="space-y-6 p-4 relative">
+      <nav className="flex flex-col gap-6 p-4 relative h-full">
         {groups.map((group, index) => (
           <Fragment key={index}>
             <SiteNavGroup group={group} current={pathname} />
@@ -67,9 +71,10 @@ export function SiteNav ({ groups }: SiteNavProps) {
   );
 }
 
-function SiteNavGroup ({ group, current }: { group: NavGroup, current: string }) {
+function SiteNavGroup({ group, current }: { group: NavGroup, current: string }) {
+  const { sectionProps: { className: sectionClassName, ...restSectionProps } = {} } = group;
   return (
-    <section className="space-y-2">
+    <section className={clsx("space-y-2", sectionClassName)} {...restSectionProps}>
       {group.title && <Divider className="text-sm font-semibold text-foreground/70">{group.title}</Divider>}
       <ul className="space-y-1.5">
         {renderItems(group.items, current)}

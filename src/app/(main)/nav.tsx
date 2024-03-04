@@ -82,6 +82,7 @@ export function Nav () {
         { href: '/import-tasks', title: 'Import Tasks', icon: ListIcon },
         { href: '/settings', title: 'Settings', icon: Settings2Icon },
       ],
+      sectionProps: { className: 'mt-auto mb-0' },
     });
 
     return groups;
