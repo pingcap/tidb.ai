@@ -32,9 +32,9 @@ export default function Page () {
         </ul>
       </div>
       <div className='h-[var(--ask-referral-height)] flex justify-center items-center gap-4' style={{display: 'auto'}}>
-        {socials.map(social => (
-          <NextLink key={social.id} href={social.href} target='_blank' className='font-normal text-xs hover:underline'>
-            {social.name}
+        {footerLinks.map(link => (
+          <NextLink key={link.id} href={link.href} target='_blank' className='font-light text-sm hover:underline opacity-50'>
+            {link.text}
           </NextLink>
         ))}
       </div>
@@ -48,10 +48,30 @@ const prompts = [
   'Does TiDB support serverless?',
 ];
 
-const socials = [
+const footerLinks = [
   {
     id: 'docs',
-    name: 'Docs',
+    text: 'Docs',
     href: '/docs',
+  },
+  {
+    id: 'deploy',
+    text: 'Deploy your own within 5 minutes for free',
+    href: '/docs',
+  },
+  {
+    id: 'how-it-works',
+    text: 'How it works?',
+    href: '/docs',
+  },
+  {
+    id: 'powered-by',
+    text: 'Powered by TiDB',
+    href: 'https://tidb.cloud',
+  },
+  {
+    id: 'copyright',
+    text: '© 2024 PingCAP',
+    href: 'https://pingcap.com',
   },
 ];
