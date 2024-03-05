@@ -65,7 +65,7 @@ export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {
           </Alert>
         )}
         <div className='grid grid-cols-2 gap-x-6 gap-y-2'>
-          {providersLoading && <Skeleton className='w-full h-10 rounded' />}
+          {providersLoading && <Skeleton className='w-full h-10 rounded col-span-2' />}
           {!providersLoading &&
             providers.map((provider) => (
               <CustomProviderItem
