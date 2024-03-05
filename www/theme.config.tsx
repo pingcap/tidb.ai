@@ -2,7 +2,7 @@ const themeConfig = {
   docsRepositoryBase: 'https://github.com/pingcap/tidb.ai/tree/main/docs',
   useNextSeoProps() {
     return {
-      titleTemplate: '%s - TiDB.ai Docs',
+      titleTemplate: '%s - RAG by TiDB ',
     };
   },
   project: {
@@ -42,8 +42,8 @@ const themeConfig = {
           className='logo-circle'
         />
       </svg>
-      <span style={{ marginLeft: '.5em', fontWeight: 800, fontSize: '20px' }}>
-        RAG Documentation
+      <span style={{ marginLeft: '.5em', fontWeight: 300, fontSize: '20px' }}>
+        TiDB.AI
       </span>
     </>
   ),
