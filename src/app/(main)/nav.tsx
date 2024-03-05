@@ -53,7 +53,7 @@ export function Nav () {
   }, []);
 
   const groups = useMemo(() => {
-    const disableIfNotAuthenticated = !user ? <><Link className="font-semibold underline" href={`/auth/login?callbackUrl=${encodeURIComponent(href)}`}>Login</Link> to continue</> : false;
+    const disableIfNotAuthenticated = !user ? <><Link className="font-semibold underline" href={`/auth/login?callbackUrl=${encodeURIComponent(href || '')}`}>Login</Link> to continue</> : false;
 
     const groups: NavGroup[] = [
       {

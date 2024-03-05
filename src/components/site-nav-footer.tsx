@@ -52,7 +52,7 @@ function User () {
   if (!user) {
     return (
       <Button variant="ghost" asChild>
-        <Link href={`/auth/login?callbackUrl=${encodeURIComponent(href)}`} prefetch={false} className="items-center w-full gap-2">
+        <Link href={`/auth/login?callbackUrl=${encodeURIComponent(href || '')}`} prefetch={false} className="items-center w-full gap-2">
           <LogInIcon size="1em" />
           Login
         </Link>

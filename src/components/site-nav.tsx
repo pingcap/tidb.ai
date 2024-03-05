@@ -63,7 +63,7 @@ export function SiteNav ({ groups }: SiteNavProps) {
       <nav className="flex flex-col gap-6 p-4 pt-0 relative h-full">
         {groups.map((group, index) => (
           <Fragment key={index}>
-            <SiteNavGroup group={group} current={pathname} />
+            <SiteNavGroup group={group} current={pathname || ''} />
           </Fragment>
         ))}
       </nav>
