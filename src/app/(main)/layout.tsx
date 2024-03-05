@@ -31,7 +31,7 @@ export default function Layout ({ children }: {
           </div>
         </div>
         <aside className="flex-shrink-0 gap-4 w-side h-screen hidden md:block border-r fixed top-0 left-0">
-          <Link className="h-header flex gap-4 items-center justify-center px-4 py-8 bg-background" href="/" prefetch={false}>
+          <Link className="h-header flex gap-4 items-left justify-left px-4 py-8 bg-background" href="/" prefetch={false}>
             <Branding setting={setting}/>
           </Link>
           <ScrollArea className="h-[calc(100vh-6rem)] pr-2">

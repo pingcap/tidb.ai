@@ -2,8 +2,8 @@
 
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
-import { Form, FormField, FormItem } from '@/components/ui/form';
+import { Dialog, DialogContent, DialogHeader, DialogDescription } from '@/components/ui/dialog';
+import { Form, FormField, FormLabel, FormItem } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { signIn } from 'next-auth/react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -53,7 +53,10 @@ export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {
       }}
     >
       <DialogContent>
-        <DialogHeader>Login</DialogHeader>
+        <DialogHeader className='text-2xl font-normal'>Sign In</DialogHeader>
+        <DialogDescription>
+          Sign in to continue to your account.
+        </DialogDescription>
         {error && (
           <Alert variant='destructive'>
             <AlertDescription>
@@ -62,7 +65,7 @@ export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {
           </Alert>
         )}
         <div className='grid grid-cols-2 gap-x-6 gap-y-2'>
-          {providersLoading && <Skeleton className='w-full h-10 rounded' />}
+          {providersLoading && <Skeleton className='w-full h-10 rounded col-span-2' />}
           {!providersLoading &&
             providers.map((provider) => (
               <CustomProviderItem
@@ -85,20 +88,22 @@ export function SigninDialog({ callbackUrl }: { callbackUrl?: string }) {
           </div>
         )}
         <Form {...form}>
-          <form className='space-y-2' onSubmit={handleSubmit}>
+          <form className='space-y-6' onSubmit={handleSubmit}>
             <FormItem>
+              <FormLabel htmlFor='username'>Username</FormLabel>
               <FormField
                 name='username'
                 render={({ field }) => (
-                  <Input placeholder='Username' {...field} />
+                  <Input placeholder='x@example.com' {...field} />
                 )}
               />
             </FormItem>
             <FormItem>
+              <FormLabel htmlFor='password'>Password</FormLabel>
               <FormField
                 name='password'
                 render={({ field }) => (
-                  <Input placeholder='Passwprd' type='password' {...field} />
+                  <Input type='password' {...field} />
                 )}
               />
             </FormItem>
