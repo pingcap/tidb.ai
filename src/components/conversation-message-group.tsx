@@ -179,12 +179,12 @@ function MessageContextSource ({ context }: { context: MessageContext }) {
 
   return (
     <li key={context.uri} className="bg-card hover:bg-accent transition-colors w-[200px] overflow-hidden rounded-lg border text-xs">
-      <a className="block space-y-1 p-2 max-w-full h-full" href={context.uri} target="_blank">
+      <a className="flex flex-col justify-between space-y-1 p-2 max-w-full h-full" href={context.uri} target="_blank">
         <div className="font-semibold line-clamp-3">
-          <LinkIcon size="1em" className="inline-flex mr-1" />
           {context.title}
         </div>
-        <div className="opacity-70">
+        <div className="opacity-70 mt-auto mb-0">
+          <LinkIcon size="1em" className="inline-flex mr-1" />
           {source}
         </div>
       </a>
