@@ -9,16 +9,20 @@ export default function SettingsLayout({
   return (
     <>
       <h1 className='text-2xl font-semibold mb-4'>Settings</h1>
-      <nav>
-        <SettingsNavigation
-          tabs={tabs.map((tab) => ({
-            id: tab.id,
-            name: tab.name,
-            href: baseRoute + tab.path,
-          }))}
-        />
-      </nav>
-      {children}
+      <div className='flex flex-col lg:flex-row gap-4 h-full'>
+        <nav className='lg:h-full lg:border-r lg:pr-4 overflow-x-auto lg:overflow-visible'>
+          <SettingsNavigation
+            tabs={tabs.map((tab) => ({
+              id: tab.id,
+              name: tab.name,
+              href: baseRoute + tab.path,
+            }))}
+          />
+        </nav>
+        <div>
+          {children}
+        </div>
+      </div>
     </>
   );
 }

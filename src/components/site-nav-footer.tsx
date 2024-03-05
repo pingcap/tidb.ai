@@ -20,7 +20,7 @@ export function SiteNavFooter ({ className }: { className?: string }) {
       <div className={'h-header p-2 w-full border-t flex gap-0.5 items-center'}>
         <User />
       </div>
-      <SiteNavActionBar className='border-t flex md:hidden' />
+      <SiteNavActionBar className='border-t flex md:hidden p-2' />
     </div>
   );
 }
@@ -29,7 +29,7 @@ export function SiteNavActionBar(props: { className?: string }) {
   return (
     <div
       className={clsx(
-        'h-header p-2 w-full gap-0.5 items-center',
+        'h-header w-full gap-0.5 items-center',
         props?.className
       )}
     >
