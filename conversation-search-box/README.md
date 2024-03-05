@@ -1,30 +1,61 @@
-# React + TypeScript + Vite
+# Conversation Search Box
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Dependencies
 
-Currently, two official plugins are available:
+- [Vite](https://vitejs.dev/)
+- [React](https://reactjs.org/)
+- [TypeScript](https://www.typescriptlang.org/)
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## How to use
 
-## Expanding the ESLint configuration
+Copy the following JavaScript and insert into your HTML Head file:
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+```html
+<head>
+  <!-- ... -->
 
-- Configure the top-level `parserOptions` property like this:
+  <script
+    async
+    src="https://s3.us-west-2.amazonaws.com/rag.tidb.ai/rag-widget.js"
+    data-id="tidb-ai-widget"
+    data-name="tidb-ai-widget"
+    data-btn-label="Ask AI"
+    data-btn-img-src="https://tidb.ai/tidb-ai.svg"
+    data-example-questions='["What is TiDB","Does TiDB support Foreign Key","What is TiDB Serverless","How to use TiDB Serverless"]'
+    data-logo-src="https://tidb.ai/tidb-ai.svg"
+  />
 
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
+  <!-- ... -->
+</head>
 ```
 
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+### Customization
+
+| Attribute                | Description                               | Default Value |
+| ------------------------ | ----------------------------------------- | ------------- |
+| `data-btn-label`         | The label of the button.                  | `Ask AI`      |
+| `data-btn-img-src`       | The image source of the button.           |               |
+| `data-example-questions` | The example questions for the search box. |               |
+| `data-logo-src`          | The image source of the logo.             |               |
+
+## Development
+
+### Install dependencies
+
+```bash
+yarn
+```
+
+### Start the development server
+
+```bash
+yarn dev
+```
+
+### Build for production
+
+```bash
+yarn build
+```
+
+> The build will be output to the `dist` directory.
