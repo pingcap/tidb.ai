@@ -86,6 +86,9 @@ async function generateNextAuth () {
             if (params.token.sub?.startsWith(anonymous_prefix)) {
               params.session.user.role = 'anonymous';
             }
+            if (params.token.sub === 'admin') {
+              params.session.user.role = 'admin';
+            }
           }
         }
         return params.session;

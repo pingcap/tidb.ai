@@ -1,12 +1,13 @@
 import { rag } from '@/core/interface';
+import { adminHandlerGuard } from '@/lib/auth-server';
 import { getErrorMessage } from '@/lib/error';
 import { handleErrors } from '@/lib/fetch';
 import { baseRegistry } from '@/rag-spec/base';
 import { notFound } from 'next/navigation';
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { z, type ZodObject } from 'zod';
 
-export async function POST (req: NextRequest, { params }: { params: { identifier: string } }) {
+export const POST = adminHandlerGuard(async (req, { params }: { params: { identifier: string } }) => {
   const identifier = decodeURIComponent(params.identifier);
   const ctor = await baseRegistry.getComponent(identifier);
   if (!ctor) {
@@ -39,4 +40,4 @@ export async function POST (req: NextRequest, { params }: { params: { identifier
   } catch (e) {
     return new NextResponse(getErrorMessage(e), { status: 400 });
   }
-}
+});
