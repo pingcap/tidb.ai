@@ -161,8 +161,8 @@ function SiteNavLinkItem ({ item, active }: { item: NavLinkItem, active: boolean
         </div>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button className="flex-shrink-0 w-max h-max rounded-full p-1 hover:text-destructive hover:bg-transparent" size="icon" variant="ghost">
-              <TrashIcon className="w-3 h-3" />
+            <Button className="flex-shrink-0 w-max h-max rounded-full p-1 hover:bg-transparent" size="icon" variant="ghost">
+              <TrashIcon className="w-3 h-3 opacity-20 hover:opacity-60" />
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
