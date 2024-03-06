@@ -17,7 +17,7 @@ export function SigninDialog ({ callbackUrl }: { callbackUrl?: string }) {
       }}
     >
       <DialogContent>
-        <DialogHeader className='text-2xl font-normal'>Sign In<</DialogHeader>
+        <DialogHeader className='text-2xl font-normal'>Sign In</DialogHeader>
         <DialogDescription>
           Sign in to continue to your account.
         </DialogDescription>
