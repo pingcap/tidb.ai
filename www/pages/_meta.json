@@ -1,28 +1,21 @@
 {
-  "-- Getting Started": {
-    "type": "separator",
-    "title": "Getting Started"
+  "index": {
+    "type": "page",
+    "title": "Introduction",
+    "display": "hidden"
   },
-  "index": "Introduction",
-  "quickstart": "Quick Start",
-  "architecture": "Architecture",
-  "changelog": "Changelog",
-  "-- Deploy This RAG": {
-    "type": "separator",
-    "title": "Deploy this RAG"
+  "docs": {
+    "type": "page",
+    "title": "Docs"
   },
-  "deploy-self-hosted": "Self-Hosted",
-  "deploy-on-vercel": "Vercel",
-  "deploy-on-cloudflare": "CloudFlare",
-  "-- Configuration": {
-    "type": "separator",
-    "title": "Configuration"
+  "blog": {
+    "type": "page",
+    "title": "Blog"
   },
-  "js": "JavaScript Code Snip",
-  "llm": "LLM",
-  "prompt": "RAG Prompt",
-  "document-loader": "Document Loader",
-  "document-spliter": "Document Spliter",
-  "reranker": "(Optional) Reranker",
-  "authentication": "Auth"
+  "demo": {
+    "type": "page",
+    "title": "Demo",
+    "href": "https://tidb.ai",
+    "newWindow": true
+  }
 }
