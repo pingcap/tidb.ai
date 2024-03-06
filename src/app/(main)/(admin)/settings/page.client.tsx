@@ -71,7 +71,7 @@ export default function SettingsPage () {
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onChange={(e) => {
           console.log(e)
-        }} className="w-2/3 space-y-6">
+        }} className="w-full xl:w-2/3 space-y-6">
           <FormField
             control={form.control}
             disabled={form.formState.isSubmitting}
