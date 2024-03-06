@@ -10,36 +10,49 @@ import { useUser } from '@/lib/auth';
 import { cn } from '@/lib/utils';
 import { LogInIcon } from 'lucide-react';
 import { signOut } from 'next-auth/react';
-import Link from 'next/link';
+import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 import clsx from 'clsx';
 
-export function SiteNavFooter ({ className }: { className?: string }) {
+export type SiteSocialsType = {
+  github?: string;
+  twitter?: string;
+};
+
+export function SiteNavFooter ({ className, social }: { className?: string, social?: SiteSocialsType }) {
   return (
     <div className={cn('w-full', className)}>
       <div className={'h-header p-2 w-full border-t flex gap-0.5 items-center'}>
         <User />
       </div>
-      <SiteNavActionBar className='border-t flex md:hidden p-2' />
+      <SiteNavActionBar className='border-t flex md:hidden p-2' social={social} />
     </div>
   );
 }
 
-export function SiteNavActionBar(props: { className?: string }) {
+export function SiteNavActionBar(props: {
+  className?: string;
+  social?: SiteSocialsType;
+}) {
+  const { className, social = {} } = props;
   return (
-    <div
-      className={clsx(
-        'h-header w-full gap-0.5 items-center',
-        props?.className
-      )}
-    >
+    <div className={clsx('h-header w-full gap-0.5 items-center', className)}>
       <ThemeToggle />
-      <Button size='icon' variant='ghost' className='ml-auto rounded-full'>
-        <GithubSvg />
-      </Button>
-      <Button size='icon' variant='ghost' className='rounded-full'>
-        <TwitterXSvg />
-      </Button>
+      {social?.github && (
+        <NextLink href={social.github} target='_blank' className='ml-auto' >
+          <Button size='icon' variant='ghost' className='rounded-full'>
+            <GithubSvg />
+          </Button>
+        </NextLink>
+      )}
+
+      {social.twitter && (
+        <NextLink href={social.twitter} target='_blank' className=''>
+          <Button size='icon' variant='ghost' className='rounded-full'>
+            <TwitterXSvg />
+          </Button>
+        </NextLink>
+      )}
     </div>
   );
 }
@@ -52,10 +65,10 @@ function User () {
   if (!user) {
     return (
       <Button variant="ghost" asChild>
-        <Link href={`/auth/login?callbackUrl=${encodeURIComponent(href)}`} prefetch={false} className="items-center w-full gap-2">
+        <NextLink href={`/auth/login?callbackUrl=${encodeURIComponent(href)}`} prefetch={false} className="items-center w-full gap-2">
           <LogInIcon size="1em" />
           Login
-        </Link>
+        </NextLink>
       </Button>
     );
   }

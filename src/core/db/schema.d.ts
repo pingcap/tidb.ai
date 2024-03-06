@@ -30,6 +30,8 @@ export interface Chat {
   llm: string;
   llm_model: string;
   name: string;
+  deleted_at: Generated<Date | null>;
+  deleted_by: Generated<string | null>;
 }
 
 export interface ChatMessage {
