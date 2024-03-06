@@ -1,11 +1,12 @@
 import database from '@/core/db';
 import { processImportSourceTask } from '@/jobs/processImportSourceTasks';
+import { adminHandlerGuard } from '@/lib/auth-server';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-export async function POST (req: NextRequest) {
+export const POST = adminHandlerGuard(async (req) => {
   const { ids } = z.object({
     ids: z.number().int().array(),
   }).parse(await req.json());
@@ -27,4 +28,6 @@ export async function POST (req: NextRequest) {
   return NextResponse.json({
     updated: updated,
   });
-}
+});
+
+export const dynamic = 'force-dynamic';

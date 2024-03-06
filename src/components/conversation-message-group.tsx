@@ -118,11 +118,11 @@ export function ConversationMessageGroups ({ messages, data, error, isLoading }:
 
 function ConversationMessageGroup ({ group }: { group: ConversationMessageGroupProps }) {
   return (
-    <section className="space-y-4 p-4 border-b pb-10 last-of-type:border-b-0 last-of-type:border-pb-4">
-      <h2 className="text-2xl font-semibold">{group.userMessage.content}</h2>
+    <section className="space-y-6 p-4 border-b pb-10 last-of-type:border-b-0 last-of-type:border-pb-4">
+      <h2 className="text-2xl font-normal">{group.userMessage.content}</h2>
       {group.assistantContext.length > 0 && (
-        <section className="space-y-2">
-          <div className="font-semibold text-lg flex items-center gap-2">
+        <section className="space-y-0">
+          <div className="font-normal text-lg flex items-center gap-2">
             <TextSearchIcon size="1em" />
             Sources
           </div>
@@ -137,8 +137,9 @@ function ConversationMessageGroup ({ group }: { group: ConversationMessageGroupP
         </section>
       )}
       <section className="space-y-2">
-        <div className="font-semibold text-lg flex items-center gap-2">
-          <AlignLeftIcon size="1em" />
+        <div className="font-normal text-lg flex items-center gap-2">
+          <img className="dark:hidden h-4" src="/answer-black.svg" alt="logo" />
+          <img className="hidden dark:block h-4" src="/answer-white.svg" alt="logo" />
           Answer
         </div>
         <article className="prose prose-sm prose-neutral dark:prose-invert overflow-x-hidden break-all">
@@ -180,7 +181,7 @@ function MessageContextSource ({ context }: { context: MessageContext }) {
   return (
     <li key={context.uri} className="bg-card hover:bg-accent transition-colors w-[200px] overflow-hidden rounded-lg border text-xs">
       <a className="flex flex-col justify-between space-y-1 p-2 max-w-full h-full" href={context.uri} target="_blank">
-        <div className="font-semibold line-clamp-3">
+        <div className="font-normal line-clamp-3 opacity-90">
           {context.title}
         </div>
         <div className="opacity-70 mt-auto mb-0">

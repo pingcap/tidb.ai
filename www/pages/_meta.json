@@ -1,0 +1,21 @@
+{
+  "index": {
+    "type": "page",
+    "title": "Introduction",
+    "display": "hidden"
+  },
+  "docs": {
+    "type": "page",
+    "title": "Docs"
+  },
+  "blog": {
+    "type": "page",
+    "title": "Blog"
+  },
+  "demo": {
+    "type": "page",
+    "title": "Demo",
+    "href": "https://tidb.ai",
+    "newWindow": true
+  }
+}

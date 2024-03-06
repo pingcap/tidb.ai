@@ -1,11 +1,12 @@
 import db from '@/core/db';
+import { adminHandlerGuard } from '@/lib/auth-server';
 import { parseFilters } from '@/lib/database';
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function GET (req: NextRequest) {
+export const GET = adminHandlerGuard(async (req) => {
   const ids = await db.document.listIdsByFilter(parseFilters(req, ['index_state', 'q']));
 
   return NextResponse.json(ids);
-}
+});
 
 export const dynamic = 'force-dynamic';
