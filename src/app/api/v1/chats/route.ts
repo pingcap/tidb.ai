@@ -2,6 +2,7 @@ import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import database from '@/core/db';
 import type { DB } from '@/core/db/schema';
 import { query } from '@/core/query';
+import { toPageRequest } from '@/lib/database';
 import { genId } from '@/lib/id';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
@@ -113,7 +114,9 @@ export const GET = auth(async function GET (req) {
     return new NextResponse('Need authorization', { status: 401 });
   }
 
-  return NextResponse.json(await database.chat.listChatsByCreator(userId, 5));
+  const { page, pageSize } = toPageRequest(req);
+
+  return NextResponse.json(await database.chat.listChats({ page, pageSize, userId }));
 }) as any;
 
 async function createSession (name: string | undefined, userId: string) {
