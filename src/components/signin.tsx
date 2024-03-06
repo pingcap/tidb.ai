@@ -114,7 +114,7 @@ function refineCallbackUrl (url: string | undefined) {
 
 export function CustomProviderItem (props: { provider: string, className?: string }) {
   const usp = useSearchParams();
-  const callbackUrl = usp.get('callbackUrl') ?? '/';
+  const callbackUrl = usp?.get('callbackUrl') ?? '/';
 
   const { provider, className } = props;
   const providerMemo = useMemo(() => {
