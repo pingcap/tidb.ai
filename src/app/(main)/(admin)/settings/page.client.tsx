@@ -24,6 +24,7 @@ const tabs = [
   'Tasks',
   'LLM',
   'Prompts',
+  'Authentication',
 ];
 
 function useSettingsForm() {
@@ -67,17 +68,6 @@ export default function SettingsPage () {
 
   return (
     <>
-      <h1 className="text-2xl font-semibold mb-4">Site settings</h1>
-      <nav>
-        <ul className="flex gap-2 items-center">
-          {tabs.map((tab, index) => (
-            <Button className="rounded-full" key={tab} variant={index > 0 ? 'ghost' : 'secondary'}>
-              {tab}
-            </Button>
-          ))}
-        </ul>
-      </nav>
-
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} onChange={(e) => {
           console.log(e)

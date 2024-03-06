@@ -1,9 +1,9 @@
 'use client';
 
-import { supportedProviders } from '@/app/(main)/(admin)/authentication/components';
+import { supportedProviders } from '@/app/(main)/(admin)/settings/components';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Form, FormField, FormItem } from '@/components/ui/form';
+import { Form, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { fetcher } from '@/lib/fetch';
@@ -52,7 +52,7 @@ export function Signin ({ callbackUrl }: { callbackUrl?: string }) {
         </Alert>
       )}
       <div className="grid grid-cols-2 gap-x-6 gap-y-2">
-        {providersLoading && <Skeleton className="w-full h-10 rounded" />}
+        {providersLoading && <Skeleton className="w-full h-10 rounded col-span-2" />}
         {!providersLoading &&
           providers.map((provider) => (
             <CustomProviderItem
@@ -77,18 +77,20 @@ export function Signin ({ callbackUrl }: { callbackUrl?: string }) {
       <Form {...form}>
         <form className="space-y-2" onSubmit={handleSubmit}>
           <FormItem>
+            <FormLabel htmlFor='username'>Username</FormLabel>
             <FormField
               name="username"
               render={({ field }) => (
-                <Input placeholder="Username" {...field} />
+                <Input placeholder="x@example.com" {...field} />
               )}
             />
           </FormItem>
           <FormItem>
+            <FormLabel htmlFor='password'>Password</FormLabel>
             <FormField
               name="password"
               render={({ field }) => (
-                <Input placeholder="Passwprd" type="password" {...field} />
+                <Input type="password" {...field} />
               )}
             />
           </FormItem>
