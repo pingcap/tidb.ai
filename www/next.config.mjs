@@ -3,7 +3,7 @@ import nextra from 'nextra';
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  basePath: '',
+  basePath: '/docs',
 };
 
 const withNextra = nextra({
