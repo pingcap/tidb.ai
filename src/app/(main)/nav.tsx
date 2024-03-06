@@ -2,7 +2,7 @@
 
 import { Ask } from '@/components/ask';
 import { type NavGroup, SiteNav } from '@/components/site-nav';
-import { SiteNavFooter } from '@/components/site-nav-footer';
+import { SiteNavFooter, type SiteSocialsType } from '@/components/site-nav-footer';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogOverlay, DialogPortal } from '@/components/ui/dialog';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
@@ -117,7 +117,9 @@ export function Nav () {
   );
 }
 
-export function NavDrawer () {
+export function NavDrawer(props: {
+  social?: SiteSocialsType;
+}) {
   return (
     <Drawer>
       <DrawerTrigger className="flex md:hidden flex-shrink-0" asChild>
@@ -128,7 +130,7 @@ export function NavDrawer () {
       <DrawerContent className="px-2">
         <ScrollArea className="h-[50vh]">
           <Nav />
-          <SiteNavFooter className="bg-background" />
+          <SiteNavFooter className="bg-background" social={props?.social} />
         </ScrollArea>
       </DrawerContent>
     </Drawer>
