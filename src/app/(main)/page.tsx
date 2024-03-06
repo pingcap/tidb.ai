@@ -12,10 +12,10 @@ export default function Page () {
   return (
     <div className='h-body md:h-screen'>
       <div className="h-[calc(100%-var(--ask-referral-height))] flex flex-col items-center justify-center gap-4 relative">
-        <h1 className="text-4xl font-light">
+        <h1 className="text-3xl md:text-4xl font-light">
           Ask anything about TiDB
         </h1>
-        <p className="font-light text-gray-500 mb-8">
+        <p className="font-light text-gray-500 mb-8 w-4/5 md:w-auto	">
         Including company intro, user cases, product intro and usage, FAQ, etc.
         </p>
         <Ask className="px-4 w-full lg:w-2/3" loading={loading} ask={ask} />
@@ -31,11 +31,13 @@ export default function Page () {
           ))}
         </ul>
       </div>
-      <div className='h-[var(--ask-referral-height)] flex justify-center items-center gap-4' style={{display: 'auto'}}>
+      <div className='h-[var(--ask-referral-height)] md:flex justify-center md:justify-auto items-center gap-4' >
         {footerLinks.map(link => (
+          <div className='text-center'>
           <NextLink key={link.id} href={link.href} target='_blank' className='font-light text-sm hover:underline opacity-50'>
             {link.text}
           </NextLink>
+          </div>
         ))}
       </div>
     </div>
