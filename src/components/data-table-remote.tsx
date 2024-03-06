@@ -23,6 +23,7 @@ interface DataTableRemoteProps<TData, TValue> {
   refreshInterval?: number | ((data: Page<TData> | undefined) => number);
   before?: ReactNode;
   after?: ReactNode;
+  ts?: number;
 }
 
 export function DataTableRemote<TData, TValue> ({
@@ -34,6 +35,7 @@ export function DataTableRemote<TData, TValue> ({
   refreshInterval,
   before,
   after,
+  ts,
 }: DataTableRemoteProps<TData, TValue>) {
   const [pagination, setPagination] = useState<PaginationState>(() => {
     return { pageIndex: 0, pageSize: 10 };
@@ -60,6 +62,7 @@ export function DataTableRemote<TData, TValue> ({
         ...globalFilter && {
           q: globalFilter,
         },
+        ts,
       },
     ],
     fetcher<Page<TData>>, {

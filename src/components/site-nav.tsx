@@ -2,14 +2,15 @@
 
 import { Divider } from '@/components/divider';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button, type ButtonProps } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
+import clsx from 'clsx';
+import { TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { type ComponentType, Fragment, type MouseEvent, type ReactElement, type ReactNode } from 'react';
-import clsx from 'clsx';
 
 export interface NavGroup {
   title?: ReactNode;
@@ -31,6 +32,8 @@ export interface NavLinkItem extends NavBaseItem {
   href: string;
   exact?: boolean;
   variant?: ButtonProps['variant'] | ((active: boolean) => ButtonProps['variant']);
+  onDelete?: () => void;
+  deleteResourceName?: string;
 }
 
 export interface NavButtonItem extends NavBaseItem {
@@ -71,10 +74,10 @@ export function SiteNav ({ groups }: SiteNavProps) {
   );
 }
 
-function SiteNavGroup({ group, current }: { group: NavGroup, current: string }) {
+function SiteNavGroup ({ group, current }: { group: NavGroup, current: string }) {
   const { sectionProps: { className: sectionClassName, ...restSectionProps } = {} } = group;
   return (
-    <section className={clsx("space-y-2", sectionClassName)} {...restSectionProps}>
+    <section className={clsx('space-y-2', sectionClassName)} {...restSectionProps}>
       {group.title && <Divider className="text-sm font-semibold text-foreground/70">{group.title}</Divider>}
       <ul className="space-y-1.5">
         {renderItems(group.items, current)}
@@ -150,6 +153,34 @@ function SiteNavLinkItem ({ item, active }: { item: NavLinkItem, active: boolean
       </Tooltip>
     );
   }
+  if (item.onDelete) {
+    el = (
+      <div className="flex gap-2 items-center">
+        <div className="flex-1">
+          {el}
+        </div>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button className="flex-shrink-0 w-max h-max rounded-full p-1 hover:text-destructive hover:bg-transparent" size="icon" variant="ghost">
+              <TrashIcon className="w-3 h-3" />
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Are you sure to delete {item.deleteResourceName}?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={item.onDelete}>Delete</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      </div>
+    );
+  }
   return (
     <li>
       {el}
@@ -202,7 +233,7 @@ function SiteNavParentItem ({ item, current, active }: { item: NavParentItem, cu
         <Button className={cn('flex justify-start gap-2 font-semibold hover:no-underline', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'secondary' : 'ghost')} data-active={active ? 'true' : undefined} asChild>
           <AccordionTrigger>
             {renderBaseItemContent(item)}
-            <span className='flex-1' />
+            <span className="flex-1" />
           </AccordionTrigger>
         </Button>
         <AccordionContent>

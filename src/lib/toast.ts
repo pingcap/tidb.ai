@@ -11,7 +11,7 @@ export function withToast<Args extends any[], Return> (
 ) {
   return async (...args: Args) => {
     const id = toast.loading(options.loading ? options.loading(...args) : 'Executing...', {
-      duration: 0,
+      duration: Infinity,
     });
 
     try {
