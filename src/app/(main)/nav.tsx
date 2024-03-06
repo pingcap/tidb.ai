@@ -16,13 +16,13 @@ import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import type { Selectable } from 'kysely';
-import { ActivitySquareIcon, CommandIcon, FingerprintIcon, HomeIcon, ImportIcon, LibraryIcon, ListIcon, MenuIcon, MessagesSquareIcon, SearchIcon, Settings2Icon, ShieldCheckIcon, TextIcon, UsersIcon } from 'lucide-react';
+import { ActivitySquareIcon, CommandIcon, FingerprintIcon, HomeIcon, ImportIcon, LibraryIcon, ListIcon, MenuIcon, MessagesSquareIcon, SearchIcon, CogIcon, ShieldCheckIcon, TextIcon, UsersIcon, FileIcon } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
-const conversationItemClassName = 'text-xs p-2 py-1.5 h-max font-normal w-[86%] ml-[14%] block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold';
+const conversationItemClassName = 'opacity-80 text-xs p-2 py-1.5 h-max font-light w-[86%] ml-[14%] block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold';
 const docsItemClassName = 'text-xs p-2 py-1.5 h-max font-normal block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold';
 
 export function Nav () {
@@ -58,7 +58,7 @@ export function Nav () {
     const groups: NavGroup[] = [
       {
         items: [
-          { key: 'new', onClick: () => { setOpen(true); }, title: 'New Thread', variant: 'outline', className: 'rounded-full cursor-text font-normal text-foreground/70', icon: SearchIcon, details: <span className="flex-shrink-0 flex gap-1 items-center rounded-full"><CommandIcon size="1em" /> K</span> },
+          { key: 'new', onClick: () => { setOpen(true); }, title: 'New Thread', variant: 'outline', className: 'mb-4 rounded-full cursor-text font-normal text-foreground/70', icon: SearchIcon, details: <span className="flex-shrink-0 flex gap-1 items-center rounded-full"><CommandIcon size="1em" /> K</span> },
           { href: '/', title: 'Home', icon: HomeIcon, exact: true },
           { href: '/c', title: 'Conversations', exact: true, icon: MessagesSquareIcon, disabled: disableIfNotAuthenticated },
           ...(isLoading ? [
@@ -69,16 +69,6 @@ export function Nav () {
           ...history.map(chat => (
             { href: `/c/${chat.id}`, title: chat.name, variant: (active: boolean) => (active ? 'secondary' : 'ghost'), className: conversationItemClassName }
           )),
-          {
-            key: 'docs', title: 'Docs', href: '/docs', icon: TextIcon, children: [
-              { href: '/docs/deploy-your-own-rag-application', title: 'Deploy your own rag application', variant: (active: boolean) => (active ? 'default' : 'ghost'), className: docsItemClassName },
-              {
-                key: 'api', title: 'API v1', href: '/docs/api/v1', children: [
-                  { href: '/docs/api/v1/documents', title: '/documents', variant: (active: boolean) => (active ? 'default' : 'ghost'), className: docsItemClassName },
-                ],
-              },
-            ],
-          } as NavItem,
         ],
       },
     ];
@@ -86,16 +76,13 @@ export function Nav () {
     groups.push({
       title: 'Admin',
       items: [
-        { href: '/dashboard', title: 'Dashboard', icon: ActivitySquareIcon },
-        { href: '/explore', title: 'Documents', icon: LibraryIcon },
-        { href: '/sources', title: 'Sources', icon: ImportIcon },
+        { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon },
+        { href: '/explore', title: 'Documents', icon: FileIcon },
+        { href: '/sources', title: 'Data Sources', icon: ImportIcon },
         { href: '/import-tasks', title: 'Import Tasks', icon: ListIcon },
-        { href: '/settings', title: 'Site settings', icon: Settings2Icon },
-        { key: '/user-management', title: 'User management', variant: 'ghost', disabled: true, onClick: () => {}, icon: UsersIcon },
-        { key: '/security', title: 'Security', variant: 'ghost', disabled: true, onClick: () => {}, icon: ShieldCheckIcon },
-        // { key: '/authentication', title: 'Authentication', variant: 'ghost', disabled: true, onClick: () => {}, icon: FingerprintIcon },
-        { href: '/authentication', title: 'Authentication', icon: FingerprintIcon, disabled: disableIfNotAuthenticated },
+        { href: '/settings', title: 'Settings', icon: CogIcon },
       ],
+      sectionProps: { className: 'mt-auto mb-0' },
     });
 
     return groups;

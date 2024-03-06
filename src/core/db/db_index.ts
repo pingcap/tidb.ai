@@ -1,5 +1,5 @@
 import { db } from '@/core/db/db';
-import type { DB } from '@/core/db/schema';
+import type {DB} from '@/core/db/schema';
 import { rag } from '@/core/interface';
 import { executePage, type Page, type PageRequest } from '@/lib/database';
 import { genId } from '@/lib/id';
@@ -7,7 +7,7 @@ import type { Insertable, Selectable, Updateable } from 'kysely';
 import { notFound } from 'next/navigation';
 import ChunkedContent = rag.ChunkedContent;
 import EmbeddedContent = rag.EmbeddedContent;
-import Vector = rag.Vector;
+import {cosineSimilarity, vectorToSql} from "@/lib/kysely";
 
 export type _QueryOptions = {
   source_uri_prefixes?: string[];
@@ -139,7 +139,7 @@ export const indexDb: IndexDb = {
             index_name: index,
             metadata: JSON.stringify(c.metadata),
             text_content: c.content,
-            embedding: vectorToVal(c.vector) as never,
+            embedding: vectorToSql(c.vector) as never,
             staled: 0,
             ordinal: i + 1,
           })))
@@ -170,22 +170,16 @@ export const indexDb: IndexDb = {
         'document_index_chunk.metadata',
         'source_uri',
         'document.name as source_name',
-        'document_index_chunk.staled',
-        'document_index_chunk.index_name',
-        'document.source_uri',
-        eb => eb(eb => eb.lit<number>(1), '-', eb.fn<number>('vec_cosine_distance', [
-          'embedding',
-          eb => eb.val(vectorToVal(vector))],
-        )).as('score'),
+        (eb) => cosineSimilarity(eb, 'embedding', vector).as('score')
       ])
-      .having('staled', '=', 0)
-      .having('index_name', '=', eb => eb.val(index))
+      .where('staled', '=', 0)
+      .where('index_name', '=', eb => eb.val(index))
       .orderBy('score desc')
       .limit(top_k);
 
     if (options.source_uri_prefixes && options.source_uri_prefixes.length > 0) {
       const prefixes = options.source_uri_prefixes;
-      builder = builder.having(eb => eb.or(prefixes.map(prefix => (
+      builder = builder.where(eb => eb.or(prefixes.map(prefix => (
         eb('document.source_uri', 'like', eb => eb.val(prefix + '%'))
       ))));
     }
@@ -276,24 +270,3 @@ export const indexDb: IndexDb = {
       .executeTakeFirst();
   },
 };
-
-export function cosineSimilarity (a: rag.Vector, b: rag.Vector) {
-  let p = 0;
-  let qa = 0;
-  let qb = 0;
-  for (let i = 0; i < a.length; i++) {
-    p += a[i] * b[i];
-    qa += Math.pow(a[i], 2);
-    qb += Math.pow(b[i], 2);
-  }
-
-  return p / (Math.sqrt(qa) * Math.sqrt(qb));
-}
-
-function cosineDistance (a: rag.Vector, b: rag.Vector) {
-  return 1 - cosineSimilarity(a, b);
-}
-
-export function vectorToVal (vector: Vector | number[]) {
-  return `[${vector.join(',')}]`;
-}

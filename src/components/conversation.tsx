@@ -37,7 +37,7 @@ export function Conversation ({ open, history, context }: { open: boolean, histo
       <div ref={ref} className={cn(
         'md:max-w-screen-md mx-auto space-y-4 transition-all relative md:min-h-screen md:p-body',
       )}>
-        <ConversationMessageGroups messages={messages} data={data} isLoading={isLoading || isWaiting} />
+        <ConversationMessageGroups messages={messages} data={data} error={error} isLoading={isLoading || isWaiting} />
         <div className="h-24"></div>
       </div>
       {size && open && <form className="block h-max p-4 fixed bottom-0" onSubmit={handleSubmit} style={{ left: size.x, width: size.width }}>

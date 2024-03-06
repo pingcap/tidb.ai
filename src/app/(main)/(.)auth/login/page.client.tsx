@@ -1,7 +1,7 @@
 'use client';
 
 import { Signin } from '@/components/signin';
-import { Dialog, DialogContent, DialogHeader } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogDescription } from '@/components/ui/dialog';
 import { useRouter } from 'next/navigation';
 
 export function SigninDialog ({ callbackUrl }: { callbackUrl?: string }) {
@@ -17,7 +17,10 @@ export function SigninDialog ({ callbackUrl }: { callbackUrl?: string }) {
       }}
     >
       <DialogContent>
-        <DialogHeader>Login</DialogHeader>
+        <DialogHeader className='text-2xl font-normal'>Sign In<</DialogHeader>
+        <DialogDescription>
+          Sign in to continue to your account.
+        </DialogDescription>
         <Signin callbackUrl={callbackUrl} />
       </DialogContent>
     </Dialog>
