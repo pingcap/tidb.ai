@@ -192,7 +192,12 @@ INSERT INTO `option` VALUES
     ('description', 'website', 'string', '"Hello TiDB Cloud!"'),
     ('logo_in_dark_mode', 'website', 'string', '"https://tidb.ai/tidb-ai-light.svg"'),
     ('logo_in_light_mode', 'website', 'string', '"https://tidb.ai/tidb-ai.svg"'),
-    ('language', 'website', 'string', '"en-US"');
+    ('language', 'website', 'string', '"en-US"'),
+    ('homepage.title', 'website', 'string', '"Ask anything about TiDB"'),
+    ('homepage.description', 'website', 'string', '"Including company intro, user cases, product intro and usage, FAQ, etc."'),
+    ('homepage.example_questions', 'website', 'array', '[{"text": "What is TiDB?"}, {"text": "Does TiDB support FOREIGN KEY?"}, {"text": "Does TiDB support serverless?"}]'),
+    ('social.github', 'website', 'string', '"https://github.com/pingcap/tidb.ai"'),
+    ('social.twitter', 'website', 'string', '"https://twitter.com/PingCAP"');
 
 INSERT INTO `index`(name, llm, llm_model, config, created_at, last_modified_at)
 VALUES ('default', 'openai', 'openai', '{}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
