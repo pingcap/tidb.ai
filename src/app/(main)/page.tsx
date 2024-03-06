@@ -3,15 +3,14 @@
 import { Ask } from '@/components/ask';
 import { Button } from '@/components/ui/button';
 import { useAsk } from '@/components/use-ask';
-import { CopyIcon } from 'lucide-react';
 import NextLink from 'next/link';
 
 export default function Page () {
   const { loading, ask } = useAsk();
 
   return (
-    <div className='h-body md:h-screen'>
-      <div className="h-[calc(100%-var(--ask-referral-height))] flex flex-col items-center justify-center gap-4 relative">
+    <div className='h-body lg:h-screen min-h-screen'>
+      <div className="lg:h-[calc(100%-var(--ask-referral-height))] h-2/3 p-4 lg:p-0 flex flex-col items-center justify-center gap-4 relative">
         <h1 className="text-4xl font-light">
           Ask anything about TiDB
         </h1>
@@ -31,7 +30,7 @@ export default function Page () {
           ))}
         </ul>
       </div>
-      <div className='h-[var(--ask-referral-height)] flex justify-center items-center gap-4' style={{display: 'auto'}}>
+      <div className='lg:h-[var(--ask-referral-height)] h-1/3 flex lg:justify-center justify-end items-center gap-4 lg:flex-row flex-col pb-4 lg:pb-0' style={{display: 'auto'}}>
         {footerLinks.map(link => (
           <NextLink key={link.id} href={link.href} target='_blank' className='font-light text-sm hover:underline opacity-50'>
             {link.text}
