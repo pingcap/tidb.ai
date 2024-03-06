@@ -1,8 +1,9 @@
-import { updateProvider, removeProvider } from '@/core/db/auth';
+import { removeProvider, updateProvider } from '@/core/db/auth';
+import { adminHandlerGuard } from '@/lib/auth-server';
 import { notFound } from 'next/navigation';
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function PUT (req: NextRequest, { params }: { params: { name: string } }) {
+export const PUT = adminHandlerGuard(async (req, { params }: { params: { name: string } }) => {
   const name = decodeURIComponent(params.name);
 
   const config = await req.json();
@@ -12,9 +13,9 @@ export async function PUT (req: NextRequest, { params }: { params: { name: strin
   }
 
   return new NextResponse();
-}
+});
 
-export async function DELETE(req: NextRequest, { params }: { params: { name: string } }) {
+export const DELETE = adminHandlerGuard(async (req, { params }: { params: { name: string } }) => {
   const name = decodeURIComponent(params.name);
 
   if (!await removeProvider(name)) {
@@ -22,4 +23,4 @@ export async function DELETE(req: NextRequest, { params }: { params: { name: str
   }
 
   return new NextResponse();
-}
+});

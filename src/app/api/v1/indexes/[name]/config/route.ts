@@ -1,8 +1,9 @@
 import database from '@/core/db';
+import { adminHandlerGuard } from '@/lib/auth-server';
 import { baseRegistry } from '@/rag-spec/base';
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function PUT (req: NextRequest, { params }: { params: { name: string } }) {
+export const PUT = adminHandlerGuard(async (req, { params }: { params: { name: string } }) => {
   const indexName = decodeURIComponent(params.name);
   const data = await req.json();
 
@@ -28,6 +29,6 @@ export async function PUT (req: NextRequest, { params }: { params: { name: strin
     return { config: JSON.stringify(Object.assign(index.config as any, updatingConfig)) };
   });
   return new NextResponse();
-}
+});
 
 export const dynamic = 'force-dynamic';

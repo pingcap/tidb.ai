@@ -1,10 +1,11 @@
 import database from '@/core/db';
 import { scheduleImportSourceTask } from '@/jobs/scheduleImportSourceTask';
+import { adminHandlerGuard } from '@/lib/auth-server';
 import { getErrorMessage } from '@/lib/error';
 import { notFound } from 'next/navigation';
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function POST (req: NextRequest, { params }: { params: { id: string } }) {
+export const POST = adminHandlerGuard(async (req, { params }: { params: { id: string } }) => {
   const id = decodeURIComponent(params.id);
   const source = await database.importSource.find(id);
 
@@ -21,6 +22,6 @@ export async function POST (req: NextRequest, { params }: { params: { id: string
   return NextResponse.json({
     scheduled: true,
   });
-}
+});
 
 export const dynamic = 'force-dynamic';

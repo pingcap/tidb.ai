@@ -1,8 +1,8 @@
 import { cn } from '@/lib/utils';
 import { LoaderIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 
-export function Loader ({ loading }: { loading: boolean }) {
+export function Loader ({ loading, children = 'Loading data' }: { loading: boolean, children?: ReactNode }) {
   const [mounted, setMounted] = useState(loading);
 
   useEffect(() => {
@@ -27,7 +27,7 @@ export function Loader ({ loading }: { loading: boolean }) {
       )}>
         <span className="flex gap-2 items-center">
           <LoaderIcon className="animate-spin" />
-          <span>Loading data</span>
+          <span>{children}</span>
         </span>
       </div>
     );
