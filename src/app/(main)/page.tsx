@@ -36,11 +36,9 @@ export default function Page () {
       </div>
       <div className='h-[var(--ask-referral-height)] md:flex justify-center md:justify-auto items-center gap-4' >
         {footerLinks.map(link => (
-          <div className='text-center'>
-          <NextLink key={link.id} href={link.href} target='_blank' className='font-light text-sm hover:underline opacity-50'>
+          <NextLink key={link.id} href={link.href} target='_blank' className='font-light text-sm hover:underline opacity-50 flex justify-center'>
             {link.text}
           </NextLink>
-          </div>
         ))}
       </div>
     </div>
