@@ -29,7 +29,9 @@ export function SemanticSearch () {
       <Button size="sm" variant="outline" className="hidden md:inline-flex text-xs w-max gap-2 items-center rounded-full cursor-text font-normal text-foreground/70" onClick={() => setOpen(true)}>
         <SearchIcon size="1em" className='hidden md:block lg:hidden' />
         <span className='block md:hidden lg:block'>Search documents...</span>
-        <span className="flex-shrink-0 flex gap-1 items-center rounded-full"><CommandIcon size="1em" /> Shift K</span>
+        <span className="flex-shrink-0 gap-1 items-center rounded-full hidden md:flex">
+          <CommandIcon size="1em" /> Shift K
+        </span>
       </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="overflow-hidden p-0 shadow-lg">
