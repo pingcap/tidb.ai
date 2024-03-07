@@ -26,7 +26,7 @@ export function SemanticSearch () {
 
   return (
     <>
-      <Button size="sm" variant="outline" className="text-xs w-max gap-2 items-center rounded-full cursor-text font-normal text-foreground/70" onClick={() => setOpen(true)}>
+      <Button size="sm" variant="outline" className="hidden md:inline-flex text-xs w-max gap-2 items-center rounded-full cursor-text font-normal text-foreground/70" onClick={() => setOpen(true)}>
         <SearchIcon size="1em" className='hidden md:block lg:hidden' />
         <span className='block md:hidden lg:block'>Search documents...</span>
         <span className="flex-shrink-0 gap-1 items-center rounded-full hidden md:flex">

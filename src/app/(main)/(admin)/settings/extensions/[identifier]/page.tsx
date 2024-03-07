@@ -1,4 +1,4 @@
-import { getDef } from '@/app/(main)/(admin)/extensions/utils';
+import { getDef } from '@/app/(main)/(admin)/settings/extensions/utils';
 import { baseRegistry } from '@/rag-spec/base';
 import { notFound } from 'next/navigation';
 

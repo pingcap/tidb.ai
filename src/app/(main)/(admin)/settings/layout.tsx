@@ -1,5 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { SettingsNavigation } from '@/app/(main)/(admin)/settings/components';
+import path from 'path'
 
 export default function SettingsLayout({
   children,
@@ -15,11 +16,11 @@ export default function SettingsLayout({
             tabs={tabs.map((tab) => ({
               id: tab.id,
               name: tab.name,
-              href: baseRoute + tab.path,
+              href: path.join(baseRoute, tab.path),
             }))}
           />
         </nav>
-        <div>
+        <div className='lg:flex-1'>
           {children}
         </div>
       </div>
@@ -37,4 +38,5 @@ const tabs = [
   { id: 'llm', name: 'LLM', path: '/llm' },
   { id: 'prompts', name: 'Prompts', path: '/prompts' },
   { id: 'authentication', name: 'Authentication', path: '/authentication' },
+  { id: 'extensions', name: 'Extensions', path: '/extensions' },
 ];

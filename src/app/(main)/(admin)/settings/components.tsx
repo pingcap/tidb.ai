@@ -30,7 +30,7 @@ export function SettingsNavigation(props: {
         <NextLink key={tab.id} href={tab.href}>
           <Button
             className='w-full justify-start'
-            variant={pathname === tab.href ? 'default' : 'ghost'}
+            variant={pathname.startsWith(tab.href) ? 'default' : 'ghost'}
           >
             {tab.name}
           </Button>
