@@ -39,7 +39,10 @@ export default function Page () {
 
   return (
     <>
-      <AdminPageHeading title="Sources" actions={<ImportSiteDialog />} />
+      <AdminPageHeading title="Sources" />
+      <div className='flex justify-end'>
+        <ImportSiteDialog />
+      </div>
       <DataTable columns={columns} data={data} />
     </>
   );
