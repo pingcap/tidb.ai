@@ -1,6 +1,6 @@
 'use client';
 
-import { extensionsDefs } from '@/app/(main)/(admin)/extensions/utils';
+import { extensionsDefs } from '@/app/(main)/(admin)/settings/extensions/utils';
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { AdminPageLayout } from '@/components/admin-page-layout';
 import { Button } from '@/components/ui/button';
@@ -23,11 +23,11 @@ export default function ExtensionsPage () {
   return (
     <AdminPageLayout>
       <AdminPageHeading title="Extensions" />
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl::grid-cols-4">
+      <div className="grid gap-4 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
         {extensions.map(component => <Card key={component.identifier}>
           <CardHeader>
             <CardTitle className="text-sm">
-              <Link className='hover:underline' href={`/extensions/${component.identifier}`} prefetch={false}>
+              <Link className='hover:underline' href={`/settings/extensions/${component.identifier}`} prefetch={false}>
                 {component.displayName}
               </Link>
             </CardTitle>
@@ -63,7 +63,7 @@ const match = (identifier: string) => {
         </span>
         {item.playground && (
           <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="outline" asChild>
-            <Link href={`/extensions/${identifier}/playground`}>
+            <Link href={`/settings/extensions/${identifier}/playground`}>
               Try
               <PlayIcon size="1em" />
             </Link>
@@ -71,7 +71,7 @@ const match = (identifier: string) => {
         )}
         {item.configurable && (
           <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="outline" asChild>
-            <Link href={`/extensions/${identifier}/config`}>
+            <Link href={`/settings/extensions/${identifier}/config`}>
               Config
               <Settings2 size="1em" />
             </Link>
