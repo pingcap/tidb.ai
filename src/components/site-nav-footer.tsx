@@ -19,13 +19,12 @@ export type SiteSocialsType = {
   twitter?: string;
 };
 
-export function SiteNavFooter ({ className, social }: { className?: string, social?: SiteSocialsType }) {
+export function SiteNavFooter ({ className }: { className?: string }) {
   return (
     <div className={cn('w-full', className)}>
       <div className={'h-header p-2 w-full border-t flex gap-0.5 items-center'}>
         <User />
       </div>
-      <SiteNavActionBar className='border-t flex md:hidden p-2' social={social} />
     </div>
   );
 }
