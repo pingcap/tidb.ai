@@ -2,20 +2,32 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useSettings } from "@/hooks";
-import {Textarea} from "@/components/ui/textarea";
-import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
-import {useForm, useFieldArray} from "react-hook-form";
-import {zodResolver} from "@hookform/resolvers/zod";
-import {z} from "zod";
-import {WebsiteSettingUpdatePayload, maxExampleQuestions} from "@/core/schema/setting";
-import {useContext, useEffect} from "react";
-import {ImageUploader} from "@/components/image-uploader";
-import {LanguageSelector} from "@/components/language-selector";
-import {useToast} from "@/components/ui/use-toast";
-import {Loader2} from "lucide-react";
-import {WebsiteSettingContext} from "@/components/website-setting-provider";
-import { useSWRConfig } from "swr";
+import { useSettings } from '@/hooks';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import {
+  WebsiteSettingUpdatePayload,
+  maxExampleQuestions,
+  maxHomepageFooterLinks,
+} from '@/core/schema/setting';
+import { useContext, useEffect } from 'react';
+import { ImageUploader } from '@/components/image-uploader';
+import { LanguageSelector } from '@/components/language-selector';
+import { useToast } from '@/components/ui/use-toast';
+import { Loader2 } from 'lucide-react';
+import { WebsiteSettingContext } from '@/components/website-setting-provider';
+import { useSWRConfig } from 'swr';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 
 function useSettingsForm() {
@@ -30,37 +42,43 @@ function useSettingsForm() {
 
   return form;
 }
-export default function SettingsPage () {
+export default function SettingsPage() {
   const form = useSettingsForm();
   const { toast } = useToast();
-  const { mutate } = useSWRConfig()
+  const { mutate } = useSWRConfig();
 
   async function onSubmit(data: z.infer<typeof WebsiteSettingUpdatePayload>) {
     const res = await fetch('/api/v1/settings', {
       method: 'PUT',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         group: 'website',
-        settings: data
-      })
+        settings: data,
+      }),
     });
 
     if (res.ok) {
-      await mutate(['GET', '/api/v1/settings?group=website'])
+      await mutate(['GET', '/api/v1/settings?group=website']);
     } else {
       toast({
-        variant: "destructive",
-        description: "Failed to update settings, please check the form and try again.",
-      })
+        variant: 'destructive',
+        description:
+          'Failed to update settings, please check the form and try again.',
+      });
     }
   }
 
   const exampleQuestionsForm = useFieldArray({
     control: form.control,
-    name: "homepage.example_questions",
-    rules: { maxLength: maxExampleQuestions } 
+    name: 'homepage.example_questions',
+    rules: { maxLength: maxExampleQuestions },
+  });
+  const homepageFooterLinksForm = useFieldArray({
+    control: form.control,
+    name: 'homepage.footer_links',
+    rules: { maxLength: maxHomepageFooterLinks },
   });
 
   return (
@@ -232,6 +250,82 @@ export default function SettingsPage () {
                   onClick={() =>
                     exampleQuestionsForm.append({
                       text: '',
+                    })
+                  }
+                >
+                  <PlusIcon size='1rem' className='mr-1' />
+                  Append
+                </Button>
+              </div>
+            )}
+          </div>
+          <div className='space-y-2'>
+            <FormLabel>HomePage - Footer Links</FormLabel>
+            {homepageFooterLinksForm.fields.map((field, index) => {
+              return (
+                <div key={field.id} className='flex gap-4'>
+                  <div className='w-full grid grid-cols-2 gap-x-4'>
+                    <FormField
+                      control={form.control}
+                      disabled={form.formState.isSubmitting}
+                      name={`homepage.footer_links.${index}.text`}
+                      render={({ field }) => {
+                        return (
+                          <FormItem>
+                            <FormControl>
+                              <Input
+                                placeholder='Text'
+                                className='w-full'
+                                {...form.register(
+                                  `homepage.footer_links.${index}.text` as const
+                                )}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
+                    />
+                    <FormField
+                      control={form.control}
+                      disabled={form.formState.isSubmitting}
+                      name={`homepage.footer_links.${index}.href`}
+                      render={({ field }) => {
+                        return (
+                          <FormItem>
+                            <FormControl>
+                              <Input
+                                placeholder='Link'
+                                {...form.register(
+                                  `homepage.footer_links.${index}.href` as const
+                                )}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        );
+                      }}
+                    />
+                  </div>
+                  <div className=''>
+                    <Button
+                      variant='outline'
+                      onClick={() => homepageFooterLinksForm.remove(index)}
+                    >
+                      <Trash2Icon size='1rem' className='' />
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+            {homepageFooterLinksForm.fields.length < maxHomepageFooterLinks && (
+              <div>
+                <Button
+                  variant='outline'
+                  onClick={() =>
+                    homepageFooterLinksForm.append({
+                      text: '',
+                      href: '',
                     })
                   }
                 >

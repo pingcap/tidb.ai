@@ -12,6 +12,7 @@ export const languages = [
 export const language = z.enum(["en-US", "zh-CN"]);
 
 export const maxExampleQuestions = 5;
+export const maxHomepageFooterLinks = 5;
 
 export const WebsiteSetting = z.object({
   title: z.string().min(1, 'title must has at latest 1 character').max(20, 'title must has at most 20 characters'),
@@ -22,7 +23,8 @@ export const WebsiteSetting = z.object({
   homepage: z.object({
     title: z.string().min(1, 'homepage title must has at latest 1 character').max(50, 'homepage title must has at most 20 characters'),
     description: z.string().max(200, 'homepage description must has at most 200 characters'),
-    example_questions: z.array(z.object({text: z.string().min(1)})).max(maxExampleQuestions, 'example questions must has at most 5 questions').optional(),
+    example_questions: z.array(z.object({ text: z.string().min(1) })).max(maxExampleQuestions, 'example questions must has at most 5 questions').optional(),
+    footer_links: z.array(z.object({ text: z.string().min(1), href: z.string().min(1) })).optional(),
   }),
   social: z.object({
     twitter: z.string().url('twitter should be a correct URL').optional(),
@@ -39,15 +41,27 @@ const defaultWebsiteSetting: IWebsiteSettingResult = {
   language: 'zh-CN',
   homepage: {
     title: 'Ask anything about TiDB',
-    description: 'Including company intro, user cases, product intro and usage, FAQ, etc.',
-    example_questions: [{text: 'What is TiDB?'}, {text: 'Does TiDB support FOREIGN KEY?'}, {text: 'Does TiDB support serverless?'}]
+    description:
+      'Including company intro, user cases, product intro and usage, FAQ, etc.',
+    example_questions: [
+      { text: 'What is TiDB?' },
+      { text: 'Does TiDB support FOREIGN KEY?' },
+      { text: 'Does TiDB support serverless?' },
+    ],
+    footer_links: [
+      { text: 'Docs', href: '/docs' },
+      { text: 'Deploy your own within 5 minutes for free', href: '/docs' },
+      { text: 'How it works?', href: '/docs' },
+      { text: 'Powered by TiDB', href: 'https://tidb.cloud' },
+      { text: '© 2024 PingCAP', href: 'https://pingcap.com' },
+    ],
   },
   social: {
     github: 'https://github.com/pingcap/tidb.ai',
     twitter: 'https://twitter.com/PingCAP',
-    discord: 'https://discord.gg/XzSW23Jg9p'
-  }
-}
+    discord: 'https://discord.gg/XzSW23Jg9p',
+  },
+};
 
 export const WebsiteSettingResult = WebsiteSetting.partial();
 
