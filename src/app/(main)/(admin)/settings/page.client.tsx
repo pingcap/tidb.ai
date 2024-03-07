@@ -8,7 +8,7 @@ import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, Form
 import {useForm, useFieldArray} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {z} from "zod";
-import {WebsiteSettingUpdatePayload, maxExampleQuestions} from "@/core/schema/setting";
+import {WebsiteSettingUpdatePayload, maxExampleQuestions, IWebsiteSettingResult} from "@/core/schema/setting";
 import {useContext, useEffect} from "react";
 import {ImageUploader} from "@/components/image-uploader";
 import {LanguageSelector} from "@/components/language-selector";
@@ -19,7 +19,7 @@ import { useSWRConfig } from "swr";
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 
 function useSettingsForm() {
-  const settings = useSettings();
+  const settings = useSettings<IWebsiteSettingResult>();
   const form = useForm<z.infer<typeof WebsiteSettingUpdatePayload>>({
     resolver: zodResolver(WebsiteSettingUpdatePayload),
   });

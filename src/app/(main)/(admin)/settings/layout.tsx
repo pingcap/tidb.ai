@@ -19,7 +19,7 @@ export default function SettingsLayout({
             }))}
           />
         </nav>
-        <div>
+        <div className='overflow-auto'>
           {children}
         </div>
       </div>
@@ -37,4 +37,5 @@ const tabs = [
   { id: 'llm', name: 'LLM', path: '/llm' },
   { id: 'prompts', name: 'Prompts', path: '/prompts' },
   { id: 'authentication', name: 'Authentication', path: '/authentication' },
+  { id: 'javascript', name: 'JavaScript', path: '/javascript' },
 ];

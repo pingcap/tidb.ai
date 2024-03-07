@@ -197,7 +197,13 @@ INSERT INTO `option` VALUES
     ('homepage.description', 'website', 'string', '"Including company intro, user cases, product intro and usage, FAQ, etc."'),
     ('homepage.example_questions', 'website', 'array', '[{"text": "What is TiDB?"}, {"text": "Does TiDB support FOREIGN KEY?"}, {"text": "Does TiDB support serverless?"}]'),
     ('social.github', 'website', 'string', '"https://github.com/pingcap/tidb.ai"'),
-    ('social.twitter', 'website', 'string', '"https://twitter.com/PingCAP"');
+    ('social.twitter', 'website', 'string', '"https://twitter.com/PingCAP"'),;
+
+INSERT INTO `option` VALUES
+    ('button_label', 'custom_js', 'string', '"Ask AI"'),
+    ('button_img_src', 'custom_js', 'string', '"https://tidb.ai/tidb-ai.svg"'),
+    ('logo_src', 'custom_js', 'string', '"https://tidb.ai/tidb-ai.svg"'),
+    ('example_questions', 'custom_js', 'array', '[{"text": "What is TiDB?"}, {"text": "Does TiDB support FOREIGN KEY?"}, {"text": "Does TiDB support serverless?"}]');
 
 INSERT INTO `index`(name, llm, llm_model, config, created_at, last_modified_at)
 VALUES ('default', 'openai', 'openai', '{}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

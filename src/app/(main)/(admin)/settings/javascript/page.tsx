@@ -1,9 +1,15 @@
-'use client';
+import JSConfigurePage from '@/app/(main)/(admin)/settings/javascript/page.client';
+import { authGuard } from '@/lib/auth-server';
 
-import * as React from 'react';
+export default async function Page() {
+  await authGuard('admin');
 
-export default function Page() {
-  <>
-    <h2 className='text-xl font-semibold mb-4'>Conversation Search Box JS</h2>
-  </>;
+  return (
+    <>
+      <h1 className='text-xl font-semibold mb-4'>Conversation Search Box JS</h1>
+      <JSConfigurePage />
+    </>
+  );
 }
+
+export const dynamic = 'force-dynamic';
