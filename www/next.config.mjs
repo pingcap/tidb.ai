@@ -4,7 +4,7 @@ import nextra from 'nextra';
 const nextConfig = {
   reactStrictMode: true,
   basePath: '',
-  assetPrefix: '/nextra/_next/static',
+  assetPrefix: '/nextra',
 };
 
 const withNextra = nextra({
