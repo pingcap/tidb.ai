@@ -21,6 +21,22 @@
     {
       "source": "/docs/:match*",
       "destination": "https://rag-docs-pingcap.vercel.app/docs/:match*"
+    },
+    {
+      "source": "/blog",
+      "destination": "https://rag-docs-pingcap.vercel.app/blog"
+    },
+    {
+      "source": "/blog/",
+      "destination": "https://rag-docs-pingcap.vercel.app/blog/"
+    },
+    {
+      "source": "/blog/:match*",
+      "destination": "https://rag-docs-pingcap.vercel.app/blog/:match*"
+    },
+    {
+      "source": "/nextra/:match*",
+      "destination": "https://rag-docs-pingcap.vercel.app/nextra/:match*"
     }
   ]
 }
