@@ -27,6 +27,7 @@ export const WebsiteSetting = z.object({
   social: z.object({
     twitter: z.string().url('twitter should be a correct URL').optional(),
     github: z.string().url('github should be a correct URL').optional(),
+    discord: z.string().url('discord should be a correct URL').optional(),
   }).optional(),
 });
 
@@ -44,6 +45,7 @@ const defaultWebsiteSetting: IWebsiteSettingResult = {
   social: {
     github: 'https://github.com/pingcap/tidb.ai',
     twitter: 'https://twitter.com/PingCAP',
+    discord: 'https://discord.gg/XzSW23Jg9p'
   }
 }
 

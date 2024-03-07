@@ -279,6 +279,25 @@ export default function SettingsPage () {
               );
             }}
           />
+          <FormField
+            control={form.control}
+            disabled={form.formState.isSubmitting}
+            name='social.discord'
+            render={({ field }) => {
+              return (
+                <FormItem>
+                  <FormLabel>Social - Discord</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder='https://discord.gg/XzSW23Jg9p'
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
           <Button type='submit' disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting && (
               <Loader2 className='mr-2 h-4 w-4 animate-spin' />

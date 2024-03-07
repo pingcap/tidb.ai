@@ -197,7 +197,8 @@ INSERT INTO `option` VALUES
     ('homepage.description', 'website', 'string', '"Including company intro, user cases, product intro and usage, FAQ, etc."'),
     ('homepage.example_questions', 'website', 'array', '[{"text": "What is TiDB?"}, {"text": "Does TiDB support FOREIGN KEY?"}, {"text": "Does TiDB support serverless?"}]'),
     ('social.github', 'website', 'string', '"https://github.com/pingcap/tidb.ai"'),
-    ('social.twitter', 'website', 'string', '"https://twitter.com/PingCAP"');
+    ('social.twitter', 'website', 'string', '"https://twitter.com/PingCAP"'),
+    ('social.discord', 'website', 'string', '"https://discord.gg/XzSW23Jg9p"');
 
 INSERT INTO `index`(name, llm, llm_model, config, created_at, last_modified_at)
 VALUES ('default', 'openai', 'openai', '{}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

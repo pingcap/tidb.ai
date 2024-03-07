@@ -17,10 +17,12 @@ export default function Layout ({ children }: {
   const setting = useContext(WebsiteSettingContext);
   usePreloadServerlessTiflashReplicas();
 
-  const socialMemo = useMemo(() => ({
-    github: setting?.social?.github,
-    twitter: setting?.social?.twitter,
-  }), [setting]);
+  const socialMemo = useMemo(
+    () => ({
+      ...setting?.social,
+    }),
+    [setting]
+  );
 
   return (
     <>
