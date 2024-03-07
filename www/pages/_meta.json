@@ -1,4 +1,18 @@
 {
+  "docs": {
+    "type": "page",
+    "title": "Docs"
+  },
+  "blog": {
+    "type": "page",
+    "title": "Blog"
+  },
+  "demo": {
+    "type": "page",
+    "title": "Demo",
+    "href": "https://tidb.ai",
+    "newWindow": true
+  },
   "-- Getting Started": {
     "type": "separator",
     "title": "Getting Started"

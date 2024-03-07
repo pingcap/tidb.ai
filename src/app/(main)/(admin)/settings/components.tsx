@@ -25,13 +25,12 @@ export function SettingsNavigation(props: {
   const pathname = usePathname();
 
   return (
-    <ul className='flex gap-2 items-center'>
+    <ul className='flex lg:flex-col gap-1.5 lg:w-[200px]'>
       {tabs.map((tab) => (
         <NextLink key={tab.id} href={tab.href}>
           <Button
-            className='rounded-full'
-            variant={pathname === tab.href ? 'secondary' : 'ghost'}
-            disabled={pathname === tab.href}
+            className='w-full justify-start'
+            variant={pathname === tab.href ? 'default' : 'ghost'}
           >
             {tab.name}
           </Button>

@@ -8,7 +8,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Toaster } from '@/components/ui/sonner';
 import { usePreloadServerlessTiflashReplicas } from '@/lib/tiflash';
 import Link from 'next/link';
-import {ReactNode, useContext} from 'react';
+import {ReactNode, useContext, useMemo} from 'react';
 import { WebsiteSettingContext } from "@/components/website-setting-provider";
 
 export default function Layout ({ children }: {
@@ -17,17 +17,22 @@ export default function Layout ({ children }: {
   const setting = useContext(WebsiteSettingContext);
   usePreloadServerlessTiflashReplicas();
 
+  const socialMemo = useMemo(() => ({
+    github: setting?.social?.github,
+    twitter: setting?.social?.twitter,
+  }), [setting]);
+
   return (
     <>
       <div className="md:flex md:min-h-screen">
         <header className="md:hidden h-header px-2 sticky top-0 bg-background border-b z-10 flex gap-2 items-center">
-          <NavDrawer />
+          <NavDrawer social={socialMemo} />
           <Branding setting={setting}/>
         </header>
         <div className="fixed top-1.5 right-2 md:top-4 md:right-4 z-10">
           <div className="flex gap-2 items-center">
             <SemanticSearch />
-            <SiteNavActionBar className='md:flex hidden' />
+            <SiteNavActionBar className='md:flex hidden h-fit' social={socialMemo} />
           </div>
         </div>
         <aside className="flex-shrink-0 gap-4 w-side h-screen hidden md:block border-r fixed top-0 left-0">
@@ -37,7 +42,7 @@ export default function Layout ({ children }: {
           <ScrollArea className="h-[calc(100vh-6rem)] pr-2">
             <Nav />
           </ScrollArea>
-          <SiteNavFooter className="absolute bottom-0 left-0 bg-background" />
+          <SiteNavFooter className="absolute bottom-0 left-0 bg-background" social={socialMemo} />
         </aside>
         <main className="flex-1 md:ml-side md:w-content overflow-x-hidden">
           {children}

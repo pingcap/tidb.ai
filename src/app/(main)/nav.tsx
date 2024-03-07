@@ -1,8 +1,8 @@
 'use client';
 
 import { Ask } from '@/components/ask';
-import { type NavGroup, type NavItem, SiteNav } from '@/components/site-nav';
-import { SiteNavFooter } from '@/components/site-nav-footer';
+import { type NavGroup, SiteNav } from '@/components/site-nav';
+import { SiteNavFooter, type SiteSocialsType } from '@/components/site-nav-footer';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogOverlay, DialogPortal } from '@/components/ui/dialog';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
@@ -12,13 +12,14 @@ import { useAsk } from '@/components/use-ask';
 import { useHref } from '@/components/use-href';
 import type { DB } from '@/core/db/schema';
 import { useUser } from '@/lib/auth';
+import type { Page } from '@/lib/database';
 import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
+import { deleteChat } from '@/operations/chats';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import type { Selectable } from 'kysely';
-import { ActivitySquareIcon, CommandIcon, FingerprintIcon, HomeIcon, ImportIcon, LibraryIcon, ListIcon, MenuIcon, MessagesSquareIcon, SearchIcon, CogIcon, ShieldCheckIcon, TextIcon, UsersIcon, FileIcon } from 'lucide-react';
+import { ActivitySquareIcon, CogIcon, CommandIcon, FileIcon, HomeIcon, ImportIcon, ListIcon, MenuIcon, MessagesSquareIcon, SearchIcon } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
@@ -32,7 +33,7 @@ export function Nav () {
     setOpen(false);
   });
   const user = useUser();
-  const { data: history = [], mutate, isLoading } = useSWR(['get', '/api/v1/chats'], fetcher<Selectable<DB['chat']>[]>, {});
+  const { data: history, mutate, isLoading } = useSWR(['get', '/api/v1/chats'], fetcher<Page<Selectable<DB['chat']>>>, {});
 
   useEffect(() => {
     void mutate();
@@ -66,9 +67,17 @@ export function Nav () {
             { key: 'placeholder-2', onClick: () => {}, title: <Skeleton className="w-48 h-[1em] rounded" />, variant: 'ghost', disabled: true, className: conversationItemClassName } as const,
             { key: 'placeholder-3', onClick: () => {}, title: <Skeleton className="w-24 h-[1em] rounded" />, variant: 'ghost', disabled: true, className: conversationItemClassName } as const,
           ] : []),
-          ...history.map(chat => (
-            { href: `/c/${chat.id}`, title: chat.name, variant: (active: boolean) => (active ? 'secondary' : 'ghost'), className: conversationItemClassName }
-          )),
+          ...(history?.data.map(chat => (
+            {
+              href: `/c/${chat.id}`,
+              title: chat.name,
+              variant: (active: boolean) => (active ? 'secondary' : 'ghost'),
+              className: conversationItemClassName,
+              onDelete: () => {
+                deleteChat(chat.id).then(() => mutate(undefined, { revalidate: true }));
+              },
+            }
+          )) ?? []),
         ],
       },
     ];
@@ -108,7 +117,9 @@ export function Nav () {
   );
 }
 
-export function NavDrawer () {
+export function NavDrawer(props: {
+  social?: SiteSocialsType;
+}) {
   return (
     <Drawer>
       <DrawerTrigger className="flex md:hidden flex-shrink-0" asChild>
@@ -119,7 +130,7 @@ export function NavDrawer () {
       <DrawerContent className="px-2">
         <ScrollArea className="h-[50vh]">
           <Nav />
-          <SiteNavFooter className="bg-background" />
+          <SiteNavFooter className="bg-background" social={props?.social} />
         </ScrollArea>
       </DrawerContent>
     </Drawer>
