@@ -19,7 +19,7 @@ import NextLink from 'next/link';
 import { usePathname } from 'next/navigation';
 
 export function SettingsNavigation(props: {
-  tabs: { id: string; name: string; href: string }[];
+  tabs: { id: string; name: string; href: string, exact?: boolean }[];
 }) {
   const { tabs } = props;
   const pathname = usePathname();
@@ -30,7 +30,7 @@ export function SettingsNavigation(props: {
         <NextLink key={tab.id} href={tab.href}>
           <Button
             className='w-full justify-start'
-            variant={pathname.startsWith(tab.href) ? 'default' : 'ghost'}
+            variant={(tab.exact ? pathname === tab.href : pathname.startsWith(tab.href)) ? 'default' : 'ghost'}
           >
             {tab.name}
           </Button>
