@@ -1,12 +1,12 @@
 'use client';
 
-import type { ConfigProps } from '@/app/(main)/(admin)/extensions/[identifier]/config/common';
+import type { ConfigProps } from '@/app/(main)/(admin)/settings/extensions/[identifier]/config/common';
 import { ExtensionConfig, useExtension, useExtensionConfig } from '@/components/extension-config';
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { getErrorMessage } from '@/lib/error';
 
-export function ConfigPrompting ({ identifier, base }: ConfigProps) {
+export function ConfigSplitter ({ identifier, base }: ConfigProps) {
   const Extension = useExtension(identifier);
   const { submitError, reset, ...props } = useExtensionConfig(base, Extension);
   const hasConfig = Object.keys(Extension.optionsSchema.shape).length > 0;
@@ -29,4 +29,8 @@ export function ConfigPrompting ({ identifier, base }: ConfigProps) {
       </div>
     </div>
   );
+}
+
+export function Try () {
+  return null;
 }

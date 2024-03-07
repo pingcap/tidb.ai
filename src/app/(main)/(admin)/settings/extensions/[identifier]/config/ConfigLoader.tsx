@@ -1,6 +1,6 @@
 'use client';
 
-import type { ConfigProps } from '@/app/(main)/(admin)/extensions/[identifier]/config/common';
+import type { ConfigProps } from '@/app/(main)/(admin)/settings/extensions/[identifier]/config/common';
 import { ExtensionConfig, useExtension, useExtensionConfig } from '@/components/extension-config';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
