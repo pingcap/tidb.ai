@@ -1,5 +1,5 @@
 const themeConfig = {
-  docsRepositoryBase: 'https://github.com/pingcap/tidb.ai/tree/main/docs',
+  docsRepositoryBase: 'https://github.com/pingcap/tidb.ai/tree/main/www',
   useNextSeoProps() {
     return {
       titleTemplate: '%s - RAG by TiDB ',
