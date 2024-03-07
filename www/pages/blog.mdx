@@ -41,9 +41,9 @@ export function BlogIndex() {
             {page.meta?.title || page.frontMatter?.title || page.name}
         </Link>
         <p className="opacity-80" style={{ marginTop: ".5rem" }}>
-          {page.frontMatter?.description}{" "}
+          {page.frontMatter?.description}
           <span className="inline-block">
-            <Link href={page.route} className="opacity-60 hover:opacity-100">&nbsp;&nbsp;{" Read more →"}</Link>
+            <Link href={page.route} className="ml-4 opacity-60 hover:opacity-100">{" Read more →"}</Link>
           </span>
         </p>
         {page.frontMatter?.date ? (
