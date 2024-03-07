@@ -78,6 +78,7 @@ const themeConfig = {
       </span>
     </>
   ),
+  logoLink: 'https://tidb.ai',
   footer: {
     text: (
       <span>
