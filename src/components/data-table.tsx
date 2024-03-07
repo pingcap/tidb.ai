@@ -4,10 +4,12 @@ import { Button } from '@/components/ui/button';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DataTableProvider } from '@/components/use-data-table';
+import { cn } from '@/lib/utils';
 import { ColumnDef, flexRender, getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table';
 import type { ReactNode } from 'react';
 
 interface DataTableProps<TData, TValue> {
+  className?: string;
   before?: ReactNode;
   after?: ReactNode;
   columns: ColumnDef<TData, TValue>[];
@@ -15,6 +17,7 @@ interface DataTableProps<TData, TValue> {
 }
 
 export function DataTable<TData, TValue> ({
+  className,
   columns,
   data,
   before,
@@ -30,7 +33,7 @@ export function DataTable<TData, TValue> ({
   return (
     <DataTableProvider value={table}>
       {before}
-      <div className="rounded-md border">
+      <div className={cn('rounded-md border', className)}>
         <Table className='text-xs whitespace-nowrap'>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
