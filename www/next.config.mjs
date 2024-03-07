@@ -5,11 +5,6 @@ const nextConfig = {
   reactStrictMode: true,
   basePath: '',
   assetPrefix: '/nextra',
-  rewrites() {
-    return [
-      { source: '/nextra/_next/:path*', destination: '/_next/:path*' }
-    ]
-  }
 };
 
 const withNextra = nextra({
