@@ -6,7 +6,7 @@ export default function Layout ({ children, params }: { children: ReactNode, par
   const Extension = useExtension(decodeURIComponent(params.identifier));
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 relative">
       <h1 className="text-xl font-semibold">
         <BackwardButton className="mr-2" variant="ghost" />
         {Extension.displayName} | Configuration
