@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { IWebsiteSettingResult } from "@/core/schema/setting";
 import { useSettings } from '@/hooks';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -26,12 +27,11 @@ import { ImageUploader } from '@/components/image-uploader';
 import { LanguageSelector } from '@/components/language-selector';
 import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
-import { WebsiteSettingContext } from '@/components/website-setting-provider';
 import { useSWRConfig } from 'swr';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 
 function useSettingsForm() {
-  const settings = useSettings();
+  const settings = useSettings<IWebsiteSettingResult>();
   const form = useForm<z.infer<typeof WebsiteSettingUpdatePayload>>({
     resolver: zodResolver(WebsiteSettingUpdatePayload),
   });

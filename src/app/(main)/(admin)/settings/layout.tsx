@@ -21,7 +21,7 @@ export default function SettingsLayout({
             }))}
           />
         </nav>
-        <div className='lg:flex-1'>
+        <div className='overflow-auto lg:flex-1'>
           {children}
         </div>
       </div>
@@ -39,5 +39,6 @@ const tabs = [
   { id: 'llm', name: 'LLM', path: '/llm' },
   { id: 'prompts', name: 'Prompts', path: '/prompts' },
   { id: 'authentication', name: 'Authentication', path: '/authentication' },
+  { id: 'javascript', name: 'JavaScript', path: '/javascript' },
   { id: 'extensions', name: 'Extensions', path: '/extensions' },
 ];

@@ -1,4 +1,5 @@
 packages:
   - .
   - extensions/*
-  - 'docs/**'
+  - '!conversation-search-box/**'
+  - 'www/**'
