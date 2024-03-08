@@ -272,15 +272,12 @@ export const indexDb: IndexDb = {
       .innerJoin('document', 'document.id', 'document_index_chunk_partitioned.document_id')
       .where('index_query_id', '=', eb => eb.val(id))
       .select([
-        'index_query_result.document_index_chunk_id',
-        'index_query_result.relevance_score',
-        'index_query_result.score',
         'document_index_chunk_partitioned.namespace_id',
         'document_index_chunk_partitioned.document_id',
-        'document_index_chunk_partitioned.chunk_id',
-        'document_index_chunk_partitioned.embedding',
+        'document_index_chunk_partitioned.chunk_id as document_index_chunk_id',
         'document_index_chunk_partitioned.text_content',
         'document_index_chunk_partitioned.metadata',
+        'index_query_result.score',
         'document.source_uri',
         'document.name as source_name',
       ])
