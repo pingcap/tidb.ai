@@ -4,7 +4,6 @@ import { __useHandleInitialMessage } from '@/app/(main)/(public)/c/[id]/internal
 import { ConversationMessageGroups } from '@/components/conversation-message-group';
 import { MessageInput } from '@/components/message-input';
 import type { DB } from '@/core/db/schema';
-import { searching_uri_prefix } from '@/lib/site-data';
 import { cn } from '@/lib/utils';
 import { useChat } from 'ai/react';
 import type { Selectable } from 'kysely';
@@ -67,7 +66,8 @@ function useMyChat (history: Selectable<DB['chat_message']>[], context: { ordina
     api: '/api/v1/chats',
     body: {
       sessionId: session,
-      source_uri_prefixes: searching_uri_prefix,
+      // TODO: Support specifying namespaces manually.
+      namespaces: [],
     },
     key: session,
     initialMessages: history,

@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { handleErrors } from '@/lib/fetch';
-import { searching_uri_prefix } from '@/lib/site-data';
 import { CommandIcon, LinkIcon, SearchIcon } from 'lucide-react';
 import { useEffect, useState, useTransition } from 'react';
 
@@ -69,7 +68,8 @@ function InternalSearchBox () {
         body: JSON.stringify({
           text,
           top_k: 5,
-          source_uri_prefixes: searching_uri_prefix,
+          // TODO: Support specifying namespaces manually.
+          namespaces: [],
         }),
       }).then(handleErrors)
         .then(res => res.json())

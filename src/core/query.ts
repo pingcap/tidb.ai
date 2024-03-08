@@ -9,14 +9,15 @@ export const querySchema = z.object({
   text: z.string(),
   top_k: z.number(),
   search_top_k: z.number().optional(),
-  source_uri_prefixes: z.string().array().optional(),
+  namespaces: z.string().array().optional(),
 });
 
-export async function query (indexName: string, llm: string, { text, search_top_k, top_k, source_uri_prefixes }: z.infer<typeof querySchema>) {
+export type QueryRequest = z.infer<typeof querySchema>;
+
+export async function query (indexName: string, llm: string, { text, search_top_k, top_k, namespaces = [] }: QueryRequest) {
   const flow = await getFlow(baseRegistry);
   const embeddings = flow.getEmbeddings(llm);
   const reranker = flow.getReranker();
-
   const vector = await embeddings.embedQuery(text);
 
   const id = genId();
@@ -28,8 +29,11 @@ export async function query (indexName: string, llm: string, { text, search_top_
     index_name: indexName,
   });
 
-  // Semantic search for chunks
-  const searchedTop = (await database.index._query('default', vector, search_top_k ?? top_k * 10, { source_uri_prefixes }));
+  // Semantic search for chunks.
+  const namespaceIds = await database.namespace.getNamespaceIdsByNames(namespaces);
+  const searchedTop = await database.index._query('default', vector, search_top_k ?? top_k * 10, {
+    namespaceIds: namespaceIds,
+  });
 
   await database.index.finishQuery(id, searchedTop.map(res => ({
     document_index_chunk_id: res.document_index_chunk_id,
@@ -38,6 +42,8 @@ export async function query (indexName: string, llm: string, { text, search_top_
   })));
 
   // TODO: expand chunk size?
+
+  // TODO: make rerank as optional. If no rerank, return the top k results.
 
   // Rerank results
   const rerankedResult = await reranker.rerank(text, searchedTop, top_k);

@@ -1,6 +1,7 @@
 import type { AIStreamCallbacksAndOptions } from 'ai';
 import type { FC } from 'react';
 import { z, type ZodObject } from 'zod';
+import {Namespace} from "@/core/db/schema";
 
 export namespace rag {
   export interface Content<ContentMetadata> {
@@ -124,11 +125,14 @@ export namespace rag {
     abstract process (task: { url: string }): Promise<ImportSourceTaskResult>
   }
 
-  export type Retriever = (query: string, top_k: number) => Promise<{ id: string, top: RetrievedContext[] }>;
+  export type Retriever = (query: string, top_k: number, namespace: string[]) => Promise<{ id: string, top: RetrievedContext[] }>;
 
   export type PromptingContext = {
     model: ChatModel<any>;
     retriever: Retriever;
+    commonNamespaces: string[];
+    specifyNamespaces: string[];
+    candidateNamespaces: Namespace[];
   }
 
   export interface RetrievedContext {

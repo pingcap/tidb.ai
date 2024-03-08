@@ -12,6 +12,16 @@ import type { Selectable } from 'kysely';
 import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import db from "@/core/db";
+import {rag} from "@/core/interface";
+import PromptingContext = rag.PromptingContext;
+
+const ChatRequest = z.object({
+  messages: z.object({ role: z.string(), content: z.string() }).array(),
+  sessionId: z.string().optional(),
+  name: z.string().optional(),
+  namespaces: z.string().array().optional(),
+});
 
 export const POST = auth(async function POST (req) {
   const userId = req.auth?.user?.id;
@@ -19,12 +29,12 @@ export const POST = auth(async function POST (req) {
     return new NextResponse('Need authorization', { status: 401 });
   }
 
-  const { name, messages, sessionId, source_uri_prefixes } = z.object({
-    messages: z.object({ role: z.string(), content: z.string() }).array(),
-    sessionId: z.string().optional(),
-    name: z.string().optional(),
-    source_uri_prefixes: z.string().array().optional(),
-  }).parse(await req.json());
+  const {
+    name,
+    messages,
+    sessionId,
+    namespaces: specifyNamespaces = []
+  } = ChatRequest.parse(await req.json());
 
   // Create session request
   if (messages.length === 0) {
@@ -42,22 +52,32 @@ export const POST = auth(async function POST (req) {
   const message = messages.findLast(message => message.role === 'user')!.content;
 
   const { id, history } = await appendMessage(name, sessionId, message, userId);
-
   const index = (await database.index.findByName('default'))!;
-  const flow = await getFlow(baseRegistry, undefined, index.config);
-
   const answerId = genId();
 
+  const flow = await getFlow(baseRegistry, undefined, index.config);
   const model = flow.getChatModel('openai');
   const prompting = flow.getPrompting();
 
-  const question = await prompting.refine({
+  // Prepare namespaces for retrieval.
+  const allNamespaces = await db.namespace.listNamespaces();
+  const commonNamespaces = allNamespaces.filter(namespace => namespace.common).map(namespace => namespace.name);
+  const candidateNamespaces = allNamespaces.filter(namespace => !namespace.common);
+
+  const promptContext: PromptingContext = {
     model,
-    retriever: (text, top_k) => query('default', index.llm, { text, top_k, source_uri_prefixes }),
-  }, message);
+    retriever: (text, top_k, namespaces) => {
+     return query('default', index.llm, { text, top_k, namespaces });
+    },
+    commonNamespaces,
+    specifyNamespaces: specifyNamespaces,
+    candidateNamespaces
+  };
+
+  const refinedRequest = await prompting.refine(promptContext, message);
 
   const stream = await model.chatStream([
-    ...question.messages,
+    ...refinedRequest.messages,
     { role: 'user', content: message },
   ], {
     onStart: async () => {
@@ -68,7 +88,7 @@ export const POST = auth(async function POST (req) {
         role: 'assistant',
         content: '',
         created_at: new Date(),
-        index_query_id: 'queryId' in question ? question.queryId : null,
+        index_query_id: 'queryId' in refinedRequest ? refinedRequest.queryId : null,
       }]);
     },
     onCompletion: async completion => {
@@ -82,9 +102,9 @@ export const POST = auth(async function POST (req) {
 
   const streamData = new experimental_StreamData();
 
-  if ('context' in question) {
+  if ('context' in refinedRequest) {
     const contextUris = new Map<string, { title: string, uri: string }>();
-    question.context.forEach(item => {
+    refinedRequest.context.forEach(item => {
       contextUris.set(item.source_uri, {
         title: item.source_name,
         uri: item.source_uri,
@@ -93,7 +113,7 @@ export const POST = auth(async function POST (req) {
 
     streamData.append({
       [String(history.length + 2)]: {
-        queryId: question.queryId,
+        queryId: refinedRequest.queryId,
         context: Array.from(contextUris.values()),
       },
     });

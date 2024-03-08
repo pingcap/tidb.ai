@@ -11,4 +11,5 @@ export const db = new Kysely<DB>({
       } : undefined,
     }),
   }),
+  log: ['query']
 });
