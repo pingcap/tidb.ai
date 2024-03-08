@@ -16,7 +16,7 @@ Copy the following JavaScript and insert into your HTML Head file:
 
   <script
     async
-    src="https://s3.us-west-2.amazonaws.com/rag.tidb.ai/rag-widget.js"
+    src="https://tidb.ai/rag-widget.js"
     data-id="tidb-ai-widget"
     data-name="tidb-ai-widget"
     data-btn-label="Ask AI"

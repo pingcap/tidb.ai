@@ -210,7 +210,7 @@ function CustomJsCodeBlock(props: { data: ICustomJsSettingResult }) {
   const { data } = props;
 
   const strMemo = React.useMemo(() => {
-    const strHead = `<script\n  async\n  src='https://s3.us-west-2.amazonaws.com/rag.tidb.ai/rag-widget.js'\n  data-id='tidb-ai-widget'\n  data-name='tidb-ai-widget'`;
+    const strHead = `<script\n  async\n  src='https://tidb.ai/rag-widget.js'\n  data-id='tidb-ai-widget'\n  data-name='tidb-ai-widget'`;
     const strTail = '\n/>';
     const template = {
       ['data-btn-label']: data.button_label,
