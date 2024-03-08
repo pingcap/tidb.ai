@@ -1,5 +1,8 @@
+import { useRouter } from 'next/router'
+import { useConfig } from 'nextra-theme-docs'
+
 const themeConfig = {
-  docsRepositoryBase: 'https://github.com/pingcap/tidb.ai/tree/main/docs',
+  docsRepositoryBase: 'https://github.com/pingcap/tidb.ai/tree/main/www',
   useNextSeoProps() {
     return {
       titleTemplate: '%s - RAG by TiDB ',
@@ -39,13 +42,24 @@ const themeConfig = {
       </>
     ),
   },
-  head: (
-    <>
-      <meta name='viewport' content='width=device-width, initial-scale=1.0' />
-      <meta property='og:title' content='rag.TiDB.ai Docs' />
-      <meta property='og:description' content='The docs site of rag.TiDB.ai' />
-    </>
-  ),
+  head: () => {
+    const { asPath, defaultLocale, locale } = useRouter()
+    const { frontMatter } = useConfig()
+    const url =
+      'https://tidb.ai' +
+      (defaultLocale === locale ? asPath : `/${locale}${asPath}`)
+ 
+    return (
+      <>
+        <meta property="og:url" content={url} />
+        <meta property="og:title" content={frontMatter.title || 'Nextra'} />
+        <meta
+          property="og:description"
+          content={frontMatter.description || 'Docs & Blogs of TiDB.ai'}
+        />
+      </>
+    )
+  },
   logo: (
     <>
       <svg
@@ -78,6 +92,7 @@ const themeConfig = {
       </span>
     </>
   ),
+  logoLink: 'https://tidb.ai/docs',
   footer: {
     text: (
       <span>

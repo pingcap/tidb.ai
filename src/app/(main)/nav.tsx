@@ -117,9 +117,7 @@ export function Nav () {
   );
 }
 
-export function NavDrawer(props: {
-  social?: SiteSocialsType;
-}) {
+export function NavDrawer() {
   return (
     <Drawer>
       <DrawerTrigger className="flex md:hidden flex-shrink-0" asChild>
@@ -130,7 +128,7 @@ export function NavDrawer(props: {
       <DrawerContent className="px-2">
         <ScrollArea className="h-[50vh]">
           <Nav />
-          <SiteNavFooter className="bg-background" social={props?.social} />
+          <SiteNavFooter className="bg-background" />
         </ScrollArea>
       </DrawerContent>
     </Drawer>

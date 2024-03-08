@@ -196,8 +196,10 @@ INSERT INTO `option` VALUES
     ('homepage.title', 'website', 'string', '"Ask anything about TiDB"'),
     ('homepage.description', 'website', 'string', '"Including company intro, user cases, product intro and usage, FAQ, etc."'),
     ('homepage.example_questions', 'website', 'array', '[{"text": "What is TiDB?"}, {"text": "Does TiDB support FOREIGN KEY?"}, {"text": "Does TiDB support serverless?"}]'),
+    ('homepage.footer_links', 'website', 'array', '[{"text":"Docs","href":"/docs"},{"text":"Deploy your own within 5 minutes for free","href":"/docs"},{"text":"How it works?","href":"/docs"},{"text":"Powered by TiDB","href":"https://tidb.cloud"},{"text":"© 2024 PingCAP","href":"https://pingcap.com"}]'),
     ('social.github', 'website', 'string', '"https://github.com/pingcap/tidb.ai"'),
-    ('social.twitter', 'website', 'string', '"https://twitter.com/PingCAP"'),;
+    ('social.twitter', 'website', 'string', '"https://twitter.com/PingCAP"'),
+    ('social.discord', 'website', 'string', '"https://discord.gg/XzSW23Jg9p"');
 
 INSERT INTO `option` VALUES
     ('button_label', 'custom_js', 'string', '"Ask AI"'),

@@ -1,5 +1,5 @@
 ---
-description: The latest updates and releases from the TiDB.ai
+description: Best Choice for MySQL Users To Build AI Apps
 type: posts
 ---
 
@@ -13,7 +13,7 @@ export function BlogHeader() {
         <span className="font-bold leading-tight lg:text-5xl">Blog</span>
       </h1>
       <p className="text-center text-gray-500 dark:text-gray-400 font-space-grotesk">
-        The latest updates and releases from the TiDB.ai
+        Best Choice for MySQL Users To Build AI Apps
       </p>
     </div>
   );
@@ -41,9 +41,9 @@ export function BlogIndex() {
             {page.meta?.title || page.frontMatter?.title || page.name}
         </Link>
         <p className="opacity-80" style={{ marginTop: ".5rem" }}>
-          {page.frontMatter?.description}{" "}
+          {page.frontMatter?.description}
           <span className="inline-block">
-            <Link href={page.route}>{"Read more →"}</Link>
+            <Link href={page.route} className="ml-4 opacity-60 hover:opacity-100">{" Read more →"}</Link>
           </span>
         </p>
         {page.frontMatter?.date ? (

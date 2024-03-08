@@ -17,6 +17,7 @@ export default function SettingsLayout({
               id: tab.id,
               name: tab.name,
               href: path.join(baseRoute, tab.path),
+              exact: tab.exact,
             }))}
           />
         </nav>
@@ -31,7 +32,7 @@ export default function SettingsLayout({
 const baseRoute = '/settings';
 
 const tabs = [
-  { id: 'customization', name: 'Customization', path: '' },
+  { id: 'customization', name: 'Customization', path: '', exact: true },
   { id: 'integrations', name: 'Integrations', path: '/integrations' },
   { id: 'sources', name: 'Sources', path: '/sources' },
   { id: 'tasks', name: 'Tasks', path: '/tasks' },

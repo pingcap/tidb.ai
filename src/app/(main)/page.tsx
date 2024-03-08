@@ -34,8 +34,8 @@ export default function Page () {
         </ul>)}
       </div>
       <div className='lg:h-[var(--ask-referral-height)] h-1/3 flex lg:justify-center justify-end items-center gap-4 lg:flex-row flex-col pb-4 lg:pb-0' style={{display: 'auto'}}>
-        {footerLinks.map(link => (
-          <NextLink key={link.id} href={link.href} target='_blank' className='font-light text-sm hover:underline opacity-50 flex justify-center'>
+        {homepage?.footer_links?.map(link => (
+          <NextLink key={link.text} href={link.href} target='_blank' className='font-light text-sm hover:underline opacity-50 flex justify-center'>
             {link.text}
           </NextLink>
         ))}
@@ -43,31 +43,3 @@ export default function Page () {
     </div>
   );
 }
-
-const footerLinks = [
-  {
-    id: 'docs',
-    text: 'Docs',
-    href: '/docs',
-  },
-  {
-    id: 'deploy',
-    text: 'Deploy your own within 5 minutes for free',
-    href: '/docs',
-  },
-  {
-    id: 'how-it-works',
-    text: 'How it works?',
-    href: '/docs',
-  },
-  {
-    id: 'powered-by',
-    text: 'Powered by TiDB',
-    href: 'https://tidb.cloud',
-  },
-  {
-    id: 'copyright',
-    text: '© 2024 PingCAP',
-    href: 'https://pingcap.com',
-  },
-];

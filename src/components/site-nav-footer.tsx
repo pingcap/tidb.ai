@@ -1,5 +1,6 @@
 import GithubSvg from '@/components/icons/github.svg';
 import TwitterXSvg from '@/components/icons/twitter-x.svg';
+import DiscordSvg from '@/components/icons/discord.svg';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -17,15 +18,15 @@ import clsx from 'clsx';
 export type SiteSocialsType = {
   github?: string;
   twitter?: string;
+  discord?: string;
 };
 
-export function SiteNavFooter ({ className, social }: { className?: string, social?: SiteSocialsType }) {
+export function SiteNavFooter ({ className }: { className?: string }) {
   return (
     <div className={cn('w-full', className)}>
       <div className={'h-header p-2 w-full border-t flex gap-0.5 items-center'}>
         <User />
       </div>
-      <SiteNavActionBar className='border-t flex md:hidden p-2' social={social} />
     </div>
   );
 }
@@ -50,6 +51,14 @@ export function SiteNavActionBar(props: {
         <NextLink href={social.twitter} target='_blank' className=''>
           <Button size='icon' variant='ghost' className='rounded-full'>
             <TwitterXSvg />
+          </Button>
+        </NextLink>
+      )}
+
+      {social.discord && (
+        <NextLink href={social.discord} target='_blank' className=''>
+          <Button size='icon' variant='ghost' className='rounded-full'>
+            <DiscordSvg />
           </Button>
         </NextLink>
       )}
