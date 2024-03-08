@@ -4,7 +4,6 @@ import { extensionsDefs } from '@/app/(main)/(admin)/settings/extensions/utils';
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { AdminPageLayout } from '@/components/admin-page-layout';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetcher } from '@/lib/fetch';
 import { DotIcon, PlayIcon, Settings2, ShieldCheckIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -23,20 +22,22 @@ export default function ExtensionsPage () {
   return (
     <AdminPageLayout>
       <AdminPageHeading title="Extensions" />
-      <div className="grid gap-4 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
-        {extensions.map(component => <Card key={component.identifier}>
-          <CardHeader>
-            <CardTitle className="text-sm">
-              <Link className='hover:underline' href={`/settings/extensions/${component.identifier}`} prefetch={false}>
-                {component.displayName}
-              </Link>
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {match(component.identifier)}
-          </CardContent>
-        </Card>)}
-      </div>
+      <ul className="grid gap-4 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
+        {extensions.map(component => (
+          <li key={component.identifier} className='p-2 rounded-lg hover:bg-secondary transition-colors space-y-1'>
+            <div>
+              <div className="text-sm">
+                <Link className="hover:underline" href={`/settings/extensions/${component.identifier}`} prefetch={false}>
+                  {component.displayName}
+                </Link>
+              </div>
+            </div>
+            <div>
+              {match(component.identifier)}
+            </div>
+          </li>
+        ))}
+      </ul>
     </AdminPageLayout>
   );
 }
@@ -48,21 +49,12 @@ const match = (identifier: string) => {
   if (item) {
     return (
       <div className="flex gap-2 items-center text-xs text-muted-foreground">
-        {isOfficial && (
-          <>
-            <span className="flex items-center gap-1 text-muted-foreground ">
-              <ShieldCheckIcon size="1em" />
-              Official
-            </span>
-            <DotIcon size="1em" />
-          </>
-        )}
         <span className="flex items-center gap-1">
           <item.icon size="1em" />
           {item.title}
         </span>
         {item.playground && (
-          <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="outline" asChild>
+          <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="ghost" asChild>
             <Link href={`/settings/extensions/${identifier}/playground`}>
               Try
               <PlayIcon size="1em" />
@@ -70,9 +62,8 @@ const match = (identifier: string) => {
           </Button>
         )}
         {item.configurable && (
-          <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="outline" asChild>
+          <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="ghost" asChild>
             <Link href={`/settings/extensions/${identifier}/config`}>
-              Config
               <Settings2 size="1em" />
             </Link>
           </Button>
