@@ -52,7 +52,7 @@ function useMyChat (history: Selectable<DB['chat_message']>[], context: { ordina
   const pathname = usePathname();
 
   const [isWaiting, setWaiting] = useState(false);
-  const [session, setSession] = useState<string | undefined>(() => params?.id && decodeURIComponent(params.id));
+  const [session, setSession] = useState<string | undefined>(() => params.id && decodeURIComponent(params.id));
   const router = useRouter();
 
   useEffect(() => {

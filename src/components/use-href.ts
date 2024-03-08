@@ -6,7 +6,7 @@ export function useHref () {
   const searchParams = useSearchParams();
 
   return useMemo(() => {
-    const search = searchParams?.toString()
+    const search = searchParams.toString()
     if (search) {
       return `${pathname}?${search}`
     } else {
