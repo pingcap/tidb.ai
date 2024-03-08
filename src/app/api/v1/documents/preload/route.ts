@@ -12,11 +12,7 @@ export async function POST (req: NextRequest) {
       console.log('Preloading TiFlash replicas ...')
       await preloadTiFlashReplicas([
         {
-          table: 'document',
-          columns: ['source_uri']
-        },
-        {
-          table: 'document_index_chunk',
+          table: 'document_index_chunk_partitioned',
           columns: ['embedding']
         }
       ]);
