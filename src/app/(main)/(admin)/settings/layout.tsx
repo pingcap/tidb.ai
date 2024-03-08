@@ -21,7 +21,7 @@ export default function SettingsLayout({
             }))}
           />
         </nav>
-        <div className='overflow-auto lg:flex-1 relative min-h-full px-2'>
+        <div className='overflow-auto lg:flex-1 relative min-h-full px-2 relative'>
           {children}
         </div>
       </div>
