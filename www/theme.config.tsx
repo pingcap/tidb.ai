@@ -52,10 +52,22 @@ const themeConfig = {
     return (
       <>
         <meta property="og:url" content={url} />
-        <meta property="og:title" content={frontMatter.title || 'Nextra'} />
+        <meta property="og:title" content={frontMatter.title || 'TiDB.AI'} />
         <meta
           property="og:description"
-          content={frontMatter.description || 'Docs & Blogs of TiDB.ai'}
+          content={frontMatter.description || 'Docs & Blogs of TiDB.AI'}
+        />
+        <link
+          rel="shortcut icon"
+          href={`/icon-light.svg`}
+          type="image/svg+xml"
+          media="(prefers-color-scheme: dark)"
+        />
+        <link
+          rel="shortcut icon"
+          href={`/icon-dark.svg`}
+          type="image/svg+xml"
+          media="(prefers-color-scheme: light)"
         />
       </>
     )
