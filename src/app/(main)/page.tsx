@@ -12,7 +12,7 @@ export default function Page () {
   const { homepage } = useContext(WebsiteSettingContext);
 
   return (
-    <div className='h-body lg:h-screen min-h-screen'>
+    <div className='h-body'>
       <div className="lg:h-[calc(100%-var(--ask-referral-height))] h-2/3 p-4 lg:p-0 flex flex-col items-center justify-center gap-4 relative">
         <h1 className="text-2xl sm:text-4xl font-light text-center">
           {homepage?.title || ''}
