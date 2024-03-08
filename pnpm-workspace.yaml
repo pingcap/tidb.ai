@@ -1,3 +1,5 @@
 packages:
   - .
   - extensions/*
+  - '!conversation-search-box/**'
+  - 'www/**'

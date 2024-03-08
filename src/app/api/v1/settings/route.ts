@@ -1,4 +1,4 @@
-import { GroupName, WebsiteSettingUpdatePayload } from '@/core/schema/setting';
+import { GroupName, WebsiteSettingUpdatePayload, CustomJsSettingUpdatePayload } from '@/core/schema/setting';
 import { getSetting, updateSetting } from '@/core/setting';
 import { adminHandlerGuard } from '@/lib/auth-server';
 import { notFound } from 'next/navigation';
@@ -31,9 +31,16 @@ const UpdateSettingRequestSchema = z.object({
   group: GroupName,
   settings: WebsiteSettingUpdatePayload,
 });
+const UpdateCustomJsSettingRequestSchema = z.object({
+  group: GroupName,
+  settings: CustomJsSettingUpdatePayload,
+});
 
 export const PUT = adminHandlerGuard(async (req) => {
-  const parseResult = UpdateSettingRequestSchema.strict().safeParse(await req.json());
+  const parseResult = await handleUpdateSetting(req);
+  if (!parseResult) {
+    return notFound();
+  }
   if (!parseResult.success) {
     return InvalidParamsErrorResponse(parseResult);
   }
@@ -45,5 +52,19 @@ export const PUT = adminHandlerGuard(async (req) => {
     updated,
   });
 });
+
+async function handleUpdateSetting (req: NextRequest) {
+  const reqJson = await req.json();
+  const group: string = reqJson.group || '';
+  if (group === 'website') {
+    const parseSettingResult = UpdateSettingRequestSchema.strict().safeParse(reqJson);
+    return parseSettingResult;
+  }
+  if (group === 'custom_js') {
+    const parseCustomJsResult = UpdateCustomJsSettingRequestSchema.strict().safeParse(reqJson);
+    return parseCustomJsResult;
+  }
+  return undefined;
+}
 
 export const dynamic = 'force-dynamic';

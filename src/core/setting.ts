@@ -6,7 +6,9 @@ import {
     IGroupName,
     IWebsiteSettingResult,
     WebsiteSettingResult,
-    WebsiteSettingUpdatePayload
+    WebsiteSettingUpdatePayload,
+    CustomJsSettingResult,
+    CustomJsSettingUpdatePayload,
 } from "@/core/schema/setting";
 import { flattenSettings, unflattenSettings } from "@/lib/utils";
 
@@ -20,12 +22,15 @@ export const getSetting = async <G extends IGroupName>(group: G) => {
     for (const option of options) {
         settings[option.option_name] = option.option_value
     }
-    const unflattenedSettings = unflattenSettings(settings);
 
     let result;
     switch (group) {
         case GroupName.enum.website:
+            const unflattenedSettings = unflattenSettings(settings);
             result = WebsiteSettingResult.parse(unflattenedSettings);
+            break
+        case GroupName.enum.custom_js:
+            result = CustomJsSettingResult.parse(settings);
             break
         default:
             result = {}
@@ -35,10 +40,10 @@ export const getSetting = async <G extends IGroupName>(group: G) => {
 }
 
 export const getCachedSetting = cache(getSetting);
-export async function updateSetting(group: string, settings: z.infer<typeof WebsiteSettingUpdatePayload>) {
-    const flattenObjectSettings = flattenSettings(settings, 2);
+export async function updateSetting(group: string, settings: z.infer<typeof WebsiteSettingUpdatePayload | typeof CustomJsSettingUpdatePayload>) {
+    const parsedSettings = group === GroupName.enum.website ? flattenSettings(settings, 2) : settings;
 
-    const options: any[] = Object.entries(flattenObjectSettings).map(([key, value]) => {
+    const options: any[] = Object.entries(parsedSettings).map(([key, value]) => {
         return {
             option_name: key,
             option_value: value

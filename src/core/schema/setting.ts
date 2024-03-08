@@ -1,6 +1,6 @@
 import {z} from "zod";
 
-export const GroupName = z.enum(['website'])
+export const GroupName = z.enum(['website', 'custom_js'])
 
 export type IGroupName = z.infer<typeof GroupName>;
 
@@ -68,3 +68,27 @@ export const WebsiteSettingResult = WebsiteSetting.partial();
 export type IWebsiteSettingResult = z.infer<typeof WebsiteSettingResult>;
 
 export const WebsiteSettingUpdatePayload = WebsiteSetting.partial();
+
+export const CustomJsSetting = z.object({
+  button_label: z.string({
+    required_error: 'Button label is required',
+  }),
+  button_img_src: z
+    .string()
+    .url('Button Image Src should be a correct URL of image')
+    .optional(),
+  example_questions: z
+    .array(z.object({ text: z.string().min(1) }))
+    .max(
+      maxExampleQuestions,
+      `example questions must has at most ${maxExampleQuestions} questions`
+    )
+    .optional(),
+  logo_src: z
+    .string()
+    .url('Logo Src should be a correct URL of image')
+    .optional(),
+});
+export const CustomJsSettingResult = CustomJsSetting.partial();
+export type ICustomJsSettingResult = z.infer<typeof CustomJsSettingResult>;
+export const CustomJsSettingUpdatePayload = CustomJsSetting.partial();
