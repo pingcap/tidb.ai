@@ -14,7 +14,7 @@ A [WIP] out-of-the-box RAG (Retrieval-Augmented Generation) app based on the [WI
 
 ## Features
 
-## Local Deployment [WIP]
+## Local Deployment [TODO]
 To deploy the application in a self-hosted environment, run the following command:
 
 ```shell
@@ -27,7 +27,7 @@ ticloud create-app --template rag
 
 This is all there is to do.
 
-## Deploy to Vercel
+## Deploy to Vercel [TODO]
 For deploying the application to Vercel, you can use the 'Deploy to Vercel' button
 
 [![Deploy to Vercel](https://vercel.com/button)](https://vercel.com/import/project?template=YOUR_GITHUB_REPOSITORY_URL)
