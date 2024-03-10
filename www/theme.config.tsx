@@ -106,6 +106,9 @@ const themeConfig = {
     </>
   ),
   logoLink: 'https://tidb.ai/docs',
+  sidebar: {
+    toggleButton: true
+  },
   footer: {
     text: (
       <span>
