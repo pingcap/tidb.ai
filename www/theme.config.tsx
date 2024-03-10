@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { useConfig } from 'nextra-theme-docs'
 
@@ -108,11 +109,13 @@ const themeConfig = {
   footer: {
     text: (
       <span>
+        <Image src='/tidb-logo-w.svg' alt='TiDB' className='logo' width={24} height={24} />
+        <br />
         {new Date().getFullYear()} ©{' '}
         <a href='https://pingcap.com' target='_blank'>
           PingCAP
         </a>
-        .
+        . All rights reserved.
       </span>
     ),
   },
