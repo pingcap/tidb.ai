@@ -57,5 +57,8 @@ export async function createProvider (name: string, config: any) {
       config: JSON.stringify(config),
       enabled: 0,
     })
+    .onDuplicateKeyUpdate({
+      config: JSON.stringify(config),
+    })
     .execute();
 }
