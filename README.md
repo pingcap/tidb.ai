@@ -2,7 +2,7 @@
 <div align="center">
 <h1>TiDB.AI</h1>
   <a href='https://tidb.cloud/?utm_source=github&utm_medium=tidb.ai'>
-    <img src="www/public/icon-light.svg" alt="TiDB.AI" height=100></img>
+    <img src="/www/public/icon-light.svg" alt="TiDB.AI" height=100></img>
   </a>
 </div>
 
@@ -43,4 +43,5 @@ For deploying the application to Vercel, you can use the 'Deploy to Vercel' butt
 - [NextAuth.js](https://next-auth.js.org/) – Auth
 - [Vercel](https://vercel.com/) – Deployments
 
-## LICENSE
+## License
+TiDB.AI is open-source under the Apache License, Version 2.0. You can [find it here](/LICENSE.txt).
