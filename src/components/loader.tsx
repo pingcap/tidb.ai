@@ -1,5 +1,3 @@
-'use client';
-
 import { cn } from '@/lib/utils';
 import { LoaderIcon } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';

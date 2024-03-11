@@ -1,4 +1,4 @@
-import { ArchiveIcon, ArrowDownWideNarrowIcon, BinaryIcon, CpuIcon, HardDriveDownloadIcon, type LucideIcon, ScanTextIcon, SplitSquareVerticalIcon, WorkflowIcon } from 'lucide-react';
+import { ArchiveIcon, BinaryIcon, CpuIcon, HardDriveDownloadIcon, type LucideIcon, ScanTextIcon, SplitSquareVerticalIcon, WorkflowIcon } from 'lucide-react';
 
 export const enum ExtensionCategory {
   LOADER = 'rag.loader',
@@ -7,8 +7,7 @@ export const enum ExtensionCategory {
   EMBEDDINGS = 'rag.embeddings',
   CHAT_MODEL = 'rag.chat-model',
   DOCUMENT_STORAGE = 'rag.document-storage',
-  PROMPTING = 'rag.prompting',
-  RERANKER = 'rag.reranker',
+  PROMPTING = 'rag.prompting'
 }
 
 export type ExtensionDef = {
@@ -28,7 +27,6 @@ export const extensionsDefs: ExtensionDef[] = [
   { category: ExtensionCategory.CHAT_MODEL, test: /\.chat-model\./, title: 'Chat model', icon: CpuIcon, playground: false, configurable: false },
   { category: ExtensionCategory.DOCUMENT_STORAGE, test: /\.document-storage\./, title: 'Document storage', icon: ArchiveIcon, playground: false, configurable: false },
   { category: ExtensionCategory.PROMPTING, test: /\.prompting\./, title: 'Prompting', icon: WorkflowIcon, playground: false, configurable: true },
-  { category: ExtensionCategory.RERANKER, test: /\.reranker\./, title: 'Reranker', icon: ArrowDownWideNarrowIcon, playground: false, configurable: false },
 ];
 
 export function getDef (identifier: string) {

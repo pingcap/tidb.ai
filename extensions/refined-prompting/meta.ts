@@ -15,10 +15,10 @@ export type RefinedPromptingOptions = {
 const identifier = 'rag.prompting.refined';
 const displayName = 'Refined prompting';
 const optionsSchema = z.object({
-  extractAndRefineTemplate: promptTemplate().optional().default(() => earTemplate).describe('Revise Question Template'),
-  contextTemplate: promptTemplate().optional().default(() => ctxTemplate).describe('Contextual Template'),
-  nonContextTemplate: promptTemplate().optional().default(() => nonCtxTemplate).describe('Non-Contextual Template'),
-  top_k: z.number().optional().default(() => 5).describe('Top K'),
+  contextTemplate: promptTemplate().optional().default(() => ctxTemplate),
+  nonContextTemplate: promptTemplate().optional().default(() => nonCtxTemplate),
+  extractAndRefineTemplate: promptTemplate().optional().default(() => earTemplate),
+  top_k: z.number().optional().default(() => 5),
 });
 
 const refinedPromptingMeta = {

@@ -1,6 +1,5 @@
 'use client';
 
-import AutoFormLabel from '@/components/ui/auto-form/common/label';
 import { AutoFormInputComponentProps } from '@/components/ui/auto-form/types';
 import { FormItem } from '@/components/ui/form';
 import { useTheme } from 'next-themes';
@@ -17,15 +16,12 @@ const AceEditor = dynamic(() =>
     return module;
   }), { ssr: false });
 
-export const PromptTemplateInput = ({ field, fieldProps, isRequired, label, fieldConfigItem, zodInputProps }: AutoFormInputComponentProps) => {
+export const PromptTemplateInput = ({ field, fieldConfigItem, zodInputProps }: AutoFormInputComponentProps) => {
   const { theme } = useTheme();
   const { value, onChange, name, onBlur, ref, disabled } = field;
-  const { showLabel: _showLabel, ...fieldPropsWithoutShowLabel } = fieldProps;
-  const showLabel = _showLabel === undefined ? true : _showLabel;
 
   return (
     <FormItem>
-      {showLabel && <AutoFormLabel label={label} isRequired={isRequired} />}
       <div className="p-2 border rounded-lg min-h-72">
         <textarea name={name} value={value} readOnly className="hidden" />
         <AceEditor
