@@ -1,6 +1,6 @@
 'use client';
 
-import { supportedProviders } from '@/app/(main)/(admin)/settings/components';
+import { supportedProviders } from '@/app/(main)/(admin)/settings/authentication/providers';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Form, FormField, FormItem, FormLabel } from '@/components/ui/form';

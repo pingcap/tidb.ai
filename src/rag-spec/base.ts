@@ -31,7 +31,7 @@ baseRegistry.register(() => import('@createrag/extension-robots-task-processor')
 
 // Promptings
 baseRegistry.register(() => import('@createrag/extension-refined-prompting'));
-baseRegistry.register(() => import('@createrag/extension-simple-prompting'));
+// baseRegistry.register(() => import('@createrag/extension-simple-prompting'));
 
 // Reranker
 baseRegistry.register(() => import('@createrag/extension-cohere-reranker'));
