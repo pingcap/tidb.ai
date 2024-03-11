@@ -22,6 +22,9 @@ function App(props: {
   baseUrl?: string;
   exampleQuestions: string[];
   logoSrc?: string;
+  title?: string;
+  inputPlaceholder?: string;
+  preferredMode?: 'dark' | 'light' | 'system' | string;
 }) {
   const {
     btnLabel: entryButtonLabel,
@@ -29,15 +32,24 @@ function App(props: {
     baseUrl = '',
     exampleQuestions,
     logoSrc,
+    title: widgetTitle,
+    inputPlaceholder,
+    preferredMode: initialPreferredMode = 'system',
   } = props;
 
   const [open, setOpen] = React.useState(false);
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-  const preferredMode = useMediaQuery('(prefers-color-scheme: dark)')
+  const inputPreferredMode = ['dark', 'light'].includes(initialPreferredMode)
+    ? initialPreferredMode
+    : 'system';
+  const browserPreferredMode = useMediaQuery('(prefers-color-scheme: dark)')
     ? 'dark'
     : 'light';
+
+  const preferredMode =
+    inputPreferredMode === 'system' ? browserPreferredMode : inputPreferredMode;
 
   const theme = React.useMemo(
     () => (preferredMode === 'dark' ? darkTheme : lightTheme),
@@ -85,10 +97,13 @@ function App(props: {
                 {logoSrc && (
                   <img src={logoSrc} alt='Widget Logo' width={32} height={32} />
                 )}
-                Conversational Search Box
+                {widgetTitle}
               </ModalTitle>
             </ModalHeader>
-            <ChatContainer exampleQuestions={exampleQuestions} />
+            <ChatContainer
+              exampleQuestions={exampleQuestions}
+              inputPlaceholder={inputPlaceholder}
+            />
           </ModalContent>
         </Modal>
       </ThemeProvider>

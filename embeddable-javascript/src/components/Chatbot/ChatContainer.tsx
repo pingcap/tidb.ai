@@ -16,8 +16,11 @@ declare module 'ai/react' {
   }
 }
 
-export default function ChatContainer(props: { exampleQuestions: string[] }) {
-  const { exampleQuestions } = props;
+export default function ChatContainer(props: {
+  exampleQuestions: string[];
+  inputPlaceholder?: string;
+}) {
+  const { exampleQuestions, inputPlaceholder } = props;
 
   const { session, setSession } = useLocalCreateRAGSessionId();
   // const contextRef = React.useRef<string[]>([]);
@@ -155,6 +158,7 @@ export default function ChatContainer(props: { exampleQuestions: string[] }) {
               value={input}
               onChange={handleInputChange}
               isLoading={isLoading}
+              placeholder={inputPlaceholder}
             />
           </form>
           <StyledChatMutedText
