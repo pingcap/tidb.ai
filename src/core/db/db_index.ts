@@ -1,5 +1,5 @@
 import { db } from '@/core/db/db';
-import type {DB} from '@/core/db/schema';
+import type { DB } from '@/core/db/schema';
 import { rag } from '@/core/interface';
 import { executePage, type Page, type PageRequest } from '@/lib/database';
 import { genId } from '@/lib/id';
@@ -8,9 +8,10 @@ import { notFound } from 'next/navigation';
 import ChunkedContent = rag.ChunkedContent;
 import EmbeddedContent = rag.EmbeddedContent;
 import {cosineSimilarity, vectorToSql} from "@/lib/kysely";
+import {DateTime} from "luxon";
 
 export type _QueryOptions = {
-  source_uri_prefixes?: string[];
+  namespaceIds: number[];
 }
 
 export interface IndexDb {
@@ -43,6 +44,7 @@ export interface IndexDb {
 }
 
 type SearchResult = {
+  namespace_id: number,
   document_id: string
   document_index_chunk_id: string
   text_content: string
@@ -161,30 +163,56 @@ export const indexDb: IndexDb = {
   },
 
   async _query (index, vector, top_k, options) {
-    let builder = db.selectFrom('document_index_chunk')
-      .innerJoin('document', 'document_id', 'document.id')
+    console.log(`Executing embedding search query with params:`, { index, top_k, options });
+    let builder = db.with('most_relevant_chunks',
+      (db) => db
+        .selectFrom('document_index_chunk_partitioned')
+        .where((eb) => {
+          const conditions = [
+            eb('staled', '=', 0),
+            eb('index_name', '=', index),
+          ];
+
+          if (options.namespaceIds.length > 0) {
+            conditions.push(eb('namespace_id', 'in', options.namespaceIds));
+          }
+
+          return eb.and(conditions);
+        })
+        .select([
+          'namespace_id',
+          'document_id',
+          'chunk_id',
+          (eb) => cosineSimilarity(eb, 'embedding', vector).as('score')
+        ])
+        .orderBy('score desc')
+        .limit(top_k)
+    )
+      .selectFrom('most_relevant_chunks')
+      .innerJoin('document_index_chunk_partitioned', (join) =>
+        join.onRef('document_index_chunk_partitioned.namespace_id', '=', 'most_relevant_chunks.namespace_id')
+          .onRef('document_index_chunk_partitioned.chunk_id', '=', 'most_relevant_chunks.chunk_id')
+      )
+      .innerJoin('document', 'document.id', 'most_relevant_chunks.document_id')
       .select([
-        'document_index_chunk.id as document_index_chunk_id',
-        'document_id',
-        'document_index_chunk.text_content',
-        'document_index_chunk.metadata',
-        'source_uri',
+        'most_relevant_chunks.namespace_id',
+        'most_relevant_chunks.document_id',
+        'most_relevant_chunks.chunk_id as document_index_chunk_id',
+        'document_index_chunk_partitioned.text_content',
+        'document_index_chunk_partitioned.metadata',
+        'document.source_uri',
         'document.name as source_name',
-        (eb) => cosineSimilarity(eb, 'embedding', vector).as('score')
-      ])
-      .where('staled', '=', 0)
-      .where('index_name', '=', eb => eb.val(index))
-      .orderBy('score desc')
-      .limit(top_k);
+        'most_relevant_chunks.score'
+      ]);
 
-    if (options.source_uri_prefixes && options.source_uri_prefixes.length > 0) {
-      const prefixes = options.source_uri_prefixes;
-      builder = builder.where(eb => eb.or(prefixes.map(prefix => (
-        eb('document.source_uri', 'like', eb => eb.val(prefix + '%'))
-      ))));
-    }
+    const start = DateTime.now();
+    const result = await builder.execute();
+    const end = DateTime.now();
+    const costTime = end.diff(start, 'milliseconds').milliseconds;
 
-    return await builder.execute();
+    console.log(`Finished embedding search query (costTime: ${costTime} ms).`);
+
+    return result;
   },
 
   async startQuery (partial) {
@@ -240,16 +268,17 @@ export const indexDb: IndexDb = {
       return undefined;
     }
     return await db.selectFrom('index_query_result')
-      .innerJoin('document_index_chunk', 'document_index_chunk.id', 'index_query_result.document_index_chunk_id')
-      .innerJoin('document', 'document.id', 'document_index_chunk.document_id')
+      .innerJoin('document_index_chunk_partitioned', 'document_index_chunk_partitioned.chunk_id', 'index_query_result.document_index_chunk_id')
+      .innerJoin('document', 'document.id', 'document_index_chunk_partitioned.document_id')
       .where('index_query_id', '=', eb => eb.val(id))
       .select([
-        'document_id',
-        'document_index_chunk_id',
-        'document_index_chunk.text_content',
-        'document_index_chunk.metadata',
-        'score',
-        'source_uri',
+        'document_index_chunk_partitioned.namespace_id',
+        'document_index_chunk_partitioned.document_id',
+        'document_index_chunk_partitioned.chunk_id as document_index_chunk_id',
+        'document_index_chunk_partitioned.text_content',
+        'document_index_chunk_partitioned.metadata',
+        'index_query_result.score',
+        'document.source_uri',
         'document.name as source_name',
       ])
       .execute();

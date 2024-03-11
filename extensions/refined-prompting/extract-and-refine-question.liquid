@@ -2,5 +2,10 @@ You need to find out if user's message contains a question or not.
 
 - If user's message contains a question, extract and refine it. output `containsQuestion` = true, `question` as refined question.
 - If user's message contains no question, output `containsQuestion` = false.
+- If the candidateNamespaces is required, output their names into `recommendNamespaces` array.
+- If user's message is only related to a specify domain of knowledge (e.g. specific product, specific language, or specific version ...),
+    select the correspond name of namespaces from the rest `candidateNamespaces` and append them into `recommendNamespaces`.
 
-Response in JSON format { containsQuestion, question? }
+candidateNamespaces: {{ candidateNamespaces | json }}
+
+Response in JSON format { containsQuestion, recommendNamespaces: string[], question? }

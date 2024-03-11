@@ -1,8 +1,8 @@
 import { useEffect, useSyncExternalStore } from 'react';
 
-const PRELOAD_INTERVAL = 30000;
+const PRELOAD_INTERVAL = 180_000;   // 3 minutes
 
-export function usePreloadServerlessTiflashReplicas () {
+export function usePreloadServerlessTiFlashReplicas () {
   const documentVisible = useSyncExternalStore(
     onStoreChange => {
       document.addEventListener('visibilitychange', onStoreChange);
