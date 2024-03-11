@@ -14,7 +14,7 @@ export default class SimplePrompting extends rag.Prompting<SimplePromptingOption
   }
 
   async refine (ctx: rag.PromptingContext, query: string) {
-    const { id, top: result } = await ctx.retriever(query, this.options.top_k ?? 5);
+    const { id, top: result } = await ctx.retriever(query, this.options.top_k ?? 5, []);
 
     const content = await this.liquid.render(this.tmpl, { contexts: result });
 

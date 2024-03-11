@@ -84,6 +84,18 @@ export interface DocumentIndexChunk {
   text_content: string;
 }
 
+export interface DocumentIndexChunkPartitioned {
+  namespace_id: number;
+  document_id: string;
+  embedding: Buffer;
+  chunk_id: string;
+  index_name: string;
+  metadata: Json;
+  ordinal: number;
+  staled: number;
+  text_content: string;
+}
+
 export interface ImportSource {
   created_at: Date;
   filter: string | null;
@@ -154,6 +166,15 @@ export interface Status {
   status_value: Json | null;
 }
 
+export interface Namespace {
+  id: number;
+  name: string;
+  description: string | null;
+  common: boolean;
+  default: boolean;
+  common_uri_prefix: string | null;
+}
+
 export interface VDocumentIndexStatus {
   document_id: string | null;
   index_name: string | null;
@@ -170,6 +191,7 @@ export interface DB {
   document: Document;
   document_index: DocumentIndex;
   document_index_chunk: DocumentIndexChunk;
+  document_index_chunk_partitioned: DocumentIndexChunkPartitioned;
   import_source: ImportSource;
   import_source_task: ImportSourceTask;
   index: Index;
@@ -177,5 +199,6 @@ export interface DB {
   index_query_result: IndexQueryResult;
   option: Option;
   status: Status;
+  namespace: Namespace;
   v_document_index_status: VDocumentIndexStatus;
 }

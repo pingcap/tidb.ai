@@ -6,7 +6,7 @@ import { SemanticSearch } from '@/components/semantic-search';
 import { SiteNavFooter, SiteNavActionBar } from '@/components/site-nav-footer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Toaster } from '@/components/ui/sonner';
-import { usePreloadServerlessTiflashReplicas } from '@/lib/tiflash';
+import { usePreloadServerlessTiFlashReplicas } from '@/lib/tiflash';
 import Link from 'next/link';
 import {ReactNode, useContext, useMemo} from 'react';
 import { WebsiteSettingContext } from "@/components/website-setting-provider";
@@ -15,7 +15,7 @@ export default function Layout ({ children }: {
   children: ReactNode
 }) {
   const setting = useContext(WebsiteSettingContext);
-  usePreloadServerlessTiflashReplicas();
+  usePreloadServerlessTiFlashReplicas();
 
   const socialMemo = useMemo(
     () => ({

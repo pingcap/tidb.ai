@@ -205,7 +205,10 @@ INSERT INTO `option` VALUES
     ('button_label', 'custom_js', 'string', '"Ask AI"'),
     ('button_img_src', 'custom_js', 'string', '"https://tidb.ai/tidb-ai.svg"'),
     ('logo_src', 'custom_js', 'string', '"https://tidb.ai/tidb-ai.svg"'),
-    ('example_questions', 'custom_js', 'array', '[{"text": "What is TiDB?"}, {"text": "Does TiDB support FOREIGN KEY?"}, {"text": "Does TiDB support serverless?"}]');
+    ('example_questions', 'custom_js', 'array', '[{"text": "What is TiDB?"}, {"text": "Does TiDB support FOREIGN KEY?"}, {"text": "Does TiDB support serverless?"}]'),
+    ('widget_title', 'custom_js', 'string', '"Conversation Search Box"'),
+    ('widget_input_placeholder', 'custom_js', 'string', '"Ask a question..."'),
+    ('widget_color_mode', 'custom_js', 'string', '"system"');
 
 INSERT INTO `index`(name, llm, llm_model, config, created_at, last_modified_at)
 VALUES ('default', 'openai', 'openai', '{}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

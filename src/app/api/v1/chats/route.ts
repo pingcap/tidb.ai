@@ -1,7 +1,7 @@
 import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import database from '@/core/db';
-import type { DB } from '@/core/db/schema';
-import { query } from '@/core/query';
+import type {DB, Namespace} from '@/core/db/schema';
+import { retrieval } from '@/core/retrieval';
 import { toPageRequest } from '@/lib/database';
 import { genId } from '@/lib/id';
 import { baseRegistry } from '@/rag-spec/base';
@@ -11,7 +11,22 @@ import { formatDate } from 'date-fns';
 import type { Selectable } from 'kysely';
 import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';
-import { z } from 'zod';
+import {z} from 'zod';
+import db from "@/core/db";
+import {rag} from "@/core/interface";
+import {Liquid, Template} from "liquidjs";
+import {DateTime} from "luxon";
+import ChatMessage = rag.ChatMessage;
+
+const ChatRequest = z.object({
+  messages: z.object({ role: z.string(), content: z.string() }).array(),
+  sessionId: z.string().optional(),
+  name: z.string().optional(),
+  namespaces: z.string().array().optional(),
+});
+
+// TODO: Support config if enable recommend namespaces
+const ENABLE_RECOMMEND_NAMESPACES = true;
 
 export const POST = auth(async function POST (req) {
   const userId = req.auth?.user?.id;
@@ -19,12 +34,12 @@ export const POST = auth(async function POST (req) {
     return new NextResponse('Need authorization', { status: 401 });
   }
 
-  const { name, messages, sessionId, source_uri_prefixes } = z.object({
-    messages: z.object({ role: z.string(), content: z.string() }).array(),
-    sessionId: z.string().optional(),
-    name: z.string().optional(),
-    source_uri_prefixes: z.string().array().optional(),
-  }).parse(await req.json());
+  const {
+    name,
+    messages,
+    sessionId,
+    namespaces: specifyNamespaces = []
+  } = ChatRequest.parse(await req.json());
 
   // Create session request
   if (messages.length === 0) {
@@ -38,26 +53,43 @@ export const POST = auth(async function POST (req) {
     return NextResponse.json({ id });
   }
 
-  // Only answering the last message
+  // Notice: Only answering the last message for now.
+  // TODO: Support answering with the conversation history.
   const message = messages.findLast(message => message.role === 'user')!.content;
 
   const { id, history } = await appendMessage(name, sessionId, message, userId);
-
   const index = (await database.index.findByName('default'))!;
+  const config = index.config as any;
+  const { extractAndRefineTemplate, contextTemplate, top_k = 5 } = config['rag.prompting.refined'];
+
+  const liquid = new Liquid();
+  const extractAndRefinePromptTemplate = liquid.parse(extractAndRefineTemplate);
+  const answerPromptTemplate = liquid.parse(contextTemplate);
+
+  const allNamespaces = await db.namespace.listNamespaces();
   const flow = await getFlow(baseRegistry, undefined, index.config);
-
-  const answerId = genId();
-
   const model = flow.getChatModel('openai');
-  const prompting = flow.getPrompting();
 
-  const question = await prompting.refine({
-    model,
-    retriever: (text, top_k) => query('default', index.llm, { text, top_k, source_uri_prefixes }),
-  }, message);
+  // 1. Extract question from message (get question)
+  const { question, recommendNamespaces = [] } = await extractAndRefineQuestion(model, message, allNamespaces, liquid, extractAndRefinePromptTemplate);
 
+  // 2. Determine namespaces based on question (get namespaces)
+  const namespaces = namespaceSelector(allNamespaces, specifyNamespaces, recommendNamespaces);
+
+  // 3. Execute embedding search within the specify / recommend namespaces (get context)
+  const { queryId, relevantChunks } = await retrieval('default', index.llm, {
+    text: question,
+    top_k,
+    namespaces
+  });
+
+  // 4. Generate prompt with context (get prompt)
+  const systemMessage = await getSystemMessage(liquid, answerPromptTemplate, relevantChunks);
+
+  // 5. Call the LLM model to generate the answer (get answer)
+  const answerId = genId();
   const stream = await model.chatStream([
-    ...question.messages,
+    systemMessage,
     { role: 'user', content: message },
   ], {
     onStart: async () => {
@@ -68,7 +100,7 @@ export const POST = auth(async function POST (req) {
         role: 'assistant',
         content: '',
         created_at: new Date(),
-        index_query_id: 'queryId' in question ? question.queryId : null,
+        index_query_id: queryId || null,
       }]);
     },
     onCompletion: async completion => {
@@ -80,27 +112,25 @@ export const POST = auth(async function POST (req) {
     experimental_streamData: true,
   });
 
+  // Output the relevant document chunks to the user.
   const streamData = new experimental_StreamData();
-
-  if ('context' in question) {
-    const contextUris = new Map<string, { title: string, uri: string }>();
-    question.context.forEach(item => {
-      contextUris.set(item.source_uri, {
+  if (Array.isArray(relevantChunks) && relevantChunks.length > 0) {
+    const context = deduplicate(relevantChunks, item => item.source_uri)
+      .map((item) => ({
         title: item.source_name,
         uri: item.source_uri,
-      });
-    });
+      }));
 
     streamData.append({
       [String(history.length + 2)]: {
-        queryId: question.queryId,
-        context: Array.from(contextUris.values()),
+        queryId,
+        context,
       },
     });
   }
-
   await streamData.close();
 
+  // Output the LLM response to the user.
   return new StreamingTextResponse(stream, {
     headers: {
       'X-CreateRag-Session': id,
@@ -118,6 +148,77 @@ export const GET = auth(async function GET (req) {
 
   return NextResponse.json(await database.chat.listChats({ page, pageSize, userId }));
 }) as any;
+
+async function extractAndRefineQuestion (model: rag.ChatModel<any>, query: string, allNamespaces: Namespace[], liquid: Liquid, extractAndRefinePromptTemplate: Template[]) {
+  const extractAndRefinePrompt = await liquid.render(extractAndRefinePromptTemplate, {
+    recommendNamespaces: ENABLE_RECOMMEND_NAMESPACES,
+    candidateNamespaces: allNamespaces.map(namespace => {
+      return { name: namespace.name, description: namespace.description };
+    }),
+  });
+
+  console.log('Start extract and refine question.');
+  const start = DateTime.now();
+  const response = await model.chat([
+    { role: 'assistant', content: extractAndRefinePrompt },
+    { role: 'user', content: query },
+  ]);
+  const end = DateTime.now()
+  const costTime = end.diff(start, 'milliseconds').milliseconds;
+  const { containsQuestion, question, recommendNamespaces = [] } = JSON.parse(response.content);
+  console.log('Finished extract and refine question.', {
+    containsQuestion,
+    question,
+    recommendNamespaces,
+    costTime,
+  });
+
+  return {
+    containsQuestion,
+    question,
+    recommendNamespaces
+  };
+}
+
+function namespaceSelector(allNamespaces: Namespace[], specifyNamespaces: string[], recommendNamespaces: string[]) {
+  const defaultNamespaces = allNamespaces.filter(namespace => namespace.default).map(namespace => namespace.name);
+  const commonNamespaces = allNamespaces.filter(namespace => namespace.common).map(namespace => namespace.name);
+
+  if (specifyNamespaces && specifyNamespaces.length > 0) {
+    console.log('Using specified namespaces:', specifyNamespaces);
+    return specifyNamespaces;
+  } else if (recommendNamespaces && recommendNamespaces.length > 0) {
+    const mergedNamespaces = deduplicate([...recommendNamespaces, ...commonNamespaces, ...defaultNamespaces], item => item);
+    console.log('Using recommend namespaces:', mergedNamespaces);
+    return mergedNamespaces;
+  } else {
+    console.log('Using default namespaces:', defaultNamespaces);
+    return defaultNamespaces;
+  }
+}
+
+function deduplicate<T>(array: T[], keyGetter: (item: T) => string): T[] {
+  let result: T[] = [];
+  let keySet = new Set<string>();
+
+  array.forEach((item) => {
+    let key = keyGetter(item);
+    if (!keySet.has(key)) {
+      keySet.add(key);
+      result.push(item);
+    }
+  });
+
+  return result;
+}
+
+async function getSystemMessage(liquid: Liquid, answerPromptTemplate: Template[], contexts: rag.RetrievedContext[]): Promise<ChatMessage> {
+  const content = await liquid.render(answerPromptTemplate, { contexts });
+  return {
+    role: 'system',
+    content,
+  };
+}
 
 async function createSession (name: string | undefined, userId: string) {
   // Create a new empty chat

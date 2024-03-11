@@ -9,14 +9,15 @@ export const querySchema = z.object({
   text: z.string(),
   top_k: z.number(),
   search_top_k: z.number().optional(),
-  source_uri_prefixes: z.string().array().optional(),
+  namespaces: z.string().array().optional(),
 });
 
-export async function query (indexName: string, embedding: string, { text, search_top_k, top_k, source_uri_prefixes }: z.infer<typeof querySchema>) {
+export type QueryRequest = z.infer<typeof querySchema>;
+
+export async function retrieval (indexName: string, embedding: string, { text, search_top_k, top_k, namespaces = [] }: QueryRequest) {
   const flow = await getFlow(baseRegistry);
   const embeddings = flow.getEmbeddings(embedding);
   const reranker = flow.getReranker();
-
   const vector = await embeddings.embedQuery(text);
 
   const id = genId();
@@ -28,8 +29,11 @@ export async function query (indexName: string, embedding: string, { text, searc
     index_name: indexName,
   });
 
-  // Semantic search for chunks
-  const searchedTop = (await database.index._query('default', vector, search_top_k ?? top_k * 10, { source_uri_prefixes }));
+  // Semantic search for chunks.
+  const namespaceIds = await database.namespace.getNamespaceIdsByNames(namespaces);
+  const searchedTop = await database.index._query('default', vector, search_top_k ?? top_k * 10, {
+    namespaceIds: namespaceIds,
+  });
 
   await database.index.finishQuery(id, searchedTop.map(res => ({
     document_index_chunk_id: res.document_index_chunk_id,
@@ -40,6 +44,7 @@ export async function query (indexName: string, embedding: string, { text, searc
   // TODO: expand chunk size?
 
   // Rerank results
+  // TODO: make rerank as optional. If no rerank, return the top k results.
   const rerankedResult = await reranker.rerank(text, searchedTop, top_k);
 
   await database.index.finishRerank(id, reranker.identifier, { ...rerankedResult.metadata, identifier: reranker.identifier }, rerankedResult.results.map(({ semantic_search_index, relevance_score }) => {
@@ -53,7 +58,7 @@ export async function query (indexName: string, embedding: string, { text, searc
   }))
 
   return {
-    id,
-    top: rerankedResult.results.slice(0, top_k),
+    queryId: id,
+    relevantChunks: rerankedResult.results.slice(0, top_k),
   };
 }
