@@ -190,7 +190,7 @@ function DeleteButtonWithDialog (props: {
               Cancel
             </Button>
             <Button variant="destructive" onClick={onConfirmCallback}>
-              Delete
+              Reset
             </Button>
           </DialogFooter>
         </DialogContent>

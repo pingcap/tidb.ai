@@ -134,7 +134,7 @@ export function useProvider () {
         .then(() => setSubmitError(undefined), setSubmitError)
         .then(() => {
           setConfiguredProviders(([...providers]) => {
-            const item = providers.find((i) => i.name !== provider);
+            const item = providers.find((i) => i.name === provider);
             if (item) {
               item.configured = false;
               item.enabled = 0;
