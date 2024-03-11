@@ -112,18 +112,3 @@ export function useExtensionConfig (base: string, extension: ExtensionInfo) {
     submitError,
   };
 }
-
-const getExtension = (i: string) => {
-  if (_cached.has(i)) {
-    return _cached.get(i)!;
-  }
-  const promise = baseRegistry.getComponent(i).then(res => res!);
-  _cached.set(i, promise);
-  return promise;
-};
-
-const _cached = new Map<string, Promise<ExtensionInfo>>();
-
-export function useExtension (identifier: string) {
-  return use(getExtension(identifier))!;
-}

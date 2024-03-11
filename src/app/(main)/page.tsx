@@ -17,7 +17,7 @@ export default function Page () {
         <h1 className="text-2xl sm:text-4xl font-light text-center">
           {homepage?.title || ''}
         </h1>
-        <p className="font-light text-gray-500 mb-8 w-4/5 md:w-auto	text-center">
+        <p className="font-light dark:text-gray-300 text-gray-500 mb-4 w-4/5 md:w-auto text-center">
           {homepage?.description || ''}
         </p>
         <Ask className="px-4 w-full lg:w-2/3" loading={loading} ask={ask} />

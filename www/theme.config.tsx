@@ -1,3 +1,4 @@
+import Image from 'next/image'
 import { useRouter } from 'next/router'
 import { useConfig } from 'nextra-theme-docs'
 
@@ -52,10 +53,22 @@ const themeConfig = {
     return (
       <>
         <meta property="og:url" content={url} />
-        <meta property="og:title" content={frontMatter.title || 'Nextra'} />
+        <meta property="og:title" content={frontMatter.title || 'TiDB.AI'} />
         <meta
           property="og:description"
-          content={frontMatter.description || 'Docs & Blogs of TiDB.ai'}
+          content={frontMatter.description || 'Docs & Blogs of TiDB.AI'}
+        />
+        <link
+          rel="shortcut icon"
+          href={`/icon-light.svg`}
+          type="image/svg+xml"
+          media="(prefers-color-scheme: dark)"
+        />
+        <link
+          rel="shortcut icon"
+          href={`/icon-dark.svg`}
+          type="image/svg+xml"
+          media="(prefers-color-scheme: light)"
         />
       </>
     )
@@ -93,14 +106,19 @@ const themeConfig = {
     </>
   ),
   logoLink: 'https://tidb.ai/docs',
+  sidebar: {
+    toggleButton: true
+  },
   footer: {
     text: (
       <span>
+        <Image src='/tidb-logo-w.svg' alt='TiDB' className='logo' width={24} height={24} />
+        <br />
         {new Date().getFullYear()} ©{' '}
         <a href='https://pingcap.com' target='_blank'>
           PingCAP
         </a>
-        .
+        . All rights reserved.
       </span>
     ),
   },
