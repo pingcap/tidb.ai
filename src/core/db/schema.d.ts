@@ -169,6 +169,7 @@ export interface Namespace {
   name: string;
   description: string | null;
   common: boolean;
+  default: boolean;
   common_uri_prefix: string | null;
 }
 

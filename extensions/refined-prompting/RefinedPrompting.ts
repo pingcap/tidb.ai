@@ -42,28 +42,35 @@ export default class RefinedPrompting extends rag.Prompting<RefinedPromptingOpti
 
     // If the user message contains a question, refine the question and retrieve the contexts.
     if (containsQuestion && question) {
-      const namespaces = namespaceSelector(ctx.specifyNamespaces, ctx.commonNamespaces, recommendNamespaces);
+      const namespaces = namespaceSelector(ctx.specifyNamespaces, ctx.defaultNamespaces, recommendNamespaces);
       const { id, top: result } = await ctx.retriever(question, this.options.top_k ?? 5, namespaces);
       const content = await this.liquid.render(this.ctxTmpl, { contexts: result });
 
       return {
         queryId: id,
         context: result,
-        messages: [{
-          role: 'system',
-          content: content,
-        } as const],
-        metadata: { refinedQuestion: question, namespaces },
+        messages: [
+          {
+            role: 'system',
+            content: content,
+          } as const
+        ],
+        metadata: {
+          refinedQuestion: question,
+          namespaces
+        },
       };
     } else {
       // FIXME: Why we need non-contextual implementation?
       const content = await this.liquid.render(this.nonCtxTmpl, {});
 
       return {
-        messages: [{
-          role: 'system',
-          content: content,
-        } as const],
+        messages: [
+          {
+            role: 'system',
+            content: content,
+          } as const
+        ],
         metadata: {},
       };
     }
@@ -75,19 +82,18 @@ export default class RefinedPrompting extends rag.Prompting<RefinedPromptingOpti
  *
  * @param specifyNamespaces The namespaces specified by the user.
  * @param recommendNamespaces The namespaces recommended by the model.
- * @param commonNamespaces The common namespaces, which are used by default.
+ * @param defaultNamespaces The default namespaces, which are used by default.
  */
-function namespaceSelector(specifyNamespaces: string[], commonNamespaces: string[], recommendNamespaces: string[]) {
+function namespaceSelector(specifyNamespaces: string[], defaultNamespaces: string[], recommendNamespaces: string[]) {
   if (specifyNamespaces && specifyNamespaces.length > 0) {
     console.log('Using specified namespaces:', specifyNamespaces);
     return specifyNamespaces;
   } else if (recommendNamespaces && recommendNamespaces.length > 0) {
-    const mergedNamespaces = Array.from(new Set([...commonNamespaces, ...recommendNamespaces]));
-    console.log('Using recommend namespaces:', recommendNamespaces, 'and common namespaces:', commonNamespaces);
-    return mergedNamespaces;
+    console.log('Using recommend namespaces:', recommendNamespaces);
+    return recommendNamespaces;
   } else {
-    console.log('Using common namespaces:', commonNamespaces);
-    return commonNamespaces;
+    console.log('Using default namespaces:', defaultNamespaces);
+    return defaultNamespaces;
   }
 }
 

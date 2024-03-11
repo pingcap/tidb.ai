@@ -130,7 +130,7 @@ export namespace rag {
   export type PromptingContext = {
     model: ChatModel<any>;
     retriever: Retriever;
-    commonNamespaces: string[];
+    defaultNamespaces: string[];
     specifyNamespaces: string[];
     candidateNamespaces: Namespace[];
   }
@@ -138,7 +138,7 @@ export namespace rag {
   export interface RetrievedContext {
     text_content: string,
     source_uri: string,
-    source_name: string
+    source_name: string,
   }
 
   export interface RerankedContext extends RetrievedContext {

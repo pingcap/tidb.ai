@@ -14,7 +14,7 @@ export const querySchema = z.object({
 
 export type QueryRequest = z.infer<typeof querySchema>;
 
-export async function query (indexName: string, llm: string, { text, search_top_k, top_k, namespaces = [] }: QueryRequest) {
+export async function retrieval (indexName: string, llm: string, { text, search_top_k, top_k, namespaces = [] }: QueryRequest) {
   const flow = await getFlow(baseRegistry);
   const embeddings = flow.getEmbeddings(llm);
   const reranker = flow.getReranker();
@@ -43,9 +43,8 @@ export async function query (indexName: string, llm: string, { text, search_top_
 
   // TODO: expand chunk size?
 
-  // TODO: make rerank as optional. If no rerank, return the top k results.
-
   // Rerank results
+  // TODO: make rerank as optional. If no rerank, return the top k results.
   const rerankedResult = await reranker.rerank(text, searchedTop, top_k);
 
   await database.index.finishRerank(id, { ...rerankedResult.metadata, identifier: reranker.identifier }, rerankedResult.results.map(({ semantic_search_index, relevance_score }) => {
@@ -59,7 +58,7 @@ export async function query (indexName: string, llm: string, { text, search_top_
   }))
 
   return {
-    id,
-    top: rerankedResult.results.slice(0, top_k),
+    queryId: id,
+    relevantChunks: rerankedResult.results.slice(0, top_k),
   };
 }
