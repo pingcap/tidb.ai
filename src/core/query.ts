@@ -12,9 +12,9 @@ export const querySchema = z.object({
   source_uri_prefixes: z.string().array().optional(),
 });
 
-export async function query (indexName: string, llm: string, { text, search_top_k, top_k, source_uri_prefixes }: z.infer<typeof querySchema>) {
+export async function query (indexName: string, embedding: string, { text, search_top_k, top_k, source_uri_prefixes }: z.infer<typeof querySchema>) {
   const flow = await getFlow(baseRegistry);
-  const embeddings = flow.getEmbeddings(llm);
+  const embeddings = flow.getEmbeddings(embedding);
   const reranker = flow.getReranker();
 
   const vector = await embeddings.embedQuery(text);
@@ -42,7 +42,7 @@ export async function query (indexName: string, llm: string, { text, search_top_
   // Rerank results
   const rerankedResult = await reranker.rerank(text, searchedTop, top_k);
 
-  await database.index.finishRerank(id, { ...rerankedResult.metadata, identifier: reranker.identifier }, rerankedResult.results.map(({ semantic_search_index, relevance_score }) => {
+  await database.index.finishRerank(id, reranker.identifier, { ...rerankedResult.metadata, identifier: reranker.identifier }, rerankedResult.results.map(({ semantic_search_index, relevance_score }) => {
     const res = searchedTop[semantic_search_index];
     return {
       document_index_chunk_id: res.document_index_chunk_id,

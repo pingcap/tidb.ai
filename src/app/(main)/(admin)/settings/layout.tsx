@@ -33,6 +33,7 @@ const baseRoute = '/settings';
 
 const tabs = [
   { id: 'customization', name: 'Customization', path: '', exact: true },
+  { id: 'rag', name: 'RAG', path: '/rag' },
   // { id: 'integrations', name: 'Integrations', path: '/integrations' },
   // { id: 'sources', name: 'Sources', path: '/sources' },
   // { id: 'tasks', name: 'Tasks', path: '/tasks' },

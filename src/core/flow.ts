@@ -152,8 +152,20 @@ export class Flow implements Flow.ExtensionApi {
     });
   }
 
+  listChatModels () {
+    return Array.from(this.chatModels.values()).map(({ displayName, identifier }) => {
+      return { displayName, identifier };
+    });
+  }
+
   listEmbeddings () {
     return Array.from(this.embeddings.values()).map(({ displayName, identifier }) => {
+      return { displayName, identifier };
+    });
+  }
+
+  listRerankers () {
+    return Array.from(this.rerankers.values()).map(({ displayName, identifier }) => {
       return { displayName, identifier };
     });
   }
@@ -251,4 +263,5 @@ export class Flow implements Flow.ExtensionApi {
 
     return reranker;
   }
+
 }

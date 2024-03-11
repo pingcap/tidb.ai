@@ -8,7 +8,7 @@ export async function POST (req: NextRequest, { params }: { params: { name: stri
   if (!index) {
     return new NextResponse(`Index ${name} not found`, { status: 404 });
   }
-  const top = await query(name, index.llm, querySchema.parse(await req.json()));
+  const top = await query(name, index.embedding, querySchema.parse(await req.json()));
 
   return NextResponse.json(top);
 }
