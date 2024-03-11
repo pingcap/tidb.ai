@@ -35,6 +35,7 @@ export function RagSettingsForm ({
         <FormItem>
           <FormField
             name="embedding"
+            disabled
             render={({ field }) => (
               <>
                 <FormLabel>Embedding</FormLabel>

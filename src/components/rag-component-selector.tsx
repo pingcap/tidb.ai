@@ -29,7 +29,7 @@ export function RagComponentSelector ({ name, triggerRef, placeholder, disabled,
       </SelectTrigger>
       <SelectContent>
         {options.map(option => (
-          <SelectItem value={option.identifier}>
+          <SelectItem key={option.identifier} value={option.identifier}>
             {option.displayName}
           </SelectItem>
         ))}
