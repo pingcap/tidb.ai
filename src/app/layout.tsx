@@ -45,7 +45,7 @@ export default async function RootLayout ({
         src="https://tidb.ai/rag-widget.js"
         data-id="tidb-ai-widget"
         data-name="tidb-ai-widget"
-        data-btn-label="Ask AI123"
+        data-btn-label="Ask AI"
         data-btn-img-src="https://tidb.ai/tidb-ai.svg"
         data-example-questions='["What is TiDB","Does TiDB support Foreign Key","What is TiDB Serverless","How to use TiDB Serverless"]'
         data-logo-src="https://tidb.ai/tidb-ai.svg"
