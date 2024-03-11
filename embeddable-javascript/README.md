@@ -23,6 +23,9 @@ Copy the following JavaScript and insert into your HTML Head file:
     data-btn-img-src="https://tidb.ai/tidb-ai.svg"
     data-example-questions='["What is TiDB","Does TiDB support Foreign Key","What is TiDB Serverless","How to use TiDB Serverless"]'
     data-logo-src="https://tidb.ai/tidb-ai.svg"
+    data-title="Conversation Search Box"
+    data-input-placeholder="Ask a question..."
+    data-preferred-mode="system"
   />
 
   <!-- ... -->
@@ -31,12 +34,15 @@ Copy the following JavaScript and insert into your HTML Head file:
 
 ### Customization
 
-| Attribute                | Description                               | Default Value |
-| ------------------------ | ----------------------------------------- | ------------- |
-| `data-btn-label`         | The label of the button.                  | `Ask AI`      |
-| `data-btn-img-src`       | The image source of the button.           |               |
-| `data-example-questions` | The example questions for the search box. |               |
-| `data-logo-src`          | The image source of the logo.             |               |
+| Attribute                | Description                               | Default Value             |
+| ------------------------ | ----------------------------------------- | ------------------------- |
+| `data-btn-label`         | The label of the button.                  | `Ask AI`                  |
+| `data-btn-img-src`       | The image source of the button.           |                           |
+| `data-example-questions` | The example questions for the search box. |                           |
+| `data-logo-src`          | The image source of the logo.             |                           |
+| `data-title`             | The title of the search box.              | `Conversation Search Box` |
+| `data-input-placeholder` | The placeholder of the input.             | `Ask a question...`       |
+| `data-preferred-mode`    | `dark`, `light`, `system`                 | `system`                  |
 
 ## Development
 

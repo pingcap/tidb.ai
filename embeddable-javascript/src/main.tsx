@@ -22,6 +22,12 @@ const tidbAiWidgetExampleQuestions = JSON.parse(
 const tidbAiWidgetLogoSrc =
   tidbAiWidgetScript?.getAttribute('data-logo-src') ||
   undefined;
+const tidbAiWidgetTitle =
+  tidbAiWidgetScript?.getAttribute('data-title') || 'Conversation Search Box';
+const tidbAiWidgetInputPlaceholder =
+  tidbAiWidgetScript?.getAttribute('data-input-placeholder') || 'Ask a question...';
+const tidbAiWidgetPreferredMode =
+  tidbAiWidgetScript?.getAttribute('data-preferred-mode') || 'system';
 
 // console.log('myScript ===', myScript, myScript?.getAttribute('data-id'));
 
@@ -38,6 +44,9 @@ ReactDOM.createRoot(document.getElementById('tidb-ai-root')!).render(
       baseUrl={tidbAiWidgetAPIBaseURL}
       exampleQuestions={tidbAiWidgetExampleQuestions}
       logoSrc={tidbAiWidgetLogoSrc}
+      title={tidbAiWidgetTitle}
+      inputPlaceholder={tidbAiWidgetInputPlaceholder}
+      preferredMode={tidbAiWidgetPreferredMode}
     />
   </React.StrictMode>
 );

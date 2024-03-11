@@ -28,6 +28,7 @@ import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import { a11yDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import copy from 'copy-to-clipboard';
+import { ThemeSelector } from '@/components/theme-selector';
 
 SyntaxHighlighter.registerLanguage('javascript', js);
 
@@ -124,6 +125,54 @@ export default function ClientPage(props: any) {
               </FormItem>
             )}
           />
+          <FormField
+            control={form.control}
+            disabled={form.formState.isSubmitting}
+            name='widget_title'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Widget Title</FormLabel>
+                <FormControl>
+                  <Input placeholder='Optional' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            disabled={form.formState.isSubmitting}
+            name='widget_input_placeholder'
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Widget Input PlaceHolder</FormLabel>
+                <FormControl>
+                  <Input placeholder='Optional' {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            disabled={form.formState.isSubmitting}
+            name='widget_color_mode'
+            render={({ field }) => (
+              <FormItem className='flex flex-col'>
+                <FormLabel>Theme</FormLabel>
+                <ThemeSelector
+                  controlForm={form}
+                  {...field}
+                  onSelected={() => {
+                    setData(form.getValues());
+                  }}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <div className='space-y-2'>
             <FormLabel>Example Qeustions</FormLabel>
             {exampleQuestionsForm.fields.map((field, index) => {
@@ -217,6 +266,9 @@ function CustomJsCodeBlock(props: { data: ICustomJsSettingResult }) {
       ['data-btn-img-src']: data.button_img_src,
       // ['data-example-questions']: JSON.stringify(data.example_questions),
       ['data-logo-src']: data.logo_src,
+      ['data-preferred-mode']: data.widget_color_mode,
+      ['data-widget-title']: data.widget_title,
+      ['data-widget-input-placeholder']: data.widget_input_placeholder,
     };
     let str = strHead;
     for (const key in template) {

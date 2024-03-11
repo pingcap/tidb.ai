@@ -10,9 +10,12 @@ export default function ChatInput(props: {
   disabled?: boolean;
   className?: string;
   isLoading?: boolean;
+  placeholder?: string;
 }) {
+  const { placeholder, className, isLoading, ...rest } = props;
+
   return (
-    <StyledChatInputWrapper className={props.className + '-Wrapper'}>
+    <StyledChatInputWrapper className={className + '-Wrapper'}>
       {/* <Input
         placeholder='Say something...'
         autoFocus
@@ -21,14 +24,18 @@ export default function ChatInput(props: {
         maxRows={3}
         {...props}
       /> */}
-      <StyledChatInput placeholder='Say something...' autoFocus {...props} />
+      <StyledChatInput
+        placeholder={placeholder || 'Say something...'}
+        autoFocus
+        {...rest}
+      />
       <StyledChatInputButton
         type='submit'
-        className={props.className + '-Submit'}
-        disabled={props.isLoading}
+        className={className + '-Submit'}
+        disabled={isLoading}
       >
         <SendIcon
-          className={props.className + '-Submit-Icon'}
+          className={className + '-Submit-Icon'}
           sx={{
             width: '1rem',
             height: '1rem',
@@ -142,7 +149,7 @@ const StyledChatInputButton = styled('button')(({ theme, disabled }) =>
       cursor: 'not-allowed',
       '&:hover': {
         backgroundColor: theme.palette.muted,
-      }
+      },
     }),
   })
 );
