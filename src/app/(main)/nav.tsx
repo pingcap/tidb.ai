@@ -18,7 +18,7 @@ import { cn } from '@/lib/utils';
 import { deleteChat } from '@/operations/chats';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import type { Selectable } from 'kysely';
-import { ActivitySquareIcon, CogIcon, CommandIcon, FileIcon, HomeIcon, ImportIcon, ListIcon, MenuIcon, MessagesSquareIcon, SearchIcon } from 'lucide-react';
+import { ActivitySquareIcon, CogIcon, CommandIcon, FileIcon, HomeIcon, ImportIcon, ListIcon, MenuIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
@@ -59,7 +59,7 @@ export function Nav () {
     const groups: NavGroup[] = [
       {
         items: [
-          { key: 'new', onClick: () => { setOpen(true); }, title: 'New Thread', variant: 'outline', className: 'mb-4 rounded-full cursor-text font-normal text-foreground/70', icon: SearchIcon, details: <span className="flex-shrink-0 flex gap-1 items-center rounded-full"><CommandIcon size="1em" /> K</span> },
+          { key: 'new', onClick: () => { setOpen(true); }, title: 'New Thread', variant: 'outline', className: 'mb-4 rounded-full cursor-text font-normal text-foreground/70', icon: PlusIcon, details: <span className="flex-shrink-0 flex gap-1 items-center rounded-full"><CommandIcon size="1em" /> K</span> },
           { href: '/', title: 'Home', icon: HomeIcon, exact: true },
           { href: '/c', title: 'Conversations', exact: true, icon: MessagesSquareIcon, disabled: disableIfNotAuthenticated },
           ...(isLoading ? [
@@ -105,8 +105,8 @@ export function Nav () {
           <DialogOverlay />
           <DialogPrimitive.DialogContent
             className={cn(
-              'fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 bg-accent shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg',
-              'p-2',
+              'fixed left-[50%] top-[50%] z-50 grid w-full max-w-3xl translate-x-[-50%] translate-y-[-50%] gap-4 bg-accent shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg',
+              'p-4',
             )}
           >
             <Ask {...ask} />

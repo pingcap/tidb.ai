@@ -1,5 +1,5 @@
 packages:
   - .
   - extensions/*
-  - '!conversation-search-box/**'
+  - '!embeddable-javascript/**'
   - 'www/**'

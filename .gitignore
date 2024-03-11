@@ -43,3 +43,6 @@ test.http
 .store
 .idea
 
+# nextra
+www/public/robots.txt
+www/public/sitemap*
