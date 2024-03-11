@@ -3,46 +3,39 @@
 import { extensionsDefs } from '@/app/(main)/(admin)/settings/extensions/utils';
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { AdminPageLayout } from '@/components/admin-page-layout';
-import { Loader } from '@/components/loader';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { fetcher } from '@/lib/fetch';
-import { PlayIcon, Settings2 } from 'lucide-react';
+import { DotIcon, PlayIcon, Settings2, ShieldCheckIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import useSWR from 'swr';
 
 function useExtensions () {
-  const { data: extensions = [], isLoading } = useSWR(['get', '/api/v1/extensions'], fetcher<{ identifier: string, displayName: string }[]>);
+  const { data: extensions = [] } = useSWR(['get', '/api/v1/extensions'], fetcher<{ identifier: string, displayName: string }[]>);
 
-  return { extensions, isLoading };
+  return extensions;
 }
 
 export default function ExtensionsPage () {
-  const { extensions, isLoading } = useExtensions();
+  const extensions = useExtensions();
 
   return (
     <AdminPageLayout>
       <AdminPageHeading title="Extensions" />
-      <div className="min-h-40 relative">
-        <ul className="grid gap-4 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
-          {extensions.map(component => (
-            <li key={component.identifier} className="p-2 rounded-lg hover:bg-secondary transition-colors space-y-1">
-              <div>
-                <div className="text-sm">
-                  <Link className="hover:underline" href={`/settings/extensions/${component.identifier}`} prefetch={false}>
-                    {component.displayName}
-                  </Link>
-                </div>
-              </div>
-              <div>
-                {match(component.identifier)}
-              </div>
-            </li>
-          ))}
-        </ul>
-        <Loader loading={isLoading}>
-          Loading extensions...
-        </Loader>
+      <div className="grid gap-4 grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3">
+        {extensions.map(component => <Card key={component.identifier}>
+          <CardHeader>
+            <CardTitle className="text-sm">
+              <Link className='hover:underline' href={`/settings/extensions/${component.identifier}`} prefetch={false}>
+                {component.displayName}
+              </Link>
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {match(component.identifier)}
+          </CardContent>
+        </Card>)}
       </div>
     </AdminPageLayout>
   );
@@ -55,12 +48,21 @@ const match = (identifier: string) => {
   if (item) {
     return (
       <div className="flex gap-2 items-center text-xs text-muted-foreground">
+        {isOfficial && (
+          <>
+            <span className="flex items-center gap-1 text-muted-foreground ">
+              <ShieldCheckIcon size="1em" />
+              Official
+            </span>
+            <DotIcon size="1em" />
+          </>
+        )}
         <span className="flex items-center gap-1">
           <item.icon size="1em" />
           {item.title}
         </span>
         {item.playground && (
-          <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="ghost" asChild>
+          <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="outline" asChild>
             <Link href={`/settings/extensions/${identifier}/playground`}>
               Try
               <PlayIcon size="1em" />
@@ -68,8 +70,9 @@ const match = (identifier: string) => {
           </Button>
         )}
         {item.configurable && (
-          <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="ghost" asChild>
+          <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="outline" asChild>
             <Link href={`/settings/extensions/${identifier}/config`}>
+              Config
               <Settings2 size="1em" />
             </Link>
           </Button>

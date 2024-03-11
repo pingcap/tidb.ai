@@ -21,7 +21,7 @@ export default function SettingsLayout({
             }))}
           />
         </nav>
-        <div className='overflow-auto lg:flex-1 relative min-h-full px-2 relative'>
+        <div className='overflow-auto lg:flex-1'>
           {children}
         </div>
       </div>
@@ -33,11 +33,11 @@ const baseRoute = '/settings';
 
 const tabs = [
   { id: 'customization', name: 'Customization', path: '', exact: true },
-  // { id: 'integrations', name: 'Integrations', path: '/integrations' },
-  // { id: 'sources', name: 'Sources', path: '/sources' },
-  // { id: 'tasks', name: 'Tasks', path: '/tasks' },
-  // { id: 'llm', name: 'LLM', path: '/llm' },
-  // { id: 'prompts', name: 'Prompts', path: '/prompts' },
+  { id: 'integrations', name: 'Integrations', path: '/integrations' },
+  { id: 'sources', name: 'Sources', path: '/sources' },
+  { id: 'tasks', name: 'Tasks', path: '/tasks' },
+  { id: 'llm', name: 'LLM', path: '/llm' },
+  { id: 'prompts', name: 'Prompts', path: '/prompts' },
   { id: 'authentication', name: 'Authentication', path: '/authentication' },
   { id: 'javascript', name: 'JavaScript', path: '/javascript' },
   { id: 'extensions', name: 'Extensions', path: '/extensions' },
