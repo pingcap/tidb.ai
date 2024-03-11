@@ -14,7 +14,7 @@ import { NextResponse } from 'next/server';
 import {z} from 'zod';
 import db from "@/core/db";
 import {rag} from "@/core/interface";
-import {Liquid} from "liquidjs";
+import {Liquid, Template} from "liquidjs";
 import {DateTime} from "luxon";
 import ChatMessage = rag.ChatMessage;
 
@@ -27,52 +27,6 @@ const ChatRequest = z.object({
 
 // TODO: Support config if enable recommend namespaces
 const ENABLE_RECOMMEND_NAMESPACES = true;
-
-const liquid = new Liquid();
-
-// TODO: Move to config.
-const extractAndRefinePromptTemplateConfig = `
-You need to find out if user's message contains a question or not.
-
-- If user's message contains a question, extract and refine it. output \`containsQuestion\` = true, \`question\` as refined question.
-- If user's message contains no question, output \`containsQuestion\` = false.
-{% if recommendNamespaces %}
-- If the candidateNamespaces is required, output their names into \`recommendNamespaces\` array.
-- If user's message is only related to a specify domain of knowledge (e.g. specific product, specific language, or specific version ...),
-    select the correspond name of namespaces from the rest \`candidateNamespaces\` and append them into \`recommendNamespaces\`.
-    
-candidateNamespaces: {{ candidateNamespaces | json }}
-{% endif recommendNamespaces %}
-
-{% if recommendNamespaces %}
-Response in JSON format { containsQuestion, recommendNamespaces?: string[], question? }
-{% else %}
-Response in JSON format { containsQuestion, question? }
-{% endif %}
-`;
-
-const extractAndRefinePromptTemplate = liquid.parse(extractAndRefinePromptTemplateConfig);
-
-const answerPromptTemplateConfig = `
-Use the following pieces of context to answer the user question. This context retrieved from a knowledge base and you should use only the facts from the context to answer.
-Your answer must be based on the context. If the context not contain the answer, just say that 'I don't know', don't try to make up an answer, use the context.
-
-<contexts>
-  {%- for context in contexts %}
-    <context source_uri="{{ context.source_uri }}" name="{{ context.source_name }}">
-      <name>{{ context.source_name }}</name>
-      <source_uri>{{ context.source_uri }}</source_uri>
-      <content>{{ context.text_content }}</content>
-    </context>
-  {%- endfor %}
-</contexts>
-
-Your answer must be based on the context and previous messages, don't use your own knowledge.
-
-Use markdown to answer. Write down uri reference you used for answer the question.
-`;
-
-const answerPromptTemplate = liquid.parse(answerPromptTemplateConfig);
 
 export const POST = auth(async function POST (req) {
   const userId = req.auth?.user?.id;
@@ -105,12 +59,19 @@ export const POST = auth(async function POST (req) {
 
   const { id, history } = await appendMessage(name, sessionId, message, userId);
   const index = (await database.index.findByName('default'))!;
+  const config = index.config as any;
+  const { extractAndRefineTemplate, contextTemplate, top_k = 5 } = config['rag.prompting.refined'];
+
+  const liquid = new Liquid();
+  const extractAndRefinePromptTemplate = liquid.parse(extractAndRefineTemplate);
+  const answerPromptTemplate = liquid.parse(contextTemplate);
+
   const allNamespaces = await db.namespace.listNamespaces();
   const flow = await getFlow(baseRegistry, undefined, index.config);
   const model = flow.getChatModel('openai');
 
   // 1. Extract question from message (get question)
-  const { question, recommendNamespaces = [] } = await extractAndRefineQuestion(model, message, allNamespaces);
+  const { question, recommendNamespaces = [] } = await extractAndRefineQuestion(model, message, allNamespaces, liquid, extractAndRefinePromptTemplate);
 
   // 2. Determine namespaces based on question (get namespaces)
   const namespaces = namespaceSelector(allNamespaces, specifyNamespaces, recommendNamespaces);
@@ -118,12 +79,12 @@ export const POST = auth(async function POST (req) {
   // 3. Execute embedding search within the specify / recommend namespaces (get context)
   const { queryId, relevantChunks } = await retrieval('default', index.llm, {
     text: question,
-    top_k: 5,
+    top_k,
     namespaces
   });
 
   // 4. Generate prompt with context (get prompt)
-  const systemMessage = await getSystemMessage(relevantChunks);
+  const systemMessage = await getSystemMessage(liquid, answerPromptTemplate, relevantChunks);
 
   // 5. Call the LLM model to generate the answer (get answer)
   const answerId = genId();
@@ -188,7 +149,7 @@ export const GET = auth(async function GET (req) {
   return NextResponse.json(await database.chat.listChats({ page, pageSize, userId }));
 }) as any;
 
-async function extractAndRefineQuestion (model: rag.ChatModel<any>, query: string, allNamespaces: Namespace[]) {
+async function extractAndRefineQuestion (model: rag.ChatModel<any>, query: string, allNamespaces: Namespace[], liquid: Liquid, extractAndRefinePromptTemplate: Template[]) {
   const extractAndRefinePrompt = await liquid.render(extractAndRefinePromptTemplate, {
     recommendNamespaces: ENABLE_RECOMMEND_NAMESPACES,
     candidateNamespaces: allNamespaces.map(namespace => {
@@ -251,7 +212,7 @@ function deduplicate<T>(array: T[], keyGetter: (item: T) => string): T[] {
   return result;
 }
 
-async function getSystemMessage(contexts: rag.RetrievedContext[]): Promise<ChatMessage> {
+async function getSystemMessage(liquid: Liquid, answerPromptTemplate: Template[], contexts: rag.RetrievedContext[]): Promise<ChatMessage> {
   const content = await liquid.render(answerPromptTemplate, { contexts });
   return {
     role: 'system',
