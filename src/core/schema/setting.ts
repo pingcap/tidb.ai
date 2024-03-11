@@ -11,6 +11,14 @@ export const languages = [
 
 export const language = z.enum(["en-US", "zh-CN"]);
 
+export const themes = [
+  { label: "Light", value: "light" },
+  { label: "Dark", value: "dark" },
+  { label: "System", value: "system" }
+] as const;
+
+export const theme = z.enum(['light', 'dark', 'system']);
+
 export const maxExampleQuestions = 5;
 export const maxHomepageFooterLinks = 5;
 
@@ -88,6 +96,9 @@ export const CustomJsSetting = z.object({
     .string()
     .url('Logo Src should be a correct URL of image')
     .optional(),
+  widget_title: z.string().min(1, 'title must has at latest 1 character').max(50, 'title must has at most 50 characters').optional(),
+  widget_input_placeholder: z.string().min(1, 'input placeholder must has at latest 1 character').max(50, 'input placeholder must has at most 50 characters').optional(),
+  widget_color_mode: theme.optional(),
 });
 export const CustomJsSettingResult = CustomJsSetting.partial();
 export type ICustomJsSettingResult = z.infer<typeof CustomJsSettingResult>;
