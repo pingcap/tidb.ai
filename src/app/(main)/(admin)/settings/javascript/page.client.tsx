@@ -62,6 +62,10 @@ export default function ClientPage(props: any) {
 
     if (res.ok) {
       await mutate(['GET', '/api/v1/settings?group=custom_js']);
+      toast({
+        variant: 'default',
+        description: 'Settings updated successfully.',
+      });
     } else {
       toast({
         variant: 'destructive',

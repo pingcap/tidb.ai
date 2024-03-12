@@ -61,6 +61,10 @@ export default function SettingsPage() {
 
     if (res.ok) {
       await mutate(['GET', '/api/v1/settings?group=website']);
+      toast({
+        variant: 'default',
+        description: 'Settings updated successfully.',
+      });
     } else {
       toast({
         variant: 'destructive',
