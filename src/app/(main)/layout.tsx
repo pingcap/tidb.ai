@@ -42,7 +42,9 @@ export default function Layout ({ children }: {
             <Branding setting={setting}/>
           </Link>
           <ScrollArea className="h-[calc(100%-6rem)] pr-2">
-            <Nav />
+            <div className='w-side'>
+              <Nav />
+            </div>
           </ScrollArea>
           <SiteNavFooter className="absolute bottom-0 left-0 bg-background" />
         </aside>

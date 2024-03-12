@@ -156,7 +156,7 @@ function SiteNavLinkItem ({ item, active }: { item: NavLinkItem, active: boolean
   if (item.onDelete) {
     el = (
       <div className="flex gap-2 items-center">
-        <div className="flex-1">
+        <div className="flex-1 overflow-hidden text-ellipsis text-nowrap">
           {el}
         </div>
         <AlertDialog>
