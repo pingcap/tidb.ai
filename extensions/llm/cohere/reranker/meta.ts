@@ -8,7 +8,7 @@ export interface CohereRerankerOptions {
 }
 
 const identifier = 'rag.reranker.cohere';
-const displayName = 'Cohrere Reranker';
+const displayName = 'Cohere Reranker';
 const optionsSchema = z.object({
   token: z.string().optional().placeholder('COHERE_TOKEN'),
   model: z.string().optional(),
