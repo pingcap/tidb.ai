@@ -68,6 +68,7 @@ export type AutoFormInputComponentProps = {
   field: ControllerRenderProps<FieldValues, any>;
   fieldConfigItem: FieldConfigItem;
   label: string;
+  description?: string;
   isRequired: boolean;
   fieldProps: any;
   zodItem: z.ZodAny;

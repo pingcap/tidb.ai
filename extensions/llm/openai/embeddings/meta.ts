@@ -1,20 +1,17 @@
 import { rag } from '@/core/interface';
-import { env } from '@/lib/zod-extensions/types/env';
-import { OpenAIEmbeddings } from '@langchain/openai';
 import { z } from 'zod';
 import Readme from './readme.mdx';
 
 export interface OpenaiEmbeddingsOptions {
-  fields?: ConstructorParameters<typeof OpenAIEmbeddings>[0];
-  configuration?: ConstructorParameters<typeof OpenAIEmbeddings>[1];
+  model?: string;
+  apiKey?: string;
 }
 
 const identifier = 'rag.embeddings.openai';
 const displayName = 'OpenAI Embeddings';
 const optionsSchema = z.object({
-  fields: z.object({
-    openAIApiKey: env('OPENAI_API_KEY'),
-  }).optional(),
+  model: z.string().optional(),
+  apiKey: z.string().optional().placeholder('OPENAI_API_KEY'),
 });
 
 const openaiEmbeddingsMeta = {

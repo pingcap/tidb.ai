@@ -1,4 +1,5 @@
 import { rag } from '@/core/interface';
+import { getOptionalEnv } from '@/lib/env';
 import { CohereClient } from 'cohere-ai';
 import cohereRerankerMeta, { type CohereRerankerOptions } from './meta';
 
@@ -8,7 +9,7 @@ export default class CohereReranker extends rag.Reranker<CohereRerankerOptions> 
 
   constructor (options: CohereRerankerOptions) {
     super(options);
-    this.agent = new CohereClient({ token: options.token });
+    this.agent = new CohereClient({ token: options.token ?? getOptionalEnv('COHERE_TOKEN') ?? '' });
   }
 
   async rerank (query: string, content: rag.RetrievedContext[], top_n: number) {

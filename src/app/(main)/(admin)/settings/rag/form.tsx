@@ -43,7 +43,7 @@ export function RagSettingsForm ({
                 <FormDescription>
                   Changing embedding needs all document indexes to be re-computed. Currently immutable.
                   {' '}
-                  <Link className="text-foreground underline" href={`/`}>More options</Link>
+                  <Link className="text-foreground underline" href={`/settings/extensions/${field.value}/config`}>More options</Link>
                   {` for ${findOptionDisplayName(embeddings, field.value)}`}
                 </FormDescription>
               </>
@@ -59,7 +59,7 @@ export function RagSettingsForm ({
                 <RagComponentSelector name={field.name} disabled={field.disabled} options={llms} value={field.value} onSelectValue={field.onChange} triggerRef={field.ref} />
                 {field.value && (
                   <FormDescription>
-                    <Link className="text-foreground underline" href={`/`}>More options</Link>
+                    <Link className="text-foreground underline" href={`/settings/extensions/${field.value}/config`}>More options</Link>
                     {` for ${findOptionDisplayName(llms, field.value)}`}
                   </FormDescription>
                 )}
@@ -75,7 +75,7 @@ export function RagSettingsForm ({
                 <FormLabel>Reranker</FormLabel>
                 <RagComponentSelector name={field.name} disabled={field.disabled} options={rerankers} value={field.value} onSelectValue={field.onChange} triggerRef={field.ref} />
                 <FormDescription>
-                  <Link className="text-foreground underline" href={`/`}>More options</Link>
+                  <Link className="text-foreground underline" href={`/settings/extensions/${field.value}/config`}>More options</Link>
                   {` for ${findOptionDisplayName(rerankers, field.value)}`}
                 </FormDescription>
               </>
