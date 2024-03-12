@@ -10,14 +10,15 @@ export const querySchema = z.object({
   top_k: z.number(),
   search_top_k: z.number().optional(),
   namespaces: z.string().array().optional(),
+  reranker: z.string().optional(),
 });
 
 export type QueryRequest = z.infer<typeof querySchema>;
 
-export async function retrieval (indexName: string, embedding: string, { text, search_top_k, top_k, namespaces = [] }: QueryRequest) {
+export async function retrieval (indexName: string, embedding: string, { text, search_top_k, top_k, namespaces = [], reranker: rerankerIdentifier }: QueryRequest) {
   const flow = await getFlow(baseRegistry);
   const embeddings = flow.getEmbeddings(embedding);
-  const reranker = flow.getReranker();
+  const reranker = flow.getReranker(rerankerIdentifier);
   const vector = await embeddings.embedQuery(text);
 
   const id = genId();

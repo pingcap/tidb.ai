@@ -22,6 +22,7 @@ export default class OpenaiEmbeddings extends rag.Embeddings<OpenaiEmbeddingsOpt
   }
 
   async embedQuery (query: string): Promise<rag.Vector> {
+    console.log(query)
     return Float64Array.from(await this.agent.embedQuery(query));
   }
 }
