@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { IWebsiteSettingResult } from "@/core/schema/setting";
+import { IWebsiteSettingResult } from '@/core/schema/setting';
 import { useSettings } from '@/hooks';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -22,13 +22,14 @@ import {
   maxExampleQuestions,
   maxHomepageFooterLinks,
 } from '@/core/schema/setting';
-import { useContext, useEffect } from 'react';
+import { useEffect } from 'react';
 import { ImageUploader } from '@/components/image-uploader';
 import { LanguageSelector } from '@/components/language-selector';
-import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useSWRConfig } from 'swr';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
+import { withToast } from '@/lib/toast';
+import { handleErrors } from '@/lib/fetch';
 
 function useSettingsForm() {
   const settings = useSettings<IWebsiteSettingResult>();
@@ -42,36 +43,14 @@ function useSettingsForm() {
 
   return form;
 }
+
 export default function SettingsPage() {
   const form = useSettingsForm();
-  const { toast } = useToast();
+
   const { mutate } = useSWRConfig();
 
   async function onSubmit(data: z.infer<typeof WebsiteSettingUpdatePayload>) {
-    const res = await fetch('/api/v1/settings', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        group: 'website',
-        settings: data,
-      }),
-    });
-
-    if (res.ok) {
-      await mutate(['GET', '/api/v1/settings?group=website']);
-      toast({
-        variant: 'default',
-        description: 'Settings updated successfully.',
-      });
-    } else {
-      toast({
-        variant: 'destructive',
-        description:
-          'Failed to update settings, please check the form and try again.',
-      });
-    }
+    await updateSetting(data, mutate);
   }
 
   const exampleQuestionsForm = useFieldArray({
@@ -407,3 +386,22 @@ export default function SettingsPage() {
     </>
   );
 }
+
+const updateSetting = withToast(
+  async (data: z.infer<typeof WebsiteSettingUpdatePayload>, mutate: any) => {
+    await fetch('/api/v1/settings', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        group: 'website',
+        settings: data,
+      }),
+    })
+      .then(handleErrors)
+      .then(() => {
+        mutate(['GET', '/api/v1/settings?group=website']);
+      });
+  }
+);

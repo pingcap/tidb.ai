@@ -15,7 +15,6 @@ import {
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useToast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
 import { useSWRConfig } from 'swr';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
@@ -29,6 +28,8 @@ import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import { a11yDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import copy from 'copy-to-clipboard';
 import { ThemeSelector } from '@/components/theme-selector';
+import { withToast } from '@/lib/toast';
+import { handleErrors } from '@/lib/fetch';
 
 SyntaxHighlighter.registerLanguage('javascript', js);
 
@@ -45,34 +46,10 @@ export default function ClientPage(props: any) {
     setData(settings);
   }, [settings]);
 
-  const { toast } = useToast();
   const { mutate } = useSWRConfig();
 
   async function onSubmit(data: z.infer<typeof CustomJsSettingUpdatePayload>) {
-    const res = await fetch('/api/v1/settings', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        group: 'custom_js',
-        settings: data,
-      }),
-    });
-
-    if (res.ok) {
-      await mutate(['GET', '/api/v1/settings?group=custom_js']);
-      toast({
-        variant: 'default',
-        description: 'Settings updated successfully.',
-      });
-    } else {
-      toast({
-        variant: 'destructive',
-        description:
-          'Failed to update custom_js settings, please check the form and try again.',
-      });
-    }
+    await updateSetting(data, mutate);
   }
 
   const exampleQuestionsForm = useFieldArray({
@@ -333,3 +310,20 @@ function JSCodeBlock(props: { code: string }) {
     </div>
   );
 }
+
+const updateSetting = withToast(
+  async (data: z.infer<typeof CustomJsSettingUpdatePayload>, mutate: any) => {
+    await fetch('/api/v1/settings', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        group: 'custom_js',
+        settings: data,
+      }),
+    })
+      .then(handleErrors)
+      .then(() => mutate(['GET', '/api/v1/settings?group=custom_js']));
+  }
+);
