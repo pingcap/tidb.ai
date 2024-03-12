@@ -5,10 +5,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 import { ImportIcon } from 'lucide-react';
-
-type ImportWebsiteFormValues = {
-  uriList: string
-}
+import { importWebsite, type ImportWebsiteFormValues } from '@/operations/documents';
 
 export function ImportSiteDialog () {
   return (
@@ -35,14 +32,3 @@ export function ImportSiteDialog () {
     </ImportDialog>
   );
 }
-
-
-const importWebsite = withToast(async ({ uriList }: ImportWebsiteFormValues) => {
-  await fetch('/api/v1/documents', {
-    method: 'put',
-    body: uriList,
-    headers: {
-      'Content-Type': 'text/uri-list',
-    },
-  }).then(handleErrors);
-});

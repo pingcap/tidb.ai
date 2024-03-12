@@ -5,11 +5,8 @@ import { Input } from '@/components/ui/input';
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 import { UploadIcon } from 'lucide-react';
+import { uploadFile, type UploadFileFormValues } from '@/operations/documents';
 
-type UploadFileFormValues = {
-  file: File;
-  sourceUri: string;
-}
 
 export function ImportFileDialog () {
   return (
@@ -39,14 +36,3 @@ export function ImportFileDialog () {
     </ImportDialog>
   );
 }
-
-const uploadFile = withToast(async ({ file, sourceUri }: UploadFileFormValues) => {
-  const formData = new FormData();
-  formData.set('file', file);
-  formData.set('sourceUri', sourceUri);
-
-  await fetch('/api/v1/documents', {
-    method: 'put',
-    body: formData,
-  }).then(handleErrors);
-});

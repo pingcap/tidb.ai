@@ -28,8 +28,8 @@ import { LanguageSelector } from '@/components/language-selector';
 import { Loader2 } from 'lucide-react';
 import { useSWRConfig } from 'swr';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
-import { withToast } from '@/lib/toast';
-import { handleErrors } from '@/lib/fetch';
+import { updateSettingWebsite as updateSetting } from '@/operations/settings';
+
 
 function useSettingsForm() {
   const settings = useSettings<IWebsiteSettingResult>();
@@ -386,22 +386,3 @@ export default function SettingsPage() {
     </>
   );
 }
-
-const updateSetting = withToast(
-  async (data: z.infer<typeof WebsiteSettingUpdatePayload>, mutate: any) => {
-    await fetch('/api/v1/settings', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        group: 'website',
-        settings: data,
-      }),
-    })
-      .then(handleErrors)
-      .then(() => {
-        mutate(['GET', '/api/v1/settings?group=website']);
-      });
-  }
-);

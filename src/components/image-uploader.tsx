@@ -2,7 +2,8 @@ import * as React from "react"
 import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Input} from "@/components/ui/input";
 import {Loader2} from "lucide-react";
-import {useToast} from "@/components/ui/use-toast";
+import { useToast } from "@/components/ui/use-toast";
+import { updateSettingImage } from "@/operations/settings";
 
 export interface ImageUploaderProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
@@ -33,25 +34,7 @@ const ImageUploader = React.forwardRef<HTMLInputElement, ImageUploaderProps>(
       if (!image) return;
       setLoading(true);
 
-      const form = new FormData();
-      form.append("file", image);
-
-      const res = await fetch('/api/v1/settings/upload', {
-        method: 'POST',
-        body: form
-      });
-      if (res.status === 200) {
-        if (onChange) {
-          const data = await res.json();
-          onChange(data.url);
-        }
-      } else {
-        const data = await res.json();
-        toast({
-          variant: "destructive",
-          description: data?.message ? data.message : "Failed to upload image.",
-        })
-      }
+      await updateSettingImage(image, onChange);
 
       setLoading(false);
     };

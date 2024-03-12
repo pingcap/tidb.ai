@@ -28,8 +28,7 @@ import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import { a11yDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import copy from 'copy-to-clipboard';
 import { ThemeSelector } from '@/components/theme-selector';
-import { withToast } from '@/lib/toast';
-import { handleErrors } from '@/lib/fetch';
+import { updateSettingCustomJS as updateSetting } from '@/operations/settings';
 
 SyntaxHighlighter.registerLanguage('javascript', js);
 
@@ -310,20 +309,3 @@ function JSCodeBlock(props: { code: string }) {
     </div>
   );
 }
-
-const updateSetting = withToast(
-  async (data: z.infer<typeof CustomJsSettingUpdatePayload>, mutate: any) => {
-    await fetch('/api/v1/settings', {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        group: 'custom_js',
-        settings: data,
-      }),
-    })
-      .then(handleErrors)
-      .then(() => mutate(['GET', '/api/v1/settings?group=custom_js']));
-  }
-);
