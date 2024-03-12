@@ -42,14 +42,16 @@ export function SemanticSearch () {
 }
 
 type SearchResult = {
-  'id': string,
-  'top': {
+  'queryId': string,
+  'relevantChunks': {
+    'namespace_id': number;
     'document_index_chunk_id': string,
     'document_id': string,
     'text_content': string,
     'source_uri': string,
     'score': number,
-    'source_name': string
+    'source_name': string,
+    'relevance_score': number
   }[]
 }
 
@@ -75,7 +77,7 @@ function InternalSearchBox () {
         .then(res => res.json())
         .then((res: SearchResult) => {
           const set = new Set<string>();
-          res.top = res.top.filter(res => {
+          res.relevantChunks = res.relevantChunks.filter(res => {
             if (set.has(res.source_uri)) {
               return false;
             } else {
@@ -106,7 +108,7 @@ function InternalSearchBox () {
         {!result && !disabled && <div className="p-4 my-8 text-center text-xs text-foreground/50 font-semibold">Search anything about your documents with AI embedding!</div>}
         <Loader loading={disabled} />
         {result && <CommandGroup heading="Search results">
-          {result.top.map(item => (
+          {result.relevantChunks.map(item => (
             <CommandItem key={item.source_uri} className="space-y-1 text-xs block cursor-pointer" onSelect={() => window.open(item.source_uri, '_blank')}>
               <div className="flex gap-1 items-center whitespace-nowrap overflow-hidden overflow-ellipsis">
                 <LinkIcon size="1em" />

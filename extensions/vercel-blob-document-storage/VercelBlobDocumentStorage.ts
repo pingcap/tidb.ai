@@ -1,4 +1,5 @@
 import { rag } from '@/core/interface';
+import { getOptionalEnv } from '@/lib/env';
 import * as blob from '@vercel/blob';
 import path from 'node:path';
 import vercelBlobDocumentStorageMeta from './meta';
@@ -12,9 +13,14 @@ export namespace VercelBlobDocumentStorage {
 
 export default class VercelBlobDocumentStorage extends rag.DocumentStorage<VercelBlobDocumentStorage.Options> {
   private readonly host: string;
+  private readonly token?: string;
+  private readonly prefix: string;
 
   constructor (options: VercelBlobDocumentStorage.Options) {
     super(options);
+
+    this.token = options.token ?? getOptionalEnv('VERCEL_BLOB_STORAGE_TOKEN');
+    this.prefix = options.prefix ?? getOptionalEnv('VERCEL_BLOB_STORAGE_PREFIX') ?? '';
 
     // not sure
     const BLOB_DOMAIN_KEY = options.token?.replace(/^vercel_blob_rw_([^_]+)_.+$/, (_, s: string) => s) ?? '........';
@@ -28,7 +34,7 @@ export default class VercelBlobDocumentStorage extends rag.DocumentStorage<Verce
     if (!this.options.prefix) {
       return name;
     }
-    return path.join(this.options.prefix, name);
+    return path.join(this.prefix, name);
   }
 
   private getUrl (name: string) {
