@@ -26,6 +26,12 @@ interface IndexFlowConfig {
   rerankers: IndexFlowConfig.Reranker[];
 }
 
+/**
+ *
+ * @param registry See RagExtensionsRegistry
+ * @param config deprecated
+ * @param options Index config from db
+ */
 export async function getFlow (registry: RagExtensionsRegistry, config?: IndexFlowConfig, options?: any) {
   await registry.prepareAll();
   const flow = new Flow();
@@ -45,6 +51,7 @@ export async function getFlow (registry: RagExtensionsRegistry, config?: IndexFl
     config.embeddings.forEach(add);
     config.chatModels.forEach(add);
     config.promptings.forEach(add);
+    config.rerankers.forEach(add);
   } else {
     registry._createAll(options).forEach(comp => flow.add(comp));
   }

@@ -255,12 +255,12 @@ importers:
         specifier: ^0.8.0
         version: 0.8.7(@types/react-dom@18.2.18)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
       zod:
-        specifier: ^3.22.4
-        version: 3.22.4
+        specifier: workspace:npm:zod-extension@^
+        version: link:packages/zod-extension
     devDependencies:
       '@createrag/extension-cohere-reranker':
         specifier: workspace:^
-        version: link:extensions/cohere-reranker
+        version: link:extensions/llm/cohere/reranker
       '@createrag/extension-file-task-processor':
         specifier: workspace:^
         version: link:extensions/file-task-processor
@@ -273,6 +273,9 @@ importers:
       '@createrag/extension-html-task-processor':
         specifier: workspace:^
         version: link:extensions/html-task-processor
+      '@createrag/extension-jinaai-reranker':
+        specifier: workspace:^
+        version: link:extensions/llm/jinaai/reranker
       '@createrag/extension-langchain-recursive-character-splitter':
         specifier: workspace:^
         version: link:extensions/langchain-recursive-character-splitter
@@ -281,10 +284,10 @@ importers:
         version: link:extensions/markdown-loader
       '@createrag/extension-openai-chat-model':
         specifier: workspace:^
-        version: link:extensions/openai-chat-model
+        version: link:extensions/llm/openai/chat-model
       '@createrag/extension-openai-embeddings':
         specifier: workspace:^
-        version: link:extensions/openai-embeddings
+        version: link:extensions/llm/openai/embeddings
       '@createrag/extension-pdf-loader':
         specifier: workspace:^
         version: link:extensions/pdf-loader
@@ -400,8 +403,6 @@ importers:
         specifier: ^5
         version: 5.3.3
 
-  extensions/cohere-reranker: {}
-
   extensions/file-task-processor: {}
 
   extensions/fs-document-storage: {}
@@ -412,11 +413,15 @@ importers:
 
   extensions/langchain-recursive-character-splitter: {}
 
+  extensions/llm/cohere/reranker: {}
+
+  extensions/llm/jinaai/reranker: {}
+
+  extensions/llm/openai/chat-model: {}
+
+  extensions/llm/openai/embeddings: {}
+
   extensions/markdown-loader: {}
-
-  extensions/openai-chat-model: {}
-
-  extensions/openai-embeddings: {}
 
   extensions/pdf-loader: {}
 
@@ -431,6 +436,12 @@ importers:
   extensions/text-loader: {}
 
   extensions/vercel-blob-document-storage: {}
+
+  packages/zod-extension:
+    dependencies:
+      zod:
+        specifier: ^3.22.4
+        version: 3.22.4
 
   www:
     dependencies:

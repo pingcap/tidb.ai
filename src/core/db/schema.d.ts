@@ -129,7 +129,8 @@ export interface Index {
   created_at: Date;
   last_modified_at: Date;
   llm: string;
-  llm_model: string;
+  embedding: string;
+  reranker: string;
   name: string;
 }
 
@@ -141,6 +142,7 @@ export interface IndexQuery {
   index_name: string;
   metadata: Json | null;
   reranked_at: Date | null;
+  reranker: string | null;
   text: string;
 }
 

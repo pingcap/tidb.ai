@@ -24,7 +24,7 @@ export async function reIndexDocument (index: Selectable<DB['index']>, document:
     const chunkedContent = await splitter.split(content);
     extractMetadata('splitter', splitter, metadata, content);
 
-    const embeddings = flow.getEmbeddings(index.llm);
+    const embeddings = flow.getEmbeddings(index.embedding);
     const vectors = await embeddings.embedChunks(chunkedContent.chunks.map(chunk => chunk.content));
     const embeddingContent = toEmbeddedContent(chunkedContent, vectors);
     extractMetadata('embedding', embeddings, metadata, content);

@@ -67,13 +67,11 @@ const match = (identifier: string) => {
             </Link>
           </Button>
         )}
-        {item.configurable && (
-          <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="ghost" asChild>
-            <Link href={`/settings/extensions/${identifier}/config`}>
-              <Settings2 size="1em" />
-            </Link>
-          </Button>
-        )}
+        <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="ghost" asChild>
+          <Link href={`/settings/extensions/${identifier}/config`}>
+            <Settings2 size="1em" />
+          </Link>
+        </Button>
       </div>
     );
   }

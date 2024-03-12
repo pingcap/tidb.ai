@@ -1,15 +1,17 @@
 import { rag } from '@/core/interface';
+import { getOptionalEnv } from '@/lib/env';
 import { type AIStreamCallbacksAndOptions, OpenAIStream } from 'ai';
 import { OpenAI } from 'openai';
 import openaiChatModelMeta, { type OpenaiChatModelOptions } from './meta';
 
 export default class OpenaiChatModel extends rag.ChatModel<OpenaiChatModelOptions> {
-
   private readonly agent: OpenAI;
 
   constructor (options: OpenaiChatModelOptions) {
     super(options);
-    this.agent = new OpenAI(options);
+    this.agent = new OpenAI({
+      apiKey: options.apiKey ?? getOptionalEnv('OPENAI_API_KEY'),
+    });
   }
 
   async chat (history: rag.ChatMessage[]): Promise<rag.ChatMessage> {

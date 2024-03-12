@@ -65,7 +65,8 @@ export class RagExtensionsRegistry {
   }
 
   _createAll (options: any = {}) {
-    return Array.from(this.registry.keys()).map(identifier => this._create(identifier, options[identifier] ?? {}));
+    return Array.from(this.registry.keys())
+      .map(identifier => this._create(identifier, options[identifier] ?? {}));
   }
 
   async list () {

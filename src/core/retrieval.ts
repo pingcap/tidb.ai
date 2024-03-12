@@ -10,14 +10,15 @@ export const querySchema = z.object({
   top_k: z.number(),
   search_top_k: z.number().optional(),
   namespaces: z.string().array().optional(),
+  reranker: z.string().optional(),
 });
 
 export type QueryRequest = z.infer<typeof querySchema>;
 
-export async function retrieval (indexName: string, llm: string, { text, search_top_k, top_k, namespaces = [] }: QueryRequest) {
+export async function retrieval (indexName: string, embedding: string, { text, search_top_k, top_k, namespaces = [], reranker: rerankerIdentifier }: QueryRequest) {
   const flow = await getFlow(baseRegistry);
-  const embeddings = flow.getEmbeddings(llm);
-  const reranker = flow.getReranker();
+  const embeddings = flow.getEmbeddings(embedding);
+  const reranker = flow.getReranker(rerankerIdentifier);
   const vector = await embeddings.embedQuery(text);
 
   const id = genId();
@@ -47,7 +48,7 @@ export async function retrieval (indexName: string, llm: string, { text, search_
   // TODO: make rerank as optional. If no rerank, return the top k results.
   const rerankedResult = await reranker.rerank(text, searchedTop, top_k);
 
-  await database.index.finishRerank(id, { ...rerankedResult.metadata, identifier: reranker.identifier }, rerankedResult.results.map(({ semantic_search_index, relevance_score }) => {
+  await database.index.finishRerank(id, reranker.identifier, { ...rerankedResult.metadata, identifier: reranker.identifier }, rerankedResult.results.map(({ semantic_search_index, relevance_score }) => {
     const res = searchedTop[semantic_search_index];
     return {
       document_index_chunk_id: res.document_index_chunk_id,

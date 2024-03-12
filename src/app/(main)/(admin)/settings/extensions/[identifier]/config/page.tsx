@@ -1,4 +1,5 @@
 import type { ConfigProps } from '@/app/(main)/(admin)/settings/extensions/[identifier]/config/common';
+import { ConfigFallback } from '@/app/(main)/(admin)/settings/extensions/[identifier]/config/ConfigFallback';
 import { ConfigLoader } from '@/app/(main)/(admin)/settings/extensions/[identifier]/config/ConfigLoader';
 import { ConfigPrompting } from '@/app/(main)/(admin)/settings/extensions/[identifier]/config/ConfigPrompting';
 import { ConfigSplitter } from '@/app/(main)/(admin)/settings/extensions/[identifier]/config/ConfigSplitter';
@@ -11,10 +12,6 @@ export default function Page ({ params }: { params: { identifier: string } }) {
   const def = getDef(identifier);
 
   if (!def) {
-    notFound();
-  }
-
-  if (!def.configurable) {
     notFound();
   }
 
@@ -31,6 +28,6 @@ export default function Page ({ params }: { params: { identifier: string } }) {
     case ExtensionCategory.LOADER:
       return <ConfigLoader {...configProps} />;
     default:
-      return 'Not implemented';
+      return <ConfigFallback {...configProps} />;
   }
 }

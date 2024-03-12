@@ -32,7 +32,7 @@ export interface IndexDb {
 
   finishQuery (id: string, results: Insertable<DB['index_query_result']>[]): Promise<void>;
 
-  finishRerank (id: string, metadata: any, results: Insertable<DB['index_query_result']>[]): Promise<void>;
+  finishRerank (id: string, reranker: string, metadata: any, results: Insertable<DB['index_query_result']>[]): Promise<void>;
 
   getQuery (id: string): Promise<Selectable<DB['index_query']> | undefined>;
 
@@ -237,10 +237,11 @@ export const indexDb: IndexDb = {
       //   .execute();
     });
   },
-  async finishRerank (id, metadata, results) {
+  async finishRerank (id, reranker, metadata, results) {
     await db.transaction().execute(async db => {
       await db.updateTable('index_query')
         .set({
+          reranker,
           metadata: JSON.stringify({ reranker: metadata }),
           reranked_at: new Date()
         })

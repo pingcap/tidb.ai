@@ -1,4 +1,5 @@
 import { rag } from '@/core/interface';
+import { getOptionalEnv } from '@/lib/env';
 import { OpenAIEmbeddings } from '@langchain/openai';
 import openaiEmbeddingsMeta, { type OpenaiEmbeddingsOptions } from './meta';
 
@@ -8,7 +9,11 @@ export default class OpenaiEmbeddings extends rag.Embeddings<OpenaiEmbeddingsOpt
 
   constructor (options: OpenaiEmbeddingsOptions) {
     super(options);
-    this.agent = new OpenAIEmbeddings(options.fields, options.configuration);
+    this.agent = new OpenAIEmbeddings({
+      modelName: options.model,
+    }, {
+      apiKey: options.apiKey ?? getOptionalEnv('OPENAI_API_KEY'),
+    });
   }
 
   async embedChunks (chunks: string[]): Promise<rag.Vector[]> {
@@ -17,6 +22,7 @@ export default class OpenaiEmbeddings extends rag.Embeddings<OpenaiEmbeddingsOpt
   }
 
   async embedQuery (query: string): Promise<rag.Vector> {
+    console.log(query)
     return Float64Array.from(await this.agent.embedQuery(query));
   }
 }

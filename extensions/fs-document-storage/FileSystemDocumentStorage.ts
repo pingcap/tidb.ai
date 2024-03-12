@@ -1,16 +1,24 @@
 import { rag } from '@/core/interface';
+import { getOptionalEnv } from '@/lib/env';
 import * as fsp from 'fs/promises';
 import path, { dirname, resolve } from 'node:path';
 import * as os from 'os';
 import fileSystemDocumentStorageMeta, { type FileSystemDocumentStorageOptions } from './meta';
 
 export default class FileSystemDocumentStorage extends rag.DocumentStorage<FileSystemDocumentStorageOptions> {
+  private path: string;
+
+  constructor (options: FileSystemDocumentStorageOptions) {
+    super(options);
+    this.path = options.path ?? getOptionalEnv('DOCUMENT_STORE_PATH') ?? '';
+  }
+
   available (): boolean {
-    return !/^\w+:/.test(this.options.path);
+    return !/^\w+:/.test(this.path);
   }
 
   private resolve (filename: string) {
-    return resolve(this.options.path, filename);
+    return resolve(this.path, filename);
   }
 
   async delete (path: string) {

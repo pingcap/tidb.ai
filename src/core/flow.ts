@@ -152,8 +152,20 @@ export class Flow implements Flow.ExtensionApi {
     });
   }
 
+  listChatModels () {
+    return Array.from(this.chatModels.values()).map(({ displayName, identifier }) => {
+      return { displayName, identifier };
+    });
+  }
+
   listEmbeddings () {
     return Array.from(this.embeddings.values()).map(({ displayName, identifier }) => {
+      return { displayName, identifier };
+    });
+  }
+
+  listRerankers () {
+    return Array.from(this.rerankers.values()).map(({ displayName, identifier }) => {
       return { displayName, identifier };
     });
   }
@@ -242,7 +254,7 @@ export class Flow implements Flow.ExtensionApi {
     if (!identifier) {
       reranker = Array.from(this.rerankers.values())[0];
     } else {
-      reranker = this.rerankers.get(identifier);
+      reranker = this.rerankers.get(identifier) ?? this.rerankers.get(`rag.reranker.${identifier}`);
     }
 
     if (!reranker) {
@@ -251,4 +263,5 @@ export class Flow implements Flow.ExtensionApi {
 
     return reranker;
   }
+
 }

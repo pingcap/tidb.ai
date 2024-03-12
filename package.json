@@ -92,7 +92,7 @@
     "unified": "^11.0.4",
     "unist-util-remove": "^4.0.0",
     "vaul": "^0.8.0",
-    "zod": "^3.22.4"
+    "zod": "workspace:npm:zod-extension@^"
   },
   "devDependencies": {
     "@createrag/extension-cohere-reranker": "workspace:^",
@@ -100,6 +100,7 @@
     "@createrag/extension-fs-document-storage": "workspace:^",
     "@createrag/extension-html-loader": "workspace:^",
     "@createrag/extension-html-task-processor": "workspace:^",
+    "@createrag/extension-jinaai-reranker": "workspace:^",
     "@createrag/extension-langchain-recursive-character-splitter": "workspace:^",
     "@createrag/extension-markdown-loader": "workspace:^",
     "@createrag/extension-openai-chat-model": "workspace:^",

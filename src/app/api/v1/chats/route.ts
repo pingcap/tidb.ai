@@ -17,6 +17,7 @@ import {rag} from "@/core/interface";
 import {Liquid, Template} from "liquidjs";
 import {DateTime} from "luxon";
 import ChatMessage = rag.ChatMessage;
+import RerankedContext = rag.RerankedContext;
 
 const ChatRequest = z.object({
   messages: z.object({ role: z.string(), content: z.string() }).array(),
@@ -60,32 +61,40 @@ export const POST = auth(async function POST (req) {
   const { id, history } = await appendMessage(name, sessionId, message, userId);
   const index = (await database.index.findByName('default'))!;
   const config = index.config as any;
-  const { extractAndRefineTemplate, contextTemplate, top_k = 5 } = config['rag.prompting.refined'];
+  const { extractAndRefineTemplate, contextTemplate, nonContextTemplate, top_k = 5 } = config['rag.prompting.refined'];
 
   const liquid = new Liquid();
   const extractAndRefinePromptTemplate = liquid.parse(extractAndRefineTemplate);
   const answerPromptTemplate = liquid.parse(contextTemplate);
+  const noAnswerPromptTemplate = liquid.parse(nonContextTemplate);
 
   const allNamespaces = await db.namespace.listNamespaces();
   const flow = await getFlow(baseRegistry, undefined, index.config);
   const model = flow.getChatModel('openai');
 
   // 1. Extract question from message (get question)
-  const { question, recommendNamespaces = [] } = await extractAndRefineQuestion(model, message, allNamespaces, liquid, extractAndRefinePromptTemplate);
+  const { containsQuestion, question, recommendNamespaces = [] } = await extractAndRefineQuestion(model, message, allNamespaces, liquid, extractAndRefinePromptTemplate);
 
   // 2. Determine namespaces based on question (get namespaces)
   const namespaces = namespaceSelector(allNamespaces, specifyNamespaces, recommendNamespaces);
 
-  // 3. Execute embedding search within the specify / recommend namespaces (get context)
-  const { queryId, relevantChunks } = await retrieval('default', index.llm, {
-    text: question,
-    top_k,
-    namespaces
-  });
+  let queryResult: { queryId: string, relevantChunks: RerankedContext[] } | undefined;
+  let systemMessage: ChatMessage
 
-  // 4. Generate prompt with context (get prompt)
-  const systemMessage = await getSystemMessage(liquid, answerPromptTemplate, relevantChunks);
+  if (containsQuestion) {
+    // 3.1. Execute embedding search within the specify / recommend namespaces (get context)
+    const { relevantChunks } = queryResult = await retrieval('default', index.embedding, {
+      text: question,
+      top_k,
+      namespaces,
+      reranker: index.reranker,
+    });
 
+    // 4.1. Generate prompt with context (get prompt)
+    systemMessage = await getSystemMessage(liquid, answerPromptTemplate, relevantChunks);
+  } else {
+    systemMessage = await getSystemMessage(liquid, noAnswerPromptTemplate);
+  }
   // 5. Call the LLM model to generate the answer (get answer)
   const answerId = genId();
   const stream = await model.chatStream([
@@ -100,7 +109,7 @@ export const POST = auth(async function POST (req) {
         role: 'assistant',
         content: '',
         created_at: new Date(),
-        index_query_id: queryId || null,
+        index_query_id: queryResult?.queryId || null,
       }]);
     },
     onCompletion: async completion => {
@@ -114,8 +123,8 @@ export const POST = auth(async function POST (req) {
 
   // Output the relevant document chunks to the user.
   const streamData = new experimental_StreamData();
-  if (Array.isArray(relevantChunks) && relevantChunks.length > 0) {
-    const context = deduplicate(relevantChunks, item => item.source_uri)
+  if (queryResult && Array.isArray(queryResult.relevantChunks) && queryResult.relevantChunks.length > 0) {
+    const context = deduplicate(queryResult.relevantChunks, item => item.source_uri)
       .map((item) => ({
         title: item.source_name,
         uri: item.source_uri,
@@ -123,7 +132,7 @@ export const POST = auth(async function POST (req) {
 
     streamData.append({
       [String(history.length + 2)]: {
-        queryId,
+        queryId: queryResult.queryId,
         context,
       },
     });
@@ -212,7 +221,7 @@ function deduplicate<T>(array: T[], keyGetter: (item: T) => string): T[] {
   return result;
 }
 
-async function getSystemMessage(liquid: Liquid, answerPromptTemplate: Template[], contexts: rag.RetrievedContext[]): Promise<ChatMessage> {
+async function getSystemMessage(liquid: Liquid, answerPromptTemplate: Template[], contexts?: rag.RetrievedContext[]): Promise<ChatMessage> {
   const content = await liquid.render(answerPromptTemplate, { contexts });
   return {
     role: 'system',
