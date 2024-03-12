@@ -6,7 +6,7 @@ export default async function Page() {
 
   return (
     <>
-      <h1 className='text-xl font-semibold mb-4'>Conversation Search Box JS</h1>
+      <h1 className='text-xl font-semibold mb-4'>JavaScript Widget Code Snippet</h1>
       <JSConfigurePage />
     </>
   );
