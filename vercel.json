@@ -12,31 +12,31 @@
   "rewrites": [
     {
       "source": "/docs",
-      "destination": "https://rag-docs-git-refine-www-20240313-pingcap.vercel.app/docs"
+      "destination": "https://rag-docs-pingcap.vercel.app/docs"
     },
     {
       "source": "/docs/",
-      "destination": "https://rag-docs-git-refine-www-20240313-pingcap.vercel.app/docs/"
+      "destination": "https://rag-docs-pingcap.vercel.app/docs/"
     },
     {
       "source": "/docs/:match*",
-      "destination": "https://rag-docs-git-refine-www-20240313-pingcap.vercel.app/docs/:match*"
+      "destination": "https://rag-docs-pingcap.vercel.app/docs/:match*"
     },
     {
       "source": "/blog",
-      "destination": "https://rag-docs-git-refine-www-20240313-pingcap.vercel.app/blog"
+      "destination": "https://rag-docs-pingcap.vercel.app/blog"
     },
     {
       "source": "/blog/",
-      "destination": "https://rag-docs-git-refine-www-20240313-pingcap.vercel.app/blog/"
+      "destination": "https://rag-docs-pingcap.vercel.app/blog/"
     },
     {
       "source": "/blog/:match*",
-      "destination": "https://rag-docs-git-refine-www-20240313-pingcap.vercel.app/blog/:match*"
+      "destination": "https://rag-docs-pingcap.vercel.app/blog/:match*"
     },
     {
       "source": "/nextra/:match*",
-      "destination": "https://rag-docs-git-refine-www-20240313-pingcap.vercel.app/nextra/:match*"
+      "destination": "https://rag-docs-pingcap.vercel.app/nextra/:match*"
     }
   ]
 }
