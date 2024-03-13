@@ -122,6 +122,7 @@ const themeConfig = {
       </span>
     ),
   },
+  primarySaturation: 0,
   // ... other theme options
 };
 
