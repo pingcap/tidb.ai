@@ -60,13 +60,13 @@ const themeConfig = {
         />
         <link
           rel="shortcut icon"
-          href={`/icon-light.svg`}
+          href={`/nextra/icon-light.svg`}
           type="image/svg+xml"
           media="(prefers-color-scheme: dark)"
         />
         <link
           rel="shortcut icon"
-          href={`/icon-dark.svg`}
+          href={`/nextra/icon-dark.svg`}
           type="image/svg+xml"
           media="(prefers-color-scheme: light)"
         />
