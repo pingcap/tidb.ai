@@ -11,6 +11,14 @@
   ],
   "rewrites": [
     {
+      "source": "/robots.txt",
+      "destination": "https://rag-docs-pingcap.vercel.app/robots.txt"
+    },
+    {
+      "source": "/sitemap(.*)\\.xml",
+      "destination": "https://rag-docs-pingcap.vercel.app/sitemap$1.xml"
+    },
+    {
       "source": "/docs",
       "destination": "https://rag-docs-pingcap.vercel.app/docs"
     },

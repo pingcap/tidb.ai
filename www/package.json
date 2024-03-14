@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "postbuild": "next-sitemap",
+    "build:vercel": "next build && next-sitemap",
     "start": "next start",
     "lint": "next lint"
   },
