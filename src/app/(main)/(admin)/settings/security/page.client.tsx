@@ -23,7 +23,7 @@ import {
   ISecuritySettingResult,
   SecuritySettingUpdatePayload,
 } from '@/core/schema/setting';
-import { ThemeSelector } from '@/components/theme-selector';
+import { ReCaptchaSelector } from '@/components/reCaptcha-selector';
 import { updateSettingSecurity as updateSetting } from '@/operations/settings';
 import AutoForm from '@/components/ui/auto-form';
 import {
@@ -67,6 +67,25 @@ export default function SecurityPage() {
           }}
           className='w-full space-y-6'
         >
+          <FormField
+            control={form.control}
+            disabled={form.formState.isSubmitting}
+            name='google_recaptcha'
+            render={({ field }) => (
+              <FormItem className='flex flex-col'>
+                <FormLabel>reCaptcha</FormLabel>
+                <ReCaptchaSelector
+                  controlForm={form}
+                  {...field}
+                  onSelected={() => {
+                    setData(form.getValues());
+                  }}
+                />
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
           <FormField
             control={form.control}
             disabled={form.formState.isSubmitting}

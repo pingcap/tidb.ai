@@ -19,6 +19,12 @@ export const themes = [
 
 export const theme = z.enum(['light', 'dark', 'system']);
 
+export const reCaptcha = [
+  { label: 'V3', value: 'v3' },
+  { label: 'Enterprise', value: 'enterprise' },
+] as const;
+export const reCaptchas = z.enum(['v3', 'enterprise']);
+
 export const maxExampleQuestions = 5;
 export const maxHomepageFooterLinks = 5;
 
@@ -105,6 +111,7 @@ export type ICustomJsSettingResult = z.infer<typeof CustomJsSettingResult>;
 export const CustomJsSettingUpdatePayload = CustomJsSetting.partial();
 
 export const SecuritySetting = z.object({
+  google_recaptcha: reCaptchas,
   google_recaptcha_site_key: z.string().optional(),
 });
 export const SecuritySettingResult = SecuritySetting.partial();

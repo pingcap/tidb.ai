@@ -53,8 +53,9 @@ export default async function RootLayout ({
         data-logo-src="https://tidb.ai/tidb-ai.svg"
         data-preferred-mode="dark"
       />
-      {security?.google_recaptcha_site_key && (<script async src="https://www.google.com/recaptcha/api.js"></script>)}
-      {security?.google_recaptcha_site_key && (<ReCaptcha siteKey={security.google_recaptcha_site_key} />)}
+      {/* {security?.google_recaptcha_site_key && (<script async src="https://www.google.com/recaptcha/api.js"></script>)}
+      {security?.google_recaptcha_site_key && (<ReCaptcha siteKey={security.google_recaptcha_site_key} />)} */}
+      {security?.google_recaptcha_site_key && security?.google_recaptcha && (<ReCaptcha mode={security.google_recaptcha} siteKey={security.google_recaptcha_site_key} />)}
     </head>
     <body className={font.className}>
     <Providers session={session} website={website}>
@@ -66,39 +67,24 @@ export default async function RootLayout ({
   );
 }
 
-const ReCaptcha = (props: { siteKey: string }) => {
-  return (
-    <Script id='google_recaptcha_init'>
-      {`
-        // How this code snippet works:
-        // This logic overwrites the default behavior of \`grecaptcha.ready()\` to
-        // ensure that it can be safely called at any time. When \`grecaptcha.ready()\`
-        // is called before reCAPTCHA is loaded, the callback function that is passed
-        // by \`grecaptcha.ready()\` is enqueued for execution after reCAPTCHA is
-        // loaded.
-        if(typeof grecaptcha === 'undefined') {
-          grecaptcha = {};
-        }
-        grecaptcha.ready = function(cb){
-          if(typeof grecaptcha === 'undefined') {
-            // window.__grecaptcha_cfg is a global variable that stores reCAPTCHA's
-            // configuration. By default, any functions listed in its 'fns' property
-            // are automatically executed when reCAPTCHA loads.
-            const c = '___grecaptcha_cfg';
-            window[c] = window[c] || {};
-            (window[c]['fns'] = window[c]['fns']||[]).push(cb);
-          } else {
-            cb();
-          }
-        }
-
-        // Usage
-        grecaptcha.ready(function(){
-          grecaptcha.render("container", {
-            sitekey: "${props.siteKey}"
-          });
-        });
-      `}
-    </Script>
-  );
+const ReCaptcha = (props: { siteKey: string; mode: 'v3' | 'enterprise' }) => {
+  if (props.mode === 'v3') {
+    return (
+      <Script
+        strategy='beforeInteractive'
+        src={`https://www.google.com/recaptcha/api.js?render=${security.google_recaptcha_site_key}`}
+      ></Script>
+    );
+  } else if (props.mode === 'enterprise') {
+    return (
+      <Script
+        id='google_recaptcha_enterprise'
+        strategy='beforeInteractive'
+        src='https://www.google.com/recaptcha/enterprise.js'
+        async
+        defer
+      ></Script>
+    );
+  }
+  return <></>;
 };

@@ -211,6 +211,7 @@ INSERT INTO `option` VALUES
     ('widget_color_mode', 'custom_js', 'string', '"system"');
 
 INSERT INTO `option` VALUES
+    ('google_recaptcha', 'security', 'string', '"v3"')
     ('google_recaptcha_site_key', 'security', 'string', '""');
 
 INSERT INTO `index`(name, llm, llm_model, config, created_at, last_modified_at)
