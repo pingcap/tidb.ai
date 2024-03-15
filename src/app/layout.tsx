@@ -72,7 +72,7 @@ const ReCaptcha = (props: { siteKey: string; mode: 'v3' | 'enterprise' }) => {
     return (
       <Script
         strategy='beforeInteractive'
-        src={`https://www.google.com/recaptcha/api.js?render=${security.google_recaptcha_site_key}`}
+        src={`https://www.google.com/recaptcha/api.js?render=${props.siteKey}`}
       ></Script>
     );
   } else if (props.mode === 'enterprise') {
@@ -80,7 +80,7 @@ const ReCaptcha = (props: { siteKey: string; mode: 'v3' | 'enterprise' }) => {
       <Script
         id='google_recaptcha_enterprise'
         strategy='beforeInteractive'
-        src='https://www.google.com/recaptcha/enterprise.js'
+        src={`https://www.google.com/recaptcha/enterprise.js?render=${props.siteKey}`}
         async
         defer
       ></Script>
