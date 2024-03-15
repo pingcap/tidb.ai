@@ -7,16 +7,23 @@ import {
     IWebsiteSettingResult,
     WebsiteSettingResult,
     WebsiteSettingUpdatePayload,
+    ICustomJsSettingResult,
     CustomJsSettingResult,
     CustomJsSettingUpdatePayload,
+    ISecuritySettingResult,
     SecuritySettingResult,
     SecuritySettingUpdatePayload,
 } from "@/core/schema/setting";
 import { flattenSettings, unflattenSettings } from "@/lib/utils";
 
 type ListSettingsReturnType<G extends IGroupName> =
-    G extends typeof GroupName.enum.website ? IWebsiteSettingResult :
-        {};
+  G extends typeof GroupName.enum.website
+    ? IWebsiteSettingResult
+    : G extends typeof GroupName.enum.custom_js
+    ? ICustomJsSettingResult
+    : G extends typeof GroupName.enum.security
+    ? ISecuritySettingResult
+    : {};
 
 export const getSetting = async <G extends IGroupName>(group: G) => {
     const options = await database.option.findByGroup(group);
