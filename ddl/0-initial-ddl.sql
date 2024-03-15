@@ -210,6 +210,9 @@ INSERT INTO `option` VALUES
     ('widget_input_placeholder', 'custom_js', 'string', '"Ask a question..."'),
     ('widget_color_mode', 'custom_js', 'string', '"system"');
 
+INSERT INTO `option` VALUES
+    ('google_recaptcha_site_key', 'security', 'string', '""');
+
 INSERT INTO `index`(name, llm, llm_model, config, created_at, last_modified_at)
 VALUES ('default', 'openai', 'openai', '{}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);
 

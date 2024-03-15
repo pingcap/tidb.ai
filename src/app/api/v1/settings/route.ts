@@ -1,4 +1,4 @@
-import { GroupName, WebsiteSettingUpdatePayload, CustomJsSettingUpdatePayload } from '@/core/schema/setting';
+import { GroupName, WebsiteSettingUpdatePayload, CustomJsSettingUpdatePayload, SecuritySettingUpdatePayload } from '@/core/schema/setting';
 import { getSetting, updateSetting } from '@/core/setting';
 import { adminHandlerGuard } from '@/lib/auth-server';
 import { notFound } from 'next/navigation';
@@ -35,6 +35,10 @@ const UpdateCustomJsSettingRequestSchema = z.object({
   group: GroupName,
   settings: CustomJsSettingUpdatePayload,
 });
+const UpdateSecuritySettingRequestSchema = z.object({
+  group: GroupName,
+  settings: SecuritySettingUpdatePayload,
+});
 
 export const PUT = adminHandlerGuard(async (req) => {
   const parseResult = await handleUpdateSetting(req);
@@ -63,6 +67,10 @@ async function handleUpdateSetting (req: NextRequest) {
   if (group === 'custom_js') {
     const parseCustomJsResult = UpdateCustomJsSettingRequestSchema.strict().safeParse(reqJson);
     return parseCustomJsResult;
+  }
+  if (group === 'security') {
+    const parseSecurityResult = UpdateSecuritySettingRequestSchema.strict().safeParse(reqJson);
+    return parseSecurityResult;
   }
   return undefined;
 }

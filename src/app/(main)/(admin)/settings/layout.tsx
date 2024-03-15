@@ -42,4 +42,5 @@ const tabs = [
   { id: 'authentication', name: 'Authentication', path: '/authentication' },
   { id: 'javascript', name: 'JavaScript', path: '/javascript' },
   { id: 'extensions', name: 'Extensions', path: '/extensions' },
+  { id: 'security', name: 'Security', path: '/security' },
 ];
