@@ -63,6 +63,7 @@
     "kysely": "^0.27.2",
     "langchain": "^0.1.5",
     "liquidjs": "^10.10.0",
+    "llamaindex": "^0.2.0",
     "luxon": "^3.4.4",
     "match-url-wildcard": "^0.0.5",
     "micromatch": "^4.0.5",

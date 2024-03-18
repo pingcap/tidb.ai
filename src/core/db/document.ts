@@ -33,7 +33,7 @@ export interface DocumentDb {
 
   listByNotIndexed (indexName: string, limit: number): Promise<DBDocument[]>;
 
-  listIdsByFilter (filter: DocumentFilters): Promise<string[]>;
+  listIdsByFilter (filter: DocumentFilters): Promise<UUID[]>;
 
   findById (id: UUID): Promise<DBDocument | undefined>;
 

@@ -1,7 +1,8 @@
 import db from '@/core/db';
 import { reIndexDocument } from '@/jobs/reIndexDocument';
+import type { UUID } from 'node:crypto';
 
-export async function makeDocumentIndexOutdated (documentIds: string[], indexName: string) {
+export async function makeDocumentIndexOutdated (documentIds: UUID[], indexName: string) {
   const index = await db.index.findByName(indexName);
   if (!index) {
     throw new Error(`index ${indexName} not found`);
