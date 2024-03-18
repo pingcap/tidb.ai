@@ -1,4 +1,5 @@
 import database from '@/core/db';
+import type { DBDocument } from '@/core/db/document';
 import type { DB } from '@/core/db/schema';
 import { rag } from '@/core/interface';
 import { baseRegistry } from '@/rag-spec/base';
@@ -7,7 +8,7 @@ import type { Selectable } from 'kysely';
 import ChunkedContent = rag.ChunkedContent;
 import EmbeddedContent = rag.EmbeddedContent;
 
-export async function reIndexDocument (index: Selectable<DB['index']>, document: Selectable<DB['document']>) {
+export async function reIndexDocument (index: Selectable<DB['index']>, document: DBDocument) {
   const flow = await getFlow(baseRegistry, undefined, index.config);
   const storage = flow.getStorage();
   try {

@@ -9,6 +9,7 @@ import type { Root } from 'hast';
 import { select } from 'hast-util-select';
 import { toText } from 'hast-util-to-text';
 import type { Selectable } from 'kysely';
+import { randomUUID, type UUID } from 'node:crypto';
 import rehypeParse from 'rehype-parse';
 import { unified } from 'unified';
 
@@ -51,7 +52,7 @@ export async function processImportSourceTask (flow: Flow, task: Selectable<DB['
 
     const result = await processor.process(task);
 
-    let documentId: string | undefined;
+    let documentId: UUID | undefined;
 
     // if task emit content, save or update to document.
     if (result.content) {
@@ -77,7 +78,7 @@ export async function processImportSourceTask (flow: Flow, task: Selectable<DB['
         });
       } else {
         await saveDocument(storage, {
-          id: documentId = genId(),
+          id: documentId = randomUUID(),
           sourceUrl: task.url,
           mime: result.content.mime,
           buffer: result.content.buffer,

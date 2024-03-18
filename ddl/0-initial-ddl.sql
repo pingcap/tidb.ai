@@ -6,7 +6,7 @@ USE createrag_dev;
 
 CREATE TABLE document
 (
-    id               VARCHAR(32)  NOT NULL,
+    id               BINARY(16)   NOT NULL,
     name             VARCHAR(256) NOT NULL,
     mime             VARCHAR(64)  NOT NULL,
     content_uri      VARCHAR(256) NOT NULL,
@@ -33,7 +33,7 @@ CREATE TABLE `index`
 
 CREATE TABLE document_index
 (
-    document_id  VARCHAR(32)                     NOT NULL,
+    document_id  BINARY(16)                      NOT NULL,
     index_name   VARCHAR(32)                     NOT NULL,
     text_content LONGTEXT                        NOT NULL,
     metadata     JSON                            NOT NULL,
@@ -48,14 +48,14 @@ CREATE TABLE document_index
 
 CREATE TABLE document_index_chunk
 (
-    id           VARCHAR(32)      NOT NULL,
-    document_id  VARCHAR(32)      NOT NULL,
-    index_name   VARCHAR(32)      NOT NULL,
-    text_content TEXT             NOT NULL,
-    ordinal      INTEGER          NOT NULL,
-    metadata     JSON             NOT NULL,
-    embedding    VECTOR NOT NULL COMMENT 'VECTOR',
-    staled       BOOLEAN          NOT NULL,
+    id           BINARY(16)  NOT NULL,
+    document_id  BINARY(16)  NOT NULL,
+    index_name   VARCHAR(32) NOT NULL,
+    text_content TEXT        NOT NULL,
+    ordinal      INTEGER     NOT NULL,
+    metadata     JSON        NOT NULL,
+    embedding VECTOR NOT NULL COMMENT 'VECTOR',
+    staled       BOOLEAN     NOT NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (document_id) REFERENCES document (id),
     FOREIGN KEY (index_name) REFERENCES `index` (name),
@@ -64,12 +64,12 @@ CREATE TABLE document_index_chunk
 
 CREATE TABLE index_query
 (
-    id          VARCHAR(32)      NOT NULL,
-    index_name  VARCHAR(32)      NOT NULL,
-    text        VARCHAR(256)     NOT NULL,
-    embedding   VECTOR NOT NULL,
-    created_at  DATETIME         NOT NULL,
-    finished_at DATETIME         NULL,
+    id          VARCHAR(32)  NOT NULL,
+    index_name  VARCHAR(32)  NOT NULL,
+    text        VARCHAR(256) NOT NULL,
+    embedding VECTOR NOT NULL,
+    created_at  DATETIME     NOT NULL,
+    finished_at DATETIME     NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (index_name) REFERENCES `index` (name)
 );
@@ -77,7 +77,7 @@ CREATE TABLE index_query
 CREATE TABLE index_query_result
 (
     index_query_id          VARCHAR(32) NOT NULL,
-    document_index_chunk_id VARCHAR(32) NOT NULL,
+    document_index_chunk_id BINARY(16)  NOT NULL,
     score                   FLOAT       NOT NULL,
     PRIMARY KEY (index_query_id, document_index_chunk_id),
     FOREIGN KEY (index_query_id) REFERENCES index_query (id),
@@ -109,16 +109,6 @@ CREATE TABLE chat_message
     PRIMARY KEY (id),
     UNIQUE KEY (chat_id, ordinal),
     FOREIGN KEY (index_query_id) REFERENCES index_query (id)
-);
-
-CREATE TABLE chat_message_context_documents
-(
-    chat_message_id VARCHAR(32) NOT NULL,
-    ordinal         INT         NOT NULL,
-    text_content    VARCHAR(32) NOT NULL,
-    document_id     VARCHAR(32) NOT NULL,
-    PRIMARY KEY (chat_message_id, ordinal),
-    FOREIGN KEY (chat_message_id) REFERENCES chat_message (id)
 );
 
 CREATE VIEW v_document_index_status
@@ -163,7 +153,7 @@ CREATE TABLE import_source_task
     created_at       DATETIME                                            NOT NULL,
     finished_at      DATETIME                                            NULL,     -- when status in [succeed, failed]
     status           ENUM ('succeed', 'failed', 'pending', 'processing') NOT NULL,
-    document_id      VARCHAR(32)                                         NULL,     -- created document
+    document_id      BINARY(16)                                          NULL,     -- created document
     error            TEXT                                                NULL,
     PRIMARY KEY (id),
     FOREIGN KEY (parent_task_id) REFERENCES import_source_task (id),
@@ -179,36 +169,71 @@ CREATE TABLE authentication_providers
     PRIMARY KEY (name)
 );
 
-CREATE TABLE `option` (
-    option_name VARCHAR(100) PRIMARY KEY,
-    group_name VARCHAR(32),
-    option_type ENUM('number', 'string', 'object', 'array') NOT NULL,
+CREATE TABLE `option`
+(
+    option_name  VARCHAR(100) PRIMARY KEY,
+    group_name   VARCHAR(32),
+    option_type  ENUM ('number', 'string', 'object', 'array') NOT NULL,
     option_value JSON,
-    KEY idx_o_on_group_name(group_name)
+    KEY idx_o_on_group_name (group_name)
 );
 
-INSERT INTO `option` VALUES
-    ('title', 'website', 'string', '"tidb.ai"'),
-    ('description', 'website', 'string', '"Hello TiDB Cloud!"'),
-    ('logo_in_dark_mode', 'website', 'string', '"https://tidb.ai/tidb-ai-light.svg"'),
-    ('logo_in_light_mode', 'website', 'string', '"https://tidb.ai/tidb-ai.svg"'),
-    ('language', 'website', 'string', '"en-US"'),
-    ('homepage.title', 'website', 'string', '"Ask anything about TiDB"'),
-    ('homepage.description', 'website', 'string', '"Including company intro, user cases, product intro and usage, FAQ, etc."'),
-    ('homepage.example_questions', 'website', 'array', '[{"text": "What is TiDB?"}, {"text": "Does TiDB support FOREIGN KEY?"}, {"text": "Does TiDB support serverless?"}]'),
-    ('homepage.footer_links', 'website', 'array', '[{"text":"Docs","href":"/docs"},{"text":"Deploy your own within 5 minutes for free","href":"/docs"},{"text":"How it works?","href":"/docs"},{"text":"Powered by TiDB","href":"https://tidb.cloud"},{"text":"© 2024 PingCAP","href":"https://pingcap.com"}]'),
-    ('social.github', 'website', 'string', '"https://github.com/pingcap/tidb.ai"'),
-    ('social.twitter', 'website', 'string', '"https://twitter.com/PingCAP"'),
-    ('social.discord', 'website', 'string', '"https://discord.gg/XzSW23Jg9p"');
+INSERT INTO `option`
+VALUES ('title', 'website', 'string', '"tidb.ai"'),
+       ('description', 'website', 'string', '"Hello TiDB Cloud!"'),
+       ('logo_in_dark_mode', 'website', 'string', '"https://tidb.ai/tidb-ai-light.svg"'),
+       ('logo_in_light_mode', 'website', 'string', '"https://tidb.ai/tidb-ai.svg"'),
+       ('language', 'website', 'string', '"en-US"'),
+       ('homepage.title', 'website', 'string', '"Ask anything about TiDB"'),
+       ('homepage.description', 'website', 'string',
+        '"Including company intro, user cases, product intro and usage, FAQ, etc."'),
+       ('homepage.example_questions', 'website', 'array', '[
+         {
+           "text": "What is TiDB?"
+         }, {
+           "text": "Does TiDB support FOREIGN KEY?"
+         }, {
+           "text": "Does TiDB support serverless?"
+         }
+       ]'),
+       ('homepage.footer_links', 'website', 'array', '[
+         {
+           "text": "Docs",
+           "href": "/docs"
+         }, {
+           "text": "Deploy your own within 5 minutes for free",
+           "href": "/docs"
+         }, {
+           "text": "How it works?",
+           "href": "/docs"
+         }, {
+           "text": "Powered by TiDB",
+           "href": "https://tidb.cloud"
+         }, {
+           "text": "© 2024 PingCAP",
+           "href": "https://pingcap.com"
+         }
+       ]'),
+       ('social.github', 'website', 'string', '"https://github.com/pingcap/tidb.ai"'),
+       ('social.twitter', 'website', 'string', '"https://twitter.com/PingCAP"'),
+       ('social.discord', 'website', 'string', '"https://discord.gg/XzSW23Jg9p"');
 
-INSERT INTO `option` VALUES
-    ('button_label', 'custom_js', 'string', '"Ask AI"'),
-    ('button_img_src', 'custom_js', 'string', '"https://tidb.ai/tidb-ai.svg"'),
-    ('logo_src', 'custom_js', 'string', '"https://tidb.ai/tidb-ai.svg"'),
-    ('example_questions', 'custom_js', 'array', '[{"text": "What is TiDB?"}, {"text": "Does TiDB support FOREIGN KEY?"}, {"text": "Does TiDB support serverless?"}]'),
-    ('widget_title', 'custom_js', 'string', '"Conversation Search Box"'),
-    ('widget_input_placeholder', 'custom_js', 'string', '"Ask a question..."'),
-    ('widget_color_mode', 'custom_js', 'string', '"system"');
+INSERT INTO `option`
+VALUES ('button_label', 'custom_js', 'string', '"Ask AI"'),
+       ('button_img_src', 'custom_js', 'string', '"https://tidb.ai/tidb-ai.svg"'),
+       ('logo_src', 'custom_js', 'string', '"https://tidb.ai/tidb-ai.svg"'),
+       ('example_questions', 'custom_js', 'array', '[
+         {
+           "text": "What is TiDB?"
+         }, {
+           "text": "Does TiDB support FOREIGN KEY?"
+         }, {
+           "text": "Does TiDB support serverless?"
+         }
+       ]'),
+       ('widget_title', 'custom_js', 'string', '"Conversation Search Box"'),
+       ('widget_input_placeholder', 'custom_js', 'string', '"Ask a question..."'),
+       ('widget_color_mode', 'custom_js', 'string', '"system"');
 
 INSERT INTO `index`(name, llm, llm_model, config, created_at, last_modified_at)
 VALUES ('default', 'openai', 'openai', '{}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

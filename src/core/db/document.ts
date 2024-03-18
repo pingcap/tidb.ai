@@ -1,8 +1,10 @@
 import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
 import { executePage, type Page, type PageRequest } from '@/lib/database';
+import { uuidToBin } from '@/lib/kysely';
 import { subHours } from 'date-fns';
 import type { ExpressionBuilder, Insertable, Selectable, Updateable } from 'kysely';
+import type { UUID } from 'node:crypto';
 
 const accept = [
   'text/plain',
@@ -13,28 +15,39 @@ const accept = [
 
 export type DocumentFilters = Record<'index_state' | 'q', string[]>;
 
+export interface DBDocument extends Omit<Selectable<DB['document']>, 'id'> {
+  id: UUID;
+}
+
+export interface DBInsertableDocument extends Omit<Insertable<DB['document']>, 'id'> {
+  id: UUID;
+}
+
+export interface DBUpdatableDocument extends Omit<Updateable<DB['document']>, 'id'> {
+}
+
 export interface DocumentDb {
-  listAll (request: PageRequest<DocumentFilters>): Promise<Page<Selectable<DB['document']> & { index_state: string, metadata: any, trace: string | null }>>;
+  listAll (request: PageRequest<DocumentFilters>): Promise<Page<DBDocument & { index_state: string, metadata: any, trace: string | null }>>;
 
-  listByCreatedAt (from: Date | null, limit: number): Promise<Selectable<DB['document']>[]>;
+  listByCreatedAt (from: Date | null, limit: number): Promise<DBDocument[]>;
 
-  listByNotIndexed (indexName: string, limit: number): Promise<Selectable<DB['document']>[]>;
+  listByNotIndexed (indexName: string, limit: number): Promise<DBDocument[]>;
 
   listIdsByFilter (filter: DocumentFilters): Promise<string[]>;
 
-  findById (id: string): Promise<Selectable<DB['document']> | undefined>;
+  findById (id: UUID): Promise<DBDocument | undefined>;
 
-  findBySourceUri (id: string): Promise<Selectable<DB['document']> | undefined>;
+  findBySourceUri (id: string): Promise<DBDocument | undefined>;
 
-  findBySourceUris (uri: string[]): Promise<Selectable<DB['document']>[]>;
+  findBySourceUris (uri: string[]): Promise<DBDocument[]>;
 
-  insert (documents: Insertable<DB['document']>[]): Promise<void>;
+  insert (documents: DBInsertableDocument[]): Promise<void>;
 
-  update (id: string, partial: Updateable<DB['document']>): Promise<void>;
+  update (id: UUID, partial: DBUpdatableDocument): Promise<void>;
 
   getIndexState (indexName: string): Promise<Record<string, number>>;
 
-  _outdate (ids: string[], index: string): Promise<void>;
+  _outdate (ids: UUID[], index: string): Promise<void>;
 }
 
 const documentDb = {
@@ -51,6 +64,7 @@ const documentDb = {
       .leftJoin('document_index', 'document_id', 'document.id')
       .leftJoin('index', 'index.name', 'document_index.index_name')
       .selectAll('document')
+      .select(eb => eb.fn('bin_to_uuid', ['document.id']).as('id'))
       .select(eb => eb.ref('document_index.metadata').$castTo<any>().as('metadata'))
       .select(eb => computed_index_state(eb).as('index_state'))
       .select('document_index.trace')
@@ -83,6 +97,7 @@ const documentDb = {
   async listByCreatedAt (from, limit) {
     let builder = db.selectFrom('document')
       .selectAll()
+      .select(eb => eb.fn('bin_to_uuid', ['document.id']).as('id'))
       .orderBy('created_at asc')
       .limit(limit);
     if (from) {
@@ -92,9 +107,10 @@ const documentDb = {
     return await builder.execute();
   },
 
-  async listByNotIndexed (indexName: string, limit: number): Promise<Selectable<DB['document']>[]> {
+  async listByNotIndexed (indexName: string, limit: number) {
     return await db.selectFrom('document')
       .selectAll('document')
+      .select(eb => eb.fn('bin_to_uuid', ['document.id']).as('id'))
       .leftJoin('v_document_index_status', 'document.id', 'v_document_index_status.document_id')
       .where(eb => eb.or([
         // staled or not indexed
@@ -127,7 +143,7 @@ const documentDb = {
     let builder = db.selectFrom('document')
       .leftJoin('document_index', 'document_id', 'document.id')
       .leftJoin('index', 'index.name', 'document_index.index_name')
-      .select('document.id')
+      .select(eb => eb.fn('bin_to_uuid', ['document.id']).as('id'))
       .where(eb => eb.or([
         eb('index_name', '=', eb => eb.val('default')),
         eb('index_name', 'is', null),
@@ -171,15 +187,17 @@ const documentDb = {
     }, {} as Record<string, number>);
   },
 
-  async findById (id: string) {
+  async findById (id) {
     return await db.selectFrom('document')
       .selectAll()
-      .where('id', '=', eb => eb.val(id))
+      .select(eb => eb.fn('bin_to_uuid', ['document.id']).as('id'))
+      .where('id', '=', uuidToBin(id))
       .executeTakeFirst();
   },
   async findBySourceUri (uri: string) {
     return await db.selectFrom('document')
       .selectAll()
+      .select(eb => eb.fn('bin_to_uuid', ['document.id']).as('id'))
       .where('source_uri', '=', eb => eb.val(uri))
       .executeTakeFirst();
   },
@@ -189,6 +207,7 @@ const documentDb = {
     }
     return await db.selectFrom('document')
       .selectAll()
+      .select(eb => eb.fn('bin_to_uuid', ['document.id']).as('id'))
       .where('source_uri', 'in', uris)
       .execute();
   },
@@ -197,7 +216,10 @@ const documentDb = {
       return;
     }
     await db.insertInto('document')
-      .values(documents)
+      .values(documents.map(({ id, ...document }) => ({
+        ...document,
+        id: uuidToBin(id),
+      })))
       .execute();
   },
 
@@ -207,7 +229,7 @@ const documentDb = {
         ...partial,
         last_modified_at: partial.last_modified_at ?? new Date(),
       })
-      .where('id', '=', eb => eb.val(id))
+      .where('id', '=', uuidToBin(id))
       .execute();
   },
 
@@ -216,7 +238,7 @@ const documentDb = {
       .set({
         created_at: new Date(0),
       })
-      .where('document_id', 'in', ids)
+      .where('document_id', 'in', ids.map(id => uuidToBin(id)))
       .where('index_name', '=', eb => eb.val(index))
       .execute();
   },

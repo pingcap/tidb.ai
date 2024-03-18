@@ -1,5 +1,6 @@
 import { Flow } from '@/core';
 import database from '@/core/db';
+import type { DBDocument } from '@/core/db/document';
 import type { DB } from '@/core/db/schema';
 import { rag } from '@/core/interface';
 import { reIndexDocument } from '@/jobs/reIndexDocument';
@@ -43,7 +44,7 @@ export async function GET (req: NextRequest, { params }: { params: { name: strin
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-async function reIndex (index: Selectable<DB['index']>, documents: Selectable<DB['document']>[]) {
+async function reIndex (index: Selectable<DB['index']>, documents: DBDocument[]) {
   await Promise.all(documents.map(async document => {
     await reIndexDocument(index, document);
   }));

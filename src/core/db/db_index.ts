@@ -1,14 +1,13 @@
 import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
 import { rag } from '@/core/interface';
-import { executePage, type Page, type PageRequest } from '@/lib/database';
-import { genId } from '@/lib/id';
 import type { Insertable, Selectable, Updateable } from 'kysely';
 import { notFound } from 'next/navigation';
 import ChunkedContent = rag.ChunkedContent;
 import EmbeddedContent = rag.EmbeddedContent;
-import {cosineSimilarity, vectorToSql} from "@/lib/kysely";
+import { cosineSimilarity, uuidToBin, vectorToSql } from '@/lib/kysely';
 import {DateTime} from "luxon";
+import { randomUUID, type UUID } from 'node:crypto';
 
 export type _QueryOptions = {
   namespaceIds: number[];
@@ -20,11 +19,11 @@ export interface IndexDb {
 
   update (name: string, updater: (index: Selectable<DB['index']>) => Updateable<DB['index']>): Promise<void>;
 
-  startIndexing (index: string, documentId: string, content: ChunkedContent<any, any>): Promise<void>;
+  startIndexing (index: string, documentId: UUID, content: ChunkedContent<any, any>): Promise<void>;
 
-  finishIndexing (index: string, documentId: string, embeddedContent: EmbeddedContent<any, any>): Promise<void>;
+  finishIndexing (index: string, documentId: UUID, embeddedContent: EmbeddedContent<any, any>): Promise<void>;
 
-  terminateIndexing (index: string, documentId: string, error: unknown): Promise<void>;
+  terminateIndexing (index: string, documentId: UUID, error: unknown): Promise<void>;
 
   _query (index: string, vector: Float64Array, top_k: number, options: _QueryOptions): Promise<SearchResult[]>;
 
@@ -38,9 +37,7 @@ export interface IndexDb {
 
   getQueryResults (id: string): Promise<SearchResult[] | undefined>;
 
-  listEmbeddings (request: PageRequest): Promise<Page<Selectable<DB['document_index_chunk']>>>;
-
-  getDocumentIndex (name: string, documentId: string): Promise<Selectable<DB['document_index']> | undefined>;
+  getDocumentIndex (name: string, documentId: UUID): Promise<Selectable<DB['document_index']> | undefined>;
 }
 
 type SearchResult = {
@@ -85,7 +82,7 @@ export const indexDb: IndexDb = {
     // Insert a new document_index or set the original index's state to `indexing`
     await db.insertInto('document_index')
       .values({
-        document_id: documentId,
+        document_id: uuidToBin(documentId),
         index_name: index,
         status: 'indexing',
         created_at: new Date(),
@@ -106,7 +103,7 @@ export const indexDb: IndexDb = {
       // Update index state to `ok`
       await db.insertInto('document_index')
         .values({
-          document_id: documentId,
+          document_id: uuidToBin(documentId),
           index_name: index,
           status: 'ok',
           created_at: now,
@@ -128,7 +125,7 @@ export const indexDb: IndexDb = {
           staled: 1,
         })
         .where('index_name', '=', eb => eb.val(index))
-        .where('document_id', '=', eb => eb.val(documentId))
+        .where('document_id', '=', uuidToBin(documentId))
         .where('staled', '=', 0)
         .execute();
 
@@ -136,8 +133,8 @@ export const indexDb: IndexDb = {
         // insert new index chunks
         await db.insertInto('document_index_chunk')
           .values(content.chunks.map((c, i) => ({
-            id: genId(16),
-            document_id: documentId,
+            id: uuidToBin(randomUUID()),
+            document_id: uuidToBin(documentId),
             index_name: index,
             metadata: JSON.stringify(c.metadata),
             text_content: c.content,
@@ -158,7 +155,7 @@ export const indexDb: IndexDb = {
         trace: JSON.stringify({ name: error.name, message: error.message }),
       })
       .where('index_name', '=', eb => eb.val(index))
-      .where('document_id', '=', eb => eb.val(documentId))
+      .where('document_id', '=', uuidToBin(documentId))
       .execute();
   },
 
@@ -196,8 +193,8 @@ export const indexDb: IndexDb = {
       .innerJoin('document', 'document.id', 'most_relevant_chunks.document_id')
       .select([
         'most_relevant_chunks.namespace_id',
-        'most_relevant_chunks.document_id',
-        'most_relevant_chunks.chunk_id as document_index_chunk_id',
+        eb => eb.fn('bin_to_uuid', ['most_relevant_chunks.document_id']).as('document_id'),
+        eb => eb.fn('bin_to_uuid', ['most_relevant_chunks.chunk_id']).as('document_index_chunk_id'),
         'document_index_chunk_partitioned.text_content',
         'document_index_chunk_partitioned.metadata',
         'document.source_uri',
@@ -274,8 +271,8 @@ export const indexDb: IndexDb = {
       .where('index_query_id', '=', eb => eb.val(id))
       .select([
         'document_index_chunk_partitioned.namespace_id',
-        'document_index_chunk_partitioned.document_id',
-        'document_index_chunk_partitioned.chunk_id as document_index_chunk_id',
+        eb => eb.fn('bin_to_uuid', ['document_index_chunk_partitioned.document_id']).as('document_id'),
+        eb => eb.fn('bin_to_uuid', ['document_index_chunk_partitioned.chunk_id']).as('document_index_chunk_id'),
         'document_index_chunk_partitioned.text_content',
         'document_index_chunk_partitioned.metadata',
         'index_query_result.score',
@@ -285,18 +282,11 @@ export const indexDb: IndexDb = {
       .execute();
   },
 
-  async listEmbeddings (request) {
-    const builder = db.selectFrom('document_index_chunk')
-      .selectAll();
-
-    return executePage(builder, request);
-  },
-
-  async getDocumentIndex (name: string, documentId: string) {
+  async getDocumentIndex (name, documentId) {
     return await db.selectFrom('document_index')
       .selectAll()
       .where('index_name', '=', name)
-      .where('document_id', '=', documentId)
+      .where('document_id', '=', uuidToBin(documentId))
       .executeTakeFirst();
   },
 };

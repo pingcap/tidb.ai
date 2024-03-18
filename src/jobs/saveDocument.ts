@@ -1,14 +1,17 @@
 import database from '@/core/db';
+import type { DBDocument } from '@/core/db/document';
 import type { DB } from '@/core/db/schema';
 import { rag } from '@/core/interface';
 import { reIndexDocument } from '@/jobs/reIndexDocument';
 import { md5 } from '@/lib/digest';
+import { uuidToBin } from '@/lib/kysely';
 import type { Selectable } from 'kysely';
 import mime from 'mime';
+import type { UUID } from 'node:crypto';
 import path from 'node:path';
 
 export type DocumentToSave = {
-  id: string
+  id: UUID;
   buffer: Buffer;
   mime?: string;
   name?: string;
@@ -34,7 +37,7 @@ export async function saveDocument (storage: rag.DocumentStorage<any>, doc: Docu
 
 }
 
-export async function updateDocument (storage: rag.DocumentStorage<any>, document: Selectable<DB['document']>, doc: DocumentToSave) {
+export async function updateDocument (storage: rag.DocumentStorage<any>, document: DBDocument, doc: DocumentToSave) {
   const digest = md5(doc.buffer);
 
   // do not update if digest not changed.
@@ -55,7 +58,7 @@ export async function updateDocument (storage: rag.DocumentStorage<any>, documen
   }
 }
 
-async function triggerIndex (id: string) {
+async function triggerIndex (id: UUID) {
 
   if (process.env.AUTO_TRIGGER) {
     const document = await database.document.findById(id);

@@ -25,13 +25,13 @@ export interface AuthenticationProviders {
 export interface Chat {
   created_at: Date;
   created_by: string;
+  deleted_at: Date | null;
+  deleted_by: string | null;
   id: string;
   index_name: string;
   llm: string;
   llm_model: string;
   name: string;
-  deleted_at: Generated<Date | null>;
-  deleted_by: Generated<string | null>;
 }
 
 export interface ChatMessage {
@@ -45,18 +45,11 @@ export interface ChatMessage {
   role: "assistant" | "system" | "user";
 }
 
-export interface ChatMessageContextDocuments {
-  chat_message_id: string;
-  document_id: string;
-  ordinal: number;
-  text_content: string;
-}
-
 export interface Document {
   content_uri: string;
   created_at: Date;
   digest: string;
-  id: string;
+  id: Buffer;
   last_modified_at: Date;
   mime: string;
   name: string;
@@ -65,7 +58,7 @@ export interface Document {
 
 export interface DocumentIndex {
   created_at: Date;
-  document_id: string;
+  document_id: Buffer;
   index_name: string;
   metadata: Json;
   status: "fail" | "indexing" | "ok";
@@ -74,9 +67,9 @@ export interface DocumentIndex {
 }
 
 export interface DocumentIndexChunk {
-  document_id: string;
-  embedding: Buffer;
-  id: string;
+  document_id: Buffer;
+  embedding: unknown;
+  id: Buffer;
   index_name: string;
   metadata: Json;
   ordinal: number;
@@ -85,12 +78,12 @@ export interface DocumentIndexChunk {
 }
 
 export interface DocumentIndexChunkPartitioned {
-  namespace_id: number;
-  document_id: string;
-  embedding: Buffer;
-  chunk_id: string;
+  chunk_id: Buffer;
+  document_id: Buffer;
+  embedding: unknown;
   index_name: string;
   metadata: Json;
+  namespace_id: number;
   ordinal: number;
   staled: number;
   text_content: string;
@@ -107,7 +100,7 @@ export interface ImportSource {
 
 export interface ImportSourceTask {
   created_at: Date;
-  document_id: string | null;
+  document_id: Buffer | null;
   error: string | null;
   finished_at: Date | null;
   id: Generated<number>;
@@ -118,25 +111,19 @@ export interface ImportSourceTask {
   url: string;
 }
 
-export interface TaskSummaryItem {
-  import_source_id: string;
-  status: string;
-  tasks: number;
-}
-
 export interface Index {
   config: Json;
   created_at: Date;
+  embedding: Generated<string>;
   last_modified_at: Date;
   llm: string;
-  embedding: string;
-  reranker: string;
   name: string;
+  reranker: Generated<string>;
 }
 
 export interface IndexQuery {
   created_at: Date;
-  embedding: Buffer;
+  embedding: unknown;
   finished_at: Date | null;
   id: string;
   index_name: string;
@@ -147,10 +134,21 @@ export interface IndexQuery {
 }
 
 export interface IndexQueryResult {
-  document_index_chunk_id: string;
+  document_index_chunk_id: Buffer;
   index_query_id: string;
   relevance_score: number | null;
   score: number;
+}
+
+export interface Namespace {
+  common: Generated<number>;
+  common_uri_prefix: string | null;
+  default: Generated<number>;
+  description: string | null;
+  id: Generated<number>;
+  level: Generated<number>;
+  name: string;
+  parent_id: number | null;
 }
 
 export interface Option {
@@ -162,32 +160,22 @@ export interface Option {
 
 export interface Status {
   status_name: string;
-  status_type: "array" | "number" | "object" | "string" | "date";
+  status_type: "array" | "date" | "number" | "object" | "string";
   status_value: Json | null;
 }
 
-export interface Namespace {
-  id: number;
-  name: string;
-  description: string | null;
-  common: boolean;
-  default: boolean;
-  common_uri_prefix: string | null;
-}
-
 export interface VDocumentIndexStatus {
-  document_id: string | null;
+  document_id: Buffer | null;
   index_name: string | null;
   index_state: string | null;
-  mime: string | null;
   indexed_at: Date | null;
+  mime: string | null;
 }
 
 export interface DB {
   authentication_providers: AuthenticationProviders;
   chat: Chat;
   chat_message: ChatMessage;
-  chat_message_context_documents: ChatMessageContextDocuments;
   document: Document;
   document_index: DocumentIndex;
   document_index_chunk: DocumentIndexChunk;
@@ -197,8 +185,8 @@ export interface DB {
   index: Index;
   index_query: IndexQuery;
   index_query_result: IndexQueryResult;
+  namespace: Namespace;
   option: Option;
   status: Status;
-  namespace: Namespace;
   v_document_index_status: VDocumentIndexStatus;
 }

@@ -1,7 +1,9 @@
 import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
 import { rag } from '@/core/interface';
+import { uuidToBin } from '@/lib/kysely';
 import type { Insertable, Selectable } from 'kysely';
+import type { UUID } from 'node:crypto';
 
 export type TaskStatus = DB['import_source_task']['status'];
 
@@ -9,7 +11,7 @@ export type TaskResult = rag.ImportSourceTaskResult
 
 export type FinishTaskParameters = {
   enqueue?: Array<{ type: string, url: string }>
-  documentId?: string
+  documentId?: UUID
 }
 
 export interface TaskDb {
@@ -117,7 +119,7 @@ export const taskDb: TaskDb = {
         .set({
           status: 'succeed',
           finished_at: now,
-          document_id: result.documentId,
+          document_id: result.documentId ? uuidToBin(result.documentId) : undefined,
         })
         .execute();
 

@@ -9,6 +9,7 @@ import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { ImportFileDialog } from '@/components/dialogs/import-file-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import type { DBDocument } from '@/core/db/document';
 import type { DB } from '@/core/db/schema';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
@@ -16,7 +17,7 @@ import { format } from 'date-fns';
 import type { Selectable } from 'kysely';
 import { GithubIcon } from 'lucide-react';
 
-const helper = createColumnHelper<Selectable<DB['document']> & { index_state: string, metadata: any, trace: string | null, indexed_at: Date | null }>();
+const helper = createColumnHelper<DBDocument & { index_state: string, metadata: any, trace: string | null, indexed_at: Date | null }>();
 
 const mono = (cell: CellContext<any, any>) => <span className="font-mono">{cell.getValue()}</span>;
 
@@ -61,7 +62,7 @@ const columns = [
   helper.accessor('created_at', { cell: datetime }),
   helper.accessor('last_modified_at', { cell: datetime }),
   helper.accessor('indexed_at', { cell: datetime }),
-] as ColumnDef<Selectable<DB['document']> & { index_state: string, metadata: any, indexed_at: Date | null }>[];
+] as ColumnDef<DBDocument & { index_state: string, metadata: any, indexed_at: Date | null }>[];
 
 export default function Page () {
   return (
