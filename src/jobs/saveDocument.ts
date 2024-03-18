@@ -27,6 +27,7 @@ export async function saveDocument (storage: rag.DocumentStorage<any>, doc: Docu
     content_uri: contentUri,
     source_uri: doc.sourceUrl,
     mime: doc.mime ?? mime.getType(doc.sourceUrl) ?? 'unknown',
+    content: doc.buffer.toString('utf8'),
     name: doc.name ?? path.basename(doc.sourceUrl),
     digest: md5(doc.buffer),
     created_at: now,
@@ -49,6 +50,7 @@ export async function updateDocument (storage: rag.DocumentStorage<any>, documen
     await database.document.update(document.id, {
       last_modified_at: now,
       content_uri: contentUri,
+      content: doc.buffer.toString('utf8'),
       digest,
       mime: doc.mime,
       name: doc.name,

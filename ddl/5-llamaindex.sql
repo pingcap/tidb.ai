@@ -1,0 +1,2 @@
+ALTER TABLE document
+    ADD COLUMN content LONGTEXT NOT NULL AFTER mime;

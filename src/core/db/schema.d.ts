@@ -46,6 +46,7 @@ export interface ChatMessage {
 }
 
 export interface Document {
+  content: string;
   content_uri: string;
   created_at: Date;
   digest: string;

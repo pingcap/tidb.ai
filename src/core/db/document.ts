@@ -45,6 +45,12 @@ export interface DocumentDb {
 
   update (id: UUID, partial: DBUpdatableDocument): Promise<void>;
 
+  insertAll (documents: DBInsertableDocument[], upsert: boolean): Promise<void>;
+
+  getDigest (id: UUID): Promise<string | undefined>;
+
+  updateDigest (id: UUID, digest: string): Promise<void>;
+
   getIndexState (indexName: string): Promise<Record<string, number>>;
 
   _outdate (ids: UUID[], index: string): Promise<void>;
@@ -228,6 +234,51 @@ const documentDb = {
       .set({
         ...partial,
         last_modified_at: partial.last_modified_at ?? new Date(),
+      })
+      .where('id', '=', uuidToBin(id))
+      .execute();
+  },
+
+  async insertAll (documents, upsert) {
+    if (upsert) {
+      await db.transaction().execute(async db => {
+        for (let { id, ...partial } of documents) {
+          await db.insertInto('document')
+            .values({
+              id: uuidToBin(id),
+              ...partial,
+              last_modified_at: partial.last_modified_at ?? new Date(),
+            })
+            .onDuplicateKeyUpdate({
+              ...partial,
+              last_modified_at: partial.last_modified_at ?? new Date(),
+            })
+            .execute();
+        }
+      });
+    } else {
+      await db.insertInto('document')
+        .values(documents.map(({ id, ...document }) => ({
+          id: uuidToBin(id),
+          ...document,
+        })))
+        .execute();
+    }
+  },
+
+  async getDigest (id) {
+    const res = await db.selectFrom('document')
+      .select('digest')
+      .where('id', '=', uuidToBin(id))
+      .executeTakeFirst();
+
+    return res?.digest;
+  },
+
+  async updateDigest(id, digest) {
+    await db.updateTable('document')
+      .set({
+        digest,
       })
       .where('id', '=', uuidToBin(id))
       .execute();
