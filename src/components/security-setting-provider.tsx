@@ -17,6 +17,10 @@ export async function withReCaptcha(
   func: (data: { action: string; siteKey: string; token: string }) => void
 ) {
   const { action, siteKey } = options;
+  // skip if no siteKey
+  if (!siteKey) {
+    return func({ action, siteKey, token: '' });
+  }
   if (options.mode === 'v3') {
     grecaptcha.ready(async () => {
       const token = await grecaptcha.execute(siteKey, { action });
