@@ -63,8 +63,8 @@ import { optionDb } from '@/core/db/options';
 //   }
 // }
 
-export const RECAPTCHA_V3_VERIFY_API =
-  'https://www.google.com/recaptcha/api/siteverify';
+export const RECAPTCHA_V3_VERIFY_HOST = 'https://www.google.com';
+export const RECAPTCHA_V3_VERIFY_API = `${RECAPTCHA_V3_VERIFY_HOST}/recaptcha/api/siteverify`;
 export const RECAPTCHA_ENTERPRISE_VERIFY_HOST =
   'https://recaptchaenterprise.googleapis.com';
 export const RECAPTCHA_ENTERPRISE_VERIFY_API = `${RECAPTCHA_ENTERPRISE_VERIFY_HOST}/v1/projects/{PROJECT_ID}/assessments?key={API_KEY}`;
@@ -81,21 +81,20 @@ export const RECAPTCHA_ENTERPRISE_VERIFY_API = `${RECAPTCHA_ENTERPRISE_VERIFY_HO
 export async function createV3Assessment({
   secret = 'site-key',
   token = 'action-token',
-  remoteip = undefined,
 }) {
-  const response = await fetch(`${RECAPTCHA_V3_VERIFY_API}`, {
+  const url = RECAPTCHA_V3_VERIFY_API;
+  const response = await fetch(url, {
     method: 'POST',
-    body: JSON.stringify({
-      secret,
-      response: token,
-      remoteip,
-    }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: `secret=${secret}&response=${token}`,
   });
   const data: {
     success: boolean;
     challenge_ts: string; // timestamp of the challenge load (ISO format yyyy-MM-dd'T'HH:mm:ssZZ)
     hostname: string; // the hostname of the site where the reCAPTCHA was solved
-    'error-codes': any; // optional
+    score: number; // the score for this request (0.0 - 1.0)
+    action: string; // the action name for this request
+    'error-codes'?: any; // optional
   } = await response.json();
   if (data) {
     return data.success;
@@ -161,7 +160,7 @@ export async function validateNextRequestWithReCaptcha(req: NextRequest) {
   const reCaptchaSiteKey = reCaptchaCfg
     ?.find((item) => item.option_name === 'google_recaptcha_site_key')
     ?.option_value?.toString();
-  
+
   // Skip if reCaptcha is not configured
   if (!reCaptchaSiteKey) {
     return null;
@@ -198,7 +197,7 @@ export async function validateNextRequestWithReCaptcha(req: NextRequest) {
 
   if (reCaptchaMode === 'v3') {
     const result = await createV3Assessment({
-      secret: reCaptchaSiteKey,
+      secret: reCaptchaSecretKey,
       token: reCaptchaToken,
     });
     if (result) {
