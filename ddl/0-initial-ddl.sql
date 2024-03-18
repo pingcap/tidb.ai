@@ -212,7 +212,9 @@ INSERT INTO `option` VALUES
 
 INSERT INTO `option` VALUES
     ('google_recaptcha', 'security', 'string', '"v3"')
-    ('google_recaptcha_site_key', 'security', 'string', '""');
+    ('google_recaptcha_site_key', 'security', 'string', '""'),
+    ('google_recaptcha_secret_key', 'security', 'string', '""'),
+    ('google_recaptcha_enterprise_project_id', 'security', 'string', '""');
 
 INSERT INTO `index`(name, llm, llm_model, config, created_at, last_modified_at)
 VALUES ('default', 'openai', 'openai', '{}', CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);

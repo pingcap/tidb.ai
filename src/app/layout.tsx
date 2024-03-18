@@ -53,12 +53,10 @@ export default async function RootLayout ({
         data-logo-src="https://tidb.ai/tidb-ai.svg"
         data-preferred-mode="dark"
       />
-      {/* {security?.google_recaptcha_site_key && (<script async src="https://www.google.com/recaptcha/api.js"></script>)}
-      {security?.google_recaptcha_site_key && (<ReCaptcha siteKey={security.google_recaptcha_site_key} />)} */}
       {security?.google_recaptcha_site_key && security?.google_recaptcha && (<ReCaptcha mode={security.google_recaptcha} siteKey={security.google_recaptcha_site_key} />)}
     </head>
     <body className={font.className}>
-    <Providers session={session} website={website}>
+        <Providers session={session} website={website} security={security}>
       {children}
     </Providers>
     <Toaster />
@@ -81,8 +79,6 @@ const ReCaptcha = (props: { siteKey: string; mode: 'v3' | 'enterprise' }) => {
         id='google_recaptcha_enterprise'
         strategy='beforeInteractive'
         src={`https://www.google.com/recaptcha/enterprise.js?render=${props.siteKey}`}
-        async
-        defer
       ></Script>
     );
   }

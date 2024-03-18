@@ -6,10 +6,13 @@ import { useAsk } from '@/components/use-ask';
 import NextLink from 'next/link';
 import { useContext } from 'react';
 import { WebsiteSettingContext } from "@/components/website-setting-provider";
+import { SecuritySettingContext } from '@/components/security-setting-provider';
+import { withReCaptcha } from '@/components/security-setting-provider';
 
-export default function Page () {
+export default function Page() {
   const { loading, ask } = useAsk();
   const { homepage } = useContext(WebsiteSettingContext);
+  const security = useContext(SecuritySettingContext);
 
   return (
     <div className='h-screen'>
@@ -24,9 +27,26 @@ export default function Page () {
         {homepage?.example_questions && (<ul className="flex gap-2 flex-wrap px-4 w-full lg:w-2/3">
           {homepage.example_questions.map(item => (
             <li key={item.text}>
-              <Button className="font-normal text-xs" disabled={loading} variant="secondary" size="sm" onClick={() => {
-                ask(item.text);
-              }}>
+              <Button
+                className="g-recaptcha font-normal text-xs"
+                disabled={loading}
+                variant="secondary"
+                size="sm"
+                onClick={() => {
+                  withReCaptcha({
+                    action: 'ask',
+                    siteKey: security?.google_recaptcha_site_key || '',
+                    mode: security?.google_recaptcha,
+                  }, ({ token, action }) => {
+                    ask(item.text , {
+                      headers: {
+                        'X-Recaptcha-Token': token,
+                        'X-Recaptcha-Action': action,
+                      },
+                    });
+                  })
+                }}
+              >
                 {item.text}
               </Button>
             </li>
