@@ -1,18 +1,8 @@
 import { rag } from '@/core/interface';
+import ExtensionType = rag.ExtensionType;
 
 export namespace Flow {
   export interface ExtensionApi {
-    addLoader (loader: rag.Loader<any, any>): void;
-
-    addSplitter (splitter: rag.Splitter<any, any, any>): void;
-
-    addEmbeddings (embeddings: rag.Embeddings<any>): void;
-
-    addDocumentStorage (storage: rag.DocumentStorage<any>): void;
-
-    addImportSourceTaskProcessor (processor: rag.ImportSourceTaskProcessor<any>): void;
-
-    addReranker (reranker: rag.Reranker<any>): void;
   }
 
   export interface IExtension<Options extends any[]> {
@@ -28,99 +18,60 @@ export namespace Flow {
 type ExtensionInfo<Options extends any[]> = [Flow.IExtension<Options>, ...Options]
 
 export class Flow implements Flow.ExtensionApi {
+  private maps = {
+    [rag.ExtensionType.DocumentStorage]: new Map(),
+    [rag.ExtensionType.ChatModel]: new Map(),
+    [rag.ExtensionType.ContentChunkMetadataExtractor]: new Map(),
+    [rag.ExtensionType.ContentMetadataExtractor]: new Map(),
+    [rag.ExtensionType.Loader]: new Map(),
+    [rag.ExtensionType.Splitter]: new Map(),
+    [rag.ExtensionType.ImportSourceTaskProcessor]: new Map(),
+    [rag.ExtensionType.Embeddings]: new Map(),
+    [rag.ExtensionType.Prompting]: new Map(),
+    [rag.ExtensionType.Reranker]: new Map(),
+  } satisfies { [Tp in keyof rag.ExtensionTypesMap]: Map<string, InstanceType<rag.ExtensionTypesMap[Tp]>> };
+
   constructor () {
   }
 
   private extensions: ExtensionInfo<any>[] = [];
-  private documentStorages = new Map<string, rag.DocumentStorage<any>>();
-  private loaders = new Map<string, rag.Loader<any, any>>();
-  private splitters = new Map<string, rag.Splitter<any, any, any>>();
-  private embeddings = new Map<string, rag.Embeddings<any>>();
-  private chatModels = new Map<string, rag.ChatModel<any>>();
-  private importSourceTaskProcessor = new Map<string, rag.ImportSourceTaskProcessor<any>>();
-  private promptings = new Map<string, rag.Prompting<any>>();
-  private rerankers = new Map<string, rag.Reranker<any>>();
 
   add (base: rag.Base<any>) {
-    if (base instanceof rag.Loader) {
-      this.addLoader(base);
-    } else if (base instanceof rag.Splitter) {
-      this.addSplitter(base);
-    } else if (base instanceof rag.Embeddings) {
-      this.addEmbeddings(base);
-    } else if (base instanceof rag.ChatModel) {
-      this.addChatModel(base);
-    } else if (base instanceof rag.DocumentStorage) {
-      this.addDocumentStorage(base);
-    } else if (base instanceof rag.ImportSourceTaskProcessor) {
-      this.addImportSourceTaskProcessor(base);
-    } else if (base instanceof rag.Prompting) {
-      this.addPrompting(base);
-    } else if (base instanceof rag.Reranker) {
-      this.addReranker(base);
+    const map = this.maps[base.type];
+    if (map.has(base.identifier)) {
+      throw new Error(`${base.type} '${base.identifier}' has already been registered.`);
+    }
+
+    map.set(base.identifier, base);
+  }
+
+  list<T extends rag.ExtensionType> (type: T): InstanceType<rag.ExtensionTypesMap[T]>[] {
+    return Array.from(this.maps[type].values());
+  }
+
+  listMeta (type: rag.ExtensionType) {
+    return this.list(type).map(item => ({ identifier: item.identifier, displayName: item.displayName }));
+  }
+
+  getRequired<T extends rag.ExtensionType> (type: T, identifier?: string) {
+    const extensions = this.maps[type];
+
+    let extension: InstanceType<rag.ExtensionTypesMap[T]> | undefined;
+    if (!identifier) {
+      extension = Array.from(extensions.values())[0];
     } else {
-      throw new Error(`what is ${base.displayName} (${base.identifier})?`);
+      extension = extensions.get(identifier) ?? extensions.get(`${type}.${identifier}`);
     }
+
+    if (!extension) {
+      throw new Error(`No available reranker.`);
+    }
+
+    return extension;
   }
 
-  addDocumentStorage (storage: rag.DocumentStorage<any>): void {
-    if (this.documentStorages.has(storage.identifier)) {
-      throw new Error(`document storage identifier '${storage.identifier}' has already been registered.`);
-    }
-    this.documentStorages.set(storage.identifier, storage);
-  }
-
-  addLoader (loader: rag.Loader<any, any>): void {
-    if (this.loaders.has(loader.identifier)) {
-      throw new Error(`Loader identifier '${loader.identifier}' has already been registered.`);
-    }
-    this.loaders.set(loader.identifier, loader);
-  }
-
-  addSplitter (splitter: rag.Splitter<any, any, any>): void {
-    if (this.splitters.has(splitter.identifier)) {
-      throw new Error(`Splitter identifier '${splitter.identifier}' has already been registered.`);
-    }
-    this.splitters.set(splitter.identifier, splitter);
-  }
-
-  addEmbeddings (embeddings: rag.Embeddings<any>): void {
-    if (this.embeddings.has(embeddings.identifier)) {
-      throw new Error(`Embedding identifier '${embeddings.identifier}' has already been registered.`);
-    }
-    this.embeddings.set(embeddings.identifier, embeddings);
-  }
-
-  addChatModel (chatModel: rag.ChatModel<any>): void {
-    if (this.chatModels.has(chatModel.identifier)) {
-      throw new Error(`Chat model identifier '${chatModel.identifier}' has already been registered.`);
-    }
-    this.chatModels.set(chatModel.identifier, chatModel);
-  }
-
-  addImportSourceTaskProcessor (processor: rag.ImportSourceTaskProcessor<any>) {
-    if (this.importSourceTaskProcessor.has(processor.identifier)) {
-      throw new Error(`Import source task processor identifier '${processor.identifier}' has already been registered.`);
-    }
-    this.importSourceTaskProcessor.set(processor.identifier, processor);
-  }
-
-  addPrompting (prompting: rag.Prompting<any>) {
-    if (this.promptings.has(prompting.identifier)) {
-      throw new Error(`Prompting identifier '${prompting.identifier}' has already been registered.`);
-    }
-    this.promptings.set(prompting.identifier, prompting);
-  }
-
-  addReranker (reranker: rag.Reranker<any>) {
-    if (this.rerankers.has(reranker.identifier)) {
-      throw new Error(`Reranker identifier '${reranker.identifier}' has already been registered.`);
-    }
-    this.rerankers.set(reranker.identifier, reranker);
-  }
-
-  addExtension<Options extends any[]> (extension: Flow.IExtension<Options>, ...options: Options) {
-    this.extensions.push([extension, ...options]);
+  findFirst<T extends rag.ExtensionType> (type: T, filter: (v: InstanceType<rag.ExtensionTypesMap[T]>) => boolean) {
+    return this.list(type).filter(filter)[0];
   }
 
   resolve () {
@@ -140,128 +91,49 @@ export class Flow implements Flow.ExtensionApi {
     }
   }
 
-  listLoaders () {
-    return Array.from(this.loaders.values()).map(({ displayName, identifier }) => {
-      return { displayName, identifier };
-    });
-  }
-
-  listSplitters () {
-    return Array.from(this.splitters.values()).map(({ displayName, identifier }) => {
-      return { displayName, identifier };
-    });
-  }
-
-  listChatModels () {
-    return Array.from(this.chatModels.values()).map(({ displayName, identifier }) => {
-      return { displayName, identifier };
-    });
-  }
-
-  listEmbeddings () {
-    return Array.from(this.embeddings.values()).map(({ displayName, identifier }) => {
-      return { displayName, identifier };
-    });
-  }
-
-  listRerankers () {
-    return Array.from(this.rerankers.values()).map(({ displayName, identifier }) => {
-      return { displayName, identifier };
-    });
-  }
-
   getStorage (identifier?: string): rag.DocumentStorage<any> {
     if (identifier) {
-      const storage = this.documentStorages.get(identifier);
+      const storage = this.getRequired(rag.ExtensionType.DocumentStorage, identifier);
 
       if (!storage?.available()) {
-        throw new Error(`No document storage ${identifier} not available.`);
+        throw new Error(`Document storage ${identifier} not available.`);
       }
 
       return storage;
     }
-    for (let storage of Array.from(this.documentStorages.values())) {
-      if (storage.available()) {
-        return storage;
-      }
-    }
+    const storage = this.findFirst(rag.ExtensionType.DocumentStorage, storage => storage.available());
 
-    throw new Error('No available document storage.');
+    if (!storage) {
+      throw new Error('No available document storage.');
+    }
+    return storage;
   }
 
   getLoader (mime: string, uri: string) {
-    for (let loader of Array.from(this.loaders.values())) {
-      if (loader.support(mime, uri)) {
-        return loader;
-      }
+    const loader = this.findFirst(rag.ExtensionType.Loader, loader => loader.support(mime, uri));
+    if (loader) {
+      return loader;
     }
     throw new Error(`No available document loader for mime type ${mime}.`);
   }
 
-  getSplitter (content: rag.Content<any>) {
-    for (let splitter of Array.from(this.splitters.values())) {
-      if (splitter.support(content)) {
-        return splitter;
-      }
-    }
-    throw new Error('No available document loader.');
-  }
-
   getEmbeddings (name: string): rag.Embeddings<any> {
-    const embeddings = this.embeddings.get(name) ?? this.embeddings.get(`rag.embeddings.${name}`);
-    if (!embeddings) {
-      throw new Error(`Embedding ${name} not found`);
-    }
-
-    return embeddings;
+    return this.getRequired(ExtensionType.Embeddings, name);
   }
 
   getChatModel (name: string): rag.ChatModel<any> {
-    const chatModel = this.chatModels.get(name) ?? this.chatModels.get(`rag.chat-model.${name}`);
-    if (!chatModel) {
-      throw new Error(`Chat model ${name} not found`);
-    }
-
-    return chatModel;
+    return this.getRequired(rag.ExtensionType.ChatModel, name);
   }
 
   getImportSourceTaskProcessor (type: string, url: string): rag.ImportSourceTaskProcessor<any> {
-    for (let processor of Array.from(this.importSourceTaskProcessor.values())) {
-      if (processor.support(type, url)) {
-        return processor;
-      }
+    const processor = this.findFirst(rag.ExtensionType.ImportSourceTaskProcessor, processor => processor.support(type, url))
+    if (processor) {
+      return processor;
     }
     throw new Error(`No available ImportSourceTaskProcessor for task type ${type}.`);
   }
 
-  getPrompting (identifier?: string): rag.Prompting<any> {
-    let prompting: rag.Prompting<any> | undefined;
-    if (!identifier) {
-      prompting = Array.from(this.promptings.values())[0];
-    } else {
-      prompting = this.promptings.get(identifier);
-    }
-
-    if (!prompting) {
-      throw new Error(`No available prompting.`);
-    }
-
-    return prompting;
-  }
-
   getReranker (identifier?: string): rag.Reranker<any> {
-    let reranker: rag.Reranker<any> | undefined;
-    if (!identifier) {
-      reranker = Array.from(this.rerankers.values())[0];
-    } else {
-      reranker = this.rerankers.get(identifier) ?? this.rerankers.get(`rag.reranker.${identifier}`);
-    }
-
-    if (!reranker) {
-      throw new Error(`No available reranker.`);
-    }
-
-    return reranker;
+    return this.getRequired(rag.ExtensionType.Reranker, identifier);
   }
-
 }

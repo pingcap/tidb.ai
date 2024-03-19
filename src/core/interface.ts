@@ -39,6 +39,25 @@ export namespace rag {
     content: AsyncIterable<string>;
   }
 
+  export enum ExtensionType {
+    DocumentStorage = 'rag.document-storage',
+    Loader = 'rag.loader',
+    /**
+     * @deprecated
+     */
+    Splitter = 'rag.splitter',
+    Embeddings = 'rag.embeddings',
+    Reranker = 'rag.reranker',
+    ChatModel = 'rag.chat-model',
+    ContentMetadataExtractor = 'rag.content-metadata-extractor',
+    ContentChunkMetadataExtractor = 'rag.content-chunk-metadata-extractor',
+    ImportSourceTaskProcessor = 'rag.import-source-task',
+    /**
+     * @deprecated
+     */
+    Prompting = 'rag.prompting',
+  }
+
   export type BaseMeta<Options> = {
     identifier: string;
     displayName: string;
@@ -51,12 +70,15 @@ export namespace rag {
     static readonly displayName: string;
     static readonly optionsSchema = z.object({});
     static readonly description?: FC;
+    static readonly type: ExtensionType;
 
     readonly options: Options;
+    readonly type: ExtensionType;
 
     constructor (options: Options) {
       this.options = options;
       this.postConstructor();
+      this.type = (this.constructor as any).type;
     }
 
     protected postConstructor () {}
@@ -71,6 +93,8 @@ export namespace rag {
   }
 
   export abstract class DocumentStorage<Options> extends Base<Options> {
+    static type = ExtensionType.DocumentStorage;
+
     abstract available (): boolean;
 
     abstract put (path: string, stream: Body | Buffer, tmp?: boolean): Promise<string>;
@@ -81,28 +105,45 @@ export namespace rag {
   }
 
   export abstract class Loader<Options, ContentMetadata> extends Base<Options> {
-    abstract support (mime: string, uri: string): boolean | Promise<boolean>;
+    static type = ExtensionType.Loader;
+
+    abstract support (mime: string, uri: string): boolean;
 
     abstract load (buffer: Buffer, uri: string): Content<ContentMetadata> | Promise<Content<ContentMetadata>>;
   }
 
+  /**
+   * @deprecated
+   */
   export abstract class Splitter<Options, ContentMetadata, ChunkMetadata> extends Base<Options> {
-    abstract support (content: Content<ContentMetadata>): boolean | Promise<boolean>;
+    static type = ExtensionType.Splitter;
 
+    /**
+     * @deprecated
+     */
+    abstract support (content: Content<ContentMetadata>): boolean | Promise<boolean>;
+    /**
+     * @deprecated
+     */
     abstract split (content: Content<ContentMetadata>): ChunkedContent<ContentMetadata, ChunkMetadata> | Promise<ChunkedContent<ContentMetadata, ChunkMetadata>>;
   }
 
   export abstract class Embeddings<Options> extends Base<Options> {
+    static type = ExtensionType.Embeddings;
+
     abstract embedChunks (chunks: string[]): Promise<Vector[]>;
 
     abstract embedQuery (query: string): Promise<Vector>;
   }
 
   export abstract class Reranker<Options> extends Base<Options> {
+    static type = ExtensionType.Reranker;
+
     abstract rerank (query: string, content: RetrievedContext[], top_n: number): Promise<{ results: RerankedContext[], metadata: Record<string, any> }>
   }
 
   export abstract class ChatModel<Options> extends Base<Options> {
+    static type = ExtensionType.ChatModel;
     /**
      * @deprecated
      */
@@ -112,12 +153,16 @@ export namespace rag {
   }
 
   export abstract class ContentMetadataExtractor<Options, Type = any> extends Base<Options> {
+    static type = ExtensionType.ContentMetadataExtractor;
+
     abstract get metadataKey (): string;
 
     abstract extract (document: Content<any>): Promise<Type>
   }
 
   export abstract class ContentChunkMetadataExtractor<Options, Type = any> extends Base<Options> {
+    static type = ExtensionType.ContentChunkMetadataExtractor;
+
     abstract get metadataKey (): string;
 
     abstract extract (chunk: ContentChunk<any>): Promise<Type>
@@ -132,6 +177,8 @@ export namespace rag {
   }
 
   export abstract class ImportSourceTaskProcessor<Options> extends Base<Options> {
+    static type = ExtensionType.ImportSourceTaskProcessor;
+
     abstract support (taskType: string, url: string): boolean;
 
     abstract process (task: { url: string }): Promise<ImportSourceTaskResult>
@@ -158,7 +205,15 @@ export namespace rag {
     relevance_score: number;
   }
 
+  /**
+   * @deprecated
+   */
   export abstract class Prompting<Options> extends Base<Options> {
+    static type = ExtensionType.Prompting;
+
+    /**
+     * @deprecated
+     */
     abstract refine (ctx: PromptingContext, query: string): Promise<Prompting.RefinedMessages>
   }
 
@@ -187,4 +242,19 @@ export namespace rag {
 
     load (uri: string): Promise<RawContent[]>;
   }
+
+  const extensionTypesMap = {
+    [rag.ExtensionType.DocumentStorage]: DocumentStorage,
+    [rag.ExtensionType.ChatModel]: ChatModel,
+    [rag.ExtensionType.ContentChunkMetadataExtractor]: ContentChunkMetadataExtractor,
+    [rag.ExtensionType.ContentMetadataExtractor]: ContentMetadataExtractor,
+    [rag.ExtensionType.Loader]: Loader,
+    [rag.ExtensionType.Splitter]: Splitter,
+    [rag.ExtensionType.ImportSourceTaskProcessor]: ImportSourceTaskProcessor,
+    [rag.ExtensionType.Embeddings]: Embeddings,
+    [rag.ExtensionType.Prompting]: Prompting,
+    [rag.ExtensionType.Reranker]: Reranker,
+  } as const
+
+  export type ExtensionTypesMap = typeof extensionTypesMap;
 }

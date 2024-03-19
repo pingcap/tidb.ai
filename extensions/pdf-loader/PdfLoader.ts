@@ -27,7 +27,7 @@ export default class PdfLoader extends rag.Loader<PdfLoaderOptions, {}> {
     };
   }
 
-  support (mime: string): boolean | Promise<boolean> {
+  support (mime: string): boolean {
     return mime === 'application/pdf';
   }
 }
