@@ -51,6 +51,8 @@ export interface DocumentDb {
 
   updateDigest (id: UUID, digest: string): Promise<void>;
 
+  getAllDigest (): Promise<{ id: UUID, digest: string }[]>;
+
   getIndexState (indexName: string): Promise<Record<string, number>>;
 
   _outdate (ids: UUID[], index: string): Promise<void>;
@@ -273,6 +275,13 @@ const documentDb = {
       .executeTakeFirst();
 
     return res?.digest;
+  },
+
+  async getAllDigest () {
+    return await db.selectFrom('document')
+      .select(eb => eb.fn('bin_to_uuid', ['id']).as('id'))
+      .select('digest')
+      .execute();
   },
 
   async updateDigest(id, digest) {
