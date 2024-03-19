@@ -7,7 +7,7 @@ const withMDX = mdx({
 /** @type {import('next').NextConfig} */
 let nextConfig = withSvgr(withMDX({
   experimental: {
-    serverComponentsExternalPackages: ['pdfjs-dist'],
+    serverComponentsExternalPackages: ['pdfjs-dist', 'llamaindex'],
   },
   pageExtensions: ['js', 'jsx', 'mdx', '.md', 'ts', 'tsx'],
   webpack(config) {

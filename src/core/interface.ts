@@ -1,7 +1,7 @@
+import { Namespace } from '@/core/db/schema';
 import type { AIStreamCallbacksAndOptions } from 'ai';
 import type { FC } from 'react';
 import { z, type ZodObject } from 'zod';
-import {Namespace} from "@/core/db/schema";
 
 export namespace rag {
   export interface Content<ContentMetadata> {
@@ -109,6 +109,18 @@ export namespace rag {
     abstract chat (history: ChatMessage[]): Promise<ChatMessage>
 
     abstract chatStream (history: ChatMessage[], callbacks?: AIStreamCallbacksAndOptions): Promise<ReadableStream>
+  }
+
+  export abstract class ContentMetadataExtractor<Options, Type = any> extends Base<Options> {
+    abstract get metadataKey (): string;
+
+    abstract extract (document: Content<any>): Promise<Type>
+  }
+
+  export abstract class ContentChunkMetadataExtractor<Options, Type = any> extends Base<Options> {
+    abstract get metadataKey (): string;
+
+    abstract extract (chunk: ContentChunk<any>): Promise<Type>
   }
 
   export type ImportSourceTaskResult = {
