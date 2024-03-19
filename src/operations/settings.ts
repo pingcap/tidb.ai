@@ -4,6 +4,7 @@ import { z } from 'zod';
 import {
   CustomJsSettingUpdatePayload,
   WebsiteSettingUpdatePayload,
+  SecuritySettingUpdatePayload,
 } from '@/core/schema/setting';
 
 export const updateSettingCustomJS = withToast(
@@ -59,5 +60,22 @@ export const updateSettingImage = withToast(
   },
   {
     error: (resData: any) => resData?.message || 'Failed to upload image.',
+  }
+);
+
+export const updateSettingSecurity = withToast(
+  async (data: z.infer<typeof SecuritySettingUpdatePayload>, mutate: any) => {
+    await fetch('/api/v1/settings', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        group: 'security',
+        settings: data,
+      }),
+    })
+      .then(handleErrors)
+      .then(() => mutate(['GET', '/api/v1/settings?group=security']));
   }
 );

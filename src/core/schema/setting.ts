@@ -1,6 +1,6 @@
 import {z} from "zod";
 
-export const GroupName = z.enum(['website', 'custom_js'])
+export const GroupName = z.enum(['website', 'custom_js', 'security']);
 
 export type IGroupName = z.infer<typeof GroupName>;
 
@@ -18,6 +18,12 @@ export const themes = [
 ] as const;
 
 export const theme = z.enum(['light', 'dark', 'system']);
+
+export const reCaptcha = [
+  { label: 'V3', value: 'v3' },
+  { label: 'Enterprise', value: 'enterprise' },
+] as const;
+export const reCaptchas = z.enum(['v3', 'enterprise']);
 
 export const maxExampleQuestions = 5;
 export const maxHomepageFooterLinks = 5;
@@ -103,3 +109,13 @@ export const CustomJsSetting = z.object({
 export const CustomJsSettingResult = CustomJsSetting.partial();
 export type ICustomJsSettingResult = z.infer<typeof CustomJsSettingResult>;
 export const CustomJsSettingUpdatePayload = CustomJsSetting.partial();
+
+export const SecuritySetting = z.object({
+  google_recaptcha: reCaptchas,
+  google_recaptcha_site_key: z.string().optional(),
+  google_recaptcha_secret_key: z.string().optional(),
+  google_recaptcha_enterprise_project_id: z.string().optional(),
+});
+export const SecuritySettingResult = SecuritySetting.partial();
+export type ISecuritySettingResult = z.infer<typeof SecuritySettingResult>;
+export const SecuritySettingUpdatePayload = SecuritySetting.partial();

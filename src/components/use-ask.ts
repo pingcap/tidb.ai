@@ -4,12 +4,14 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useState, useTransition } from 'react';
 import { mutate } from 'swr'
 
-export function useAsk (onFinish?: () => void) {
+export function useAsk(onFinish?: () => void) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [transitioning, startTransition] = useTransition();
 
-  const ask = useCallback((message: string) => {
+  const ask = useCallback((message: string, options?: {
+    headers?: Record<string, string>;
+  }) => {
     startTransition(() => {
       setLoading(true);
       fetch('/api/v1/chats', {
@@ -18,6 +20,7 @@ export function useAsk (onFinish?: () => void) {
           messages: [],
           name: message,
         }),
+        headers: {...options?.headers},
       }).then(handleErrors)
         .then(res => res.json())
         .then(res => {
