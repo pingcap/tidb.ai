@@ -63,10 +63,8 @@ ReactDOM.createRoot(document.getElementById('tidb-ai-root')!).render(
       title={tidbAiWidgetTitle}
       inputPlaceholder={tidbAiWidgetInputPlaceholder}
       preferredMode={tidbAiWidgetPreferredMode}
-      // siteKey={tidbAiWidgetSiteKey}
-      // securityMode={tidbAiWidgetSecurityMode}
-      siteKey='6LdXT5wpAAAAAKCBw2lMLByCPaolFHg3aF7nIl-1'
-      securityMode='v3'
+      siteKey={tidbAiWidgetSiteKey}
+      securityMode={tidbAiWidgetSecurityMode}
     />
   </React.StrictMode>
 );
