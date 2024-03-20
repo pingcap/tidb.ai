@@ -1,17 +1,26 @@
-import {BaseNode, Metadata, MetadataMode, VectorStore, VectorStoreQuery, VectorStoreQueryResult, Document} from "llamaindex";
+import {
+  BaseNode,
+  Metadata,
+  MetadataMode,
+  VectorStore,
+  VectorStoreQuery,
+  VectorStoreQueryResult,
+  TextNode
+} from "llamaindex";
 import type { PoolOptions, RowDataPacket } from "mysql2/promise";
 import type { Kysely, Sql } from "kysely";
 import {cosineDistance, vectorToSql} from "@/lib/kysely";
+import {randomUUID} from "node:crypto";
 
-export const DEFAULT_TIDB_VECTOR_TABLE = "llamaindex_embedding";
+export const DEFAULT_TIDB_VECTOR_TABLE = "document_chunk";
 
 export const DEFAULT_TIDB_VECTOR_DIMENSIONS = 1536;
 
-interface DocumentEmbedding extends RowDataPacket {
+interface DocumentChunk extends RowDataPacket {
   id: string;
-  document: string;
+  text: string;
   metadata: Metadata;
-  embeddings: number[];
+  embedding: number[];
   score: number;
 }
 
@@ -79,12 +88,15 @@ export class TiDBVectorStore implements VectorStore {
 
   private async checkSchema(db: Kysely<any>, sql: Sql) {
     await sql`CREATE TABLE IF NOT EXISTS ${this.tableName}(
-      id BINARY(16),
-      external_id VARCHAR(64),
-      document TEXT,
-      metadata JSON,
-      embeddings VECTOR<FLOAT>(${this.dimensions}) NOT NULL COMMENT 'hnsw(distance=cosine)',
-      PRIMARY KEY (id)
+        -- Text Node Common Fields
+        id BINARY(16) NOT NULL,
+        hash CHAR(32) NOT NULL,
+        text TEXT NOT NULL,
+        metadata JSON NOT NULL,
+        embedding VECTOR<FLOAT>(${this.dimensions}) NOT NULL COMMENT 'hnsw(distance=cosine)',
+        -- Document Chunk Extra Fields
+        document_id BINARY(16),
+        PRIMARY KEY (id)
     );`.execute(db);
     return db;
   }
@@ -99,29 +111,6 @@ export class TiDBVectorStore implements VectorStore {
     return this.getDb();
   }
 
-  private getDataToInsert(embeddingResults: BaseNode<Metadata>[]) {
-    const result = [];
-    for (let index = 0; index < embeddingResults.length; index++) {
-      const row = embeddingResults[index];
-
-      const id: any = row.id_.length ? row.id_ : null;
-      const externalId = "";
-      const document = row.getContent(MetadataMode.EMBED);
-      const metadata = row.metadata || {};
-      metadata.create_date = new Date();
-      const embeddings = vectorToSql(row.getEmbedding());
-
-      result.push({
-        id,
-        external_id: externalId,
-        document,
-        metadata,
-        embeddings,
-      });
-    }
-    return result;
-  }
-
   /**
    * Adds vector record(s) to the table.
    * @param embeddingResults The Nodes to be inserted, optionally including metadata tuples.
@@ -132,9 +121,20 @@ export class TiDBVectorStore implements VectorStore {
       console.debug("Empty list sent to TiDBVectorStore::add");
       return Promise.resolve([]);
     }
-    const db = await this.getDb();
-    const data = this.getDataToInsert(embeddingResults);
+
     try {
+      const data = embeddingResults.map((row) => ({
+        id: row.id_.length ? row.id_ : randomUUID(),
+        hash: row.hash,
+        text: row.getContent(MetadataMode.EMBED),
+        metadata: {
+          ...row.metadata,
+          create_date: new Date(),
+        },
+        embedding: vectorToSql(row.getEmbedding()),
+      }));
+
+      const db = await this.getDb();
       await db.insertInto(this.tableName).values(data).execute();
       return Promise.resolve(data.map((d) => d.id));
     } catch (err) {
@@ -168,55 +168,54 @@ export class TiDBVectorStore implements VectorStore {
   ): Promise<VectorStoreQueryResult> {
     // Notice: If the query contains a WHERE clause, the query will not be able to use the HNSW index.
     // Therefore, the query is split into two steps:
-    // 1. Using the HNSW index in the subquery to get the Top N results
+    // 1. Using the HNSW index in the sub query to get the Top N results
     // 2. Then using the WHERE condition in the main query to filter the results to get K results.
     const k = query.similarityTopK ?? 2;
 
     // In order to avoid getting fewer than K results due to filtering, N is set to 5 times K.
     const n = k * 5;
 
+    // Query the top K similar documents / document chunks.
     const db = await this.getDb();
     const qb = db.with('cte', (qc) => {
       return qc.selectFrom(this.tableName)
         .select((eb) => {
           return [
-            'id',
-            'document',
-            'metadata',
-            'embeddings',
-            cosineDistance(eb, 'embeddings', query.queryEmbedding!).as('score')
+            'id', 'hash', 'text', 'metadata', 'embedding', 'document_id',
+            cosineDistance(eb, 'embedding', query.queryEmbedding!).as('score')
           ]
         })
         .orderBy('score')
         .limit(n);
     })
-    .selectFrom('cte')
-    .select(['id', 'document', 'metadata', 'embeddings', 'score'])
-    .limit(k);
+      .selectFrom('cte')
+      .select([ 'id', 'hash', 'text', 'metadata', 'embedding', 'document_id', 'score'])
+      .where((eb) => {
+        const filters = query.filters?.filters ?? []
+        return eb.and(filters.map((f) => {
+          return db.fn<any>('JSON_EXTRACT', ['metadata', f.key]), '=', f.value
+        }));
+      })
+      .limit(k);
+    const rows = await qb.execute() as DocumentChunk[];
 
-    const filters = query.filters?.filters ?? []
-    for (const filter of filters) {
-      qb.where(db.fn<any>('JSON_EXTRACT', ['metadata', filter.key]), '=', filter.value);
-    }
-
-    const rows = await qb.execute() as DocumentEmbedding[];
-    const nodes = rows.map((row) => {
-      return new Document({
-        id_: row.id,
-        text: row.document,
-        metadata: row.metadata,
-        embedding: row.embeddings,
-      });
-    });
-
-    // Construct the return object.
-    const ret = {
-      nodes: nodes,
+    return {
+      nodes: this.rowsToTextNodes(rows),
       similarities: rows.map((row) => row.score),
       ids: rows.map((row) => row.id),
     };
+  }
 
-    return Promise.resolve(ret);
+  private rowsToTextNodes(rows: DocumentChunk[]): TextNode[] {
+    return rows.map((row) => {
+      return new TextNode({
+        id_: row.id,
+        hash: row.hash,
+        text: row.text,
+        metadata: row.metadata,
+        embedding: row.embedding,
+      });
+    });
   }
 
 }
