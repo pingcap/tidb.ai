@@ -1,3 +1,4 @@
+import type { DBDocument } from '@/core/db/document';
 import { rag } from '@/core/interface';
 import { nodeToChunk, nodeToContent } from '@/lib/llamaindex/converters/base';
 import type { AppReader } from '@/lib/llamaindex/converters/reader';
@@ -29,8 +30,8 @@ export function createIndexIngestionPipeline (
 }
 
 function wrapLlamaindexIndexPipeline (reader: AppReader, f: LlamaindexIndexPipeline){
-  return async (buffer: Buffer, mime: string, uri: string) => {
-    const [node] = await reader.loadData(buffer, mime, uri);
+  return async (dbDocument: DBDocument) => {
+    const [node] = await reader.loadData(dbDocument);
     const nodes = await f(node);
     return rag.addChunks(
       nodeToContent(node),

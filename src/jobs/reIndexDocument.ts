@@ -12,7 +12,6 @@ import { KeywordExtractor, QuestionsAnsweredExtractor, SentenceWindowNodeParser,
 
 export async function reIndexDocument (index: Selectable<DB['index']>, document: DBDocument) {
   const flow = await getFlow(baseRegistry, undefined, index.config);
-  const storage = flow.getStorage();
 
   const llm = fromAppChatModel(flow.getChatModel(index.llm));
 
@@ -32,9 +31,8 @@ export async function reIndexDocument (index: Selectable<DB['index']>, document:
     console.log('[index] start', document.id, document.mime);
 
     await database.index.startIndexing(index.name, document.id, { hash: '', content: [], metadata: {}, chunks: [] });
-    const buffer = await storage.get(document.content_uri);
 
-    const embeddingContent = await pipeline(buffer, document.mime, document.source_uri);
+    const embeddingContent = await pipeline(document);
 
     await database.index.finishIndexing(index.name, document.id, embeddingContent);
     console.log('[index] finished', document.id, document.mime);
