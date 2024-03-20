@@ -29,6 +29,7 @@ import { a11yDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import copy from 'copy-to-clipboard';
 import { ThemeSelector } from '@/components/theme-selector';
 import { updateSettingCustomJS as updateSetting } from '@/operations/settings';
+import { ReCaptchaSelector } from '@/components/reCaptcha-selector';
 
 SyntaxHighlighter.registerLanguage('javascript', js);
 
@@ -223,6 +224,43 @@ export default function ClientPage(props: any) {
               );
             }}
           />
+          <FormField
+            control={form.control}
+            disabled={form.formState.isSubmitting}
+            name='widget_site_key'
+            render={({ field }) => {
+              return (
+                <FormItem>
+                  <FormLabel>ReCaptcha Site Key</FormLabel>
+                  <FormControl>
+                    <Input placeholder='Optional' {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
+          <FormField
+            control={form.control}
+            disabled={form.formState.isSubmitting}
+            name='widget_security_mode'
+            render={({ field }) => {
+              return (
+                <FormItem className='flex flex-col'>
+                  <FormLabel>reCAPTCHA</FormLabel>
+                  <ReCaptchaSelector
+                    controlForm={form}
+                    fieldName='widget_security_mode'
+                    {...field}
+                    onSelected={() => {
+                      setData(form.getValues());
+                    }}
+                  />
+                  <FormMessage />
+                </FormItem>
+              );
+            }}
+          />
           <Button type='submit' disabled={form.formState.isSubmitting}>
             {form.formState.isSubmitting && (
               <Loader2 className='mr-2 h-4 w-4 animate-spin' />
@@ -249,6 +287,8 @@ function CustomJsCodeBlock(props: { data: ICustomJsSettingResult }) {
       ['data-preferred-mode']: data.widget_color_mode,
       ['data-widget-title']: data.widget_title,
       ['data-widget-input-placeholder']: data.widget_input_placeholder,
+      ['data-site-key']: data.widget_site_key,
+      ['data-security-mode']: data.widget_security_mode,
     };
     let str = strHead;
     for (const key in template) {
