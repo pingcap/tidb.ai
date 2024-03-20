@@ -25,6 +25,8 @@ function App(props: {
   title?: string;
   inputPlaceholder?: string;
   preferredMode?: 'dark' | 'light' | 'system' | string;
+  siteKey?: string;
+  securityMode?: string;
 }) {
   const {
     btnLabel: entryButtonLabel,
@@ -35,6 +37,8 @@ function App(props: {
     title: widgetTitle,
     inputPlaceholder,
     preferredMode: initialPreferredMode = 'system',
+    siteKey,
+    securityMode,
   } = props;
 
   const [open, setOpen] = React.useState(false);
@@ -55,6 +59,13 @@ function App(props: {
     () => (preferredMode === 'dark' ? darkTheme : lightTheme),
     [preferredMode]
   );
+
+  const securityModeMemo = React.useMemo(() => {
+    if (securityMode === 'v3' || securityMode === 'enterprise') {
+      return securityMode;
+    }
+    return undefined;
+  }, [securityMode]);
 
   return (
     <CfgContext.Provider value={{ baseUrl, entryButtonLabel }}>
@@ -103,6 +114,8 @@ function App(props: {
             <ChatContainer
               exampleQuestions={exampleQuestions}
               inputPlaceholder={inputPlaceholder}
+              siteKey={siteKey}
+              securityMode={securityModeMemo}
             />
           </ModalContent>
         </Modal>

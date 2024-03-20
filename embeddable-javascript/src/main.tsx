@@ -20,19 +20,35 @@ const tidbAiWidgetExampleQuestions = JSON.parse(
   tidbAiWidgetScript?.getAttribute('data-example-questions') || '[]'
 );
 const tidbAiWidgetLogoSrc =
-  tidbAiWidgetScript?.getAttribute('data-logo-src') ||
-  undefined;
+  tidbAiWidgetScript?.getAttribute('data-logo-src') || undefined;
 const tidbAiWidgetTitle =
   tidbAiWidgetScript?.getAttribute('data-title') || 'Conversation Search Box';
 const tidbAiWidgetInputPlaceholder =
-  tidbAiWidgetScript?.getAttribute('data-input-placeholder') || 'Ask a question...';
+  tidbAiWidgetScript?.getAttribute('data-input-placeholder') ||
+  'Ask a question...';
 const tidbAiWidgetPreferredMode =
   tidbAiWidgetScript?.getAttribute('data-preferred-mode') || 'system';
-
-// console.log('myScript ===', myScript, myScript?.getAttribute('data-id'));
+const tidbAiWidgetSiteKey =
+  tidbAiWidgetScript?.getAttribute('data-site-key') || '';
+const tidbAiWidgetSecurityMode =
+  tidbAiWidgetScript?.getAttribute('data-security-mode') || undefined;
 
 const body = document.getElementsByTagName('body')[0];
 body.appendChild(document.createElement('div')).id = 'tidb-ai-root';
+
+const head = document.getElementsByTagName('head')[0];
+// add recaptcha to head
+if (tidbAiWidgetSiteKey) {
+  const recaptchaScript = document.createElement('script');
+  const recaptchaSrc =
+    tidbAiWidgetSecurityMode === 'enterprise'
+      ? `https://www.google.com/recaptcha/enterprise.js?render=${tidbAiWidgetSiteKey}`
+      : `https://www.google.com/recaptcha/api.js?render=${tidbAiWidgetSiteKey}`;
+  recaptchaScript.src = recaptchaSrc;
+  recaptchaScript.async = true;
+  recaptchaScript.defer = true;
+  head.appendChild(recaptchaScript);
+}
 
 ReactDOM.createRoot(document.getElementById('tidb-ai-root')!).render(
   <React.StrictMode>
@@ -47,6 +63,10 @@ ReactDOM.createRoot(document.getElementById('tidb-ai-root')!).render(
       title={tidbAiWidgetTitle}
       inputPlaceholder={tidbAiWidgetInputPlaceholder}
       preferredMode={tidbAiWidgetPreferredMode}
+      // siteKey={tidbAiWidgetSiteKey}
+      // securityMode={tidbAiWidgetSecurityMode}
+      siteKey='6LdXT5wpAAAAAKCBw2lMLByCPaolFHg3aF7nIl-1'
+      securityMode='v3'
     />
   </React.StrictMode>
 );

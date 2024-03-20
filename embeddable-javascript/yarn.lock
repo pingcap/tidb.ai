@@ -1785,43 +1785,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"conversation-search-box@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "conversation-search-box@workspace:."
-  dependencies:
-    "@emotion/react": "npm:^11.11.3"
-    "@emotion/styled": "npm:^11.11.0"
-    "@mui/base": "npm:^5.0.0-beta.33"
-    "@mui/material": "npm:^5.15.7"
-    "@mui/system": "npm:^5.15.6"
-    "@types/node": "npm:^20.11.10"
-    "@types/react": "npm:^18.2.48"
-    "@types/react-dom": "npm:^18.2.18"
-    "@types/react-syntax-highlighter": "npm:^15"
-    "@typescript-eslint/eslint-plugin": "npm:^6.14.0"
-    "@typescript-eslint/parser": "npm:^6.14.0"
-    "@vitejs/plugin-react-swc": "npm:^3.5.0"
-    ai: "npm:^2.2.36"
-    autoprefixer: "npm:^10.4.17"
-    clsx: "npm:^2.1.0"
-    copy-to-clipboard: "npm:^3.3.3"
-    eslint: "npm:^8.55.0"
-    eslint-plugin-react-hooks: "npm:^4.6.0"
-    eslint-plugin-react-refresh: "npm:^0.4.5"
-    postcss: "npm:^8.4.33"
-    prettier: "npm:^3.2.4"
-    react: "npm:^18.2.0"
-    react-cookie: "npm:^7.0.2"
-    react-dom: "npm:^18.2.0"
-    react-markdown: "npm:^9.0.1"
-    react-syntax-highlighter: "npm:^15.5.0"
-    remark-gfm: "npm:^4.0.0"
-    remark-math: "npm:^6.0.0"
-    typescript: "npm:^5.2.2"
-    vite: "npm:^5.0.8"
-  languageName: unknown
-  linkType: soft
-
 "convert-source-map@npm:^1.5.0":
   version: 1.9.0
   resolution: "convert-source-map@npm:1.9.0"
@@ -1961,6 +1924,43 @@ __metadata:
   checksum: 10c0/9f9ab328744a9d593e170c46743c76b41052341176310d481ba184098cea2541d8e04a9bd309e1d77e6e9e010ee27a4f573b149f6f23404d239613816d1d072a
   languageName: node
   linkType: hard
+
+"embeddable-javascript@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "embeddable-javascript@workspace:."
+  dependencies:
+    "@emotion/react": "npm:^11.11.3"
+    "@emotion/styled": "npm:^11.11.0"
+    "@mui/base": "npm:^5.0.0-beta.33"
+    "@mui/material": "npm:^5.15.7"
+    "@mui/system": "npm:^5.15.6"
+    "@types/node": "npm:^20.11.10"
+    "@types/react": "npm:^18.2.48"
+    "@types/react-dom": "npm:^18.2.18"
+    "@types/react-syntax-highlighter": "npm:^15"
+    "@typescript-eslint/eslint-plugin": "npm:^6.14.0"
+    "@typescript-eslint/parser": "npm:^6.14.0"
+    "@vitejs/plugin-react-swc": "npm:^3.5.0"
+    ai: "npm:^2.2.36"
+    autoprefixer: "npm:^10.4.17"
+    clsx: "npm:^2.1.0"
+    copy-to-clipboard: "npm:^3.3.3"
+    eslint: "npm:^8.55.0"
+    eslint-plugin-react-hooks: "npm:^4.6.0"
+    eslint-plugin-react-refresh: "npm:^0.4.5"
+    postcss: "npm:^8.4.33"
+    prettier: "npm:^3.2.4"
+    react: "npm:^18.2.0"
+    react-cookie: "npm:^7.0.2"
+    react-dom: "npm:^18.2.0"
+    react-markdown: "npm:^9.0.1"
+    react-syntax-highlighter: "npm:^15.5.0"
+    remark-gfm: "npm:^4.0.0"
+    remark-math: "npm:^6.0.0"
+    typescript: "npm:^5.2.2"
+    vite: "npm:^5.0.8"
+  languageName: unknown
+  linkType: soft
 
 "emoji-regex@npm:^8.0.0":
   version: 8.0.0
