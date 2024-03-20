@@ -12,7 +12,7 @@ export async function withReCaptcha(
   options: {
     action: string;
     siteKey: string;
-    mode?: 'v3' | 'enterprise';
+    mode?: 'v3' | 'enterprise' | '';
   },
   func: (data: { action: string; siteKey: string; token: string }) => void
 ) {
