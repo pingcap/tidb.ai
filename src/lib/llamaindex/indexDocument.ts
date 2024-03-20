@@ -1,10 +1,12 @@
 import { rag } from '@/core/interface';
-import { contentToNode, nodeToChunk, nodeToContent } from '@/lib/llamaindex/converters/base';
+import { nodeToChunk, nodeToContent } from '@/lib/llamaindex/converters/base';
+import type { AppReader } from '@/lib/llamaindex/converters/reader';
 import { BaseEmbedding, BaseExtractor, BaseNode, Document, IngestionPipeline, type NodeParser } from 'llamaindex';
 
 type LlamaindexIndexPipeline = (document: Document) => Promise<BaseNode[]>;
 
 export function createIndexIngestionPipeline (
+  reader: AppReader,
   nodeParser: NodeParser,
   metadataExtractors: BaseExtractor[],
   embedding: BaseEmbedding,
@@ -18,7 +20,7 @@ export function createIndexIngestionPipeline (
     docStoreStrategy: 'upserts' as any,
     disableCache: true,
   });
-  return wrapLlamaindexIndexPipeline((document) => {
+  return wrapLlamaindexIndexPipeline(reader, async (document) => {
     return pipeline.run({
       documents: [document],
       inPlace: true,
@@ -26,12 +28,13 @@ export function createIndexIngestionPipeline (
   });
 }
 
-function wrapLlamaindexIndexPipeline (f: LlamaindexIndexPipeline): (content: rag.Content<any>) => Promise<rag.EmbeddedContent<any, any>> {
-  return async (content) => {
-    const node = contentToNode(content);
+function wrapLlamaindexIndexPipeline (reader: AppReader, f: LlamaindexIndexPipeline){
+  return async (buffer: Buffer, mime: string, uri: string) => {
+    const [node] = await reader.loadData(buffer, mime, uri);
     const nodes = await f(node);
-    const chunkedContent: rag.EmbeddedContent<any, any> = nodeToContent(node) as any;
-    chunkedContent.chunks = nodes.map(nodeToChunk);
-    return chunkedContent;
+    return rag.addChunks(
+      nodeToContent(node),
+      nodes.map(nodeToChunk),
+    );
   };
 }

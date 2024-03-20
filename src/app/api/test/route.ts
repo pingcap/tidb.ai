@@ -1,10 +1,13 @@
-import { md5 } from '@/lib/digest';
+import { fromFlowReaders } from '@/lib/llamaindex/converters/reader';
 import { createIndexIngestionPipeline } from '@/lib/llamaindex/indexDocument';
+import { baseRegistry } from '@/rag-spec/base';
+import { getFlow } from '@/rag-spec/createFlow';
 import { KeywordExtractor, OpenAIEmbedding, QuestionsAnsweredExtractor, SimpleNodeParser, SummaryExtractor, TitleExtractor } from 'llamaindex';
 import { NextResponse } from 'next/server';
 
 export async function GET () {
   const pipeline = createIndexIngestionPipeline(
+    fromFlowReaders(await getFlow(baseRegistry)),
     new SimpleNodeParser(), [
       new TitleExtractor(),
       new SummaryExtractor(),
@@ -12,11 +15,7 @@ export async function GET () {
       new KeywordExtractor(),
     ], new OpenAIEmbedding());
 
-  const response = await pipeline({
-    content: [text],
-    digest: md5(text),
-    metadata: {},
-  });
+  const response = await pipeline(Buffer.from(text), 'text/plain', '');
 
   return NextResponse.json(response);
 }

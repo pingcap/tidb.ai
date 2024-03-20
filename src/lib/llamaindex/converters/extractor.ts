@@ -14,7 +14,7 @@ class RagContentMetadataExtractor extends BaseExtractor {
   constructor (private impl: rag.ContentMetadataExtractor<any>) {super();}
 
   async extract (nodes: BaseNode<any>[]): Promise<Record<string, any>[]> {
-    const contents = nodes.map(nodeToContent);
+    const contents = nodes.map(node => nodeToContent(node));
 
     return await Promise.all(contents.map(async content => {
       const value = await this.impl.extract(content);

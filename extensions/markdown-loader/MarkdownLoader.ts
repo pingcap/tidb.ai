@@ -35,7 +35,7 @@ export default class MarkdownLoader extends rag.Loader<MarkdownLoaderOptions, {}
 
     return {
       content: [content],
-      digest: md5(content),
+      hash: md5(content),
       metadata: {},
     } satisfies rag.Content<{}>;
   }

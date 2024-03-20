@@ -1,4 +1,5 @@
 import { rag } from '@/core/interface';
+import { md5 } from '@/lib/digest';
 import { Document as LangChainDocument } from '@langchain/core/documents';
 
 import { RecursiveCharacterTextSplitter as LangChainRecursiveCharacterTextSplitter } from 'langchain/text_splitter';
@@ -20,6 +21,7 @@ export default class RecursiveCharacterTextSplitter<ContentMetadata> extends rag
       ...content,
       chunks: results.map(chunk => ({
         content: chunk.pageContent,
+        hash: md5(chunk.pageContent),
         metadata: {
           ...chunk.metadata,
         } as never,

@@ -6,12 +6,13 @@ import { z, type ZodObject } from 'zod';
 export namespace rag {
   export interface Content<ContentMetadata> {
     content: string[];
-    digest: string;
+    hash: string;
     metadata: ContentMetadata;
   }
 
   export interface ContentChunk<ChunkMetadata> {
     content: string;
+    hash: string
     metadata: ChunkMetadata;
   }
 
@@ -122,6 +123,7 @@ export namespace rag {
      * @deprecated
      */
     abstract support (content: Content<ContentMetadata>): boolean | Promise<boolean>;
+
     /**
      * @deprecated
      */
@@ -144,6 +146,7 @@ export namespace rag {
 
   export abstract class ChatModel<Options> extends Base<Options> {
     static type = ExtensionType.ChatModel;
+
     /**
      * @deprecated
      */
@@ -254,7 +257,17 @@ export namespace rag {
     [rag.ExtensionType.Embeddings]: Embeddings,
     [rag.ExtensionType.Prompting]: Prompting,
     [rag.ExtensionType.Reranker]: Reranker,
-  } as const
+  } as const;
 
   export type ExtensionTypesMap = typeof extensionTypesMap;
+}
+
+export namespace rag {
+  export function addChunks<M, N> (content: Content<M>, chunks: EmbeddedContentChunk<N>[]): EmbeddedContent<M, N>
+  export function addChunks<M, N> (content: Content<M>, chunks: ContentChunk<N>[]): ChunkedContent<M, N> {
+    return {
+      ...content,
+      chunks,
+    };
+  }
 }

@@ -5,7 +5,7 @@ export function contentToNode<M extends Metadata> (content: rag.Content<M>): Doc
   const { id, relationships, ...metadata } = content.metadata;
   const document = new Document({
     text: content.content.join('\n\n'),
-    hash: content.digest,
+    hash: content.hash,
     metadata: metadata as any,
     relationships,
   });
@@ -23,6 +23,7 @@ export function chunkToNode<M extends Metadata> (chunk: rag.ContentChunk<M> | ra
     metadata: metadata as any,
     embedding: 'vector' in chunk ? Array.from(chunk.vector) : undefined,
     relationships: relationships,
+    hash: chunk.hash,
   });
 
   if (id) {
@@ -43,13 +44,14 @@ export function nodeToContent<M extends Metadata> (node: BaseNode<M>): rag.Conte
       relationships: node.relationships,
       ...node.metadata,
     },
-    digest: node.hash,
+    hash: node.hash,
   };
 }
 
 export function nodeToChunk<M extends Metadata> (node: BaseNode<M>): rag.EmbeddedContentChunk<M> {
   return {
     content: (node as TextNode).getText(),
+    hash: node.hash,
     metadata: {
       id: node.id_,
       relationships: node.relationships,
