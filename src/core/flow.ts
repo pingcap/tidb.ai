@@ -117,14 +117,6 @@ export class Flow implements Flow.ExtensionApi {
     throw new Error(`No available document loader for mime type ${mime}.`);
   }
 
-  getEmbeddings (name: string): rag.Embeddings<any> {
-    return this.getRequired(ExtensionType.Embeddings, name);
-  }
-
-  getChatModel (name: string): rag.ChatModel<any> {
-    return this.getRequired(rag.ExtensionType.ChatModel, name);
-  }
-
   getImportSourceTaskProcessor (type: string, url: string): rag.ImportSourceTaskProcessor<any> {
     const processor = this.findFirst(rag.ExtensionType.ImportSourceTaskProcessor, processor => processor.support(type, url))
     if (processor) {

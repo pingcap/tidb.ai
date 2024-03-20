@@ -1,6 +1,8 @@
 import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import database from '@/core/db';
-import type {DB, Namespace} from '@/core/db/schema';
+import db from '@/core/db';
+import type { DB, Namespace } from '@/core/db/schema';
+import { rag } from '@/core/interface';
 import { retrieval } from '@/core/retrieval';
 import { toPageRequest } from '@/lib/database';
 import { genId } from '@/lib/id';
@@ -9,13 +11,11 @@ import { getFlow } from '@/rag-spec/createFlow';
 import { experimental_StreamData, StreamingTextResponse } from 'ai';
 import { formatDate } from 'date-fns';
 import type { Selectable } from 'kysely';
+import { Liquid, Template } from 'liquidjs';
+import { DateTime } from 'luxon';
 import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';
-import {z} from 'zod';
-import db from "@/core/db";
-import {rag} from "@/core/interface";
-import {Liquid, Template} from "liquidjs";
-import {DateTime} from "luxon";
+import { z } from 'zod';
 import ChatMessage = rag.ChatMessage;
 import RerankedContext = rag.RerankedContext;
 
@@ -39,7 +39,7 @@ export const POST = auth(async function POST (req) {
     name,
     messages,
     sessionId,
-    namespaces: specifyNamespaces = []
+    namespaces: specifyNamespaces = [],
   } = ChatRequest.parse(await req.json());
 
   // Create session request
@@ -70,7 +70,7 @@ export const POST = auth(async function POST (req) {
 
   const allNamespaces = await db.namespace.listNamespaces();
   const flow = await getFlow(baseRegistry, undefined, index.config);
-  const model = flow.getChatModel('openai');
+  const model = flow.getRequired(rag.ExtensionType.ChatModel, 'openai');
 
   // 1. Extract question from message (get question)
   const { containsQuestion, question, recommendNamespaces = [] } = await extractAndRefineQuestion(model, message, allNamespaces, liquid, extractAndRefinePromptTemplate);
@@ -79,7 +79,7 @@ export const POST = auth(async function POST (req) {
   const namespaces = namespaceSelector(allNamespaces, specifyNamespaces, recommendNamespaces);
 
   let queryResult: { queryId: string, relevantChunks: RerankedContext[] } | undefined;
-  let systemMessage: ChatMessage
+  let systemMessage: ChatMessage;
 
   if (containsQuestion) {
     // 3.1. Execute embedding search within the specify / recommend namespaces (get context)
@@ -172,7 +172,7 @@ async function extractAndRefineQuestion (model: rag.ChatModel<any>, query: strin
     { role: 'assistant', content: extractAndRefinePrompt },
     { role: 'user', content: query },
   ]);
-  const end = DateTime.now()
+  const end = DateTime.now();
   const costTime = end.diff(start, 'milliseconds').milliseconds;
   const { containsQuestion, question, recommendNamespaces = [] } = JSON.parse(response.content);
   console.log('Finished extract and refine question.', {
@@ -185,11 +185,11 @@ async function extractAndRefineQuestion (model: rag.ChatModel<any>, query: strin
   return {
     containsQuestion,
     question,
-    recommendNamespaces
+    recommendNamespaces,
   };
 }
 
-function namespaceSelector(allNamespaces: Namespace[], specifyNamespaces: string[], recommendNamespaces: string[]) {
+function namespaceSelector (allNamespaces: Namespace[], specifyNamespaces: string[], recommendNamespaces: string[]) {
   const defaultNamespaces = allNamespaces.filter(namespace => namespace.default).map(namespace => namespace.name);
   const commonNamespaces = allNamespaces.filter(namespace => namespace.common).map(namespace => namespace.name);
 
@@ -206,7 +206,7 @@ function namespaceSelector(allNamespaces: Namespace[], specifyNamespaces: string
   }
 }
 
-function deduplicate<T>(array: T[], keyGetter: (item: T) => string): T[] {
+function deduplicate<T> (array: T[], keyGetter: (item: T) => string): T[] {
   let result: T[] = [];
   let keySet = new Set<string>();
 
@@ -221,7 +221,7 @@ function deduplicate<T>(array: T[], keyGetter: (item: T) => string): T[] {
   return result;
 }
 
-async function getSystemMessage(liquid: Liquid, answerPromptTemplate: Template[], contexts?: rag.RetrievedContext[]): Promise<ChatMessage> {
+async function getSystemMessage (liquid: Liquid, answerPromptTemplate: Template[], contexts?: rag.RetrievedContext[]): Promise<ChatMessage> {
   const content = await liquid.render(answerPromptTemplate, { contexts });
   return {
     role: 'system',

@@ -1,6 +1,7 @@
 import database from '@/core/db';
 import type { DBDocument } from '@/core/db/document';
 import type { DB } from '@/core/db/schema';
+import { rag } from '@/core/interface';
 import { fromAppEmbedding } from '@/lib/llamaindex/converters/embedding';
 import { fromAppChatModel } from '@/lib/llamaindex/converters/llm';
 import { fromFlowReaders } from '@/lib/llamaindex/converters/reader';
@@ -13,7 +14,7 @@ import { KeywordExtractor, QuestionsAnsweredExtractor, SentenceWindowNodeParser,
 export async function reIndexDocument (index: Selectable<DB['index']>, document: DBDocument) {
   const flow = await getFlow(baseRegistry, undefined, index.config);
 
-  const llm = fromAppChatModel(flow.getChatModel(index.llm));
+  const llm = fromAppChatModel(flow.getRequired(rag.ExtensionType.ChatModel, index.llm));
 
   const pipeline = createIndexIngestionPipeline(
     fromFlowReaders(flow), // wrapped llamaindex.reader auto choosing rag.loader
@@ -24,7 +25,7 @@ export async function reIndexDocument (index: Selectable<DB['index']>, document:
       new QuestionsAnsweredExtractor({ llm }),
       new KeywordExtractor({ llm }),
     ],
-    fromAppEmbedding(flow.getEmbeddings(index.embedding)),
+    fromAppEmbedding(flow.getRequired(rag.ExtensionType.Embeddings, index.embedding)),
   );
 
   try {

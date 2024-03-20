@@ -1,7 +1,7 @@
 import { db } from '@/core/db/db';
 import type { DB } from '@/core/db/schema';
 import { rag } from '@/core/interface';
-import type { Insertable, Selectable, Updateable } from 'kysely';
+import type { Insertable, Selectable, Updateable, InsertObject } from 'kysely';
 import { notFound } from 'next/navigation';
 import ChunkedContent = rag.ChunkedContent;
 import EmbeddedContent = rag.EmbeddedContent;
@@ -29,9 +29,9 @@ export interface IndexDb {
 
   startQuery (partial: Insertable<DB['index_query']>): Promise<void>;
 
-  finishQuery (id: string, results: Insertable<DB['index_query_result']>[]): Promise<void>;
+  finishQuery (id: string): Promise<void>;
 
-  finishRerank (id: string, reranker: string, metadata: any, results: Insertable<DB['index_query_result']>[]): Promise<void>;
+  finishRerank (id: string, reranker: string, metadata: any, results: InsertObject<DB, 'index_query_result'>[]): Promise<void>;
 
   getQuery (id: string): Promise<Selectable<DB['index_query']> | undefined>;
 
@@ -42,8 +42,8 @@ export interface IndexDb {
 
 type SearchResult = {
   namespace_id: number,
-  document_id: string
-  document_index_chunk_id: string
+  document_id: UUID
+  document_index_chunk_id: UUID
   text_content: string
   metadata: any
   source_uri: string
@@ -217,7 +217,7 @@ export const indexDb: IndexDb = {
       .values(partial)
       .execute();
   },
-  async finishQuery (id, results) {
+  async finishQuery (id) {
     await db.transaction().execute(async db => {
       await db.updateTable('index_query')
         .set('finished_at', new Date())
