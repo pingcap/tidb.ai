@@ -227,22 +227,38 @@ export default function ChatContainer(props: {
               placeholder={inputPlaceholder}
             />
           </form>
-          <StyledChatMutedText
-            sx={{
-              display: 'block',
-              paddingTop: '1rem',
-              fontSize: '12px',
-              color: (theme) => theme.palette.mutedForeground,
-              '& > a': {
-                color: 'inherit',
-              },
-            }}
-          >
-            {`Powered by `}
-            <a href='https://tidb.ai' target='_blank' rel='noreferrer'>
-              TiDB.ai
-            </a>
-          </StyledChatMutedText>
+          <StyledChatMutedTextGroup>
+            <StyledChatMutedText>
+              {`Powered by `}
+              <a href='https://tidb.ai' target='_blank' rel='noreferrer'>
+                TiDB.ai
+              </a>
+            </StyledChatMutedText>
+            <StyledChatMutedText
+              sx={{
+                marginLeft: 'auto',
+                marginRight: '0',
+              }}
+            >
+              {`protected by reCAPTCHA (`}
+              <a
+                href='https://policies.google.com/privacy'
+                target='_blank'
+                rel='noreferrer'
+              >
+                {`Privacy`}
+              </a>
+              {` - `}
+              <a
+                href='https://policies.google.com/terms'
+                target='_blank'
+                rel='noreferrer'
+              >
+                {`Terms`}
+              </a>
+              {`)`}
+            </StyledChatMutedText>
+          </StyledChatMutedTextGroup>
         </div>
       </StyledChatContainer>
     </>
@@ -300,3 +316,15 @@ const StyledChatWrapper = styled('div')(({ theme }) =>
     theme.palette.mode === 'dark' ? MDDarkCss : MDLightCss
   )
 );
+
+const StyledChatMutedTextGroup = styled('div')(({ theme }) => {
+  return {
+    display: 'flex',
+    paddingTop: '1rem',
+    fontSize: '12px',
+    color: theme.palette.mutedForeground,
+    '& >* a': {
+      color: 'inherit',
+    },
+  };
+});
