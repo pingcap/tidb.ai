@@ -7,21 +7,41 @@ import {
   VectorStoreQueryResult,
   TextNode
 } from "llamaindex";
-import type { PoolOptions, RowDataPacket } from "mysql2/promise";
+import type { PoolOptions } from "mysql2/promise";
 import type { Kysely, Sql } from "kysely";
-import {cosineDistance, vectorToSql} from "@/lib/kysely";
+import {cosineDistance} from "@/lib/kysely";
 import {randomUUID} from "node:crypto";
 
-export const DEFAULT_TIDB_VECTOR_TABLE = "document_chunk";
-
-export const DEFAULT_TIDB_VECTOR_DIMENSIONS = 1536;
-
-interface DocumentChunk extends RowDataPacket {
+interface DocumentChunkNode {
   id: string;
+  hash: string;
   text: string;
   metadata: Metadata;
   embedding: number[];
-  score: number;
+  // Extra Document Chunk Node Fields.
+  index_id: number;
+  document_id: number;
+}
+
+export const DEFAULT_TIDB_VECTOR_TABLE_NAME = `llamaindex_document_chunk_node_default`;
+
+export const DEFAULT_TIDB_VECTOR_DIMENSIONS = 1536;
+
+type VectorTableName = `llamaindex_document_chunk_node_${string}`;
+
+declare module '@/core/db/schema' {
+  interface DB extends Record<VectorTableName, DocumentChunkNode> {}
+}
+
+export interface TiDBVectorDB {
+  [key: VectorTableName]: DocumentChunkNode;
+}
+
+export interface TiDBVectorStoreConfig {
+  poolOptions?: PoolOptions;
+  tableName: VectorTableName;
+  dimensions: number;
+  dbClient?: Kysely<TiDBVectorDB>;
 }
 
 /**
@@ -30,45 +50,40 @@ interface DocumentChunk extends RowDataPacket {
 export class TiDBVectorStore implements VectorStore {
   storesText: boolean = true;
 
-  private db?: Kysely<any>;
-  private poolOptions: PoolOptions = {};
-  private tableName: string = DEFAULT_TIDB_VECTOR_TABLE;
-  private dimensions: number = DEFAULT_TIDB_VECTOR_DIMENSIONS;
+  private config: TiDBVectorStoreConfig;
+  private dbClient?: Kysely<TiDBVectorDB>;
 
   /**
    * Constructs a new instance of the TiDBVectorStore
    *
    * @param {object} config - The configuration settings for the instance.
+   * @param {PoolOptions} config.poolOptions - The pool options for the TiDB connection.
    * @param {string} config.tableName - The name of the table (optional). Defaults to TIDB_VECTOR_TABLE.
    * @param {number} config.dimensions - The dimensions of the embedding model.
-   * @param {string} config.client -
+   * @param {Kysely} config.client - The Kysely client to use for the connection, if provided it will be used instead of creating a new one.
    */
-  constructor(config?: {
-    poolOptions?: PoolOptions;
-    tableName?: string;
-    dimensions?: number;
-    client?: Kysely<any>;
-  }) {
-    this.tableName = config?.tableName ?? DEFAULT_TIDB_VECTOR_TABLE;
-    this.dimensions = config?.dimensions ?? 1536;
-    this.poolOptions = config?.poolOptions ?? {};
+  constructor(config?: TiDBVectorStoreConfig) {
+    this.config = Object.assign({
+      tableName: DEFAULT_TIDB_VECTOR_TABLE_NAME,
+      dimensions: DEFAULT_TIDB_VECTOR_DIMENSIONS,
+      poolOptions: {},
+    }, config);
 
-    // If a client is provided, use it.
-    if (config?.client) {
-      this.db = config.client;
+    if (config?.dbClient) {
+      this.dbClient = config.dbClient;
     }
   }
 
-  private async getDb(): Promise<Kysely<any>> {
-    if (!this.db) {
+  private async getDb(): Promise<Kysely<TiDBVectorDB>> {
+    if (!this.dbClient) {
       try {
         const  { createPool } = await import('mysql2');
         const { Kysely, MysqlDialect, sql } = await import("kysely");
 
         // Create DB connection.
-        const db = new Kysely<any>({
+        const db = new Kysely<TiDBVectorDB>({
           dialect: new MysqlDialect({
-            pool: createPool(this.poolOptions),
+            pool: createPool(this.config.poolOptions!),
           }),
         });
 
@@ -76,27 +91,29 @@ export class TiDBVectorStore implements VectorStore {
         await this.checkSchema(db, sql);
 
         // Keep the connection reference.
-        this.db = db;
+        this.dbClient = db;
       } catch (err: any) {
         console.error(err);
-        return Promise.reject(err);
+        throw err;
       }
     }
 
-    return Promise.resolve(this.db);
+    return this.dbClient;
   }
 
-  private async checkSchema(db: Kysely<any>, sql: Sql) {
-    await sql`CREATE TABLE IF NOT EXISTS ${this.tableName}(
+  private async checkSchema(db: Kysely<TiDBVectorDB>, sql: Sql) {
+    await sql`CREATE TABLE IF NOT EXISTS ${this.config.tableName}(
         -- Text Node Common Fields
         id BINARY(16) NOT NULL,
         hash CHAR(32) NOT NULL,
         text TEXT NOT NULL,
         metadata JSON NOT NULL,
-        embedding VECTOR<FLOAT>(${this.dimensions}) NOT NULL COMMENT 'hnsw(distance=cosine)',
-        -- Document Chunk Extra Fields
-        document_id BINARY(16),
-        PRIMARY KEY (id)
+        embedding VECTOR<FLOAT>(${this.config.dimensions}) NOT NULL COMMENT 'hnsw(distance=cosine)',
+        -- Extra Document Chunk Node Fields
+        index_id INT NOT NULL,
+        document_id INT NOT NULL,
+        PRIMARY KEY (id),
+        UNIQUE KEY idx_ldcn_on_index_id_document_id (index_id, document_id)
     );`.execute(db);
     return db;
   }
@@ -119,7 +136,7 @@ export class TiDBVectorStore implements VectorStore {
   async add(embeddingResults: BaseNode<Metadata>[]): Promise<string[]> {
     if (embeddingResults.length == 0) {
       console.debug("Empty list sent to TiDBVectorStore::add");
-      return Promise.resolve([]);
+      return [];
     }
 
     try {
@@ -131,16 +148,19 @@ export class TiDBVectorStore implements VectorStore {
           ...row.metadata,
           create_date: new Date(),
         },
-        embedding: vectorToSql(row.getEmbedding()),
+        embedding: row.getEmbedding(),
+        // Extra Document Chunk Node Fields.
+        index_id: row.metadata.index_id,
+        document_id: row.metadata.document_id,
       }));
 
       const db = await this.getDb();
-      await db.insertInto(this.tableName).values(data).execute();
-      return Promise.resolve(data.map((d) => d.id));
+      await db.insertInto(this.config.tableName).values(data).execute();
+      return data.map((d) => d.id);
     } catch (err) {
       const msg = `${err}`;
       console.log(msg, err);
-      return Promise.reject(err);
+      throw err;
     }
   }
 
@@ -152,8 +172,7 @@ export class TiDBVectorStore implements VectorStore {
    */
   async delete(refDocId: string, deleteKwargs?: any): Promise<void> {
     const db = await this.getDb();
-    await db.deleteFrom(this.tableName).where('id', '=', refDocId).execute();
-    return Promise.resolve();
+    await db.deleteFrom(this.config.tableName).where('id', '=', refDocId).execute();
   }
 
   /**
@@ -178,10 +197,10 @@ export class TiDBVectorStore implements VectorStore {
     // Query the top K similar documents / document chunks.
     const db = await this.getDb();
     const qb = db.with('cte', (qc) => {
-      return qc.selectFrom(this.tableName)
+      return qc.selectFrom(this.config.tableName)
         .select((eb) => {
           return [
-            'id', 'hash', 'text', 'metadata', 'embedding', 'document_id',
+            'id', 'hash', 'text', 'metadata', 'embedding', 'index_id', 'document_id',
             cosineDistance(eb, 'embedding', query.queryEmbedding!).as('score')
           ]
         })
@@ -189,30 +208,35 @@ export class TiDBVectorStore implements VectorStore {
         .limit(n);
     })
       .selectFrom('cte')
-      .select([ 'id', 'hash', 'text', 'metadata', 'embedding', 'document_id', 'score'])
+      .select(['id', 'hash', 'text', 'metadata', 'embedding', 'index_id', 'document_id', 'score'])
       .where((eb) => {
         const filters = query.filters?.filters ?? []
         return eb.and(filters.map((f) => {
-          return db.fn<any>('JSON_EXTRACT', ['metadata', f.key]), '=', f.value
+          return eb(db.fn<any>('JSON_EXTRACT', ['metadata', f.key]), '=', f.value)
         }));
       })
       .limit(k);
-    const rows = await qb.execute() as DocumentChunk[];
+    const rows = await qb.execute();
 
     return {
-      nodes: this.rowsToTextNodes(rows),
+      nodes: this.mapDocumentChunksToTextNodes(rows),
       similarities: rows.map((row) => row.score),
       ids: rows.map((row) => row.id),
     };
   }
 
-  private rowsToTextNodes(rows: DocumentChunk[]): TextNode[] {
+  private mapDocumentChunksToTextNodes(rows: DocumentChunkNode[]): TextNode[] {
     return rows.map((row) => {
       return new TextNode({
         id_: row.id,
         hash: row.hash,
         text: row.text,
-        metadata: row.metadata,
+        metadata: {
+          ...row.metadata,
+          // Extra Document Chunk Node Fields.
+          index_id: row.index_id,
+          document_id: row.document_id
+        },
         embedding: row.embedding,
       });
     });
