@@ -177,7 +177,13 @@ export const indexDb: IndexDb = {
             cosineDistance(eb, 'embedding', vector).as('score')
           ]
         })
-        .where('namespace_id', 'in', options.namespaceIds)
+        .where((eb) => {
+          if (options.namespaceIds.length > 0) {
+            return eb('namespace_id', 'in', options.namespaceIds);
+          } else {
+            return eb.val(true)
+          }
+        })
         .orderBy('score')
         .limit(top_k * 3)
       )
@@ -199,6 +205,7 @@ export const indexDb: IndexDb = {
         'document.name as source_name',
         'most_relevant_chunks.score'
       ])
+      .orderBy('score')
       .limit(top_k);
 
     const start = DateTime.now();
