@@ -7,14 +7,23 @@ import {
     IWebsiteSettingResult,
     WebsiteSettingResult,
     WebsiteSettingUpdatePayload,
+    ICustomJsSettingResult,
     CustomJsSettingResult,
     CustomJsSettingUpdatePayload,
+    ISecuritySettingResult,
+    SecuritySettingResult,
+    SecuritySettingUpdatePayload,
 } from "@/core/schema/setting";
 import { flattenSettings, unflattenSettings } from "@/lib/utils";
 
 type ListSettingsReturnType<G extends IGroupName> =
-    G extends typeof GroupName.enum.website ? IWebsiteSettingResult :
-        {};
+  G extends typeof GroupName.enum.website
+    ? IWebsiteSettingResult
+    : G extends typeof GroupName.enum.custom_js
+    ? ICustomJsSettingResult
+    : G extends typeof GroupName.enum.security
+    ? ISecuritySettingResult
+    : {};
 
 export const getSetting = async <G extends IGroupName>(group: G) => {
     const options = await database.option.findByGroup(group);
@@ -32,6 +41,9 @@ export const getSetting = async <G extends IGroupName>(group: G) => {
         case GroupName.enum.custom_js:
             result = CustomJsSettingResult.parse(settings);
             break
+        case GroupName.enum.security:
+            result = SecuritySettingResult.parse(settings);
+            break
         default:
             result = {}
     }
@@ -40,7 +52,7 @@ export const getSetting = async <G extends IGroupName>(group: G) => {
 }
 
 export const getCachedSetting = cache(getSetting);
-export async function updateSetting(group: string, settings: z.infer<typeof WebsiteSettingUpdatePayload | typeof CustomJsSettingUpdatePayload>) {
+export async function updateSetting(group: string, settings: z.infer<typeof WebsiteSettingUpdatePayload | typeof CustomJsSettingUpdatePayload | typeof SecuritySettingUpdatePayload>) {
     const parsedSettings = group === GroupName.enum.website ? flattenSettings(settings, 2) : settings;
 
     const options: any[] = Object.entries(parsedSettings).map(([key, value]) => {

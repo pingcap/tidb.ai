@@ -140,6 +140,13 @@ VALUES
     ('social.twitter', 'website', 'string', '"https://twitter.com/PingCAP"'),
     ('social.discord', 'website', 'string', '"https://discord.gg/XzSW23Jg9p"');
 
+-- Security Setting: Google Recaptcha
+INSERT INTO `option` VALUES
+    ('google_recaptcha', 'security', 'string', '"v3"'),
+    ('google_recaptcha_site_key', 'security', 'string', '""'),
+    ('google_recaptcha_secret_key', 'security', 'string', '""'),
+    ('google_recaptcha_enterprise_project_id', 'security', 'string', '""');
+
 -- Custom JS Setting
 INSERT INTO
     `option`

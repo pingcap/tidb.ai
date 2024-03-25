@@ -9,11 +9,16 @@ import { useChat } from 'ai/react';
 import type { Selectable } from 'kysely';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { withReCaptcha } from '@/components/security-setting-provider';
+import { useContext } from 'react';
+import { SecuritySettingContext } from '@/components/security-setting-provider';
 
 export function Conversation ({ open, history, context }: { open: boolean, history: Selectable<DB['chat_message']>[], context: { ordinal: number, title: string, uri: string }[] }) {
   const { handleInputChange, isWaiting, handleSubmit, input, isLoading, data, error, messages } = useMyChat(history, context);
   const [size, setSize] = useState<DOMRectReadOnly | undefined>(undefined);
   const ref = useRef<HTMLDivElement>(null);
+
+  const security = useContext(SecuritySettingContext);
 
   useEffect(() => {
     const el = ref.current;
@@ -31,6 +36,24 @@ export function Conversation ({ open, history, context }: { open: boolean, histo
     }
   }, []);
 
+  const submitWithReCaptcha = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    withReCaptcha({
+      action: 'chat',
+      siteKey: security?.google_recaptcha_site_key || '',
+      mode: security?.google_recaptcha,
+    }, ({ token, action }) => {
+      handleSubmit(e, {
+        options: {
+          headers: {
+            'X-Recaptcha-Token': token,
+            'X-Recaptcha-Action': action,
+          },
+        }
+      });
+    });
+  }
+
   return (
     <>
       <div ref={ref} className={cn(
@@ -39,7 +62,7 @@ export function Conversation ({ open, history, context }: { open: boolean, histo
         <ConversationMessageGroups messages={messages} data={data} error={error} isLoading={isLoading || isWaiting} />
         <div className="h-24"></div>
       </div>
-      {size && open && <form className="block h-max p-4 fixed bottom-0" onSubmit={handleSubmit} style={{ left: size.x, width: size.width }}>
+      {size && open && <form className="block h-max p-4 fixed bottom-0" onSubmit={submitWithReCaptcha} style={{ left: size.x, width: size.width }}>
         <MessageInput className="w-full transition-all" disabled={isLoading} inputProps={{ value: input, onChange: handleInputChange, disabled: isLoading }} />
       </form>}
     </>
@@ -98,9 +121,9 @@ function useMyChat (history: Selectable<DB['chat_message']>[], context: { ordina
     ...chat,
     data,
     isWaiting,
-    handleSubmit: (e: FormEvent<HTMLFormElement>) => {
+    handleSubmit: (e: FormEvent<HTMLFormElement>, chatRequestOptions?: any) => {
       setWaiting(true);
-      chat.handleSubmit(e);
+      chat.handleSubmit(e, chatRequestOptions);
     },
   };
 }

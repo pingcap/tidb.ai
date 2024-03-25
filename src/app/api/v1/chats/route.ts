@@ -18,6 +18,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import ChatMessage = rag.ChatMessage;
 import RerankedContext = rag.RerankedContext;
+import { validateNextRequestWithReCaptcha } from '@/lib/reCaptcha';
 
 const ChatRequest = z.object({
   messages: z.object({ role: z.string(), content: z.string() }).array(),
@@ -34,6 +35,8 @@ export const POST = auth(async function POST (req) {
   if (!userId) {
     return new NextResponse('Need authorization', { status: 401 });
   }
+
+  await validateNextRequestWithReCaptcha(req);
 
   const {
     name,
