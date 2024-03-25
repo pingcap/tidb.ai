@@ -3,17 +3,25 @@
 
 ## What is this
 
-* some desc
-* one screenshot
+We are developing a RAG (Retrieval-Augmented Generation) application utilizing the working-in-progress vector storage feature within the TiDB Serverless. You can find it at https://tidb.ai. With this tool, you can achieve:
 
 
 ## Main Features
 
-* F1
-* F2
+Conversational Search with Built-in Web Crawler: Our AI-powered conversational search comes with a built-in website crawler. It can effortlessly scrape sitemap URL lists, enabling seamless information retrieval.
+
+Embeddable Conversational Search Widget: Integrate our conversational search window effortlessly into your website by copying and embedding a simple JavaScript code snippet. This widget, typically placed at the bottom right corner of your site, facilitates instant responses to product-related queries.
+
+Simplify your product introductions with these powerful features, all without writing a single line of code.
 
 
-## Working in Progress
+## Roadmap & Timeline
 
-* Task1
-* Task2
+* Migrate tidb.ai to a vector storage instance with indexing capabilities. Estimated completion by March 29th.
+* Revise the table structure to accommodate the requirements of the llamaindex's RAG process and successfully integrate llamaindex. Target date: April 4th.
+* Conduct tests on Jina.AI's embedding and reranker API functionalities. Expected to be done by April 15th.
+* Complete deployment documentation with a target date of April 10th. This includes:
+  * Self-hosted solutions.
+  * Deployment on Vercel.
+* Adapt the system for AWS Redrock Claude3, with an anticipated completion date of April 15th.
+* Finalize the ["How It Works"](https://tidb.ai/blog) series of documentation by April 30th.
