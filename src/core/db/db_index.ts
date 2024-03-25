@@ -7,7 +7,7 @@ import type { Insertable, Selectable, Updateable } from 'kysely';
 import { notFound } from 'next/navigation';
 import ChunkedContent = rag.ChunkedContent;
 import EmbeddedContent = rag.EmbeddedContent;
-import {cosineSimilarity, vectorToSql} from "@/lib/kysely";
+import {cosineDistance, vectorToSql} from "@/lib/kysely";
 import {DateTime} from "luxon";
 
 export type _QueryOptions = {
@@ -167,33 +167,28 @@ export const indexDb: IndexDb = {
     let builder = db.with('most_relevant_chunks',
       (db) => db
         .selectFrom('document_index_chunk_partitioned')
-        .where((eb) => {
-          const conditions = [
-            eb('staled', '=', 0),
-            eb('index_name', '=', index),
-          ];
-
-          if (options.namespaceIds.length > 0) {
-            conditions.push(eb('namespace_id', 'in', options.namespaceIds));
-          }
-
-          return eb.and(conditions);
+        .select((eb) => {
+          return [
+            'namespace_id',
+            'document_id',
+            'chunk_id',
+            'staled',
+            'index_name',
+            cosineDistance(eb, 'embedding', vector).as('score')
+          ]
         })
-        .select([
-          'namespace_id',
-          'document_id',
-          'chunk_id',
-          (eb) => cosineSimilarity(eb, 'embedding', vector).as('score')
-        ])
-        .orderBy('score desc')
-        .limit(top_k)
-    )
+        .where('namespace_id', 'in', options.namespaceIds)
+        .orderBy('score')
+        .limit(top_k * 3)
+      )
       .selectFrom('most_relevant_chunks')
-      .innerJoin('document_index_chunk_partitioned', (join) =>
-        join.onRef('document_index_chunk_partitioned.namespace_id', '=', 'most_relevant_chunks.namespace_id')
-          .onRef('document_index_chunk_partitioned.chunk_id', '=', 'most_relevant_chunks.chunk_id')
+      .innerJoin('document_index_chunk_partitioned', (join) => join
+        .onRef('document_index_chunk_partitioned.namespace_id', '=', 'most_relevant_chunks.namespace_id')
+        .onRef('document_index_chunk_partitioned.chunk_id', '=', 'most_relevant_chunks.chunk_id')
       )
       .innerJoin('document', 'document.id', 'most_relevant_chunks.document_id')
+      .where('most_relevant_chunks.staled', '=', 0)
+      .where('most_relevant_chunks.index_name', '=', index)
       .select([
         'most_relevant_chunks.namespace_id',
         'most_relevant_chunks.document_id',
@@ -203,7 +198,8 @@ export const indexDb: IndexDb = {
         'document.source_uri',
         'document.name as source_name',
         'most_relevant_chunks.score'
-      ]);
+      ])
+      .limit(top_k);
 
     const start = DateTime.now();
     const result = await builder.execute();
