@@ -164,17 +164,6 @@ CREATE TABLE chat_message
     FOREIGN KEY fk_cm_on_chat_id (chat_id) REFERENCES chat (id)
 );
 
--- Chat Message Retrieve Relationship
-CREATE TABLE chat_message_retrieve_rel
-(
-    chat_message_id  INT         NOT NULL,
-    retrieve_id      INT         NOT NULL,
-    info             JSON        NOT NULL,
-    PRIMARY KEY (chat_message_id, retrieve_id),
-    FOREIGN KEY fk_cmrr_on_chat_message_id (chat_message_id) REFERENCES chat_message (id),
-    FOREIGN KEY fk_cmrr_on_retrieve_id (retrieve_id) REFERENCES retrieve (id)
-);
-
 -- Retrieve
 CREATE TABLE retrieve
 (
@@ -193,6 +182,17 @@ CREATE TABLE retrieve
     finished_at       DATETIME,
     PRIMARY KEY (id),
     FOREIGN KEY fk_r_on_index_id (index_id) REFERENCES `index` (id)
+);
+
+-- Chat Message Retrieve Relationship
+CREATE TABLE chat_message_retrieve_rel
+(
+    chat_message_id  INT         NOT NULL,
+    retrieve_id      INT         NOT NULL,
+    info             JSON        NOT NULL,
+    PRIMARY KEY (chat_message_id, retrieve_id),
+    FOREIGN KEY fk_cmrr_on_chat_message_id (chat_message_id) REFERENCES chat_message (id),
+    FOREIGN KEY fk_cmrr_on_retrieve_id (retrieve_id) REFERENCES retrieve (id)
 );
 
 -- Retrieve Result
