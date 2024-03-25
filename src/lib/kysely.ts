@@ -37,3 +37,9 @@ export function uuidToBin<DB = any, TB extends keyof DB = any> (value: UUID): ((
     return eb.fn('uuid_to_bin', [eb.val(value)]);
   };
 }
+
+export function binToUUID<DB = any, TB extends keyof DB = any, RE extends ReferenceExpression<DB, TB> = ReferenceExpression<DB, TB>> (eb: ExpressionBuilder<DB, TB>, value: RE): ExpressionWrapper<DB, TB, UUID> {
+  return eb.fn('bin_to_uuid', [eb.val(value)]);
+}
+
+

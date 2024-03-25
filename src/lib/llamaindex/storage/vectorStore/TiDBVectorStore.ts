@@ -8,9 +8,9 @@ import {
   TextNode
 } from "llamaindex";
 import type { PoolOptions } from "mysql2/promise";
-import type { Kysely, Sql } from "kysely";
-import {cosineDistance} from "@/lib/kysely";
-import {randomUUID} from "node:crypto";
+import type {ExpressionBuilder, Kysely, Sql} from "kysely";
+import {binToUUID, cosineDistance, uuidToBin} from "@/lib/kysely";
+import {randomUUID, UUID} from "node:crypto";
 
 interface DocumentChunkNode {
   id: string;
@@ -140,22 +140,43 @@ export class TiDBVectorStore implements VectorStore {
     }
 
     try {
-      const data = embeddingResults.map((row) => ({
-        id: row.id_.length ? row.id_ : randomUUID(),
-        hash: row.hash,
-        text: row.getContent(MetadataMode.EMBED),
-        metadata: {
-          ...row.metadata,
-          create_date: new Date(),
-        },
-        embedding: row.getEmbedding(),
-        // Extra Document Chunk Node Fields.
-        index_id: row.metadata.index_id,
-        document_id: row.metadata.document_id,
-      }));
+      const data = embeddingResults.map((row) =>  {
+        const id = row.id_.length ? row.id_ as UUID : randomUUID();
+        return {
+          id,
+          hash: row.hash,
+          text: row.getContent(MetadataMode.EMBED),
+          metadata: {
+            ...row.metadata,
+            create_date: new Date(),
+          },
+          embedding: row.getEmbedding(),
+          // Extra Document Chunk Node Fields.
+          index_id: row.metadata.index_id,
+          document_id: row.metadata.document_id,
+        };
+      });
 
       const db = await this.getDb();
-      await db.insertInto(this.config.tableName).values(data).execute();
+      await db.transaction().execute(async (txn) => {
+        // TODO: Using bulk insert instead of individual inserts.
+        for (let { id, ...rest } of data) {
+          await txn
+            .insertInto(this.config.tableName)
+            .values((eb) => {
+              return [
+                uuidToBin(id),
+                rest.hash,
+                rest.text,
+                rest.metadata,
+                rest.embedding,
+                rest.index_id,
+                rest.document_id
+              ]
+            })
+            .execute();
+        }
+      });
       return data.map((d) => d.id);
     } catch (err) {
       const msg = `${err}`;
@@ -200,7 +221,8 @@ export class TiDBVectorStore implements VectorStore {
       return qc.selectFrom(this.config.tableName)
         .select((eb) => {
           return [
-            'id', 'hash', 'text', 'metadata', 'embedding', 'index_id', 'document_id',
+            binToUUID(eb, 'id').as('id'),
+            'hash', 'text', 'metadata', 'embedding', 'index_id', 'document_id',
             cosineDistance(eb, 'embedding', query.queryEmbedding!).as('score')
           ]
         })
