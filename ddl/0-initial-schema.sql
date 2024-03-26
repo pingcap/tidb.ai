@@ -36,17 +36,17 @@ CREATE TABLE `document` (
 -- Document Import Task
 CREATE TABLE document_import_task
 (
-    id                 INT                                              NOT NULL AUTO_INCREMENT,
-    url                VARCHAR(2048)                                    NOT NULL,
-    type               VARCHAR(32)                                      NOT NULL,
-    status             ENUM('CREATED', 'PENDING', 'SUCCEED', 'FAILED')  NOT NULL,
-    error_message      TEXT                                             NULL,
-    created_at         DATETIME                                         NOT NULL,
-    finished_at        DATETIME                                         NULL,
-    source_id          INT                                              NOT NULL,
-    document_id        INT                                              NULL,
-    document_operation ENUM('CREATE', 'UPDATE')                         NULL,
-    parent_task_id     INT                                              NULL,
+    id                 INT                                                              NOT NULL AUTO_INCREMENT,
+    url                VARCHAR(2048)                                                    NOT NULL,
+    type               VARCHAR(32)                                                      NOT NULL,
+    status             ENUM('CREATED', 'PENDING', 'IMPORTING', 'SUCCEED', 'FAILED')     NOT NULL,
+    error_message      TEXT                                                             NULL,
+    created_at         DATETIME                                                         NOT NULL,
+    finished_at        DATETIME                                                         NULL,
+    source_id          INT                                                              NOT NULL,
+    document_id        INT                                                              NULL,
+    document_operation ENUM('CREATE', 'UPDATE')                                         NULL,
+    parent_task_id     INT                                                              NULL,
     PRIMARY KEY (id),
     FOREIGN KEY fk_sit_on_source_id (source_id) REFERENCES source (id),
     FOREIGN KEY fk_sit_on_parent_task_id (parent_task_id) REFERENCES document_import_task (id),
@@ -69,17 +69,18 @@ CREATE TABLE IF NOT EXISTS `index` (
 
 -- Document Index tasks
 CREATE TABLE `document_index_task` (
-    id               INT            NOT NULL PRIMARY KEY,
+    id               INT            NOT NULL AUTO_INCREMENT PRIMARY KEY,
     index_id         INT            NOT NULL,
     document_id      INT            NOT NULL,
-    type             ENUM('CREATE_INDEX', 'REINDEX'),
-    status           ENUM('CREATED', 'PENDING', 'INDEXING', 'SUCCEED', 'FAILED'),
-    info             JSON           NULL,
+    type             ENUM('CREATE_INDEX', 'REINDEX') NOT NULL ,
+    status           ENUM('CREATED', 'PENDING', 'INDEXING', 'SUCCEED', 'FAILED') NOT NULL ,
+    info             JSON           NULL NOT NULL ,
     message          TEXT           NULL,
     created_at       DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     started_at       DATETIME       NULL,
     ended_at         DATETIME       NULL,
-    FOREIGN KEY fk_dit_on_index_id (index_id) REFERENCES `index`(id)
+    FOREIGN KEY fk_dit_on_index_id (index_id) REFERENCES `index`(id),
+    FOREIGN KEY fk_dit_on_document_id (document_id) REFERENCES `document`(id)
 );
 
 -- Document Node (Derived From Text Node)
