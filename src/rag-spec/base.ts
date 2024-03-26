@@ -3,9 +3,9 @@ import { RagExtensionsRegistry } from '@/core/registry';
 const baseRegistry = new RagExtensionsRegistry();
 
 // if (process.env.VERCEL === '1') {
-// baseRegistry.register(() => import('@createrag/extension-vercel-blob-document-storage'));
+baseRegistry.register(() => import('@createrag/extension-vercel-blob-document-storage'));
 // } else {
-  baseRegistry.register(() => import('@createrag/extension-fs-document-storage'));
+//   baseRegistry.register(() => import('@createrag/extension-fs-document-storage'));
 // }
 
 // Loaders
