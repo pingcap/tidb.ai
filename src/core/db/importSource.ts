@@ -1,8 +1,13 @@
 import { db } from '@/core/db/db';
-import type {DB, TaskSummaryItem} from '@/core/db/schema';
+import type {DB} from '@/core/db/schema';
 import { executePage, type Page, type PageRequest } from '@/lib/database';
 import type { Insertable, Selectable } from 'kysely';
 
+export interface TaskSummaryItem {
+  import_source_id: string;
+  status: string;
+  tasks: number;
+}
 export interface ImportSourceDb {
   create (partial: Insertable<DB['import_source']>): Promise<void>;
 

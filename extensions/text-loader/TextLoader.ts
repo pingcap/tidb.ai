@@ -7,7 +7,7 @@ export default class TextLoader extends rag.Loader<TextLoaderOptions, {}> {
     const content = buffer.toString(this.options.encoding ?? 'utf8');
     return {
       content: [content],
-      digest: md5(content),
+      hash: md5(content),
       metadata: {},
     } satisfies rag.Content<{}>;
   }

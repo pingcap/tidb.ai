@@ -24,7 +24,7 @@ export const POST = adminHandlerGuard(async (req, { params }: { params: { identi
     if (component instanceof rag.Splitter) {
       const result = await component.split({
         content: [content],
-        digest: '',
+        hash: '',
         metadata: {},
       });
       return NextResponse.json(result);

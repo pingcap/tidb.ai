@@ -1,9 +1,10 @@
 import database from '@/core/db';
+import { rag } from '@/core/interface';
 import { genId } from '@/lib/id';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
 import { z } from 'zod';
-import {vectorToSql} from "@/lib/kysely";
+import { uuidToBin, vectorToSql } from '@/lib/kysely';
 
 export const querySchema = z.object({
   text: z.string(),
@@ -17,7 +18,7 @@ export type QueryRequest = z.infer<typeof querySchema>;
 
 export async function retrieval (indexName: string, embedding: string, { text, search_top_k, top_k, namespaces = [], reranker: rerankerIdentifier }: QueryRequest) {
   const flow = await getFlow(baseRegistry);
-  const embeddings = flow.getEmbeddings(embedding);
+  const embeddings = flow.getRequired(rag.ExtensionType.Embeddings, embedding);
   const reranker = flow.getReranker(rerankerIdentifier);
   const vector = await embeddings.embedQuery(text);
 
@@ -36,11 +37,7 @@ export async function retrieval (indexName: string, embedding: string, { text, s
     namespaceIds: namespaceIds,
   });
 
-  await database.index.finishQuery(id, searchedTop.map(res => ({
-    document_index_chunk_id: res.document_index_chunk_id,
-    index_query_id: id,
-    score: res.score,
-  })));
+  await database.index.finishQuery(id);
 
   // TODO: expand chunk size?
 
@@ -51,7 +48,7 @@ export async function retrieval (indexName: string, embedding: string, { text, s
   await database.index.finishRerank(id, reranker.identifier, { ...rerankedResult.metadata, identifier: reranker.identifier }, rerankedResult.results.map(({ semantic_search_index, relevance_score }) => {
     const res = searchedTop[semantic_search_index];
     return {
-      document_index_chunk_id: res.document_index_chunk_id,
+      document_index_chunk_id: uuidToBin(res.document_index_chunk_id),
       index_query_id: id,
       score: res.score,
       relevance_score,
