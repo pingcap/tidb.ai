@@ -1,6 +1,6 @@
-import { DBv1 } from '@/core/v1/db';
+import { DBv1, tx } from '@/core/v1/db';
 import { type Document, getDocument } from '@/core/v1/document';
-import { createDocumentIndexTask, dequeueDocumentIndexTaskById, dequeueDocumentIndexTasks, type DocumentIndexTask, type DocumentIndexTaskInfo, finishDocumentIndexTask, listLatestDocumentIndexTasksByDocumentIndex, startDocumentIndexTask, terminateDocumentIndexTask } from '@/core/v1/document_index_task';
+import { createDocumentIndexTask, createDocumentIndexTasks, dequeueDocumentIndexTaskById, dequeueDocumentIndexTasks, type DocumentIndexTask, type DocumentIndexTaskInfo, finishDocumentIndexTask, listByNotIndexed, listLatestDocumentIndexTasksByDocumentIndex, startDocumentIndexTask, terminateDocumentIndexTask } from '@/core/v1/document_index_task';
 import { getIndex, type Index } from '@/core/v1/index_';
 import { getErrorMessage } from '@/lib/error';
 import { notFound } from 'next/navigation';
@@ -48,12 +48,32 @@ export async function createNewDocumentIndexTask (documentId: number, indexId: n
   });
 }
 
+export async function scheduleDocumentFirstIndex (indexId: number) {
+  return await tx(async () => {
+    const ids = await listByNotIndexed(indexId);
+    if (ids.length === 0) {
+      return [];
+    }
+
+    await createDocumentIndexTasks(ids.map(id => ({
+      document_id: id,
+      type: 'CREATE_INDEX',
+      info: {},
+      index_id: indexId,
+      created_at: new Date(),
+      status: 'CREATED',
+    })));
+
+    return ids;
+  });
+}
+
 export async function processDocumentIndexTask (id: number, processor: DocumentIndexTaskProcessor) {
   if (!await dequeueDocumentIndexTaskById(id)) {
     throw new Error(`cannot dequeue document index task #${id}`);
   }
 
-  await executeDocumentIndexTask(id, processor)
+  await executeDocumentIndexTask(id, processor);
 }
 
 export async function processDocumentIndexTasks (n: number, processor: DocumentIndexTaskProcessor) {
@@ -65,9 +85,9 @@ export async function processDocumentIndexTasks (n: number, processor: DocumentI
 
   results.forEach((result, i) => {
     if (result.status === 'fulfilled') {
-      succeed.push(i);
+      succeed.push(tasks[i]);
     } else {
-      failed.push(i);
+      failed.push(tasks[i]);
     }
   });
 

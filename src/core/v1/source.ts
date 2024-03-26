@@ -1,6 +1,6 @@
-import { type DBv1, getDb, tx } from '@/core/v1/db';
+import { type DBv1, getDb } from '@/core/v1/db';
+import { executePage, type PageRequest } from '@/lib/database';
 import type { Insertable, Selectable, Updateable } from 'kysely';
-import { notFound } from 'next/navigation';
 
 export type Source = Selectable<DBv1['source']>;
 export type CreateSource = Insertable<DBv1['source']>;
@@ -12,6 +12,14 @@ export async function getSource (id: number) {
     .selectAll()
     .where('id', '=', id)
     .executeTakeFirst();
+}
+
+export async function listSource (request: PageRequest) {
+  return await executePage(
+    getDb()
+      .selectFrom('source')
+      .selectAll(),
+    request);
 }
 
 export async function createSource (create: CreateSource) {

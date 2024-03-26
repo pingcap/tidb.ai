@@ -4,6 +4,8 @@
 
 INSERT INTO `index` (id, name, config) VALUES (1, 'default', '{}');
 
+-- TODO: New index config structure
+
 -- Index Config: Reader / Loader
 UPDATE
     `index`

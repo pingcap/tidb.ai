@@ -1,5 +1,14 @@
+import { Flow } from '@/core';
 import { rag } from '@/core/interface';
-import { BaseEmbedding } from 'llamaindex';
+import { BaseEmbedding, OpenAIEmbedding } from 'llamaindex';
+import ExtensionType = rag.ExtensionType;
+
+export function getEmbedding (flow: Flow, provider: string, options: any) {
+  if (provider === 'openai') {
+    return new OpenAIEmbedding(options);
+  }
+  return fromAppEmbedding(flow.getRequired(ExtensionType.Embeddings, provider));
+}
 
 export function fromAppEmbedding (e: rag.Embeddings<any>) {
   return new RagEmbedding(e);

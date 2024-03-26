@@ -7,6 +7,7 @@ import { genId } from '@/lib/id';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
 import { type NextRequest, NextResponse } from 'next/server';
+import { randomUUID } from 'node:crypto';
 
 export async function GET (req: NextRequest) {
   return NextResponse.json(await db.document.listAll(toPageRequest(req, ['index_state', 'q'])));
@@ -53,7 +54,7 @@ async function handleMultipart (req: NextRequest) {
   const store = (await getFlow(baseRegistry)).getStorage();
 
   await saveDocument(store, {
-    id: genId(),
+    id: randomUUID(),
     sourceUrl: sourceUri,
     mime: file.type,
     buffer: Buffer.from(await file.arrayBuffer()),

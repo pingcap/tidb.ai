@@ -1,5 +1,15 @@
+import { Flow } from '@/core';
 import { rag } from '@/core/interface';
 import { type LLM, OpenAI } from 'llamaindex';
+import ExtensionType = rag.ExtensionType;
+
+export function getLLM (flow: Flow, provider: string, config: any) {
+  if (provider === 'openai') {
+    return new OpenAI(config);
+  }
+
+  return fromAppChatModel(flow.getRequired(ExtensionType.ChatModel, provider));
+}
 
 export function fromAppChatModel (r: rag.ChatModel<any>): LLM {
   if (r.identifier === rag.ExtensionType.ChatModel + '.openai') {

@@ -1,8 +1,9 @@
-import type { DBDocument } from '@/core/db/document';
 import { rag } from '@/core/interface';
+import type { Document as CoreDocument } from '@/core/v1/document';
 import { nodeToChunk, nodeToContent } from '@/lib/llamaindex/converters/base';
 import type { AppReader } from '@/lib/llamaindex/converters/reader';
 import { BaseEmbedding, BaseExtractor, BaseNode, Document, IngestionPipeline, type NodeParser } from 'llamaindex';
+import type { UUID } from 'node:crypto';
 
 type LlamaindexIndexPipeline = (document: Document) => Promise<BaseNode[]>;
 
@@ -29,9 +30,12 @@ export function createIndexIngestionPipeline (
   });
 }
 
-function wrapLlamaindexIndexPipeline (reader: AppReader, f: LlamaindexIndexPipeline){
-  return async (dbDocument: DBDocument) => {
+function wrapLlamaindexIndexPipeline (reader: AppReader, f: LlamaindexIndexPipeline) {
+  return async (dbDocument: Pick<CoreDocument, 'mime' | 'content_uri' | 'source_uri'>, previousDocumentNodeId?: UUID) => {
     const [node] = await reader.loadData(dbDocument);
+    if (previousDocumentNodeId) {
+      node.id_ = previousDocumentNodeId;
+    }
     const nodes = await f(node);
     return rag.addChunks(
       nodeToContent(node),

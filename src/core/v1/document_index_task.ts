@@ -10,6 +10,7 @@ export interface DocumentIndexTaskInfo {
   document_node_id?: string;
   document_node_table_name?: string;
   document_chunk_node_table_name?: string;
+  chunks_count?: number;
 }
 
 export async function getDocumentIndexTask (id: number) {
@@ -31,6 +32,21 @@ export async function listLatestDocumentIndexTasksByDocumentIndex (documentId: n
     .execute();
 }
 
+export async function listByNotIndexed (indexId: number) {
+  const documents = await getDb()
+    .with('cte_indexed_documents', cte => cte
+      .selectFrom('document_index_task')
+      .select('document_id').distinct()
+      .where('document_index_task.index_id', '=', indexId),
+    )
+    .selectFrom('document')
+    .select('document.id')
+    .where('document.id', 'not in', eb => eb.selectFrom('cte_indexed_documents').select('cte_indexed_documents.document_id'))
+    .execute();
+
+  return documents.map(document => document.id);
+}
+
 export async function createDocumentIndexTask ({ info, ...create }: CreateDocumentIndexTask) {
   const { insertId } = await getDb()
     .insertInto('document_index_task')
@@ -41,6 +57,16 @@ export async function createDocumentIndexTask ({ info, ...create }: CreateDocume
     .executeTakeFirstOrThrow();
 
   return (await getDocumentIndexTask(Number(insertId)))!;
+}
+
+export async function createDocumentIndexTasks (list: CreateDocumentIndexTask[]) {
+  await getDb()
+    .insertInto('document_index_task')
+    .values(list.map(({ info, ...create }) => ({
+      ...create,
+      info: JSON.stringify(info),
+    })))
+    .executeTakeFirstOrThrow();
 }
 
 export async function updateDocumentIndexTask ({ info, ...update }: UpdateDocumentIndexTask) {

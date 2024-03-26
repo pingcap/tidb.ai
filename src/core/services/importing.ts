@@ -19,7 +19,7 @@ export async function createDocumentImportTaskFromSource (sourceId: number) {
 
     const unfinishedTasks = await findUnfinishedDocumentImportTaskBySource(sourceId);
 
-    if (unfinishedTasks) {
+    if (unfinishedTasks.length > 0) {
       throw new Error(`Failed to create import task: there are ${unfinishedTasks.length} tasks not finished`);
     }
 
@@ -67,9 +67,9 @@ export async function processDocumentImportTasks (n: number, importer: DocumentI
 
   results.forEach((result, i) => {
     if (result.status === 'fulfilled') {
-      succeed.push(i);
+      succeed.push(tasks[i]);
     } else {
-      failed.push(i);
+      failed.push(tasks[i]);
     }
   });
 
@@ -110,7 +110,7 @@ async function executeDocumentImportTask (id: number, importer: DocumentImportTa
       });
     } else {
       theResult = {
-        tasks: [],
+        tasks: result.tasks,
         document: undefined,
         isNewDocument: undefined,
       };
