@@ -255,7 +255,7 @@ importers:
         specifier: ^0.8.0
         version: 0.8.7(@types/react-dom@18.2.18)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
       zod:
-        specifier: workspace:npm:zod-extension@^
+        specifier: workspace:zod-extension@^
         version: link:packages/zod-extension
     devDependencies:
       '@createrag/extension-cohere-reranker':
