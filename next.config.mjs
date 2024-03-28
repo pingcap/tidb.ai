@@ -24,7 +24,7 @@ let nextConfig = withSvgr(withMDX({
   async headers() {
     return [
       {
-        source: "/api/v1/:path*",
+        source: "/api/:path*",
         headers: [
           { key: "Access-Control-Allow-Credentials", value: "true" },
           { key: "Access-Control-Allow-Origin", value: "*" },
