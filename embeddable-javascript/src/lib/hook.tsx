@@ -110,10 +110,10 @@ export const usePostChatMessage = async (
   return { response, loading, error, headers, setSession };
 };
 
-export const useRemoteAuth = async () => {
+export const useRemoteAuth = async (cfg?: { baseUrl: string, entryButtonLabel: string }) => {
   // api: https://tidb.ai/api/auth/session
   // method: GET
-  const url = '/api/auth/session';
+  const url = (cfg?.baseUrl || '') + '/api/auth/session';
   const [data, setData] = React.useState<null | {
     user: {
       id: string;

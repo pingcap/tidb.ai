@@ -30,7 +30,7 @@ export default function ChatContainer(props: {
   // TODO: useRemoteAuth
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // const remotaAuthData = useRemoteAuth();
-  useRemoteAuth();
+  useRemoteAuth(cfg);
 
   const {
     messages,
