@@ -242,6 +242,7 @@ function CustomJsCodeBlock(props: { data: ICustomJsSettingResult }) {
     const strHead = `<script\n  async\n  src='https://tidb.ai/rag-widget.js'\n  data-id='tidb-ai-widget'\n  data-name='tidb-ai-widget'`;
     const strTail = '\n/>';
     const template = {
+      ['data-api-base-url']: data.api_base_url,
       ['data-btn-label']: data.button_label,
       ['data-btn-img-src']: data.button_img_src,
       // ['data-example-questions']: JSON.stringify(data.example_questions),

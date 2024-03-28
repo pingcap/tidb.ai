@@ -84,6 +84,7 @@ export type IWebsiteSettingResult = z.infer<typeof WebsiteSettingResult>;
 export const WebsiteSettingUpdatePayload = WebsiteSetting.partial();
 
 export const CustomJsSetting = z.object({
+  api_base_url: z.string(),
   button_label: z.string({
     required_error: 'Button label is required',
   }),
