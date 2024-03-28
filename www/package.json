@@ -26,6 +26,7 @@
     "eslint": "^8",
     "eslint-config-next": "14.1.1",
     "postcss": "^8",
+    "raw-loader": "^4.0.2",
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
   }

@@ -24,5 +24,8 @@
   "document-loader": "Document Loader",
   "document-spliter": "Document Spliter",
   "reranker": "(Optional) Reranker",
-  "authentication": "Auth"
+  "authentication": "Auth",
+  "README": {
+    "display": "hidden"
+  }
 }
