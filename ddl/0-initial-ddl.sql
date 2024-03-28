@@ -208,7 +208,9 @@ INSERT INTO `option` VALUES
     ('example_questions', 'custom_js', 'array', '[{"text": "What is TiDB?"}, {"text": "Does TiDB support FOREIGN KEY?"}, {"text": "Does TiDB support serverless?"}]'),
     ('widget_title', 'custom_js', 'string', '"Conversation Search Box"'),
     ('widget_input_placeholder', 'custom_js', 'string', '"Ask a question..."'),
-    ('widget_color_mode', 'custom_js', 'string', '"system"');
+    ('widget_color_mode', 'custom_js', 'string', '"system"'),
+    ('widget_site_key', 'custom_js', 'string', '""'),
+    ('widget_security_mode', 'custom_js', 'string', '""');
 
 INSERT INTO `option` VALUES
     ('google_recaptcha', 'security', 'string', '"v3"')
