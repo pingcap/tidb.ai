@@ -4,7 +4,7 @@
     "title": "Getting Started"
   },
   "index": "Introduction",
-  "quickstart": "Quick Start",
+  "how-to-read-these-docs": "How to read these docs",
   "architecture": "Architecture",
   "changelog": "Changelog",
   "-- Deploy This RAG": {
@@ -13,7 +13,6 @@
   },
   "deploy-self-hosted": "Self-Hosted",
   "deploy-on-vercel": "Vercel",
-  "deploy-on-cloudflare": "CloudFlare",
   "-- Configuration": {
     "type": "separator",
     "title": "Configuration"
