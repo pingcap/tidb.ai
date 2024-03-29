@@ -79,8 +79,6 @@ export default function ChatContainer(props: {
     input,
     handleInputChange,
     handleSubmit,
-    // data,
-    // metadata,
     isLoading,
     stop,
     reload,
