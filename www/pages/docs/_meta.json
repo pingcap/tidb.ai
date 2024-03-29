@@ -7,6 +7,7 @@
   "how-to-read-these-docs": "How to read these docs",
   "architecture": "Architecture",
   "changelog": "Changelog",
+  "faq": "FAQ",
   "-- Deploy This RAG": {
     "type": "separator",
     "title": "Deploy this RAG"
