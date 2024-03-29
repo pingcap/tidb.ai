@@ -30,20 +30,8 @@ const ChatRequest = z.object({
 // TODO: Support config if enable recommend namespaces
 const ENABLE_RECOMMEND_NAMESPACES = true;
 
-// export const OPTIONS = async function  () {
-//   return new NextResponse(null, {
-//     headers: {
-//       'Access-Control-Allow-Credentials': 'true',
-//       'Access-Control-Allow-Origin': 'http://localhost:3000',
-//       'Access-Control-Allow-Methods': 'GET,OPTIONS,PATCH,DELETE,POST,PUT',
-//       'Access-Control-Allow-Headers': 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, X-Recaptcha-Token, X-Recaptcha-Action, X-CreateRag-Session, X-Experimental-Stream-Data',
-//
-//     },
-//   });
-// }
-
 export const POST = auth(async function POST (req) {
-  const userId = req.auth?.user?.id;
+  const userId = req.auth?.user?.id || 'anonymous';
   if (!userId) {
     return new NextResponse('Need authorization', { status: 401 });
   }
