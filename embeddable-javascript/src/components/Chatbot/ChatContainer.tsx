@@ -79,14 +79,13 @@ export default function ChatContainer(props: {
     input,
     handleInputChange,
     handleSubmit,
-    // data,
-    // metadata,
     isLoading,
     stop,
     reload,
     append,
   } = useChat({
     api: cfg.baseUrl + '/api/v1/chats',
+    credentials: 'include',
     body: {
       ...(session && { sessionID: session }),
     },
@@ -94,19 +93,8 @@ export default function ChatContainer(props: {
       if (session !== response.headers.get('X-CreateRag-Session')) {
         setSession(response.headers.get('X-CreateRag-Session') ?? undefined);
       }
-      // contextRef.current = (response?.headers?.get('X-CreateRag-Context') ?? '')
-      //   .split(',')
-      //   .map((s) => s.trim())
-      //   .filter(Boolean);
     },
-    // onFinish: (message) => {
-    //   message.context = contextRef.current;
-    // },
-    // credentials: 'omit',
   });
-
-  // console.log('messages', messages);
-  // console.log('data', data, metadata);
 
   const appendText = (text: string) => {
     append({

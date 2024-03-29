@@ -31,7 +31,7 @@ const ChatRequest = z.object({
 const ENABLE_RECOMMEND_NAMESPACES = true;
 
 export const POST = auth(async function POST (req) {
-  const userId = req.auth?.user?.id;
+  const userId = req.auth?.user?.id || 'anonymous';
   if (!userId) {
     return new NextResponse('Need authorization', { status: 401 });
   }
