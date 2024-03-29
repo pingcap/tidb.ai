@@ -1,8 +1,8 @@
-## Nextra FAQ
+## FAQ os this RAG app
 
-The Nextra FAQ is a collection of useful questions and answers about the
+The FAQ is a collection of useful questions and answers about the
 project. If you have a question that isn't answered here, please
-[open a discussion](https://github.com/shuding/nextra/discussions).
+[open a discussion](https://tidb.ai/discord).
 
 export function FAQBox({ title, children }) {
   return (
@@ -18,25 +18,27 @@ export function FAQBox({ title, children }) {
   )
 }
 
-<FAQBox title="Can I use Nextra with Next.js app router?">
-  No, Nextra only works with the `/pages` directory at the moment. Support for
-  the app router has not been implemented yet. But you can use `/app` and
-  `/pages` at the same time - just put your docs inside `/pages` and your other
-  routes in `/app`
+<FAQBox title="Is this RAG app free?">
+- The code of this RAG app is open source, it's free to use;
+- The database of this RAG app is free for 25GiB storage as we use [TiDB Serverless](https://tidb.cloud);
+- **But** the token of OpenAI paid, you should have an account of platform.openai.com for an API token.
 </FAQBox>
 
-<FAQBox title="Can I use X with Nextra?">
-  The answer is “yes” for most things. Since Nextra is just a Next.js plugin, almost all the things
-  that can be done with React can be done with Nextra. Here are some examples and guides:
+<FAQBox title="Can I use a different LLM?">
+  Currently we use OpenAI by default, and can't change to another LLM.
+  But we play to add more LLM support more LLM/LLM Platforms, such as: 
 
-- [Use Tailwind CSS](/docs/guide/tailwind-css)
-- [Use custom CSS and Sass](/docs/guide/custom-css)
-- [Use custom fonts](https://nextjs.org/docs/basic-features/font-optimization)
+- [Claude3](https://claude.ai/)
+- [Gemini](https://gemini.google.com/)
+- [Ollama](https://ollama.ai/)
+- ...
 
 </FAQBox>
 
-<FAQBox title="How can I add a live coding component in Nextra?">
-  There are libraries like [Sandpack](https://sandpack.codesandbox.io) and
-  [react-live](https://github.com/FormidableLabs/react-live) that can help you
-  add live coding components to your MDX.
+<FAQBox title="Can I use a different embedding/reranker API?">
+  Yes
+
+- [Change Default Reranker](/docs/reranker)
+- [Change Default Embedding API](/docs/embedding)
+
 </FAQBox>
