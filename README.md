@@ -12,7 +12,7 @@ A [WIP] out-of-the-box RAG (Retrieval-Augmented Generation) app based on the wor
 ## Features
 1. Conversational Search with Built-in Web Crawler: Our AI-powered conversational search comes with a built-in website crawler. It can effortlessly scrape sitemap URL lists, enabling seamless information retrieval.
 
-[![who-use-tidb](https://github.com/pingcap/tidb.ai/assets/1237528/0784e26e-8392-4bbe-bda1-6a680b12a805)](url)
+![who-use-tidb](https://github.com/pingcap/tidb.ai/assets/1237528/0784e26e-8392-4bbe-bda1-6a680b12a805 "Image Title")
 
 2. Embeddable Conversational Search Widget: Integrate our conversational search window effortlessly into your website by copying and embedding a simple JavaScript code snippet. This widget, typically placed at the bottom right corner of your site, facilitates instant responses to product-related queries.
 
@@ -21,11 +21,11 @@ A [WIP] out-of-the-box RAG (Retrieval-Augmented Generation) app based on the wor
 ## Local Deployment [TODO]
 To deploy the application in a self-hosted environment, run the following command:
 
-```shell
+```
 curl https://tidb.cloud/install.sh | sh
 ```
 then:
-```shell
+```
 ticloud create-app --template rag
 ```
 
