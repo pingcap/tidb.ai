@@ -45,6 +45,10 @@
     {
       "source": "/nextra/:match*",
       "destination": "https://rag-docs-pingcap.vercel.app/nextra/:match*"
+    },
+    {
+      "source": "/discord",
+      "destination": "https://discord.gg/Tzm5MeENK8"
     }
   ]
 }

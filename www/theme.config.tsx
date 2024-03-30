@@ -13,7 +13,7 @@ const themeConfig = {
     link: 'https://github.com/pingcap/tidb.ai',
   },
   chat: {
-    link: 'https://discord.gg/XzSW23Jg9p',
+    link: 'https://tidb.ai/discord',
   },
   navbar: {
     extraContent: (
