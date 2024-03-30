@@ -7,8 +7,6 @@
   --background-start-rgb: 214, 219, 220;
   --background-end-rgb: 255, 255, 255;
   --logo-color: #212121;
-  --nextra-primary-hue: 0;
-  --nextra-primary-saturation: d;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -17,8 +15,6 @@
     --background-start-rgb: 0, 0, 0;
     --background-end-rgb: 0, 0, 0;
     --logo-color: #f5f5f5;
-    --nextra-primary-hue: 0;
-    --nextra-primary-saturation: d;
   }
 }
 
