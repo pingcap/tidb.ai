@@ -1,4 +1,4 @@
-## FAQ os this RAG app
+## FAQ of this RAG app
 
 The FAQ is a collection of useful questions and answers about the
 project. If you have a question that isn't answered here, please
@@ -8,7 +8,7 @@ export function FAQBox({ title, children }) {
   return (
     <details
       open
-      className="last-of-type:mb-0 rounded-lg bg-neutral-50 dark:bg-neutral-800 p-2 mt-4"
+      className="last-of-type:mb-0 rounded-lg p-2 mt-4"
     >
       <summary>
         <strong className="text-lg">{title}</strong>
@@ -20,8 +20,8 @@ export function FAQBox({ title, children }) {
 
 <FAQBox title="Is this RAG app free?">
 - The code of this RAG app is open source, it's free to use;
-- The database of this RAG app is free for 25GiB storage as we use [TiDB Serverless](https://tidb.cloud);
-- **But** the token of OpenAI paid, you should have an account of platform.openai.com for an API token.
+- The database of this RAG app is free for **25GiB storage** as we use [TiDB Serverless](https://tidb.cloud);
+- **But** the token of OpenAI is paid, you should have an account of https://platform.openai.com for an API token.
 </FAQBox>
 
 <FAQBox title="Can I use a different LLM?">

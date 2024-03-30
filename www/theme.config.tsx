@@ -137,7 +137,16 @@ const themeConfig = {
       </span>
     ),
   },
-  primarySaturation: 0,
+  /*
+  primaryHue: {
+    dark: 0,
+    light: 0,
+  },
+  primarySaturation: {
+    dark: 9,
+    light: 0,
+  },
+  */
   // ... other theme options
 };
 
