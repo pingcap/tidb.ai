@@ -12,8 +12,8 @@
     "type": "separator",
     "title": "Deploy this RAG"
   },
-  "deploy-self-hosted": "Self-Hosted",
-  "deploy-on-vercel": "Vercel",
+  "deploy-on-aws": "Deploy with AWS",
+  "deploy-on-vercel": "Deploy on Vercel",
   "-- Configuration": {
     "type": "separator",
     "title": "Configuration"
