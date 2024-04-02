@@ -3,17 +3,18 @@ import { DBv1, getDb, tx } from '@/core/v1/db';
 import type { Json } from '@/core/v1/db/schema';
 import { uuidToBin, vectorToSql } from '@/lib/kysely';
 import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
+import { getMetadataExtractor } from '@/lib/llamaindex/converters/extractor';
 import { getLLM } from '@/lib/llamaindex/converters/llm';
 import { fromFlowReaders } from '@/lib/llamaindex/converters/reader';
 import { createIndexIngestionPipeline } from '@/lib/llamaindex/indexDocument';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
 import type { InsertObject } from 'kysely';
-import { KeywordExtractor, NodeRelationship, QuestionsAnsweredExtractor, SentenceSplitter, SentenceWindowNodeParser, SummaryExtractor, TitleExtractor } from 'llamaindex';
+import { NodeRelationship, SentenceSplitter, SentenceWindowNodeParser } from 'llamaindex';
 import type { RelatedNodeType } from 'llamaindex/Node';
 import type { UUID } from 'node:crypto';
 
-interface LlamaindexDocumentChunkNodeTable {
+export interface LlamaindexDocumentChunkNodeTable {
   document_id: number;
   embedding: unknown | null;
   hash: string;
@@ -51,17 +52,12 @@ export function createLlamaindexDocumentIndexTaskProcessor (): DocumentIndexTask
     const embedding = getEmbedding(flow, index.config.embedding.provider, index.config.embedding.config);
 
     // Create the default llamaindex pipeline
-    // TODO: Select metadata extractions from `index.config`
-    // TODO: Support custom metadata extractions
     const pipeline = createIndexIngestionPipeline(
       reader,
       parser, // Deprecate all rag.splitter.
-      [
-        new TitleExtractor({ llm }),
-        new SummaryExtractor({ llm }),
-        new QuestionsAnsweredExtractor({ llm }),
-        new KeywordExtractor({ llm }),
-      ],
+      index.config.metadata_extractors.map(extractor =>
+        getMetadataExtractor(flow, extractor.provider, extractor.config),
+      ),
       embedding,
     );
 

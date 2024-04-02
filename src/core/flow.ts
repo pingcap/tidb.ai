@@ -53,9 +53,8 @@ export class Flow implements Flow.ExtensionApi {
     return this.list(type).map(item => ({ identifier: item.identifier, displayName: item.displayName }));
   }
 
-  getRequired<T extends rag.ExtensionType> (type: T, identifier?: string) {
+  get<T extends rag.ExtensionType> (type: T, identifier?: string) {
     const extensions = this.maps[type];
-
     let extension: InstanceType<rag.ExtensionTypesMap[T]> | undefined;
     if (!identifier) {
       extension = Array.from(extensions.values())[0];
@@ -63,6 +62,11 @@ export class Flow implements Flow.ExtensionApi {
       extension = extensions.get(identifier) ?? extensions.get(`${type}.${identifier}`);
     }
 
+    return extension;
+  }
+
+  getRequired<T extends rag.ExtensionType> (type: T, identifier?: string) {
+    const extension = this.get(type, identifier);
     if (!extension) {
       throw new Error(`No available reranker.`);
     }

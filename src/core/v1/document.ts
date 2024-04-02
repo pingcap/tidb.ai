@@ -13,6 +13,18 @@ export async function getDocument (id: number) {
     .executeTakeFirst();
 }
 
+export async function getDocuments (iterableIdList: Iterable<number>) {
+  const idList = Array.from(iterableIdList);
+  if (idList.length === 0) {
+    return [];
+  }
+  return await getDb()
+    .selectFrom('document')
+    .selectAll()
+    .where('id', 'in', idList)
+    .execute();
+}
+
 export async function getDocumentBySourceUri (sourceUri: string) {
   return await getDb()
     .selectFrom('document')
@@ -35,5 +47,5 @@ export async function updateDocument (id: number, update: UpdateDocument) {
     .updateTable('document')
     .set(update)
     .where('id', '=', id)
-    .execute()
+    .execute();
 }

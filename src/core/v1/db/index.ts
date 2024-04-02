@@ -36,15 +36,15 @@ async function tx<T> (first: IsolationLevel | (() => Promise<T>), runner?: () =>
   });
 }
 
-function getDb () {
+function getDb<K extends keyof DB = keyof DB> (): Kysely<Pick<DB, K>> {
   const tx = currentTx.getStore();
   if (tx) {
-    return tx;
+    return tx as never;
   }
 
-  return index;
+  return index as never;
 }
 
-export { getDb, tx }
+export { getDb, tx };
 
 export type { DB as DBv1 } from './schema';

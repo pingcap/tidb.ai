@@ -1,3 +1,6 @@
+import type { Json } from '@/core/v1/db/schema';
+import type { LlamaindexDocumentChunkNodeTable } from '@/jobs/v1/llamaindexDocumentIndexTaskProcessor';
+import type { Overwrite } from '@tanstack/table-core';
 import {
   BaseNode,
   Metadata,
@@ -5,22 +8,38 @@ import {
   VectorStore,
   VectorStoreQuery,
   VectorStoreQueryResult,
-  TextNode
-} from "llamaindex";
+  TextNode, RetrieverQueryEngine, NodeRelationship,
+} from 'llamaindex';
 import type { PoolOptions } from "mysql2/promise";
 import type {ExpressionBuilder, Kysely, Sql} from "kysely";
 import {binToUUID, cosineDistance, uuidToBin} from "@/lib/kysely";
 import {randomUUID, UUID} from "node:crypto";
 
 interface DocumentChunkNode {
-  id: string;
-  hash: string;
-  text: string;
-  metadata: Metadata;
-  embedding: number[];
-  // Extra Document Chunk Node Fields.
-  index_id: number;
   document_id: number;
+  embedding: unknown | null;
+  hash: string;
+  id: Buffer;
+  index_id: number;
+  metadata: Json;
+  text: string;
+}
+
+interface DocumentNode {
+  document_id: number;
+  hash: string;
+  id: Buffer;
+  index_id: number;
+  index_info: Json;
+  indexed_at: Date;
+  metadata: Json;
+  text: string;
+}
+
+interface Relationship {
+  source_node_id: Buffer;
+  target_node_id: Buffer;
+  type: "CHILD" | "NEXT" | "PARENT" | "PREVIOUS" | "SOURCE";
 }
 
 export const DEFAULT_TIDB_VECTOR_TABLE_NAME = `llamaindex_document_chunk_node_default`;
@@ -29,19 +48,20 @@ export const DEFAULT_TIDB_VECTOR_DIMENSIONS = 1536;
 
 type VectorTableName = `llamaindex_document_chunk_node_${string}`;
 
-declare module '@/core/db/schema' {
-  interface DB extends Record<VectorTableName, DocumentChunkNode> {}
-}
 
 export interface TiDBVectorDB {
   [key: VectorTableName]: DocumentChunkNode;
+  llamaindex_document_node: DocumentNode;
+  llamaindex_node_relationship: Relationship;
+  [key: string]: any
 }
 
 export interface TiDBVectorStoreConfig {
   poolOptions?: PoolOptions;
   tableName: VectorTableName;
   dimensions: number;
-  dbClient?: Kysely<TiDBVectorDB>;
+  dbClient?: Kysely<TiDBVectorDB> | (() => Kysely<TiDBVectorDB>);
+  dbTransaction?: <R> (db: Kysely<TiDBVectorDB>, scope: (trx: Kysely<TiDBVectorDB>) => Promise<R>) => Promise<R>;
 }
 
 /**
@@ -51,7 +71,8 @@ export class TiDBVectorStore implements VectorStore {
   storesText: boolean = true;
 
   private config: TiDBVectorStoreConfig;
-  private dbClient?: Kysely<TiDBVectorDB>;
+  private dbClient?: Kysely<TiDBVectorDB> | (() => Kysely<TiDBVectorDB>);
+  private dbTransaction: <R> (db: Kysely<TiDBVectorDB>, scope: (trx: Kysely<TiDBVectorDB>) => Promise<R>) => Promise<R>;
 
   /**
    * Constructs a new instance of the TiDBVectorStore
@@ -71,6 +92,11 @@ export class TiDBVectorStore implements VectorStore {
 
     if (config?.dbClient) {
       this.dbClient = config.dbClient;
+    }
+    if (config?.dbTransaction) {
+      this.dbTransaction = config.dbTransaction;
+    } else {
+      this.dbTransaction = (db, scope) => db.transaction().execute(scope);
     }
   }
 
@@ -96,6 +122,10 @@ export class TiDBVectorStore implements VectorStore {
         console.error(err);
         throw err;
       }
+    }
+
+    if (typeof this.dbClient === 'function') {
+      return this.dbClient();
     }
 
     return this.dbClient;
@@ -158,7 +188,7 @@ export class TiDBVectorStore implements VectorStore {
       });
 
       const db = await this.getDb();
-      await db.transaction().execute(async (txn) => {
+      await this.dbTransaction(db, async (txn) => {
         // TODO: Using bulk insert instead of individual inserts.
         for (let { id, ...rest } of data) {
           await txn
@@ -193,7 +223,13 @@ export class TiDBVectorStore implements VectorStore {
    */
   async delete(refDocId: string, deleteKwargs?: any): Promise<void> {
     const db = await this.getDb();
-    await db.deleteFrom(this.config.tableName).where('id', '=', refDocId).execute();
+    await this.dbTransaction(db, async txn => {
+      await txn.deleteFrom(this.config.tableName).where('id', '=', uuidToBin(refDocId as UUID)).execute();
+      await txn.deleteFrom('llamaindex_node_relationship').where(eb => eb.or([
+        eb('source_node_id', '=', uuidToBin(refDocId as UUID)),
+        eb('target_node_id', '=', uuidToBin(refDocId as UUID)),
+      ])).execute();
+    })
   }
 
   /**
@@ -229,8 +265,15 @@ export class TiDBVectorStore implements VectorStore {
         .orderBy('score')
         .limit(n);
     })
+      .with('cte_rel', qc => qc.selectFrom('llamaindex_node_relationship')
+        .innerJoin(this.config.tableName, 'llamaindex_node_relationship.target_node_id', `${this.config.tableName}.id`)
+        .select(['source_node_id', 'target_node_id', 'type', `${this.config.tableName}.metadata`])
+      )
       .selectFrom('cte')
-      .select(['id', 'hash', 'text', 'metadata', 'embedding', 'index_id', 'document_id', 'score'])
+      .leftJoin('cte_rel', 'cte_rel.source_node_id', 'cte.id')
+      .select(eb => eb.fn('bin_to_uuid', ['id']).as('id'))
+      .select(['hash', 'text', 'metadata', 'embedding', 'index_id', 'document_id', 'score'])
+      .select(eb => eb.fn<Record<Relationship['type'], { nodeId: UUID, metadata: Json }>>('json_object_agg', ['cte_rel.type', eb => eb.fn('json_object', ['cte_rel.target_node_id as nodeId', 'cte_rel.metadata'])]).as('relationships'))
       .where((eb) => {
         const filters = query.filters?.filters ?? []
         return eb.and(filters.map((f) => {
@@ -247,7 +290,7 @@ export class TiDBVectorStore implements VectorStore {
     };
   }
 
-  private mapDocumentChunksToTextNodes(rows: DocumentChunkNode[]): TextNode[] {
+  private mapDocumentChunksToTextNodes(rows: Overwrite<DocumentChunkNode, { id: UUID, metadata: any, relationships: Record<Relationship['type'], { nodeId: UUID, metadata: any }> }>[]): TextNode[] {
     return rows.map((row) => {
       return new TextNode({
         id_: row.id,
@@ -259,7 +302,8 @@ export class TiDBVectorStore implements VectorStore {
           index_id: row.index_id,
           document_id: row.document_id
         },
-        embedding: row.embedding,
+        embedding: row.embedding as number[],
+        relationships: row.relationships,
       });
     });
   }
