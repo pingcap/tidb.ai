@@ -3,7 +3,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
-import { getErrorMessage } from '@/lib/error';
+import { getErrorMessage } from '@/lib/errors';
 import { Message } from 'ai';
 import { AlertTriangleIcon, AlignLeftIcon, ClipboardIcon, LinkIcon, RefreshCwIcon, ShareIcon, TextSearchIcon, ThumbsDown } from 'lucide-react';
 import { useMemo } from 'react';

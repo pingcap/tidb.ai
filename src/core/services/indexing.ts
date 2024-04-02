@@ -2,7 +2,7 @@ import { DBv1, tx } from '@/core/v1/db';
 import { type Document, getDocument } from '@/core/v1/document';
 import { createDocumentIndexTask, createDocumentIndexTasks, dequeueDocumentIndexTaskById, dequeueDocumentIndexTasks, type DocumentIndexTask, type DocumentIndexTaskInfo, finishDocumentIndexTask, listByNotIndexed, listLatestDocumentIndexTasksByDocumentIndex, startDocumentIndexTask, terminateDocumentIndexTask } from '@/core/v1/document_index_task';
 import { getIndex, type Index } from '@/core/v1/index_';
-import { getErrorMessage } from '@/lib/error';
+import { getErrorMessage } from '@/lib/errors';
 import { notFound } from 'next/navigation';
 
 export type DocumentIndexTaskProcessor = (task: DocumentIndexTask, document: Document, index: Index, mutableInfo: DocumentIndexTaskInfo) => Promise<DocumentIndexTaskResult>

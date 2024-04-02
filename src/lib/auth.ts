@@ -1,4 +1,6 @@
 import { useSession } from 'next-auth/react';
+import {NextRequest} from "next/server";
+import { type Session } from 'next-auth';
 
 export function useUser () {
   const { data } = useSession();
@@ -16,4 +18,12 @@ export function useUser () {
   }
 
   return data.user;
+}
+
+export function getUserIdFromReq(req: NextAuthedRequest) {
+  return req.auth?.user?.id;
+}
+
+interface NextAuthedRequest extends NextRequest {
+  auth: Session | null;
 }

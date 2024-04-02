@@ -18,3 +18,5 @@ export function getErrorName (error: unknown) {
   }
   return String(error);
 }
+
+export * from './api_errors';

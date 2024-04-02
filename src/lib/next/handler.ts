@@ -1,5 +1,5 @@
 import { auth as authFn } from '@/app/api/auth/[...nextauth]/auth';
-import { getErrorMessage, getErrorName } from '@/lib/error';
+import { getErrorMessage, getErrorName } from '@/lib/errors';
 import { parseBody, parseParams, parseSearchParams } from '@/lib/next/parse';
 import { type RouteProps } from '@/lib/next/types';
 import type { Session } from 'next-auth';

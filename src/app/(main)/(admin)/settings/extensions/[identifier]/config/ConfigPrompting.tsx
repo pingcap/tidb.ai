@@ -5,7 +5,7 @@ import { ExtensionConfig, useExtensionConfig } from '@/components/extension-conf
 import { Alert, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { useExtension } from '@/components/use-extension';
-import { getErrorMessage } from '@/lib/error';
+import { getErrorMessage } from '@/lib/errors';
 
 export function ConfigPrompting ({ identifier, base }: ConfigProps) {
   const Extension = useExtension(identifier);

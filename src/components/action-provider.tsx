@@ -1,6 +1,6 @@
 'use client';
 
-import { getErrorMessage } from '@/lib/error';
+import { getErrorMessage } from '@/lib/errors';
 import { createContext, type ReactNode, useContext, useTransition } from 'react';
 import { useFormState } from 'react-dom';
 

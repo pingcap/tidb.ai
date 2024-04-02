@@ -2,7 +2,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTrigger } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
-import { getErrorMessage } from '@/lib/error';
+import { getErrorMessage } from '@/lib/errors';
 import { AlertTriangleIcon } from 'lucide-react';
 import { type ReactElement, type ReactNode, useState } from 'react';
 import { type FieldValues, useForm } from 'react-hook-form';

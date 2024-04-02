@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useExtension } from '@/components/use-extension';
 import { rag } from '@/core/interface';
-import { getErrorMessage } from '@/lib/error';
+import { getErrorMessage } from '@/lib/errors';
 import { useState } from 'react';
 
 export function ConfigLoader ({ base, identifier }: ConfigProps) {

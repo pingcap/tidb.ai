@@ -1,6 +1,6 @@
 import { rag } from '@/core/interface';
 import { adminHandlerGuard } from '@/lib/auth-server';
-import { getErrorMessage } from '@/lib/error';
+import { getErrorMessage } from '@/lib/errors';
 import { handleErrors } from '@/lib/fetch';
 import { baseRegistry } from '@/rag-spec/base';
 import { notFound } from 'next/navigation';

@@ -1,7 +1,7 @@
 import { Document, getDocuments } from '@/core/v1/document';
 import { getIndex, type Index } from '@/core/v1/index_';
 import { createRetrieve, finishRetrieve, type RetrieveResult, startRetrieveRerank, startRetrieveSearch, terminateRetrieve } from '@/core/v1/retrieve';
-import { getErrorMessage } from '@/lib/error';
+import { getErrorMessage } from '@/lib/errors';
 import { notFound } from 'next/navigation';
 import type { UUID } from 'node:crypto';
 import z, { ZodType } from 'zod';

@@ -2,7 +2,7 @@ import { tx } from '@/core/v1/db';
 import { createDocument, type CreateDocument, getDocumentBySourceUri, updateDocument } from '@/core/v1/document';
 import { type CreateDocumentImportTask, createDocumentImportTask, dequeueDocumentImportTasks, type DocumentImportResult, findUnfinishedDocumentImportTaskBySource, finishDocumentImportTask, getDocumentImportTask, startDocumentImportTask, terminateDocumentImportTask } from '@/core/v1/document_import_task';
 import { type DocumentImportTask, getSource } from '@/core/v1/source';
-import { getErrorMessage } from '@/lib/error';
+import { getErrorMessage } from '@/lib/errors';
 import { notFound } from 'next/navigation';
 
 export type DocumentImportTaskProcessor = (task: DocumentImportTask) => Promise<{

@@ -1,7 +1,7 @@
 import database from '@/core/db';
 import { scheduleImportSourceTask } from '@/jobs/scheduleImportSourceTask';
 import { adminHandlerGuard } from '@/lib/auth-server';
-import { getErrorMessage } from '@/lib/error';
+import { getErrorMessage } from '@/lib/errors';
 import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';
 

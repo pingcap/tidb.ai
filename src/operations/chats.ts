@@ -1,4 +1,4 @@
-import { getErrorMessage } from '@/lib/error';
+import { getErrorMessage } from '@/lib/errors';
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 

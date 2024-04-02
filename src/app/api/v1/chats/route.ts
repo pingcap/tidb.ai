@@ -19,6 +19,7 @@ import { z } from 'zod';
 import ChatMessage = rag.ChatMessage;
 import RerankedContext = rag.RerankedContext;
 import { validateNextRequestWithReCaptcha } from '@/lib/reCaptcha';
+import {AUTH_REQUIRE_AUTHED_ERROR} from "@/lib/errors";
 
 const ChatRequest = z.object({
   messages: z.object({ role: z.string(), content: z.string() }).array(),
@@ -33,7 +34,7 @@ const ENABLE_RECOMMEND_NAMESPACES = false;
 export const POST = auth(async function POST (req) {
   const userId = req.auth?.user?.id || 'anonymous';
   if (!userId) {
-    return new NextResponse('Need authorization', { status: 401 });
+    return AUTH_REQUIRE_AUTHED_ERROR.toResponse();
   }
 
   await validateNextRequestWithReCaptcha(req);
