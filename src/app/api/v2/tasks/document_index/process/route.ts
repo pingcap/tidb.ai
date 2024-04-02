@@ -1,4 +1,4 @@
-import { processDocumentIndexTask } from '@/core/services/indexing';
+import { processDocumentIndexTasks } from '@/core/services/indexing';
 import { createLlamaindexDocumentIndexTaskProcessor } from '@/jobs/v1/llamaindexDocumentIndexTaskProcessor';
 import { defineHandler } from '@/lib/next/handler';
 import z from 'zod';
@@ -13,7 +13,7 @@ export const GET = defineHandler({
 
   const processor = createLlamaindexDocumentIndexTaskProcessor();
 
-  await processDocumentIndexTask(n, processor);
+  return await processDocumentIndexTasks(n, processor);
 });
 
 export const dynamic = 'force-dynamic';

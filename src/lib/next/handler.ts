@@ -1,5 +1,10 @@
 import { auth as authFn } from '@/app/api/auth/[...nextauth]/auth';
-import { getErrorMessage, getErrorName } from '@/lib/errors';
+import {
+  APIError,
+  AUTH_FORBIDDEN_ERROR,
+  AUTH_REQUIRE_AUTHED_ERROR, CRONJOB_INVALID_AUTH_TOKEN_ERROR,
+  CRONJOB_REQUIRE_AUTH_TOKEN_ERROR
+} from '@/lib/errors';
 import { parseBody, parseParams, parseSearchParams } from '@/lib/next/parse';
 import { type RouteProps } from '@/lib/next/types';
 import type { Session } from 'next-auth';
@@ -7,11 +12,13 @@ import { isNextRouterError } from 'next/dist/client/components/is-next-router-er
 import { type NextRequest, NextResponse } from 'next/server';
 import { z, ZodError, type ZodObject, type ZodType } from 'zod';
 
+export type AppAuthType = 'user' | 'admin' | 'cronjob' | void;
+
 export function defineHandler<
   ZSearchParams extends ZodObject<any> | void = void,
   ZParams extends ZodObject<any> | void = void,
   ZBody extends ZodType | void = void,
-  Auth extends 'user' | 'admin' | 'cronjob' | void = void,
+  Auth extends AppAuthType = void,
   Returns = any
 > (
   options: {
@@ -41,22 +48,19 @@ export function defineHandler<
         auth = await authFn();
         if (options.auth === 'cronjob') {
           const authHeader = request.headers.get('authorization');
+          if (!authHeader) {
+            return CRONJOB_REQUIRE_AUTH_TOKEN_ERROR.toResponse();
+          }
           if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-            return new NextResponse(null, {
-              status: 401,
-            });
+            return CRONJOB_INVALID_AUTH_TOKEN_ERROR.toResponse();
           }
         } else if (options.auth) {
           if (!auth.user || auth.user.role === 'anonymous') {
-            return new NextResponse(null, {
-              status: 401,
-            });
+            return AUTH_REQUIRE_AUTHED_ERROR.toResponse();
           }
 
           if (options.auth === 'admin' && auth.user.role !== 'admin') {
-            return new NextResponse(null, {
-              status: 403,
-            });
+            return AUTH_FORBIDDEN_ERROR.toResponse();
           }
         }
       }
@@ -105,10 +109,7 @@ export function defineHandler<
 
       console.error(e);
 
-      return NextResponse.json({
-        name: getErrorName(e),
-        message: getErrorMessage(e),
-      }, { status: 500 });
+      return APIError.fromError(e).toResponse();
     }
   };
 }

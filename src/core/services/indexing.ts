@@ -5,6 +5,8 @@ import { getIndex, type Index } from '@/core/v1/index_';
 import { getErrorMessage } from '@/lib/errors';
 import { notFound } from 'next/navigation';
 
+export const DEFAULT_INDEX_NAME = 'default';
+
 export type DocumentIndexTaskProcessor = (task: DocumentIndexTask, document: Document, index: Index, mutableInfo: DocumentIndexTaskInfo) => Promise<DocumentIndexTaskResult>
 
 export type DocumentIndexTaskResult = {
@@ -68,6 +70,11 @@ export async function scheduleDocumentFirstIndex (indexId: number) {
   });
 }
 
+/**
+ * Process a single document index task.
+ * @param id
+ * @param processor
+ */
 export async function processDocumentIndexTask (id: number, processor: DocumentIndexTaskProcessor) {
   if (!await dequeueDocumentIndexTaskById(id)) {
     throw new Error(`cannot dequeue document index task #${id}`);
@@ -76,6 +83,11 @@ export async function processDocumentIndexTask (id: number, processor: DocumentI
   await executeDocumentIndexTask(id, processor);
 }
 
+/**
+ * Process multiple document index tasks.
+ * @param n
+ * @param processor
+ */
 export async function processDocumentIndexTasks (n: number, processor: DocumentIndexTaskProcessor) {
   const tasks = await dequeueDocumentIndexTasks(n);
   const results = await Promise.allSettled(tasks.map(id => executeDocumentIndexTask(id, processor)));

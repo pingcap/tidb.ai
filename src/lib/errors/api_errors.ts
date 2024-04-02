@@ -1,14 +1,48 @@
 import {NextResponse} from "next/server";
+import * as util from "util";
 
+export interface APIErrorOptions {
+  name?: string;
+  cause?: Error | null;
+}
 export class APIError extends Error {
-  constructor(public message: string, public statusCode: number, cause: Error | null = null) {
+
+  public name: string = 'API_ERROR';
+
+  constructor(public message: string, public statusCode: number, options: APIErrorOptions = {}) {
     super(message, {
-      cause
+      cause: options.cause
     });
+
+    if (options.name) {
+      this.name = options.name
+    }
   }
 
-  static new(message: string, statusCode: number, cause: Error | null = null) {
-    return new APIError(message, statusCode, cause);
+  static new(message: string, statusCode: number, options: APIErrorOptions = {}) {
+    return new APIError(message, statusCode, options);
+  }
+
+  static fromError(error: unknown, statusCode: number = 500) {
+    // TODO: Handle Zod errors
+
+    if (error instanceof APIError) {
+      return error;
+    }
+
+    if (error instanceof Error) {
+      return new APIError(error.message, statusCode, {
+        name: error.constructor.name,
+        cause: error,
+      });
+    } else {
+      return new APIError(String(error), statusCode);
+    }
+  }
+
+  format(...args: any[]) {
+    this.message = util.format(this.message, ...args);
+    return this;
   }
 
   toResponse() {
@@ -23,6 +57,16 @@ export class APIError extends Error {
 
 export const AUTH_REQUIRE_AUTHED_ERROR = APIError.new('Require authentication', 401);
 
+export const AUTH_FORBIDDEN_ERROR = APIError.new('Forbidden', 403);
+
+
+/**
+ * CronJob related errors
+ */
+
+export const CRONJOB_REQUIRE_AUTH_TOKEN_ERROR = APIError.new('Require CronJob authentication token', 401);
+
+export const CRONJOB_INVALID_AUTH_TOKEN_ERROR = APIError.new('Invalid CronJob authentication token', 401);
 
 /**
  * ReCaptcha related errors
@@ -35,3 +79,8 @@ export const RECAPTCHA_RETRIEVE_CONFIG_ERROR = APIError.new('Failed to retrieve 
 export const RECAPTCHA_INVALID_TOKEN_ERROR = APIError.new('ReCaptcha token invalid', 401);
 
 export const RECAPTCHA_INVALID_MODE_ERROR = APIError.new('ReCaptcha mode invalid', 501);
+
+/**
+ * Index related errors
+ */
+export const INDEX_NOT_FOUND_ERROR = APIError.new('Index %s not found', 404);
