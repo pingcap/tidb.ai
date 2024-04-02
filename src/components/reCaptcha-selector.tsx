@@ -22,10 +22,11 @@ export interface ReCaptchaSelectorProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
   controlForm: UseFormReturn;
   onSelected?: () => void;
+  fieldName?: string;
 }
 
 const ReCaptchaSelector = React.forwardRef<HTMLInputElement, ReCaptchaSelectorProps>(
-  ({ className, controlForm, onSelected, ...field }, ref) => {
+  ({ className, controlForm, onSelected, fieldName = "google_recaptcha", ...field }, ref) => {
     return (
       <Popover>
         <PopoverTrigger asChild>
@@ -55,7 +56,7 @@ const ReCaptchaSelector = React.forwardRef<HTMLInputElement, ReCaptchaSelectorPr
                   value={mode.label}
                   key={mode.value}
                   onSelect={() => {
-                    controlForm.setValue('google_recaptcha', mode.value);
+                    controlForm.setValue(fieldName, mode.value);
                     onSelected?.();
                   }}
                 >

@@ -16,11 +16,53 @@ declare module 'ai/react' {
   }
 }
 
+declare const grecaptcha: {
+  ready: (cb: () => void) => void;
+  execute: (siteKey: string, options: { action: string }) => Promise<string>;
+  enterprise: {
+    ready: (cb: () => void) => void;
+    execute: (siteKey: string, options: { action: string }) => Promise<string>;
+  };
+};
+
+async function withReCaptcha(
+  options: {
+    action: string;
+    siteKey: string;
+    mode?: 'v3' | 'enterprise';
+  },
+  func: (data: { action: string; siteKey: string; token: string }) => void
+) {
+  const { action, siteKey } = options;
+  // skip if no siteKey
+  if (!siteKey) {
+    return func({ action, siteKey, token: '' });
+  }
+  if (options.mode === 'v3') {
+    grecaptcha.ready(async () => {
+      const token = await grecaptcha.execute(siteKey, { action });
+      func({ action, siteKey, token });
+    });
+  } else if (options.mode === 'enterprise') {
+    grecaptcha.enterprise.ready(async () => {
+      const token = await grecaptcha.enterprise.execute(siteKey, { action });
+      func({ action, siteKey, token });
+    });
+  }
+}
+
 export default function ChatContainer(props: {
   exampleQuestions: string[];
   inputPlaceholder?: string;
+  siteKey?: string;
+  securityMode?: 'v3' | 'enterprise';
 }) {
-  const { exampleQuestions, inputPlaceholder } = props;
+  const {
+    exampleQuestions,
+    inputPlaceholder,
+    siteKey = '',
+    securityMode,
+  } = props;
 
   const { session, setSession } = useLocalCreateRAGSessionId();
   // const contextRef = React.useRef<string[]>([]);
@@ -30,21 +72,20 @@ export default function ChatContainer(props: {
   // TODO: useRemoteAuth
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   // const remotaAuthData = useRemoteAuth();
-  useRemoteAuth();
+  useRemoteAuth(cfg);
 
   const {
     messages,
     input,
     handleInputChange,
     handleSubmit,
-    // data,
-    // metadata,
     isLoading,
     stop,
     reload,
     append,
   } = useChat({
     api: cfg.baseUrl + '/api/v1/chats',
+    credentials: 'include',
     body: {
       ...(session && { sessionID: session }),
     },
@@ -52,19 +93,8 @@ export default function ChatContainer(props: {
       if (session !== response.headers.get('X-CreateRag-Session')) {
         setSession(response.headers.get('X-CreateRag-Session') ?? undefined);
       }
-      // contextRef.current = (response?.headers?.get('X-CreateRag-Context') ?? '')
-      //   .split(',')
-      //   .map((s) => s.trim())
-      //   .filter(Boolean);
     },
-    // onFinish: (message) => {
-    //   message.context = contextRef.current;
-    // },
-    // credentials: 'omit',
   });
-
-  // console.log('messages', messages);
-  // console.log('data', data, metadata);
 
   const appendText = (text: string) => {
     append({
@@ -72,6 +102,30 @@ export default function ChatContainer(props: {
       content: text,
       createdAt: new Date(),
     });
+  };
+
+  const handleSubmitWithReCaptcha = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!siteKey) {
+      return handleSubmit(e);
+    }
+    withReCaptcha(
+      {
+        action: 'submit',
+        siteKey: siteKey || '',
+        mode: securityMode,
+      },
+      ({ token, action }) => {
+        handleSubmit(e, {
+          options: {
+            headers: {
+              'X-Recaptcha-Token': token,
+              'X-Recaptcha-Action': action,
+            },
+          },
+        });
+      }
+    );
   };
 
   return (
@@ -152,7 +206,7 @@ export default function ChatContainer(props: {
               handleStop={stop}
             />
           )}
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmitWithReCaptcha}>
             <ChatInput
               className={themeClassPrefix + 'Conversation-Input'}
               value={input}
@@ -161,22 +215,38 @@ export default function ChatContainer(props: {
               placeholder={inputPlaceholder}
             />
           </form>
-          <StyledChatMutedText
-            sx={{
-              display: 'block',
-              paddingTop: '1rem',
-              fontSize: '12px',
-              color: (theme) => theme.palette.mutedForeground,
-              '& > a': {
-                color: 'inherit',
-              },
-            }}
-          >
-            {`Powered by `}
-            <a href='https://tidb.ai' target='_blank' rel='noreferrer'>
-              TiDB.ai
-            </a>
-          </StyledChatMutedText>
+          <StyledChatMutedTextGroup>
+            <StyledChatMutedText>
+              {`Powered by `}
+              <a href='https://tidb.ai' target='_blank' rel='noreferrer'>
+                TiDB.ai
+              </a>
+            </StyledChatMutedText>
+            <StyledChatMutedText
+              sx={{
+                marginLeft: 'auto',
+                marginRight: '0',
+              }}
+            >
+              {`protected by reCAPTCHA (`}
+              <a
+                href='https://policies.google.com/privacy'
+                target='_blank'
+                rel='noreferrer'
+              >
+                {`Privacy`}
+              </a>
+              {` - `}
+              <a
+                href='https://policies.google.com/terms'
+                target='_blank'
+                rel='noreferrer'
+              >
+                {`Terms`}
+              </a>
+              {`)`}
+            </StyledChatMutedText>
+          </StyledChatMutedTextGroup>
         </div>
       </StyledChatContainer>
     </>
@@ -234,3 +304,15 @@ const StyledChatWrapper = styled('div')(({ theme }) =>
     theme.palette.mode === 'dark' ? MDDarkCss : MDLightCss
   )
 );
+
+const StyledChatMutedTextGroup = styled('div')(({ theme }) => {
+  return {
+    display: 'flex',
+    paddingTop: '1rem',
+    fontSize: '12px',
+    color: theme.palette.mutedForeground,
+    '& >* a': {
+      color: 'inherit',
+    },
+  };
+});

@@ -22,8 +22,9 @@ export const theme = z.enum(['light', 'dark', 'system']);
 export const reCaptcha = [
   { label: 'V3', value: 'v3' },
   { label: 'Enterprise', value: 'enterprise' },
+  { label: 'None', value: '' }
 ] as const;
-export const reCaptchas = z.enum(['v3', 'enterprise']);
+export const reCaptchas = z.enum(['', 'v3', 'enterprise']);
 
 export const maxExampleQuestions = 5;
 export const maxHomepageFooterLinks = 5;
@@ -84,6 +85,7 @@ export type IWebsiteSettingResult = z.infer<typeof WebsiteSettingResult>;
 export const WebsiteSettingUpdatePayload = WebsiteSetting.partial();
 
 export const CustomJsSetting = z.object({
+  api_base_url: z.string(),
   button_label: z.string({
     required_error: 'Button label is required',
   }),
@@ -105,6 +107,8 @@ export const CustomJsSetting = z.object({
   widget_title: z.string().min(1, 'title must has at latest 1 character').max(50, 'title must has at most 50 characters').optional(),
   widget_input_placeholder: z.string().min(1, 'input placeholder must has at latest 1 character').max(50, 'input placeholder must has at most 50 characters').optional(),
   widget_color_mode: theme.optional(),
+  widget_site_key: z.string().optional(),
+  widget_security_mode: reCaptchas.optional(),
 });
 export const CustomJsSettingResult = CustomJsSetting.partial();
 export type ICustomJsSettingResult = z.infer<typeof CustomJsSettingResult>;

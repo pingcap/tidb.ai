@@ -4,16 +4,16 @@
     "title": "Getting Started"
   },
   "index": "Introduction",
-  "quickstart": "Quick Start",
+  "how-to-read-these-docs": "How to read these docs",
   "architecture": "Architecture",
   "changelog": "Changelog",
+  "faq": "FAQ",
   "-- Deploy This RAG": {
     "type": "separator",
     "title": "Deploy this RAG"
   },
-  "deploy-self-hosted": "Self-Hosted",
-  "deploy-on-vercel": "Vercel",
-  "deploy-on-cloudflare": "CloudFlare",
+  "deploy-on-aws": "Deploy with AWS",
+  "deploy-on-vercel": "Deploy on Vercel",
   "-- Configuration": {
     "type": "separator",
     "title": "Configuration"
@@ -24,5 +24,8 @@
   "document-loader": "Document Loader",
   "document-spliter": "Document Spliter",
   "reranker": "(Optional) Reranker",
-  "authentication": "Auth"
+  "authentication": "Auth",
+  "README": {
+    "display": "hidden"
+  }
 }

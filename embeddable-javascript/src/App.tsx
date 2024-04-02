@@ -13,6 +13,7 @@ import {
 import ChatContainer from './components/Chatbot/ChatContainer';
 import { lightTheme, darkTheme, themeClassPrefix } from './theme';
 import { CfgContext } from './context';
+import {CookiesProvider} from "react-cookie";
 
 function App(props: {
   id: string;
@@ -25,6 +26,8 @@ function App(props: {
   title?: string;
   inputPlaceholder?: string;
   preferredMode?: 'dark' | 'light' | 'system' | string;
+  siteKey?: string;
+  securityMode?: string;
 }) {
   const {
     btnLabel: entryButtonLabel,
@@ -35,6 +38,8 @@ function App(props: {
     title: widgetTitle,
     inputPlaceholder,
     preferredMode: initialPreferredMode = 'system',
+    siteKey,
+    securityMode,
   } = props;
 
   const [open, setOpen] = React.useState(false);
@@ -56,57 +61,68 @@ function App(props: {
     [preferredMode]
   );
 
+  const securityModeMemo = React.useMemo(() => {
+    if (securityMode === 'v3' || securityMode === 'enterprise') {
+      return securityMode;
+    }
+    return undefined;
+  }, [securityMode]);
+
   return (
     <CfgContext.Provider value={{ baseUrl, entryButtonLabel }}>
-      <ThemeProvider theme={theme}>
-        <TriggerButton
-          type='button'
-          onClick={handleOpen}
-          className={themeClassPrefix + 'entry-btn'}
-        >
-          {btnImgSrc && (
-            <img
-              src={btnImgSrc}
-              alt={entryButtonLabel}
-              className={themeClassPrefix + 'entry-btn-img'}
-              width={16}
-              height={16}
-            />
-          )}
-          {entryButtonLabel}
-        </TriggerButton>
-        <Modal
-          aria-labelledby='unstyled-modal-title'
-          aria-describedby='unstyled-modal-description'
-          open={open}
-          onClose={handleClose}
-          slots={{ backdrop: StyledBackdrop }}
-          className={themeClassPrefix + 'Modal'}
-        >
-          <ModalContent
-            sx={{
-              width: '90vw',
-              maxWidth: 800,
-              minHeight: 400,
-              height: '60vh',
-            }}
-            className={themeClassPrefix + 'Modal-Content'}
+      <CookiesProvider defaultSetOptions={{ path: '/' }}>
+        <ThemeProvider theme={theme}>
+          <TriggerButton
+            type='button'
+            onClick={handleOpen}
+            className={themeClassPrefix + 'entry-btn'}
           >
-            <ModalHeader className={themeClassPrefix + 'Modal-Header'}>
-              <ModalTitle className={themeClassPrefix + 'Modal-Title'}>
-                {logoSrc && (
-                  <img src={logoSrc} alt='Widget Logo' width={32} height={32} />
-                )}
-                {widgetTitle}
-              </ModalTitle>
-            </ModalHeader>
-            <ChatContainer
-              exampleQuestions={exampleQuestions}
-              inputPlaceholder={inputPlaceholder}
-            />
-          </ModalContent>
-        </Modal>
-      </ThemeProvider>
+            {btnImgSrc && (
+              <img
+                src={btnImgSrc}
+                alt={entryButtonLabel}
+                className={themeClassPrefix + 'entry-btn-img'}
+                width={16}
+                height={16}
+              />
+            )}
+            {entryButtonLabel}
+          </TriggerButton>
+          <Modal
+            aria-labelledby='unstyled-modal-title'
+            aria-describedby='unstyled-modal-description'
+            open={open}
+            onClose={handleClose}
+            slots={{ backdrop: StyledBackdrop }}
+            className={themeClassPrefix + 'Modal'}
+          >
+            <ModalContent
+              sx={{
+                width: '90vw',
+                maxWidth: 800,
+                minHeight: 400,
+                height: '60vh',
+              }}
+              className={themeClassPrefix + 'Modal-Content'}
+            >
+              <ModalHeader className={themeClassPrefix + 'Modal-Header'}>
+                <ModalTitle className={themeClassPrefix + 'Modal-Title'}>
+                  {logoSrc && (
+                    <img src={logoSrc} alt='Widget Logo' width={32} height={32} />
+                  )}
+                  {widgetTitle}
+                </ModalTitle>
+              </ModalHeader>
+              <ChatContainer
+                exampleQuestions={exampleQuestions}
+                inputPlaceholder={inputPlaceholder}
+                siteKey={siteKey}
+                securityMode={securityModeMemo}
+              />
+            </ModalContent>
+          </Modal>
+        </ThemeProvider>
+      </CookiesProvider>
     </CfgContext.Provider>
   );
 }

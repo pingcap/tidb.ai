@@ -13,7 +13,7 @@ const themeConfig = {
     link: 'https://github.com/pingcap/tidb.ai',
   },
   chat: {
-    link: 'https://discord.gg/XzSW23Jg9p',
+    link: 'https://tidb.ai/discord',
   },
   navbar: {
     extraContent: (
@@ -137,7 +137,14 @@ const themeConfig = {
       </span>
     ),
   },
-  primarySaturation: 0,
+  primaryHue: {
+    dark: 0,
+    light: 0,
+  },
+  primarySaturation: {
+    dark: 0,
+    light: 0,
+  },
   // ... other theme options
 };
 

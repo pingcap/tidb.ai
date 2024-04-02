@@ -1066,6 +1066,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/diff-match-patch@npm:^1.0.36":
+  version: 1.0.36
+  resolution: "@types/diff-match-patch@npm:1.0.36"
+  checksum: 10c0/0bad011ab138baa8bde94e7815064bb881f010452463272644ddbbb0590659cb93f7aa2776ff442c6721d70f202839e1053f8aa62d801cc4166f7a3ea9130055
+  languageName: node
+  linkType: hard
+
 "@types/estree-jsx@npm:^1.0.0":
   version: 1.0.3
   resolution: "@types/estree-jsx@npm:1.0.3"
@@ -1414,22 +1421,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ai@npm:^2.2.36":
-  version: 2.2.36
-  resolution: "ai@npm:2.2.36"
+"ai@npm:^3.0.15":
+  version: 3.0.15
+  resolution: "ai@npm:3.0.15"
   dependencies:
-    eventsource-parser: "npm:1.0.0"
+    eventsource-parser: "npm:1.1.2"
+    jsondiffpatch: "npm:^0.6.0"
     nanoid: "npm:3.3.6"
+    secure-json-parse: "npm:2.7.0"
     solid-swr-store: "npm:0.10.7"
     sswr: "npm:2.0.0"
     swr: "npm:2.2.0"
     swr-store: "npm:0.10.6"
     swrv: "npm:1.0.4"
+    zod-to-json-schema: "npm:^3.22.4"
   peerDependencies:
     react: ^18.2.0
     solid-js: ^1.7.7
     svelte: ^3.0.0 || ^4.0.0
     vue: ^3.3.4
+    zod: ^3.0.0
   peerDependenciesMeta:
     react:
       optional: true
@@ -1439,7 +1450,9 @@ __metadata:
       optional: true
     vue:
       optional: true
-  checksum: 10c0/79e149b2c93a65a0ceae9a2c09616021402d27d4c123a15dd92326e83d34ac23d3815cdb5120f88b2043eb6c8bac8e3e0f29752533842e28fb7a7f7c9453b822
+    zod:
+      optional: true
+  checksum: 10c0/554f6b9caeca5b96e26733da32146e61a08bb3b1000cf582a8f70f579f82a820855596dd26aa73f3f06f92e8cfc18b1cdac19974f47a3c41380389eabfc5e6d0
   languageName: node
   linkType: hard
 
@@ -1655,6 +1668,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"chalk@npm:^5.3.0":
+  version: 5.3.0
+  resolution: "chalk@npm:5.3.0"
+  checksum: 10c0/8297d436b2c0f95801103ff2ef67268d362021b8210daf8ddbe349695333eb3610a71122172ff3b0272f1ef2cf7cc2c41fdaa4715f52e49ffe04c56340feed09
+  languageName: node
+  linkType: hard
+
 "character-entities-html4@npm:^2.0.0":
   version: 2.1.0
   resolution: "character-entities-html4@npm:2.1.0"
@@ -1785,43 +1805,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"conversation-search-box@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "conversation-search-box@workspace:."
-  dependencies:
-    "@emotion/react": "npm:^11.11.3"
-    "@emotion/styled": "npm:^11.11.0"
-    "@mui/base": "npm:^5.0.0-beta.33"
-    "@mui/material": "npm:^5.15.7"
-    "@mui/system": "npm:^5.15.6"
-    "@types/node": "npm:^20.11.10"
-    "@types/react": "npm:^18.2.48"
-    "@types/react-dom": "npm:^18.2.18"
-    "@types/react-syntax-highlighter": "npm:^15"
-    "@typescript-eslint/eslint-plugin": "npm:^6.14.0"
-    "@typescript-eslint/parser": "npm:^6.14.0"
-    "@vitejs/plugin-react-swc": "npm:^3.5.0"
-    ai: "npm:^2.2.36"
-    autoprefixer: "npm:^10.4.17"
-    clsx: "npm:^2.1.0"
-    copy-to-clipboard: "npm:^3.3.3"
-    eslint: "npm:^8.55.0"
-    eslint-plugin-react-hooks: "npm:^4.6.0"
-    eslint-plugin-react-refresh: "npm:^0.4.5"
-    postcss: "npm:^8.4.33"
-    prettier: "npm:^3.2.4"
-    react: "npm:^18.2.0"
-    react-cookie: "npm:^7.0.2"
-    react-dom: "npm:^18.2.0"
-    react-markdown: "npm:^9.0.1"
-    react-syntax-highlighter: "npm:^15.5.0"
-    remark-gfm: "npm:^4.0.0"
-    remark-math: "npm:^6.0.0"
-    typescript: "npm:^5.2.2"
-    vite: "npm:^5.0.8"
-  languageName: unknown
-  linkType: soft
-
 "convert-source-map@npm:^1.5.0":
   version: 1.9.0
   resolution: "convert-source-map@npm:1.9.0"
@@ -1920,6 +1903,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"diff-match-patch@npm:^1.0.5":
+  version: 1.0.5
+  resolution: "diff-match-patch@npm:1.0.5"
+  checksum: 10c0/142b6fad627b9ef309d11bd935e82b84c814165a02500f046e2773f4ea894d10ed3017ac20454900d79d4a0322079f5b713cf0986aaf15fce0ec4a2479980c86
+  languageName: node
+  linkType: hard
+
 "dir-glob@npm:^3.0.1":
   version: 3.0.1
   resolution: "dir-glob@npm:3.0.1"
@@ -1961,6 +1951,43 @@ __metadata:
   checksum: 10c0/9f9ab328744a9d593e170c46743c76b41052341176310d481ba184098cea2541d8e04a9bd309e1d77e6e9e010ee27a4f573b149f6f23404d239613816d1d072a
   languageName: node
   linkType: hard
+
+"embeddable-javascript@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "embeddable-javascript@workspace:."
+  dependencies:
+    "@emotion/react": "npm:^11.11.3"
+    "@emotion/styled": "npm:^11.11.0"
+    "@mui/base": "npm:^5.0.0-beta.33"
+    "@mui/material": "npm:^5.15.7"
+    "@mui/system": "npm:^5.15.6"
+    "@types/node": "npm:^20.11.10"
+    "@types/react": "npm:^18.2.48"
+    "@types/react-dom": "npm:^18.2.18"
+    "@types/react-syntax-highlighter": "npm:^15"
+    "@typescript-eslint/eslint-plugin": "npm:^6.14.0"
+    "@typescript-eslint/parser": "npm:^6.14.0"
+    "@vitejs/plugin-react-swc": "npm:^3.5.0"
+    ai: "npm:^3.0.15"
+    autoprefixer: "npm:^10.4.17"
+    clsx: "npm:^2.1.0"
+    copy-to-clipboard: "npm:^3.3.3"
+    eslint: "npm:^8.55.0"
+    eslint-plugin-react-hooks: "npm:^4.6.0"
+    eslint-plugin-react-refresh: "npm:^0.4.5"
+    postcss: "npm:^8.4.33"
+    prettier: "npm:^3.2.4"
+    react: "npm:^18.2.0"
+    react-cookie: "npm:^7.0.2"
+    react-dom: "npm:^18.2.0"
+    react-markdown: "npm:^9.0.1"
+    react-syntax-highlighter: "npm:^15.5.0"
+    remark-gfm: "npm:^4.0.0"
+    remark-math: "npm:^6.0.0"
+    typescript: "npm:^5.2.2"
+    vite: "npm:^5.0.8"
+  languageName: unknown
+  linkType: soft
 
 "emoji-regex@npm:^8.0.0":
   version: 8.0.0
@@ -2249,10 +2276,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"eventsource-parser@npm:1.0.0":
-  version: 1.0.0
-  resolution: "eventsource-parser@npm:1.0.0"
-  checksum: 10c0/eb6b66231bd2b383f7a5fa1c5ca17d61cd8145afc560de8cc9f11ab60a05a22afd760de594886241378b831314c3b875c64ae3f596e9ce90cded99cbeef0ef9a
+"eventsource-parser@npm:1.1.2":
+  version: 1.1.2
+  resolution: "eventsource-parser@npm:1.1.2"
+  checksum: 10c0/b38948bc81ae6c2a8b9c88383d4f8c2bfbaf23955827a9af68d39bc0550ae83cc400b197e814bea9aef6e0cdc9bae5afd95787418ee3d9ad01ffc4774cf1b84a
   languageName: node
   linkType: hard
 
@@ -2929,6 +2956,19 @@ __metadata:
   version: 1.0.1
   resolution: "json-stable-stringify-without-jsonify@npm:1.0.1"
   checksum: 10c0/cb168b61fd4de83e58d09aaa6425ef71001bae30d260e2c57e7d09a5fd82223e2f22a042dedaab8db23b7d9ae46854b08bb1f91675a8be11c5cffebef5fb66a5
+  languageName: node
+  linkType: hard
+
+"jsondiffpatch@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "jsondiffpatch@npm:0.6.0"
+  dependencies:
+    "@types/diff-match-patch": "npm:^1.0.36"
+    chalk: "npm:^5.3.0"
+    diff-match-patch: "npm:^1.0.5"
+  bin:
+    jsondiffpatch: bin/jsondiffpatch.js
+  checksum: 10c0/f7822e48a8ef8b9f7c6024cc59b7d3707a9fe6d84fd776d169de5a1803ad551ffe7cfdc7587f3900f224bc70897355884ed43eb1c8ccd02e7f7b43a7ebcfed4f
   languageName: node
   linkType: hard
 
@@ -4425,6 +4465,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"secure-json-parse@npm:2.7.0":
+  version: 2.7.0
+  resolution: "secure-json-parse@npm:2.7.0"
+  checksum: 10c0/f57eb6a44a38a3eeaf3548228585d769d788f59007454214fab9ed7f01fbf2e0f1929111da6db28cf0bcc1a2e89db5219a59e83eeaec3a54e413a0197ce879e4
+  languageName: node
+  linkType: hard
+
 "semver@npm:^7.3.5, semver@npm:^7.5.4":
   version: 7.5.4
   resolution: "semver@npm:7.5.4"
@@ -5066,6 +5113,15 @@ __metadata:
   version: 0.1.0
   resolution: "yocto-queue@npm:0.1.0"
   checksum: 10c0/dceb44c28578b31641e13695d200d34ec4ab3966a5729814d5445b194933c096b7ced71494ce53a0e8820685d1d010df8b2422e5bf2cdea7e469d97ffbea306f
+  languageName: node
+  linkType: hard
+
+"zod-to-json-schema@npm:^3.22.4":
+  version: 3.22.5
+  resolution: "zod-to-json-schema@npm:3.22.5"
+  peerDependencies:
+    zod: ^3.22.4
+  checksum: 10c0/f3c4038338af3c0268ced73edaa2eed12002d461ae181657547b0a4a296be4247edc3dcdd5bf14a4058426c1e0c3574407cb282f115249f0ec0fcbc82dcbdabd
   languageName: node
   linkType: hard
 
