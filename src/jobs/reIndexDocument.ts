@@ -17,7 +17,7 @@ export async function reIndexDocument (index: Selectable<DB['index']>, document:
   const llm = fromAppChatModel(flow.getRequired(rag.ExtensionType.ChatModel, index.llm));
 
   const pipeline = createIndexIngestionPipeline(
-    fromFlowReaders(flow), // wrapped llamaindex.reader auto choosing rag.loader
+    fromFlowReaders(flow, index.config as any), // wrapped llamaindex.reader auto choosing rag.loader
     new SentenceWindowNodeParser(), // Deprecate all rag.splitter.
     [
       new TitleExtractor({ llm }),

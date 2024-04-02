@@ -17,11 +17,11 @@ export function getMetadataExtractor (flow: Flow, name: string, options: any) {
 
   const extractor = flow.get(rag.ExtensionType.ContentMetadataExtractor, name);
   if (extractor) {
-    return fromContentMetadataExtractor(extractor);
+    return fromContentMetadataExtractor(extractor.withOptions(options));
   } else {
     const extractor = flow.get(rag.ExtensionType.ContentChunkMetadataExtractor, name);
     if (extractor) {
-      return fromContentChunkMetadataExtractor(extractor);
+      return fromContentChunkMetadataExtractor(extractor.withOptions(options));
     }
   }
 

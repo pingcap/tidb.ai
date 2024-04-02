@@ -12,7 +12,7 @@ export namespace rag {
 
   export interface ContentChunk<ChunkMetadata> {
     content: string;
-    hash: string
+    hash: string;
     metadata: ChunkMetadata;
   }
 
@@ -90,6 +90,10 @@ export namespace rag {
 
     get displayName (): string {
       return (this.constructor as typeof Base).displayName;
+    }
+
+    withOptions (options: Options): this {
+      return new (this.constructor as any)(options);
     }
   }
 

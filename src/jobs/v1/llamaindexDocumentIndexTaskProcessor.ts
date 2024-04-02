@@ -34,8 +34,7 @@ export function createLlamaindexDocumentIndexTaskProcessor (): DocumentIndexTask
     const flow = await getFlow(baseRegistry, undefined, index.config);
 
     // Initialize the reader from legacy loaders.
-    // TODO: configurable via `index.config`
-    const reader = fromFlowReaders(flow); // wrapped llamaindex.reader auto choosing rag.loader
+    const reader = fromFlowReaders(flow, index.config.reader); // wrapped llamaindex.reader auto choosing rag.loader
 
     // Initialize llamaindex node parser from config.
     const { textSplitter, ...parserConfig } = index.config.parser;

@@ -7,7 +7,7 @@ export function getEmbedding (flow: Flow, provider: string, options: any) {
   if (provider === 'openai') {
     return new OpenAIEmbedding(options);
   }
-  return fromAppEmbedding(flow.getRequired(ExtensionType.Embeddings, provider));
+  return fromAppEmbedding(flow.getRequired(ExtensionType.Embeddings, provider).withOptions(options));
 }
 
 export function fromAppEmbedding (e: rag.Embeddings<any>) {
