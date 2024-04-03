@@ -17,8 +17,21 @@ export async function getSource (id: number) {
 export async function listSource (request: PageRequest) {
   return await executePage(
     getDb()
+      .with('cte_source_summary', qc => qc
+        .selectFrom('document_import_task')
+        .select(({ fn }) => [
+          'source_id',
+          'status',
+          fn.count<number>('document_import_task.id').as('tasks'),
+        ])
+        .groupBy('source_id')
+        .groupBy('status'))
       .selectFrom('source')
-      .selectAll(),
+      .leftJoin('cte_source_summary', 'source.id', 'cte_source_summary.source_id')
+      .selectAll('source')
+      .select(eb => eb.fn('JSON_OBJECTAGG', ['cte_source_summary.status', 'cte_source_summary.tasks']).as('summary'))
+      .groupBy('source.id')
+    ,
     request);
 }
 
@@ -37,4 +50,17 @@ export async function updateSource (id: number, update: UpdateSource) {
     .execute();
 
   return (await getSource(id))!;
+}
+
+export async function calculateImportTaskSummary () {
+  let builder = getDb().selectFrom('document_import_task')
+    .select(({ fn, val, ref }) => [
+      'import_source_id',
+      'status',
+      fn.count<number>('import_source_task.id').as('tasks'),
+    ])
+    .groupBy('import_source_id')
+    .groupBy('status');
+
+  return builder.execute();
 }

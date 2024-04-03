@@ -21,17 +21,19 @@ export default function Page () {
       cell: (cell: CellContext<ColumnDef, any>) => {
         const summary = cell.row.original.summary;
         if (!summary) {
-          return <span>TODO</span>
+          return <span>No state</span>
         }
         return (
           <div className="flex h-5 items-center space-x-4">
-            <div>Pending: {summary.pending || 0}</div>
+            <div>Created: {summary.CREATED || 0}</div>
             <Separator orientation="vertical" />
-            <div>Processing: {summary.processing || 0}</div>
+            <div>Pending: {summary.PENDING || 0}</div>
             <Separator orientation="vertical" />
-            <div>Succeed: {summary.succeed || 0}</div>
+            <div>Importing: {summary.IMPORTING || 0}</div>
             <Separator orientation="vertical" />
-            <div>Failed: {summary.failed || 0}</div>
+            <div>Succeed: {summary.SUCCEED || 0}</div>
+            <Separator orientation="vertical" />
+            <div>Failed: {summary.FAILED || 0}</div>
           </div>
         );
       },

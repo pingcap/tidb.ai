@@ -273,7 +273,7 @@ export class TiDBVectorStore implements VectorStore {
       .leftJoin('cte_rel', 'cte_rel.source_node_id', 'cte.id')
       .select(eb => eb.fn('bin_to_uuid', ['id']).as('id'))
       .select(['hash', 'text', 'metadata', 'embedding', 'index_id', 'document_id', 'score'])
-      .select(eb => eb.fn<Record<Relationship['type'], { nodeId: UUID, metadata: Json }>>('json_object_agg', ['cte_rel.type', eb => eb.fn('json_object', ['cte_rel.target_node_id as nodeId', 'cte_rel.metadata'])]).as('relationships'))
+      .select(eb => eb.fn<Record<Relationship['type'], { nodeId: UUID, metadata: Json }>>('json_objectagg', ['cte_rel.type', eb => eb.fn('json_object', ['cte_rel.target_node_id as nodeId', 'cte_rel.metadata'])]).as('relationships'))
       .where((eb) => {
         const filters = query.filters?.filters ?? []
         return eb.and(filters.map((f) => {
