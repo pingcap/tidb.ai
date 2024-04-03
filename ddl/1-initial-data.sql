@@ -4,75 +4,65 @@
 
 INSERT INTO `index` (id, name, config) VALUES (1, 'default', '{}');
 
--- TODO: New index config structure
-
--- Index Config: Reader / Loader
+-- Index Config: Reader
 UPDATE
     `index`
 SET
     config = JSON_MERGE_PATCH(config, '{
-      "rag.loader.html": {
-        "contentExtraction": [
-          {
-            "selectors": [
-              {
-                "selector": "#topic-title > h1",
-                "type": "dom-text"
-              },
-              {
-                "all": true,
-                "selector": ".post",
-                "type": "dom-text"
-              }
-            ],
-            "url": "ask.pingcap.com/t/**"
-          },
-          {
-            "selectors": [
-              {
-                "selector": ".doc-content",
-                "type": "dom-text"
-              }
-            ],
-            "url": "docs.pingcap.com/**"
-          },
-          {
-            "selectors": [
-              {
-                "selector": ".wysiwyg--post-content",
-                "type": "dom-text"
-              }
-            ],
-            "url": "www.pingcap.com/blog/*"
-          }
-        ]
+      "reader": {
+        "rag.loader.html": {
+          "contentExtraction": [
+            {
+              "selectors": [
+                {
+                  "selector": "#topic-title > h1",
+                  "type": "dom-text"
+                },
+                {
+                  "all": true,
+                  "selector": ".post",
+                  "type": "dom-text"
+                }
+              ],
+              "url": "ask.pingcap.com/t/**"
+            },
+            {
+              "selectors": [
+                {
+                  "selector": ".doc-content",
+                  "type": "dom-text"
+                }
+              ],
+              "url": "docs.pingcap.com/**"
+            },
+            {
+              "selectors": [
+                {
+                  "selector": ".wysiwyg--post-content",
+                  "type": "dom-text"
+                }
+              ],
+              "url": "www.pingcap.com/blog/*"
+            }
+          ]
+        }
       }
     }')
 WHERE
     name = 'default';
 
--- Index Config: Prompting
--- TODO: Should using option table instead
-UPDATE `index`
-SET
-    config = JSON_MERGE_PATCH(config, '{
-      "rag.prompting.direct": {
-        "top_k": 5,
-        "template": "Use the following pieces of context to answer the user question. This context retrieved from a knowledge base and you should use only the facts from the context to answer.\\nYour answer must be based on the context. If the context not contain the answer, just say that ''I don''t know'', don''t try to make up an answer, use the context.\\n\\n<contexts>\\n{%- for context in contexts %}\\n  <context source_uri=\\"{{context.source_uri}}\\" name=\\"{{context.source_name}}\\">\\n    <name>{{context.source_name}}</name>\\n    <source_uri>{{context.source_uri}}</source_uri>\\n    <content>{{context.text_content}}</content>\\n  </context>\\n{%- endfor %}\\n</contexts>\\n\\nYour answer must be based on the context, don''t use your own knowledge. \\n\\nUse markdown to answer. Write down uri reference you used for answer the question.\\n"
-      }
-    }')
-WHERE
-    name = 'default';
-
--- Index Config: Splitter
+-- Index Config: Parser
 UPDATE
     `index`
 SET
     config = JSON_MERGE_PATCH(config, '{
-      "rag.splitter.langchain.recursive-character": {
-        "chunkOverlap": 10,
-        "chunkSize": 512,
-        "separators": ["\\n\\n", "\\n", " ", ""]
+      "parser": {
+        "textSplitter": {
+          "chunkSize": 512,
+          "chunkOverlap": 0,
+          "paragraphSeparator": "\\n",
+          "splitLongParagraph": true
+        }
       }
     }')
 WHERE
@@ -83,7 +73,24 @@ UPDATE
     `index`
 SET
     config = JSON_MERGE_PATCH(config, '{
-      "metadata_extractors": []
+      "metadata_extractors": [
+        {
+          "provider": "llamaindex.extractor.title",
+          "config": {}
+        },
+        {
+          "provider": "llamaindex.extractor.summary",
+          "config": {}
+        },
+        {
+          "provider": "llamaindex.extractor.keyword",
+          "config": {}
+        },
+        {
+          "provider": "llamaindex.extractor.question-answered",
+          "config": {}
+        }
+      ]
     }')
 WHERE
     name = 'default';
@@ -95,7 +102,9 @@ SET
     config = JSON_MERGE_PATCH(config, '{
       "embedding": {
         "provider": "openai",
-        "model": "text-embedding-ada-002"
+        "config": {
+          "model": "text-embedding-3-small"
+        }
       }
     }')
 WHERE
