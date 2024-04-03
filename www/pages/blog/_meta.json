@@ -8,7 +8,8 @@
       "typesetting": "article"
     }
   },
-  "how-it-works-3-3": "(3/3) RAG in Simplest Way: Use RDBMS Filters to Narrow Down the Vector Search Scope",
-  "how-it-works-2-3": "(2/3) RAG in Simplest Way: Access Vector Data with Familar MySQL SQL",
-  "how-it-works-1-3": "(1/3) RAG in Simplest Way: Minimal Architecture with a All-In-One Database"
+  "how-it-works-4-4": "(4/4) Build RAG with TiDB: Free Database for Starter up to 25GiB Storage",
+  "how-it-works-3-4": "(3/4) Build RAG with TiDB: Single Round Trip CRUD (SQL) > Multiple Round Trip CRUD (SQL + Vector DB API)",
+  "how-it-works-2-4": "(2/4) Build RAG with TiDB: Avoid the Synchronization Tax(Sync Script/Storage/Network)",
+  "how-it-works-1-4": "(1/4) Build RAG with TiDB: Minimal Architecture with a All-In-One Database"
 }
