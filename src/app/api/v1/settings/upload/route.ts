@@ -27,7 +27,6 @@ export async function POST (req: NextRequest) {
 
   const store = (await getFlow(baseRegistry)).getStorage();
   const url = await store.put(`images/${file.name}`, Buffer.from(await file.arrayBuffer()), false);
-  console.log(url)
 
   return NextResponse.json({
     url: url

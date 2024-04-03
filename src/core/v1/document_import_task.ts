@@ -22,10 +22,18 @@ export async function getDocumentImportTask (id: number) {
     .executeTakeFirst();
 }
 
-export async function listDocumentImportTasks (page: PageRequest) {
+export async function listDocumentImportTasks (page: PageRequest<{ status?: string[] }>) {
   const builder = getDb()
     .selectFrom('document_import_task')
-    .selectAll();
+    .selectAll()
+    .where(eb => {
+      if (page.status?.length > 0) {
+        return eb('status', 'in', page.status);
+      } else {
+        return eb.val(true);
+      }
+    })
+  ;
 
   return executePage(builder, page);
 }

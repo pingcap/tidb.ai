@@ -1,7 +1,9 @@
 import database from '@/core/db';
 import { NextResponse } from 'next/server';
 
-export async function GET () {
+export { GET } from '@/app/api/v2/sources/route';
+
+async function legacy_GET () {
   const sources = await database.importSource.list();
   const sourceIds = sources.map(source => source.id);
   const taskSummaryItems = await database.importSource.calcTaskSummary(sourceIds);

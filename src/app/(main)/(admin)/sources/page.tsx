@@ -2,6 +2,7 @@
 
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { DataTable } from '@/components/data-table';
+import { DataTableRemote } from '@/components/data-table-remote';
 import { ImportSiteDialog } from '@/components/dialogs/import-site-dialog';
 import { Separator } from '@/components/ui/separator';
 import type { CellContext } from '@tanstack/react-table';
@@ -19,6 +20,9 @@ export default function Page () {
       header: 'Process',
       cell: (cell: CellContext<ColumnDef, any>) => {
         const summary = cell.row.original.summary;
+        if (!summary) {
+          return <span>TODO</span>
+        }
         return (
           <div className="flex h-5 items-center space-x-4">
             <div>Pending: {summary.pending || 0}</div>
@@ -41,7 +45,11 @@ export default function Page () {
       <div className="flex justify-end">
         <ImportSiteDialog />
       </div>
-      <DataTable columns={columns} data={data} />
+      <DataTableRemote
+        columns={columns}
+        api="/api/v1/sources"
+        idColumn="id"
+      />
     </>
   );
 }
