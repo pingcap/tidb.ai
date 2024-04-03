@@ -116,7 +116,7 @@ async function executeDocumentIndexTask (id: number, processor: DocumentIndexTas
   try {
     info = { ...task.info };
     const document = (await getDocument(task.document_id))!;
-    const index = (await getIndex(id))!;
+    const index = (await getIndex(task.index_id))!;
 
     const result = await processor(task, document, index, info);
 
@@ -126,6 +126,7 @@ async function executeDocumentIndexTask (id: number, processor: DocumentIndexTas
 
     await finishDocumentIndexTask(id, info);
   } catch (e) {
+    console.error(e);
     await terminateDocumentIndexTask(id, info, getErrorMessage(e));
     throw e;
   }

@@ -1,7 +1,6 @@
 --
 -- Initial Index Config
 --
-
 INSERT INTO `index` (id, name, config) VALUES (1, 'default', '{}');
 
 -- Index Config: Reader
@@ -109,6 +108,22 @@ SET
     }')
 WHERE
     name = 'default';
+
+-- Index Config: LLM
+UPDATE
+    `index`
+SET
+    config = JSON_MERGE_PATCH(config, '{
+      "llm": {
+        "provider": "openai",
+        "config": {
+          "model": "gpt-3.5-turbo"
+        }
+      }
+    }')
+WHERE
+    name = 'default';
+
 
 --
 -- Initial Website Settings
