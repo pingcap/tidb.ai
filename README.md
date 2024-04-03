@@ -29,8 +29,6 @@ then:
 ticloud create-app --template rag
 ```
 
-This is all there is to do.
-
 
 ## Deploy to Vercel [TODO]
 For deploying the application to Vercel, you can use the 'Deploy to Vercel' button
