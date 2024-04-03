@@ -2,8 +2,9 @@ import { Flow } from '@/core';
 import { rag } from '@/core/interface';
 import type { RetrievedChunk, RetrievedChunkReference, RetrievedResultsParser, RetrieveProcessor } from '@/core/services/retrieving';
 import { getDb } from '@/core/v1/db';
+import { getOptionalEnv } from '@/lib/env';
 import { cosineDistance, uuidToBin } from '@/lib/kysely';
-import { type BaseRetriever, CohereRerank, NodeRelationship, type NodeWithScore, ObjectType, type RetrieveParams, type ServiceContext, TextNode } from 'llamaindex';
+import { CohereRerank, type Metadata, NodeRelationship, ObjectType, TextNode } from 'llamaindex';
 import type { RelatedNodeType } from 'llamaindex/Node';
 import type { UUID } from 'node:crypto';
 import ExtensionType = rag.ExtensionType;
@@ -83,9 +84,9 @@ export function createLlamaindexRetrieveProcessor (flow: Flow): RetrieveProcesso
       .select([
         eb => eb.fn('bin_to_uuid', [`llamaindex_document_chunk_node_${index.name}.id`]).as('document_chunk_node_id'),
         eb => eb.fn('bin_to_uuid', ['document_node.id']).as('document_node_id'),
-        'document_id',
-        'text as chunk_text',
-        eb => eb.ref('metadata').$castTo<any>().as('chunk_metadata'),
+        'document_node.document_id',
+        `llamaindex_document_chunk_node_${index.name}.text as chunk_text`,
+        eb => eb.ref(`llamaindex_document_chunk_node_${index.name}.metadata`).$castTo<any>().as('chunk_metadata'),
         eb => cosineDistance(eb, 'embedding', queryEmbedding).as('relevance_score'),
       ])
       .orderBy('relevance_score', 'desc')
@@ -112,33 +113,19 @@ export function createLlamaindexRetrieveProcessor (flow: Flow): RetrieveProcesso
     }
 
     const reranker = new CohereRerank({
+      apiKey: getOptionalEnv('COHERE_TOKEN'),
       ...rerankerOptions.options,
       topN: top_k,
     });
 
     const chunksMap = new Map(chunks.map(chunk => [chunk.document_chunk_node_id, chunk]));
-    const nodesWithScore = await reranker.postprocessNodes(chunks.map(chunk => ({ score: chunk.relevance_score, node: transform(chunk) })));
+    const nodesWithScore = await reranker.postprocessNodes(chunks.map(chunk => ({ score: chunk.relevance_score, node: transform(chunk) })), text);
 
     return nodesWithScore.map((nodeWithScore, index, total) => ({
       ...chunksMap.get(nodeWithScore.node.id_ as UUID)!,
       relevance_score: nodeWithScore.score ?? (total.length - index + top_k * 10),
     }));
   };
-}
-
-class StaticRetriever implements BaseRetriever {
-  constructor (readonly chunks: RetrievedChunk[], private readonly serviceContext: ServiceContext) {}
-
-  getServiceContext (): ServiceContext {
-    return this.serviceContext;
-  }
-
-  async retrieve (params: RetrieveParams): Promise<NodeWithScore[]> {
-    return this.chunks.map(chunk => ({
-      score: chunk.relevance_score,
-      node: transform(chunk),
-    }));
-  }
 }
 
 function transform (result: RetrievedChunk): TextNode {

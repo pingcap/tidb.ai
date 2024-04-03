@@ -41,7 +41,7 @@ function useGroupedConversationMessages (messages: Message[], data: any, isLoadi
         userMessage = message;
       } else if (message.role === 'assistant') {
         assistantMessage = message;
-        context = data[String(i + 1)]?.context;
+        context = data[String(i)]?.context;
       }
       if (userMessage && assistantMessage) {
         const uriSet = new Set<string>();

@@ -93,7 +93,8 @@ export namespace rag {
     }
 
     withOptions (options: Options): this {
-      return new (this.constructor as any)(options);
+
+      return new (this.constructor as any)((this.constructor as any).optionsSchema.parse(options));
     }
   }
 

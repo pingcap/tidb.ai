@@ -1,8 +1,8 @@
-import { type Chat, type ChatMessage, createChat, createChatMessage, getChat, listChatMessages, updateChatMessage } from '@/core/v1/chat';
+import { type Chat, type ChatMessage, createChat, createChatMessage, createChatMessageRetrieveRel, getChat, listChatMessages, updateChatMessage } from '@/core/v1/chat';
 import { tx } from '@/core/v1/db';
 import { getIndex, type Index } from '@/core/v1/index_';
+import { APIError, AUTH_FORBIDDEN_ERROR } from '@/lib/errors';
 import { notFound } from 'next/navigation';
-import { Response } from 'llamaindex'
 
 export type ChatOptions = {
   userInput: string
@@ -11,53 +11,60 @@ export type ChatOptions = {
 }
 
 export type ChatProcessorCallbacks = {
-  onStartChatMessage (role: string): Promise<number>
-  onFinishChatMessage (id: number, content: string): Promise<void>
+  onStartChatMessage (message: string): Promise<number>
+  onFinishChatMessage (id: number, content: string, retrievalIds: number[]): Promise<void>
   onTerminateChatMessage (id: number, reason: string): Promise<void>
 }
 
-export type ChatProcessor = (index: Index, chat: Chat, options: ChatOptions, callbacks: ChatProcessorCallbacks) => Promise<AsyncIterable<Response>>;
+export type ChatResponse = {
+  status: 'retrieving' | 'generating' | 'finished'
+  content: string
+  sources: { name: string, uri: string }[]
+}
 
-export async function chat (indexId: number, chatId: number | undefined, userId: string, userInput: string, chatProcessor: ChatProcessor) {
+export type ChatProcessor = (index: Index, chat: Chat, options: ChatOptions, callbacks: ChatProcessorCallbacks) => AsyncGenerator<ChatResponse>;
+
+export async function chat (indexId: number, chatId: number, userId: string, userInput: string, chatProcessor: ChatProcessor) {
   const index = await getIndex(indexId);
 
   if (!index) {
     notFound();
   }
 
-  if (typeof chatId === 'number') {
-    const { chat, history } = await tx(async () => {
-      const chat = await getChat(chatId);
+  const { chat, history } = await tx(async () => {
+    const chat = await getChat(chatId);
 
-      if (!chat) {
-        notFound();
-      }
+    if (!chat) {
+      notFound();
+    }
 
-      const history = await listChatMessages(chatId);
-      return {
-        chat, history,
-      };
-    });
+    if (chat.created_by !== userId) {
+      throw AUTH_FORBIDDEN_ERROR;
+    }
 
-    return await chatProcessor(index, chat, { userInput, history, userId }, makeChatProcessorCallbacks(chat));
-  } else {
-    const chat = await createChat({
-      engine: 'condense-question',
-      engine_options: JSON.stringify({}),
-      title: userInput.slice(0, 256),
-      created_at: new Date(),
-      created_by: userId,
-    });
+    const history = await listChatMessages(chatId);
+    return {
+      chat, history,
+    };
+  });
 
-    return await chatProcessor(index, chat, { userInput, userId, history: [] }, makeChatProcessorCallbacks(chat));
-  }
+  return { chat_id: chat.id, message_ordinal: history.length + 1, response: chatProcessor(index, chat, { userInput, history, userId }, makeChatProcessorCallbacks(chat, history)) };
 }
 
-function makeChatProcessorCallbacks (chat: Chat): ChatProcessorCallbacks {
+function makeChatProcessorCallbacks (chat: Chat, history: ChatMessage[]): ChatProcessorCallbacks {
   return {
-    async onStartChatMessage (role: string): Promise<number> {
+    async onStartChatMessage (content: string): Promise<number> {
+      await createChatMessage({
+        role: 'user',
+        chat_id: chat.id,
+        content,
+        created_at: new Date(),
+        status: 'SUCCEED',
+        ordinal: history.length,
+        options: JSON.stringify({}),
+      });
       const message = await createChatMessage({
-        role,
+        role: 'assistant',
         chat_id: chat.id,
         content: '',
         created_at: new Date(),
@@ -67,12 +74,19 @@ function makeChatProcessorCallbacks (chat: Chat): ChatProcessorCallbacks {
       });
       return message.id;
     },
-    async onFinishChatMessage (id: number, content: string): Promise<void> {
+    async onFinishChatMessage (id: number, content: string, retrieves: number[]): Promise<void> {
       await updateChatMessage(id, {
         content,
         finished_at: new Date(),
         status: 'SUCCEED',
       });
+      for (let retrieve of retrieves) {
+        await createChatMessageRetrieveRel({
+          chat_message_id: id,
+          retrieve_id: retrieve,
+          info: JSON.stringify({}), // TODO: what use?
+        });
+      }
     },
     async onTerminateChatMessage (id: number, reason: string): Promise<void> {
       await updateChatMessage(id, {

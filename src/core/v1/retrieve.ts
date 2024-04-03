@@ -78,14 +78,16 @@ export async function finishRetrieve (id: number, reranked: boolean, results: Cr
       .where('id', '=', id)
       .execute();
 
-    await getDb()
-      .insertInto('retrieve_result')
-      .values(results.map(({ document_node_id, document_chunk_node_id, ...rest }) => ({
-        document_node_id: uuidToBin(document_node_id),
-        document_chunk_node_id: uuidToBin(document_chunk_node_id),
-        ...rest,
-      })))
-      .execute();
+    if (results.length > 0) {
+      await getDb()
+        .insertInto('retrieve_result')
+        .values(results.map(({ document_node_id, document_chunk_node_id, ...rest }) => ({
+          document_node_id: uuidToBin(document_node_id),
+          document_chunk_node_id: uuidToBin(document_chunk_node_id),
+          ...rest,
+        })))
+        .execute();
+    }
   });
 }
 

@@ -36,7 +36,7 @@ async function tx<T> (first: IsolationLevel | (() => Promise<T>), runner?: () =>
   });
 }
 
-function getDb<K extends keyof DB = keyof DB> (): Kysely<Pick<DB, K>> {
+function getDb<K extends keyof DB = keyof DB> (): Kysely<K extends keyof DB ? DB : Pick<DB, K>> {
   const tx = currentTx.getStore();
   if (tx) {
     return tx as never;

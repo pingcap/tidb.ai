@@ -1,17 +1,12 @@
-import db from '@/core/db';
 import { addImportSources } from '@/jobs/addImportSources';
 import { saveDocument } from '@/jobs/saveDocument';
 import { adminHandlerGuard } from '@/lib/auth-server';
-import { toPageRequest } from '@/lib/database';
-import { genId } from '@/lib/id';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
 import { type NextRequest, NextResponse } from 'next/server';
 import { randomUUID } from 'node:crypto';
 
-export async function GET (req: NextRequest) {
-  return NextResponse.json(await db.document.listAll(toPageRequest(req, ['index_state', 'q'])));
-}
+export { GET } from '@/app/api/v2/documents/route';
 
 export const PUT = adminHandlerGuard(async (req) => {
   const contentType = req.headers.get('Content-Type')?.split(';')[0];

@@ -80,7 +80,7 @@ export function createLlamaindexDocumentIndexTaskProcessor (): DocumentIndexTask
 
       const { id, relationships, ...metadata } = result.metadata;
 
-      allRelationships[id] = relationships;
+      allRelationships[id] = relationships ?? {};
 
       await getDb().insertInto('llamaindex_document_node')
         .values({
@@ -105,7 +105,7 @@ export function createLlamaindexDocumentIndexTaskProcessor (): DocumentIndexTask
       await getDb().insertInto(`llamaindex_document_chunk_node_${index.name}`)
         .values(result.chunks.map(chunk => {
           const { id, relationships, ...metadata } = chunk.metadata;
-          allRelationships[id] = relationships;
+          allRelationships[id] = relationships ?? {};
           return {
             metadata: JSON.stringify(metadata),
             embedding: vectorToSql(chunk.vector),

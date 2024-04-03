@@ -1,4 +1,5 @@
 import { DBv1, getDb } from '@/core/v1/db';
+import { executePage, type PageRequest } from '@/lib/database';
 import type { Insertable, Selectable, Updateable } from 'kysely';
 
 export type Document = Selectable<DBv1['document']>;
@@ -31,6 +32,13 @@ export async function getDocumentBySourceUri (sourceUri: string) {
     .selectAll()
     .where('source_uri', '=', sourceUri)
     .executeTakeFirst();
+}
+
+export async function listDocuments (request: PageRequest) {
+  return await executePage(getDb()
+      .selectFrom('document')
+      .selectAll()
+    , request);
 }
 
 export async function createDocument (create: CreateDocument) {

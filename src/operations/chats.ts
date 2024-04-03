@@ -2,7 +2,7 @@ import { getErrorMessage } from '@/lib/errors';
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 
-export const deleteChat = withToast(async (id: string) => {
+export const deleteChat = withToast(async (id: number) => {
   await fetch(`/api/v1/chats/${id}`, {
     method: 'DELETE',
   })

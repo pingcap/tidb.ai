@@ -1,15 +1,13 @@
 'use client';
 
+import { AdminPageHeading } from '@/components/admin-page-heading';
 import { DataTable } from '@/components/data-table';
 import { ImportSiteDialog } from '@/components/dialogs/import-site-dialog';
-import { AdminPageHeading } from '@/components/admin-page-heading';
-import type { DB } from '@/core/db/schema';
+import { Separator } from '@/components/ui/separator';
 import type { CellContext } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';
-import type { Selectable } from 'kysely';
 import useSWR from 'swr';
-import {Separator} from "@/components/ui/separator";
 
 export default function Page () {
   const { data = [] } = useSWR<ColumnDef[]>(['/api/v1/sources'], { fetcher });
@@ -24,15 +22,15 @@ export default function Page () {
         return (
           <div className="flex h-5 items-center space-x-4">
             <div>Pending: {summary.pending || 0}</div>
-            <Separator orientation="vertical"/>
+            <Separator orientation="vertical" />
             <div>Processing: {summary.processing || 0}</div>
-            <Separator orientation="vertical"/>
+            <Separator orientation="vertical" />
             <div>Succeed: {summary.succeed || 0}</div>
-            <Separator orientation="vertical"/>
+            <Separator orientation="vertical" />
             <div>Failed: {summary.failed || 0}</div>
           </div>
-        )
-      }
+        );
+      },
     }),
     helper.accessor('created_at', { cell: datetime }),
   ];
@@ -40,7 +38,7 @@ export default function Page () {
   return (
     <>
       <AdminPageHeading title="Sources" />
-      <div className='flex justify-end'>
+      <div className="flex justify-end">
         <ImportSiteDialog />
       </div>
       <DataTable columns={columns} data={data} />

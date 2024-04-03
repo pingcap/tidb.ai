@@ -1,166 +1,18 @@
-import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import database from '@/core/db';
-import db from '@/core/db';
 import type { DB, Namespace } from '@/core/db/schema';
 import { rag } from '@/core/interface';
-import { retrieval } from '@/core/retrieval';
-import { toPageRequest } from '@/lib/database';
 import { genId } from '@/lib/id';
-import { baseRegistry } from '@/rag-spec/base';
-import { getFlow } from '@/rag-spec/createFlow';
-import { experimental_StreamData, StreamingTextResponse } from 'ai';
 import { formatDate } from 'date-fns';
 import type { Selectable } from 'kysely';
 import { Liquid, Template } from 'liquidjs';
 import { DateTime } from 'luxon';
 import { notFound } from 'next/navigation';
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
 import ChatMessage = rag.ChatMessage;
-import RerankedContext = rag.RerankedContext;
-import { validateNextRequestWithReCaptcha } from '@/lib/reCaptcha';
-import {AUTH_REQUIRE_AUTHED_ERROR} from "@/lib/errors";
-
-const ChatRequest = z.object({
-  messages: z.object({ role: z.string(), content: z.string() }).array(),
-  sessionId: z.string().optional(),
-  name: z.string().optional(),
-  namespaces: z.string().array().optional(),
-});
 
 // TODO: Support config if enable recommend namespaces
 const ENABLE_RECOMMEND_NAMESPACES = false;
 
-export const POST = auth(async function POST (req) {
-  const userId = req.auth?.user?.id || 'anonymous';
-  if (!userId) {
-    return AUTH_REQUIRE_AUTHED_ERROR.toResponse();
-  }
-
-  await validateNextRequestWithReCaptcha(req);
-
-  const {
-    name,
-    messages,
-    sessionId,
-    namespaces: specifyNamespaces = [],
-  } = ChatRequest.parse(await req.json());
-
-  // Create session request
-  if (messages.length === 0) {
-    if (sessionId) {
-      return NextResponse.json({
-        message: 'Cannot assign sessionId when creating chats.',
-      }, { status: 400 });
-    }
-
-    const id = await createSession(name, userId);
-    return NextResponse.json({ id });
-  }
-
-  // Notice: Only answering the last message for now.
-  // TODO: Support answering with the conversation history.
-  const message = messages.findLast(message => message.role === 'user')!.content;
-
-  const { id, history } = await appendMessage(name, sessionId, message, userId);
-  const index = (await database.index.findByName('default'))!;
-  const config = index.config as any;
-  const { extractAndRefineTemplate, contextTemplate, nonContextTemplate, top_k = 5 } = config['rag.prompting.refined'];
-
-  const liquid = new Liquid();
-  const extractAndRefinePromptTemplate = liquid.parse(extractAndRefineTemplate);
-  const answerPromptTemplate = liquid.parse(contextTemplate);
-  const noAnswerPromptTemplate = liquid.parse(nonContextTemplate);
-
-  const allNamespaces = await db.namespace.listNamespaces();
-  const flow = await getFlow(baseRegistry, undefined, index.config);
-  const model = flow.getRequired(rag.ExtensionType.ChatModel, 'openai');
-
-  // 1. Extract question from message (get question)
-  const { containsQuestion, question, recommendNamespaces = [] } = await extractAndRefineQuestion(model, message, allNamespaces, liquid, extractAndRefinePromptTemplate);
-
-  // 2. Determine namespaces based on question (get namespaces)
-  const namespaces = namespaceSelector(allNamespaces, specifyNamespaces, recommendNamespaces);
-
-  let queryResult: { queryId: string, relevantChunks: RerankedContext[] } | undefined;
-  let systemMessage: ChatMessage;
-
-  if (containsQuestion) {
-    // 3.1. Execute embedding search within the specify / recommend namespaces (get context)
-    const { relevantChunks } = queryResult = await retrieval('default', index.embedding, {
-      text: question,
-      top_k,
-      namespaces,
-      reranker: index.reranker,
-    });
-
-    // 4.1. Generate prompt with context (get prompt)
-    systemMessage = await getSystemMessage(liquid, answerPromptTemplate, relevantChunks);
-  } else {
-    systemMessage = await getSystemMessage(liquid, noAnswerPromptTemplate);
-  }
-  // 5. Call the LLM model to generate the answer (get answer)
-  const answerId = genId();
-  const stream = await model.chatStream([
-    systemMessage,
-    { role: 'user', content: message },
-  ], {
-    onStart: async () => {
-      await database.chat.addMessages([{
-        id: answerId,
-        chat_id: id,
-        ordinal: history.length + 2,
-        role: 'assistant',
-        content: '',
-        created_at: new Date(),
-        index_query_id: queryResult?.queryId || null,
-      }]);
-    },
-    onCompletion: async completion => {
-      await database.chat.updateMessage(answerId, {
-        finished_at: new Date(),
-        content: completion,
-      });
-    },
-    experimental_streamData: true,
-  });
-
-  // Output the relevant document chunks to the user.
-  const streamData = new experimental_StreamData();
-  if (queryResult && Array.isArray(queryResult.relevantChunks) && queryResult.relevantChunks.length > 0) {
-    const context = deduplicate(queryResult.relevantChunks, item => item.source_uri)
-      .map((item) => ({
-        title: item.source_name,
-        uri: item.source_uri,
-      }));
-
-    streamData.append({
-      [String(history.length + 2)]: {
-        queryId: queryResult.queryId,
-        context,
-      },
-    });
-  }
-  await streamData.close();
-
-  // Output the LLM response to the user.
-  return new StreamingTextResponse(stream, {
-    headers: {
-      'X-CreateRag-Session': id,
-    },
-  }, streamData);
-}) as any;
-
-export const GET = auth(async function GET (req) {
-  const userId = req.auth?.user?.id;
-  if (!userId) {
-    return new NextResponse('Need authorization', { status: 401 });
-  }
-
-  const { page, pageSize } = toPageRequest(req);
-
-  return NextResponse.json(await database.chat.listChats({ page, pageSize, userId }));
-}) as any;
+export { GET, POST } from '@/app/api/v2/chats/route';
 
 async function extractAndRefineQuestion (model: rag.ChatModel<any>, query: string, allNamespaces: Namespace[], liquid: Liquid, extractAndRefinePromptTemplate: Template[]) {
   const extractAndRefinePrompt = await liquid.render(extractAndRefinePromptTemplate, {

@@ -106,7 +106,7 @@ CREATE TABLE `llamaindex_document_node` (
 CREATE TABLE IF NOT EXISTS llamaindex_document_chunk_node_default (
     -- Text Node Common Fields
     id              BINARY(16)          NOT NULL,
-    hash            CHAR(32)            NOT NULL,
+    hash            VARCHAR(256)        NOT NULL,
     text            TEXT                NOT NULL,
     metadata        JSON                NOT NULL,
     embedding       VECTOR<FLOAT>(1536) NULL        COMMENT 'hnsw(distance=cosine)',
@@ -202,7 +202,7 @@ CREATE TABLE retrieve_result
 (
     id                     INT        NOT NULL AUTO_INCREMENT,
     retrieve_id            INT        NOT NULL,
-    relevance_score        INT        NOT NULL,
+    relevance_score        FLOAT      NOT NULL,
     document_id            INT        NOT NULL,
     document_chunk_node_id BINARY(16) NOT NULL,
     document_node_id       BINARY(16) NOT NULL,

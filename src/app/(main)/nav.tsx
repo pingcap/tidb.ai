@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAsk } from '@/components/use-ask';
 import { useHref } from '@/components/use-href';
 import type { DB } from '@/core/db/schema';
+import type { Chat } from '@/core/v1/chat';
 import { useUser } from '@/lib/auth';
 import type { Page } from '@/lib/database';
 import { fetcher } from '@/lib/fetch';
@@ -33,7 +34,7 @@ export function Nav () {
     setOpen(false);
   });
   const user = useUser();
-  const { data: history, mutate, isLoading } = useSWR(['get', '/api/v1/chats'], fetcher<Page<Selectable<DB['chat']>>>, {});
+  const { data: history, mutate, isLoading } = useSWR(['get', '/api/v1/chats'], fetcher<Page<Chat>>, {});
 
   useEffect(() => {
     void mutate();
@@ -70,7 +71,7 @@ export function Nav () {
           ...(history?.data.map(chat => (
             {
               href: `/c/${chat.id}`,
-              title: chat.name,
+              title: chat.title,
               variant: (active: boolean) => (active ? 'secondary' : 'ghost'),
               className: conversationItemClassName,
               onDelete: () => {

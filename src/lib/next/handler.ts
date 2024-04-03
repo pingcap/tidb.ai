@@ -7,12 +7,13 @@ import {
 } from '@/lib/errors';
 import { parseBody, parseParams, parseSearchParams } from '@/lib/next/parse';
 import { type RouteProps } from '@/lib/next/types';
-import type { Session } from 'next-auth';
+import type { Rewrite } from '@/lib/type-utils';
+import type { Session, User } from 'next-auth';
 import { isNextRouterError } from 'next/dist/client/components/is-next-router-error';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z, ZodError, type ZodObject, type ZodType } from 'zod';
 
-export type AppAuthType = 'user' | 'admin' | 'cronjob' | void;
+export type AppAuthType = 'anonymous' | 'user' | 'admin' | 'cronjob' | void;
 
 export function defineHandler<
   ZSearchParams extends ZodObject<any> | void = void,
@@ -32,7 +33,7 @@ export function defineHandler<
       searchParams: ZSearchParams extends ZodObject<any> ? z.infer<ZSearchParams> : void,
       params: ZParams extends ZodObject<any> ? z.infer<ZParams> : void,
       body: ZBody extends ZodType ? z.infer<ZBody> : Body,
-      auth: Auth extends 'user' | 'admin' ? Session : (Session | null),
+      auth: Auth extends 'user' | 'admin' | 'anonymous' ? Rewrite<Session, { user: User }> : (Session | null),
       request: NextRequest,
       ctx: RouteProps<any>,
     },
@@ -55,12 +56,23 @@ export function defineHandler<
             return CRONJOB_INVALID_AUTH_TOKEN_ERROR.toResponse();
           }
         } else if (options.auth) {
-          if (!auth.user || auth.user.role === 'anonymous') {
+          if (!auth.user) {
             return AUTH_REQUIRE_AUTHED_ERROR.toResponse();
           }
-
-          if (options.auth === 'admin' && auth.user.role !== 'admin') {
-            return AUTH_FORBIDDEN_ERROR.toResponse();
+          switch (options.auth) {
+            case 'anonymous':
+              // PASS
+              break
+            case 'user':
+              if (auth.user.role === 'anonymous') {
+                return AUTH_REQUIRE_AUTHED_ERROR.toResponse();
+              }
+              break
+            case 'admin':
+              if ( auth.user.role !== 'admin') {
+                return AUTH_FORBIDDEN_ERROR.toResponse();
+              }
+              break
           }
         }
       }

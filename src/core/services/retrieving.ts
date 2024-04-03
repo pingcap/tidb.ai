@@ -54,7 +54,11 @@ export const retrieveOptionsSchema: ZodType<RetrieveOptions> = z.object({
   text: z.string(),
 });
 
-export async function retrieve (indexId: number, options: RetrieveOptions, processor: RetrieveProcessor) {
+export type RetrieveCallbacks = {
+  onRetrieved: (id: number, retrievedChunk: RetrievedChunk[]) => void;
+}
+
+export async function retrieve (indexId: number, options: RetrieveOptions, processor: RetrieveProcessor, callbacks?: RetrieveCallbacks) {
   const index = await getIndex(indexId);
   if (!index) {
     notFound();
@@ -87,6 +91,8 @@ export async function retrieve (indexId: number, options: RetrieveOptions, proce
       chunk_metadata: JSON.stringify(result.metadata),
       chunk_text: result.text,
     })));
+
+    callbacks?.onRetrieved(retrieve.id, result);
 
     return result;
   } catch (e) {

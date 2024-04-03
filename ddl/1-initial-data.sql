@@ -3,6 +3,24 @@
 --
 INSERT INTO `index` (id, name, config) VALUES (1, 'default', '{}');
 
+
+-- Index Config: Provider
+UPDATE `index`
+SET config = JSON_MERGE_PATCH(config, '{
+  "provider": "llamaindex"
+}');
+
+-- Index Config: LLM
+UPDATE `index`
+SET config = JSON_MERGE_PATCH(config, '{
+  "llm": {
+    "provider": "openai",
+    "config": {
+      "model": "gpt-3.5-turbo"
+    }
+  }
+}');
+
 -- Index Config: Reader
 UPDATE
     `index`
