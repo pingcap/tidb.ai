@@ -1,14 +1,21 @@
 'use client';
 
 import { AdminPageHeading } from '@/components/admin-page-heading';
-import { DataTable } from '@/components/data-table';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { ImportSiteDialog } from '@/components/dialogs/import-site-dialog';
 import { Separator } from '@/components/ui/separator';
+import {DBv1} from "@/core/v1/db";
 import type { CellContext } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';
+import {Selectable} from "kysely";
 import useSWR from 'swr';
+
+interface ColumnDef extends Selectable<DBv1['source']> {
+  summary: Record<string, string>;
+}
+
+const helper = createColumnHelper<ColumnDef>();
 
 export default function Page () {
   const { data = [] } = useSWR<ColumnDef[]>(['/api/v1/sources'], { fetcher });
@@ -41,6 +48,7 @@ export default function Page () {
     helper.accessor('created_at', { cell: datetime }),
   ];
 
+  // FIXME: make it work
   return (
     <>
       <AdminPageHeading title="Sources" />
@@ -48,7 +56,7 @@ export default function Page () {
         <ImportSiteDialog />
       </div>
       <DataTableRemote
-        columns={columns}
+        columns={[]}
         api="/api/v1/sources"
         idColumn="id"
       />
@@ -57,12 +65,6 @@ export default function Page () {
 }
 
 const datetime = (cell: CellContext<any, any>) => <time>{format(cell.getValue(), 'yyyy-MM-dd HH:mm')}</time>;
-
-interface ColumnDef extends Selectable<DB['import_source']> {
-  summary: Record<string, string>;
-}
-
-const helper = createColumnHelper<ColumnDef>();
 
 const fetcher = async ([url]: [string]) => {
   const res = await fetch(url);

@@ -32,9 +32,8 @@ export async function retrieval (indexName: string, embedding: string, { text, s
   });
 
   // Semantic search for chunks.
-  const namespaceIds = await database.namespace.getNamespaceIdsByNames(namespaces);
   const searchedTop = await database.index._query('default', vector, search_top_k ?? top_k * 10, {
-    namespaceIds: namespaceIds,
+    namespaceIds: [],
   });
 
   await database.index.finishQuery(id);

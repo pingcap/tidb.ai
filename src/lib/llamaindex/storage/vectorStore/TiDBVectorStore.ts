@@ -48,7 +48,6 @@ export const DEFAULT_TIDB_VECTOR_DIMENSIONS = 1536;
 
 type VectorTableName = `llamaindex_document_chunk_node_${string}`;
 
-
 export interface TiDBVectorDB {
   [key: VectorTableName]: DocumentChunkNode;
   llamaindex_document_node: DocumentNode;

@@ -52,15 +52,15 @@ export async function updateSource (id: number, update: UpdateSource) {
   return (await getSource(id))!;
 }
 
-export async function calculateImportTaskSummary () {
-  let builder = getDb().selectFrom('document_import_task')
-    .select(({ fn, val, ref }) => [
-      'import_source_id',
-      'status',
-      fn.count<number>('import_source_task.id').as('tasks'),
-    ])
-    .groupBy('import_source_id')
-    .groupBy('status');
-
-  return builder.execute();
-}
+// export async function calculateImportTaskSummary () {
+//   let builder = getDb().selectFrom('document_import_task')
+//     .select(({ fn, val, ref }) => [
+//       'import_source_id',
+//       'status',
+//       fn.count<number>('import_source_task.id').as('tasks'),
+//     ])
+//     .groupBy('import_source_id')
+//     .groupBy('status');
+//
+//   return builder.execute();
+// }

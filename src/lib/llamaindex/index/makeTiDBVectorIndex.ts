@@ -13,7 +13,6 @@ export async function makeTidbVectorIndex (flow: Flow, tidbVectorStore: TiDBVect
       llm: fromAppChatModel(flow.getRequired(rag.ExtensionType.ChatModel, index.raw.llm)),
       embedModel: fromAppEmbedding(flow.getRequired(rag.ExtensionType.Embeddings, index.raw.embedding)),
       nodeParser: new SentenceWindowNodeParser(),
-      callbackManager: new CallbackManager(),
       promptHelper: new PromptHelper(),
     },
   );

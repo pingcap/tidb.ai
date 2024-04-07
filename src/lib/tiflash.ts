@@ -29,7 +29,7 @@ export function usePreloadServerlessTiFlashReplicas () {
         clearInterval(h);
       };
     }
-  }, [documentVisible]);
+  }, [documentVisible, enableTiFlashPreload]);
 }
 
 const preload = () => {

@@ -17,7 +17,7 @@ export const taskStatusCell = <T extends { status: string, error: string | null 
   const info = TASK_STATUS[state as keyof typeof TASK_STATUS];
 
   if (info) {
-    const error = props.row.original.error_message;
+    const error = props.row.original.error;
 
     const el = (
       <span className={cn('flex gap-1', info.className)}>
