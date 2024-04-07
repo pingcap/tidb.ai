@@ -14,9 +14,6 @@ baseRegistry.register(() => import('@createrag/extension-markdown-loader'));
 baseRegistry.register(() => import('@createrag/extension-text-loader'));
 baseRegistry.register(() => import('@createrag/extension-pdf-loader'));
 
-// Splitters
-baseRegistry.register(() => import('@createrag/extension-langchain-recursive-character-splitter'));
-
 // Embeddings
 baseRegistry.register(() => import('@createrag/extension-openai-embeddings'));
 

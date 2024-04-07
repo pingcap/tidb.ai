@@ -1,8 +1,10 @@
-import { extendRetrieveResultDetails, retrieve, retrieveOptionsSchema } from '@/core/services/retrieving';
-import { createLlamaindexRetrieveProcessor } from '@/jobs/v1/llamaindexRetrieveProcessor';
+import { LlamaindexRetrieveService } from '@/core/services/llamaindex/retrieving';
+import { retrieveOptionsSchema } from '@/core/services/retrieving';
+import { getIndex } from '@/core/v1/index_';
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
+import { notFound } from 'next/navigation';
 import z from 'zod';
 
 export const POST = defineHandler({
@@ -16,11 +18,23 @@ export const POST = defineHandler({
 }) => {
   const flow = await getFlow(baseRegistry);
 
-  const processor = createLlamaindexRetrieveProcessor(flow);
+  const index = await getIndex(params.id);
+  if (!index) {
+    notFound();
+  }
 
-  const result = await retrieve(params.id, body, processor);
+  const retrieveService = new LlamaindexRetrieveService({
+    reranker: {
+      provider: 'cohere',
+      options: {},
+    },
+    flow,
+    index,
+  });
 
-  return await extendRetrieveResultDetails(result);
+  const result = await retrieveService.retrieve(body);
+
+  return await retrieveService.extendResultDetails(result);
 });
 
 export const dynamic = 'force-dynamic';

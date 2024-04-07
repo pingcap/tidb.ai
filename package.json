@@ -101,7 +101,6 @@
     "@createrag/extension-html-loader": "workspace:^",
     "@createrag/extension-html-task-processor": "workspace:^",
     "@createrag/extension-jinaai-reranker": "workspace:^",
-    "@createrag/extension-langchain-recursive-character-splitter": "workspace:^",
     "@createrag/extension-markdown-loader": "workspace:^",
     "@createrag/extension-openai-chat-model": "workspace:^",
     "@createrag/extension-openai-embeddings": "workspace:^",

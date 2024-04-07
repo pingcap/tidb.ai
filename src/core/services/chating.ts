@@ -1,7 +1,7 @@
-import { type Chat, type ChatMessage, createChat, createChatMessage, createChatMessageRetrieveRel, getChat, listChatMessages, updateChatMessage } from '@/core/v1/chat';
+import { AppIndexBaseService } from '@/core/services/base';
+import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrieveRel, getChat, listChatMessages, updateChatMessage } from '@/core/v1/chat';
 import { tx } from '@/core/v1/db';
-import { getIndex, type Index } from '@/core/v1/index_';
-import { APIError, AUTH_FORBIDDEN_ERROR } from '@/lib/errors';
+import { AUTH_FORBIDDEN_ERROR, getErrorMessage } from '@/lib/errors';
 import { notFound } from 'next/navigation';
 
 export type ChatOptions = {
@@ -10,60 +10,43 @@ export type ChatOptions = {
   history: ChatMessage[]
 }
 
-export type ChatProcessorCallbacks = {
-  onStartChatMessage (message: string): Promise<number>
-  onFinishChatMessage (id: number, content: string, retrievalIds: number[]): Promise<void>
-  onTerminateChatMessage (id: number, reason: string): Promise<void>
-}
-
 export type ChatResponse = {
   status: 'retrieving' | 'generating' | 'finished'
   content: string
   sources: { name: string, uri: string }[]
+  retrieveId?: number
 }
 
-export type ChatProcessor = (index: Index, chat: Chat, options: ChatOptions, callbacks: ChatProcessorCallbacks) => AsyncGenerator<ChatResponse>;
+export abstract class AppChatService extends AppIndexBaseService {
+  async chat (chatId: number, userId: string, userInput: string) {
+    const { chat, history } = await tx(async () => {
+      const chat = await getChat(chatId);
 
-export async function chat (indexId: number, chatId: number, userId: string, userInput: string, chatProcessor: ChatProcessor) {
-  const index = await getIndex(indexId);
+      if (!chat) {
+        notFound();
+      }
 
-  if (!index) {
-    notFound();
-  }
+      if (chat.created_by !== userId) {
+        throw AUTH_FORBIDDEN_ERROR;
+      }
 
-  const { chat, history } = await tx(async () => {
-    const chat = await getChat(chatId);
+      const history = await listChatMessages(chatId);
+      return {
+        chat, history,
+      };
+    });
 
-    if (!chat) {
-      notFound();
-    }
-
-    if (chat.created_by !== userId) {
-      throw AUTH_FORBIDDEN_ERROR;
-    }
-
-    const history = await listChatMessages(chatId);
-    return {
-      chat, history,
-    };
-  });
-
-  return { chat_id: chat.id, message_ordinal: history.length + 1, response: chatProcessor(index, chat, { userInput, history, userId }, makeChatProcessorCallbacks(chat, history)) };
-}
-
-function makeChatProcessorCallbacks (chat: Chat, history: ChatMessage[]): ChatProcessorCallbacks {
-  return {
-    async onStartChatMessage (content: string): Promise<number> {
+    const message = await tx(async () => {
       await createChatMessage({
         role: 'user',
         chat_id: chat.id,
-        content,
+        content: userInput,
         created_at: new Date(),
         status: 'SUCCEED',
         ordinal: history.length,
         options: JSON.stringify({}),
       });
-      const message = await createChatMessage({
+      return await createChatMessage({
         role: 'assistant',
         chat_id: chat.id,
         content: '',
@@ -72,28 +55,58 @@ function makeChatProcessorCallbacks (chat: Chat, history: ChatMessage[]): ChatPr
         ordinal: history.length + 1,
         options: JSON.stringify({}),
       });
-      return message.id;
-    },
-    async onFinishChatMessage (id: number, content: string, retrieves: number[]): Promise<void> {
-      await updateChatMessage(id, {
-        content,
-        finished_at: new Date(),
-        status: 'SUCCEED',
-      });
-      for (let retrieve of retrieves) {
-        await createChatMessageRetrieveRel({
-          chat_message_id: id,
-          retrieve_id: retrieve,
-          info: JSON.stringify({}), // TODO: what use?
+    });
+
+    const response = trackAsyncGenerator(
+      this.run(chat, { userInput, history, userId }),
+      async results => {
+        await updateChatMessage(message.id, {
+          content: results.map(result => result.content).join(''),
+          finished_at: new Date(),
+          status: 'SUCCEED',
         });
-      }
-    },
-    async onTerminateChatMessage (id: number, reason: string): Promise<void> {
-      await updateChatMessage(id, {
-        finished_at: new Date(),
-        error_message: reason.slice(0, 256),
-        status: 'FAILED',
+        const retrieves = results
+          .map(result => result.retrieveId)
+          .filter((id: number | undefined): id is number => typeof id === 'number')
+          .reduce((set, id) => set.add(id), new Set<number>());
+        for (let retrieve of retrieves) {
+          await createChatMessageRetrieveRel({
+            chat_message_id: message.id,
+            retrieve_id: retrieve,
+            info: JSON.stringify({}), // TODO: what use?
+          });
+        }
+      },
+      async err => {
+        await updateChatMessage(message.id, {
+          finished_at: new Date(),
+          error_message: getErrorMessage(err).slice(0, 256),
+          status: 'FAILED',
+        });
       });
-    },
-  };
+
+    return {
+      chat_id: chat.id,
+      message_ordinal: history.length + 1,
+      response,
+    };
+  }
+
+  protected abstract run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatResponse>;
+
+}
+
+function trackAsyncGenerator<T> (generator: AsyncGenerator<T>, onFinish: (results: T[]) => Promise<void>, onFailed: (reason: unknown) => Promise<void>) {
+  return async function* () {
+    try {
+      const results: T[] = [];
+      for await (let item of generator) {
+        yield item;
+        results.push(item);
+      }
+      await onFinish(results);
+    } catch (e) {
+      await onFailed(e);
+    }
+  }();
 }

@@ -1,7 +1,7 @@
-import { chat, type ChatResponse } from '@/core/services/chating';
+import { type ChatResponse } from '@/core/services/chating';
+import { LlamaindexChatService } from '@/core/services/llamaindex/chating';
 import { createChat, listChats } from '@/core/v1/chat';
 import { getIndexByName } from '@/core/v1/index_';
-import { createLlamaindexChatProcessor } from '@/jobs/v1/llamaindexChatProcessor';
 import { toPageRequest } from '@/lib/database';
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';
@@ -61,10 +61,15 @@ export const POST = defineHandler({
   if (!index) {
     notFound();
   }
-  const flow = await getFlow(baseRegistry);
-  const chatProcessor = createLlamaindexChatProcessor(flow);
 
-  const { chat_id, message_ordinal, response } = await chat(index.id, sessionId, auth.user.id!, body.messages.find(m => m.role === 'user')?.content ?? '', chatProcessor);
+  const flow = await getFlow(baseRegistry);
+
+  const chatService = new LlamaindexChatService({
+    flow,
+    index,
+  });
+
+  const { chat_id, message_ordinal, response } = await chatService.chat(sessionId, auth.user.id!, body.messages.find(m => m.role === 'user')?.content ?? '');
 
   return mapResponseToTextStream(chat_id, message_ordinal, response);
 });

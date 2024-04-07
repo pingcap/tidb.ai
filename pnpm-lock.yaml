@@ -279,9 +279,6 @@ importers:
       '@createrag/extension-jinaai-reranker':
         specifier: workspace:^
         version: link:extensions/llm/jinaai/reranker
-      '@createrag/extension-langchain-recursive-character-splitter':
-        specifier: workspace:^
-        version: link:extensions/langchain-recursive-character-splitter
       '@createrag/extension-markdown-loader':
         specifier: workspace:^
         version: link:extensions/markdown-loader
@@ -416,8 +413,6 @@ importers:
   extensions/html-loader: {}
 
   extensions/html-task-processor: {}
-
-  extensions/langchain-recursive-character-splitter: {}
 
   extensions/llm/cohere/reranker: {}
 
