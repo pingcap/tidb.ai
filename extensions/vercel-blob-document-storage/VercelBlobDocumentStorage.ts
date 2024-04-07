@@ -23,7 +23,7 @@ export default class VercelBlobDocumentStorage extends rag.DocumentStorage<Verce
     this.prefix = options.prefix ?? getOptionalEnv('VERCEL_BLOB_STORAGE_PREFIX') ?? '';
 
     // not sure
-    const BLOB_DOMAIN_KEY = options.token?.replace(/^vercel_blob_rw_([^_]+)_.+$/, (_, s: string) => s) ?? '........';
+    const BLOB_DOMAIN_KEY = this.token?.replace(/^vercel_blob_rw_([^_]+)_.+$/, (_, s: string) => s) ?? '........';
     this.host = `https://${BLOB_DOMAIN_KEY}.public.blob.vercel-storage.com`;
   }
 
