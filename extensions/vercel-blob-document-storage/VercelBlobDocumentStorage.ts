@@ -19,7 +19,7 @@ export default class VercelBlobDocumentStorage extends rag.DocumentStorage<Verce
   constructor (options: VercelBlobDocumentStorage.Options) {
     super(options);
 
-    this.token = options.token ?? getOptionalEnv('BLOB_READ_WRITE_TOKEN') ?? getOptionalEnv('VERCEL_BLOB_STORAGE_TOKEN');
+    this.token = options.token ?? getOptionalEnv('BLOB_READ_WRITE_TOKEN');
     this.prefix = options.prefix ?? getOptionalEnv('VERCEL_BLOB_STORAGE_PREFIX') ?? '';
 
     // not sure
@@ -31,7 +31,7 @@ export default class VercelBlobDocumentStorage extends rag.DocumentStorage<Verce
     if (tmp) {
       return path.join('tmp', name);
     }
-    if (!this.options.prefix) {
+    if (!this.prefix) {
       return name;
     }
     return path.join(this.prefix, name);
@@ -45,13 +45,13 @@ export default class VercelBlobDocumentStorage extends rag.DocumentStorage<Verce
   }
 
   available (): boolean {
-    return !!this.options.token;
+    return !!this.token;
   }
 
   async delete (path: string): Promise<boolean> {
     try {
-      await blob.head(this.getUrl(path), { token: this.options.token });
-      await blob.del([this.getUrl(path)], { token: this.options.token });
+      await blob.head(this.getUrl(path), { token: this.token });
+      await blob.del([this.getUrl(path)], { token: this.token });
 
       return true;
     } catch (e) {
@@ -79,7 +79,7 @@ export default class VercelBlobDocumentStorage extends rag.DocumentStorage<Verce
     } else {
       buffer = stream.body!;
     }
-    await blob.put(this.getName(path, tmp), buffer, { token: this.options.token, access: 'public', addRandomSuffix: false });
+    await blob.put(this.getName(path, tmp), buffer, { token: this.token, access: 'public', addRandomSuffix: false });
     return Promise.resolve(this.getUrl(pathname));
   }
 }

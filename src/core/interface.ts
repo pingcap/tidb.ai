@@ -1,5 +1,4 @@
-import { Namespace } from '@/core/db/schema';
-import type { AIStreamCallbacksAndOptions } from 'ai';
+import type { LLM } from 'llamaindex';
 import type { FC } from 'react';
 import { z, type ZodObject } from 'zod';
 
@@ -29,16 +28,6 @@ export namespace rag {
   }
 
   export type Vector = Float64Array;
-
-  export interface ChatMessage {
-    role: 'user' | 'assistant' | 'system'; // human, ai, system
-    content: string;
-  }
-
-  export interface ChatMessageStream {
-    role: 'user' | 'assistant' | 'system';
-    content: AsyncIterable<string>;
-  }
 
   export enum ExtensionType {
     DocumentStorage = 'rag.document-storage',
@@ -127,12 +116,7 @@ export namespace rag {
   export abstract class ChatModel<Options> extends Base<Options> {
     static type = ExtensionType.ChatModel;
 
-    /**
-     * @deprecated
-     */
-    abstract chat (history: ChatMessage[]): Promise<ChatMessage>
-
-    abstract chatStream (history: ChatMessage[], callbacks?: AIStreamCallbacksAndOptions): Promise<ReadableStream>
+    abstract get llm (): LLM;
   }
 
   export abstract class ContentMetadataExtractor<Options, Type = any> extends Base<Options> {

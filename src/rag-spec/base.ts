@@ -2,7 +2,7 @@ import { RagExtensionsRegistry } from '@/core/registry';
 
 const baseRegistry = new RagExtensionsRegistry();
 
-if (process.env.VERCEL === '1') {
+if (process.env.BLOB_READ_WRITE_TOKEN) {
   baseRegistry.register(() => import('@createrag/extension-vercel-blob-document-storage'));
 } else {
   baseRegistry.register(() => import('@createrag/extension-fs-document-storage'));
@@ -13,12 +13,6 @@ baseRegistry.register(() => import('@createrag/extension-html-loader'));
 baseRegistry.register(() => import('@createrag/extension-markdown-loader'));
 baseRegistry.register(() => import('@createrag/extension-text-loader'));
 baseRegistry.register(() => import('@createrag/extension-pdf-loader'));
-
-// Embeddings
-baseRegistry.register(() => import('@createrag/extension-openai-embeddings'));
-
-// Chat models
-baseRegistry.register(() => import('@createrag/extension-openai-chat-model'));
 
 // Task processors
 baseRegistry.register(() => import('@createrag/extension-file-task-processor'));
