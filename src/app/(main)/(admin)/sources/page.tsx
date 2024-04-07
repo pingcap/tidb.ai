@@ -4,31 +4,28 @@ import { AdminPageHeading } from '@/components/admin-page-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { ImportSiteDialog } from '@/components/dialogs/import-site-dialog';
 import { Separator } from '@/components/ui/separator';
-import {DBv1} from "@/core/v1/db";
-import type { CellContext } from '@tanstack/react-table';
+import type { Source } from '@/core/v1/source';
+import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';
-import {Selectable} from "kysely";
-import useSWR from 'swr';
 
-interface ColumnDef extends Selectable<DBv1['source']> {
+interface SourceWithSummary extends Source {
   summary: Record<string, string>;
 }
 
-const helper = createColumnHelper<ColumnDef>();
+const helper = createColumnHelper<SourceWithSummary>();
 
 export default function Page () {
-  const { data = [] } = useSWR<ColumnDef[]>(['/api/v1/sources'], { fetcher });
-  const columns = [
+  const columns: ColumnDef<SourceWithSummary, any>[] = [
     helper.accessor('id', {}),
     helper.accessor('url', {}),
     helper.accessor('type', {}),
     helper.accessor('summary', {
       header: 'Process',
-      cell: (cell: CellContext<ColumnDef, any>) => {
+      cell: (cell: CellContext<SourceWithSummary, any>) => {
         const summary = cell.row.original.summary;
         if (!summary) {
-          return <span>No state</span>
+          return <span>No state</span>;
         }
         return (
           <div className="flex h-5 items-center space-x-4">
@@ -56,7 +53,7 @@ export default function Page () {
         <ImportSiteDialog />
       </div>
       <DataTableRemote
-        columns={[]}
+        columns={columns}
         api="/api/v1/sources"
         idColumn="id"
       />
@@ -66,12 +63,3 @@ export default function Page () {
 
 const datetime = (cell: CellContext<any, any>) => <time>{format(cell.getValue(), 'yyyy-MM-dd HH:mm')}</time>;
 
-const fetcher = async ([url]: [string]) => {
-  const res = await fetch(url);
-  if (!res.ok || res.redirected) {
-    const error = new Error(`${res.status} ${res.statusText}`);
-    throw error;
-  }
-
-  return res.json();
-};
