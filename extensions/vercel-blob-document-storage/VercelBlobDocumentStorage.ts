@@ -19,7 +19,7 @@ export default class VercelBlobDocumentStorage extends rag.DocumentStorage<Verce
   constructor (options: VercelBlobDocumentStorage.Options) {
     super(options);
 
-    this.token = options.token ?? getOptionalEnv('VERCEL_BLOB_STORAGE_TOKEN');
+    this.token = options.token ?? getOptionalEnv('BLOB_READ_WRITE_TOKEN') ?? getOptionalEnv('VERCEL_BLOB_STORAGE_TOKEN');
     this.prefix = options.prefix ?? getOptionalEnv('VERCEL_BLOB_STORAGE_PREFIX') ?? '';
 
     // not sure
