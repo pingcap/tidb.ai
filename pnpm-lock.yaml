@@ -4,6 +4,9 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+overrides:
+  pdfjs-dist>canvas: file:../_EXCLUDED_
+
 importers:
 
   .:
@@ -11296,9 +11299,6 @@ packages:
     optionalDependencies:
       canvas: 2.11.2
       path2d-polyfill: 2.0.1
-    transitivePeerDependencies:
-      - encoding
-      - supports-color
     dev: false
 
   /periscopic@3.1.0:
