@@ -58,7 +58,7 @@ export abstract class AppChatService extends AppIndexBaseService {
     });
 
     const response = trackAsyncGenerator(
-      this.run(chat, { userInput, history, userId }),
+      () => this.run(chat, { userInput, history, userId }),
       async results => {
         await updateChatMessage(message.id, {
           content: results.map(result => result.content).join(''),
@@ -96,17 +96,18 @@ export abstract class AppChatService extends AppIndexBaseService {
 
 }
 
-function trackAsyncGenerator<T> (generator: AsyncGenerator<T>, onFinish: (results: T[]) => Promise<void>, onFailed: (reason: unknown) => Promise<void>) {
+function trackAsyncGenerator<T> (generator: () => AsyncGenerator<T>, onFinish: (results: T[]) => Promise<void>, onFailed: (reason: unknown) => Promise<void>) {
   return async function* () {
     try {
       const results: T[] = [];
-      for await (let item of generator) {
+      for await (let item of generator()) {
         yield item;
         results.push(item);
       }
       await onFinish(results);
     } catch (e) {
       await onFailed(e);
+      throw e;
     }
   }();
 }

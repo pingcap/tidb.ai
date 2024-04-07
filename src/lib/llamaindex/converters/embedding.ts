@@ -4,7 +4,7 @@ import { BaseEmbedding, OpenAIEmbedding } from 'llamaindex';
 import ExtensionType = rag.ExtensionType;
 
 export function getEmbedding (flow: Flow, provider: string, options: any) {
-  if (provider === 'openai' || provider === rag.ExtensionType.Embeddings + '.openai') {
+  if (provider === 'openai' || (provider === rag.ExtensionType.Embeddings + '.openai')) {
     return new OpenAIEmbedding(options);
   }
   return fromAppEmbedding(flow.getRequired(ExtensionType.Embeddings, provider).withOptions(options));

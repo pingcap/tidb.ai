@@ -1,8 +1,8 @@
-import { rag } from '@/core/interface';
 import { AppIndexBaseService, type AppIndexBaseServiceOptions } from '@/core/services/base';
 import { Document, getDocuments } from '@/core/v1/document';
 import { createRetrieve, finishRetrieve, type Retrieve, type RetrieveResult, startRetrieveRerank, startRetrieveSearch, terminateRetrieve } from '@/core/v1/retrieve';
 import { getErrorMessage } from '@/lib/errors';
+import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
 import type { UUID } from 'node:crypto';
 import z, { ZodType } from 'zod';
 
@@ -94,8 +94,8 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
   }
 
   protected async embedQuery (text: string) {
-    const embeddings = await this.flow.getRequired(rag.ExtensionType.Embeddings, this.index.config.embedding.provider).withOptions(this.index.config.embedding.config);
-    return embeddings.embedQuery(text);
+    const embeddings = getEmbedding(this.flow, this.index.config.embedding.provider, this.index.config.embedding.config);
+    return await embeddings.getQueryEmbedding(text);
   }
 
   protected async startSearch (retrieve: Retrieve) {

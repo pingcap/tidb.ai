@@ -1,8 +1,8 @@
-import { db } from '@/core/db/db';
+import { getDb } from '@/core/v1/db';
 import { NextResponse } from 'next/server';
 
 export async function GET () {
-  const stats = await db.selectFrom('chat_message')
+  const stats = await getDb().selectFrom('chat_message')
     .leftJoin('chat', 'chat.id', 'chat_message.chat_id')
     .select([
       eb => eb.fn.count('chat.id').distinct().as('chats'),

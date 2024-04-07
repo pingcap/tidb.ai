@@ -1,6 +1,7 @@
 import { DBv1, getDb } from '@/core/v1/db';
+import { executePage, type PageRequest } from '@/lib/database';
 import type { Rewrite } from '@/lib/type-utils';
-import { ExpressionWrapper, ReferenceExpression, type Selectable } from 'kysely';
+import { type Selectable } from 'kysely';
 
 export type Index = Rewrite<Selectable<DBv1['index']>, { config: IndexConfig }>;
 
@@ -41,6 +42,13 @@ export async function getIndex (id: number) {
     .$castTo<Index>()
     .where('id', '=', id)
     .executeTakeFirst();
+}
+
+export async function listIndexes (requiest: PageRequest) {
+  return await executePage(getDb()
+    .selectFrom('index')
+    .selectAll()
+    .$castTo<Index>(), requiest);
 }
 
 export async function getIndexByName (name: string) {

@@ -9,6 +9,7 @@ export async function GET () {
   console.log(flow.list(rag.ExtensionType.DocumentStorage)[0].available())
 
   const storage = flow.getStorage();
+
   console.log(storage);
   return NextResponse.json({});
 }

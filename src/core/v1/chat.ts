@@ -17,6 +17,14 @@ export async function getChat (id: number) {
   return await getDb().selectFrom('chat').selectAll().where('id', '=', id).executeTakeFirst();
 }
 
+export async function deleteChat (id: number, by: string) {
+  await getDb()
+    .updateTable('chat')
+    .set('deleted_by', by)
+    .set('deleted_at', new Date())
+    .execute();
+}
+
 export async function createChat (create: CreateChat) {
   const { insertId } = await getDb().insertInto('chat').values(create).executeTakeFirstOrThrow();
 

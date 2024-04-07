@@ -1,4 +1,3 @@
-import { chatDb, type ChatDb } from '@/core/db/chat';
 import { indexDb, type IndexDb } from '@/core/db/db_index';
 import { documentDb, type DocumentDb } from '@/core/db/document';
 import { importSourceDb, type ImportSourceDb } from '@/core/db/importSource';
@@ -12,7 +11,6 @@ export interface Database {
   option: OptionDb;
   task: TaskDb;
   importSource: ImportSourceDb,
-  chat: ChatDb,
   status: StatusDb;
 }
 
@@ -22,7 +20,6 @@ const database = {
   option: optionDb,
   task: taskDb,
   importSource: importSourceDb,
-  chat: chatDb,
   status: statusDb
 } satisfies Database;
 

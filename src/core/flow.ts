@@ -65,7 +65,7 @@ export class Flow implements Flow.ExtensionApi {
   getRequired<T extends rag.ExtensionType> (type: T, identifier?: string) {
     const extension = this.get(type, identifier);
     if (!extension) {
-      throw new Error(`No available reranker.`);
+      throw new Error(`No available ${type}`);
     }
 
     return extension;
