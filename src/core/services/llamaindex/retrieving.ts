@@ -69,7 +69,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     };
   }
 
-  private async search (queryEmbedding: Vector, top_k: number) {
+  private async search (queryEmbedding: number[], top_k: number) {
     const rawChunks = await getDb()
       .selectFrom(`llamaindex_document_chunk_node_${this.index.name}`)
       .innerJoin('llamaindex_document_node as document_node', `llamaindex_document_chunk_node_${this.index.name}.document_id`, 'document_node.document_id')
