@@ -118,6 +118,7 @@ async function executeDocumentImportTask (id: number, importer: DocumentImportTa
 
     await finishDocumentImportTask(task.id, theResult);
   } catch (e) {
+    console.error(`Failed to execute document import task (task id: ${task.id}):`, e)
     await terminateDocumentImportTask(task.id, getErrorMessage(e));
     throw e;
   }
