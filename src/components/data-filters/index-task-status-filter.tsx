@@ -1,8 +1,8 @@
-import { TASK_STATUS } from '@/components/cells/import-task-status';
+import { TASK_STATUS } from '@/components/cells/index-task-status';
 import { DataTableFacetedFilter, type DataTableFacetedFilterOption } from '@/components/data-filters/facted-filter';
 import { useDataTable } from '@/components/use-data-table';
 
-export function ImportTaskStatusFilter ({ columnId = 'status' }: { columnId?: string }) {
+export function IndexTaskStatusFilter ({ columnId = 'status' }: { columnId?: string }) {
   const table = useDataTable();
   const column = table.getColumn(columnId);
 

@@ -33,6 +33,9 @@ export async function listDocumentImportTasks (page: PageRequest<{ status?: stri
         return eb.val(true);
       }
     })
+
+    .orderBy('finished_at desc')
+    .orderBy('created_at desc')
   ;
 
   return executePage(builder, page);

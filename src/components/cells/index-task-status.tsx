@@ -8,16 +8,16 @@ export const TASK_STATUS = {
   SUCCEED: { label: 'Succeed', value: 'SUCCEED', icon: CheckCircleIcon, className: 'text-green-700' },
   CREATED: { label: 'Created', value: 'CREATED', icon: CircleDashedIcon, className: 'text-gray-400' },
   PENDING: { label: 'Pending', value: 'PENDING', icon: CircleDashedIcon, className: 'text-gray-600' },
-  IMPORTING: { label: 'Importing', value: 'IMPORTING', icon: LoaderIcon, className: 'text-yellow-700' },
+  INDEXING: { label: 'Indexing', value: 'INDEXING', icon: LoaderIcon, className: 'text-yellow-700' },
   FAILED: { label: 'Failed', value: 'FAILED', icon: XCircle, className: 'text-destructive' },
 } as const;
 
-export const taskStatusCell = <T extends { status: string, error: string | null }> (props: CellContext<T, keyof typeof TASK_STATUS | unknown>) => {
+export const taskStatusCell = <T extends { status: string, message: string | null }> (props: CellContext<T, keyof typeof TASK_STATUS | unknown>) => {
   const state = props.getValue();
   const info = TASK_STATUS[state as keyof typeof TASK_STATUS];
 
   if (info) {
-    const error = props.row.original.error;
+    const error = props.row.original.message;
 
     const el = (
       <span className={cn('flex gap-1', info.className)}>

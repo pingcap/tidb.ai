@@ -1,4 +1,5 @@
 import { DBv1, getDb, tx } from '@/core/v1/db';
+import { executePage, type PageRequest } from '@/lib/database';
 import type { Rewrite } from '@/lib/type-utils';
 import type { Insertable, Selectable, Updateable } from 'kysely';
 
@@ -67,6 +68,25 @@ export async function createDocumentIndexTasks (list: CreateDocumentIndexTask[])
       info: JSON.stringify(info),
     })))
     .executeTakeFirstOrThrow();
+}
+
+export async function listDocumentIndexTasks (page: PageRequest<{ status?: string[] }>) {
+  const builder = getDb()
+    .selectFrom('document_index_task')
+    .selectAll()
+    .where(eb => {
+      if (page.status?.length) {
+        return eb('status', 'in', page.status as any);
+      } else {
+        return eb.val(true);
+      }
+    })
+    .orderBy('ended_at desc')
+    .orderBy('started_at desc')
+    .orderBy('created_at desc')
+  ;
+
+  return executePage(builder, page);
 }
 
 export async function updateDocumentIndexTask ({ info, ...update }: UpdateDocumentIndexTask) {

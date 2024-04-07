@@ -2,7 +2,7 @@
 
 import { Ask } from '@/components/ask';
 import { type NavGroup, SiteNav } from '@/components/site-nav';
-import { SiteNavFooter, type SiteSocialsType } from '@/components/site-nav-footer';
+import { SiteNavFooter } from '@/components/site-nav-footer';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogOverlay, DialogPortal } from '@/components/ui/dialog';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
@@ -10,7 +10,6 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAsk } from '@/components/use-ask';
 import { useHref } from '@/components/use-href';
-import type { DB } from '@/core/db/schema';
 import type { Chat } from '@/core/v1/chat';
 import { useUser } from '@/lib/auth';
 import type { Page } from '@/lib/database';
@@ -18,14 +17,12 @@ import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
 import { deleteChat } from '@/operations/chats';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import type { Selectable } from 'kysely';
 import { ActivitySquareIcon, CogIcon, CommandIcon, FileIcon, HomeIcon, ImportIcon, ListIcon, MenuIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
 const conversationItemClassName = 'opacity-80 text-xs p-2 py-1.5 h-max font-light w-[86%] ml-[14%] block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold';
-const docsItemClassName = 'text-xs p-2 py-1.5 h-max font-normal block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold';
 
 export function Nav () {
   const href = useHref();
@@ -90,6 +87,7 @@ export function Nav () {
         { href: '/explore', title: 'Documents', icon: FileIcon },
         { href: '/sources', title: 'Data Sources', icon: ImportIcon },
         { href: '/import-tasks', title: 'Import Tasks', icon: ListIcon },
+        { href: '/index-tasks', title: 'Index Tasks', icon: ListIcon },
         { href: '/settings', title: 'Settings', icon: CogIcon },
       ],
       sectionProps: { className: 'mt-auto mb-0' },
@@ -118,7 +116,7 @@ export function Nav () {
   );
 }
 
-export function NavDrawer() {
+export function NavDrawer () {
   return (
     <Drawer>
       <DrawerTrigger className="flex md:hidden flex-shrink-0" asChild>
