@@ -45,7 +45,6 @@ export default function Page () {
     helper.accessor('created_at', { cell: datetime }),
   ];
 
-  // FIXME: make it work
   return (
     <>
       <AdminPageHeading title="Sources" />
