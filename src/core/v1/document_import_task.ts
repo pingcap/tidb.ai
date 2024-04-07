@@ -27,8 +27,8 @@ export async function listDocumentImportTasks (page: PageRequest<{ status?: stri
     .selectFrom('document_import_task')
     .selectAll()
     .where(eb => {
-      if (page.status?.length > 0) {
-        return eb('status', 'in', page.status);
+      if (page.status?.length) {
+        return eb('status', 'in', page.status as any);
       } else {
         return eb.val(true);
       }
