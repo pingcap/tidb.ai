@@ -8,7 +8,7 @@ const withMDX = mdx({
 let nextConfig = withSvgr(withMDX({
   experimental: {
     serverComponentsExternalPackages: ['pdfjs-dist', 'llamaindex'],
-    outputFileTracingIgnores: ['**canvas**'],
+    outputFileTracingExcludes: ['**canvas**'],
   },
   pageExtensions: ['js', 'jsx', 'mdx', '.md', 'ts', 'tsx'],
 
