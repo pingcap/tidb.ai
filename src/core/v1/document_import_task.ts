@@ -127,7 +127,7 @@ export async function terminateDocumentImportTask (id: number, reason: string) {
     .set('error_message', reason)
     .set('finished_at', new Date())
     .where('id', '=', id)
-    .where('status', '=', 'IMPORTING')
+    .where('status', 'in', ['IMPORTING', 'PENDING'])
     .executeTakeFirst();
 
   return Number(numUpdatedRows) !== 0;
