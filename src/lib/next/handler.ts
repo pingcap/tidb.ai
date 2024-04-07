@@ -56,7 +56,7 @@ export function defineHandler<
             return CRONJOB_INVALID_AUTH_TOKEN_ERROR.toResponse();
           }
         } else if (options.auth) {
-          if (!auth.user) {
+          if (!auth?.user) {
             return AUTH_REQUIRE_AUTHED_ERROR.toResponse();
           }
           switch (options.auth) {
