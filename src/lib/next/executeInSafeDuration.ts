@@ -6,7 +6,7 @@ export async function executeInSafeDuration (
   const start = Date.now();
   const timeout = start + maxDuration * threshold * 1000;
 
-  while (Date.now() > timeout) {
+  while (Date.now() < timeout) {
     const continueExecutions = await executor();
     if (!continueExecutions) {
       return;
