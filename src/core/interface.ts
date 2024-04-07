@@ -49,10 +49,6 @@ export namespace rag {
     ContentMetadataExtractor = 'rag.content-metadata-extractor',
     ContentChunkMetadataExtractor = 'rag.content-chunk-metadata-extractor',
     ImportSourceTaskProcessor = 'rag.import-source-task',
-    /**
-     * @deprecated
-     */
-    Prompting = 'rag.prompting',
   }
 
   export type BaseMeta<Options> = {
@@ -171,16 +167,6 @@ export namespace rag {
     abstract process (task: { url: string }): Promise<ImportSourceTaskResult>
   }
 
-  export type Retriever = (query: string, top_k: number, namespace: string[]) => Promise<{ id: string, top: RetrievedContext[] }>;
-
-  export type PromptingContext = {
-    model: ChatModel<any>;
-    retriever: Retriever;
-    defaultNamespaces: string[];
-    specifyNamespaces: string[];
-    candidateNamespaces: Namespace[];
-  }
-
   export interface RetrievedContext {
     text_content: string,
     source_uri: string,
@@ -190,24 +176,6 @@ export namespace rag {
   export interface RerankedContext extends RetrievedContext {
     semantic_search_index: number;
     relevance_score: number;
-  }
-
-  /**
-   * @deprecated
-   */
-  export abstract class Prompting<Options> extends Base<Options> {
-    static type = ExtensionType.Prompting;
-
-    /**
-     * @deprecated
-     */
-    abstract refine (ctx: PromptingContext, query: string): Promise<Prompting.RefinedMessages>
-  }
-
-  export namespace Prompting {
-    export type RefinedMessages = ContextualMessages | NonContextualMessages;
-    export type ContextualMessages = { queryId: string, messages: ChatMessage[], context: RetrievedContext[], metadata: Record<string, any> };
-    export type NonContextualMessages = { messages: ChatMessage[], metadata: Record<string, any> }
   }
 
   /**
@@ -238,7 +206,6 @@ export namespace rag {
     [rag.ExtensionType.Loader]: Loader,
     [rag.ExtensionType.ImportSourceTaskProcessor]: ImportSourceTaskProcessor,
     [rag.ExtensionType.Embeddings]: Embeddings,
-    [rag.ExtensionType.Prompting]: Prompting,
     [rag.ExtensionType.Reranker]: Reranker,
   } as const;
 

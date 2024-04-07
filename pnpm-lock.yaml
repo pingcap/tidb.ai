@@ -291,15 +291,9 @@ importers:
       '@createrag/extension-pdf-loader':
         specifier: workspace:^
         version: link:extensions/pdf-loader
-      '@createrag/extension-refined-prompting':
-        specifier: workspace:^
-        version: link:extensions/refined-prompting
       '@createrag/extension-robots-task-processor':
         specifier: workspace:^
         version: link:extensions/robots-task-processor
-      '@createrag/extension-simple-prompting':
-        specifier: workspace:^
-        version: link:extensions/simple-prompting
       '@createrag/extension-sitemap-task-processor':
         specifier: workspace:^
         version: link:extensions/sitemap-task-processor
@@ -426,11 +420,7 @@ importers:
 
   extensions/pdf-loader: {}
 
-  extensions/refined-prompting: {}
-
   extensions/robots-task-processor: {}
-
-  extensions/simple-prompting: {}
 
   extensions/sitemap-task-processor: {}
 

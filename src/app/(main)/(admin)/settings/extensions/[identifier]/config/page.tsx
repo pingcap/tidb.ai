@@ -20,8 +20,6 @@ export default function Page ({ params }: { params: { identifier: string } }) {
   };
 
   switch (def.category) {
-    case ExtensionCategory.PROMPTING:
-      return <ConfigPrompting {...configProps} />;
     case ExtensionCategory.LOADER:
       return <ConfigLoader {...configProps} />;
     default:

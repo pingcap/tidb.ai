@@ -25,7 +25,6 @@ export class Flow implements Flow.ExtensionApi {
     [rag.ExtensionType.Loader]: new Map(),
     [rag.ExtensionType.ImportSourceTaskProcessor]: new Map(),
     [rag.ExtensionType.Embeddings]: new Map(),
-    [rag.ExtensionType.Prompting]: new Map(),
     [rag.ExtensionType.Reranker]: new Map(),
   } satisfies { [Tp in keyof rag.ExtensionTypesMap]: Map<string, InstanceType<rag.ExtensionTypesMap[Tp]>> };
 

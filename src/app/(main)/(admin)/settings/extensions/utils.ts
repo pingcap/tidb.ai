@@ -6,7 +6,6 @@ export const enum ExtensionCategory {
   EMBEDDINGS = 'rag.embeddings',
   CHAT_MODEL = 'rag.chat-model',
   DOCUMENT_STORAGE = 'rag.document-storage',
-  PROMPTING = 'rag.prompting',
   RERANKER = 'rag.reranker',
 }
 
@@ -24,7 +23,6 @@ export const extensionsDefs: ExtensionDef[] = [
   { category: ExtensionCategory.EMBEDDINGS, test: /\.embeddings\./, title: 'Embeddings', icon: BinaryIcon, playground: false },
   { category: ExtensionCategory.CHAT_MODEL, test: /\.chat-model\./, title: 'Chat model', icon: CpuIcon, playground: false },
   { category: ExtensionCategory.DOCUMENT_STORAGE, test: /\.document-storage\./, title: 'Document storage', icon: ArchiveIcon, playground: false },
-  { category: ExtensionCategory.PROMPTING, test: /\.prompting\./, title: 'Prompting', icon: WorkflowIcon, playground: false },
   { category: ExtensionCategory.RERANKER, test: /\.reranker\./, title: 'Reranker', icon: ArrowDownWideNarrowIcon, playground: false },
 ];
 

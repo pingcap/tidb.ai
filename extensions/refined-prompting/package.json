@@ -1,8 +1,0 @@
-{
-  "name": "@createrag/extension-refined-prompting",
-  "version": "1.0.0",
-  "exports": {
-    "browser": "./meta.ts",
-    "node": "./RefinedPrompting.ts"
-  }
-}
