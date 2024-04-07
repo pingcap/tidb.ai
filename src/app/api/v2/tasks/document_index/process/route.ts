@@ -17,3 +17,4 @@ export const GET = defineHandler({
 });
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
