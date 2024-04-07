@@ -8,7 +8,6 @@ namespace IndexFlowConfig {
   }
 
   export type Loader = BaseComponentConfig;
-  export type Splitter = BaseComponentConfig
   export type Embeddings = BaseComponentConfig
   export type DocumentStorage = BaseComponentConfig
   export type ChatModel = BaseComponentConfig
@@ -19,7 +18,6 @@ namespace IndexFlowConfig {
 interface IndexFlowConfig {
   documentStorage: IndexFlowConfig.DocumentStorage[];
   loaders: IndexFlowConfig.Loader[];
-  splitters: IndexFlowConfig.Splitter[];
   embeddings: IndexFlowConfig.Embeddings[];
   chatModels: IndexFlowConfig.ChatModel[];
   promptings: IndexFlowConfig.Prompting[];
@@ -47,7 +45,6 @@ export async function getFlow (registry: RagExtensionsRegistry, config?: IndexFl
   if (config) {
     config.documentStorage.forEach(add);
     config.loaders.forEach(add);
-    config.splitters.forEach(add);
     config.embeddings.forEach(add);
     config.chatModels.forEach(add);
     config.promptings.forEach(add);

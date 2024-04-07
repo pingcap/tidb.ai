@@ -43,10 +43,6 @@ export namespace rag {
   export enum ExtensionType {
     DocumentStorage = 'rag.document-storage',
     Loader = 'rag.loader',
-    /**
-     * @deprecated
-     */
-    Splitter = 'rag.splitter',
     Embeddings = 'rag.embeddings',
     Reranker = 'rag.reranker',
     ChatModel = 'rag.chat-model',
@@ -116,23 +112,6 @@ export namespace rag {
     abstract support (mime: string, uri: string): boolean;
 
     abstract load (buffer: Buffer, uri: string): Content<ContentMetadata> | Promise<Content<ContentMetadata>>;
-  }
-
-  /**
-   * @deprecated
-   */
-  export abstract class Splitter<Options, ContentMetadata, ChunkMetadata> extends Base<Options> {
-    static type = ExtensionType.Splitter;
-
-    /**
-     * @deprecated
-     */
-    abstract support (content: Content<ContentMetadata>): boolean | Promise<boolean>;
-
-    /**
-     * @deprecated
-     */
-    abstract split (content: Content<ContentMetadata>): ChunkedContent<ContentMetadata, ChunkMetadata> | Promise<ChunkedContent<ContentMetadata, ChunkMetadata>>;
   }
 
   export abstract class Embeddings<Options> extends Base<Options> {
@@ -257,7 +236,6 @@ export namespace rag {
     [rag.ExtensionType.ContentChunkMetadataExtractor]: ContentChunkMetadataExtractor,
     [rag.ExtensionType.ContentMetadataExtractor]: ContentMetadataExtractor,
     [rag.ExtensionType.Loader]: Loader,
-    [rag.ExtensionType.Splitter]: Splitter,
     [rag.ExtensionType.ImportSourceTaskProcessor]: ImportSourceTaskProcessor,
     [rag.ExtensionType.Embeddings]: Embeddings,
     [rag.ExtensionType.Prompting]: Prompting,

@@ -1,5 +1,4 @@
 import { rag } from '@/core/interface';
-import ExtensionType = rag.ExtensionType;
 
 export namespace Flow {
   export interface ExtensionApi {
@@ -24,7 +23,6 @@ export class Flow implements Flow.ExtensionApi {
     [rag.ExtensionType.ContentChunkMetadataExtractor]: new Map(),
     [rag.ExtensionType.ContentMetadataExtractor]: new Map(),
     [rag.ExtensionType.Loader]: new Map(),
-    [rag.ExtensionType.Splitter]: new Map(),
     [rag.ExtensionType.ImportSourceTaskProcessor]: new Map(),
     [rag.ExtensionType.Embeddings]: new Map(),
     [rag.ExtensionType.Prompting]: new Map(),
@@ -122,7 +120,7 @@ export class Flow implements Flow.ExtensionApi {
   }
 
   getImportSourceTaskProcessor (type: string, url: string): rag.ImportSourceTaskProcessor<any> {
-    const processor = this.findFirst(rag.ExtensionType.ImportSourceTaskProcessor, processor => processor.support(type, url))
+    const processor = this.findFirst(rag.ExtensionType.ImportSourceTaskProcessor, processor => processor.support(type, url));
     if (processor) {
       return processor;
     }

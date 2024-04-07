@@ -21,14 +21,7 @@ export const POST = adminHandlerGuard(async (req, { params }: { params: { identi
 
   try {
     const component = await baseRegistry.create(identifier, options);
-    if (component instanceof rag.Splitter) {
-      const result = await component.split({
-        content: [content],
-        hash: '',
-        metadata: {},
-      });
-      return NextResponse.json(result);
-    } else if (component instanceof rag.Loader) {
+    if (component instanceof rag.Loader) {
       const response = await fetch(content).then(handleErrors);
       const result = await component.load(Buffer.from(await response.arrayBuffer()), content);
       return NextResponse.json(result);

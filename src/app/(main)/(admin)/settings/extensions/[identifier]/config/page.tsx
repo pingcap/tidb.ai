@@ -2,7 +2,6 @@ import type { ConfigProps } from '@/app/(main)/(admin)/settings/extensions/[iden
 import { ConfigFallback } from '@/app/(main)/(admin)/settings/extensions/[identifier]/config/ConfigFallback';
 import { ConfigLoader } from '@/app/(main)/(admin)/settings/extensions/[identifier]/config/ConfigLoader';
 import { ConfigPrompting } from '@/app/(main)/(admin)/settings/extensions/[identifier]/config/ConfigPrompting';
-import { ConfigSplitter } from '@/app/(main)/(admin)/settings/extensions/[identifier]/config/ConfigSplitter';
 import { ExtensionCategory, getDef } from '@/app/(main)/(admin)/settings/extensions/utils';
 import { notFound } from 'next/navigation';
 
@@ -21,8 +20,6 @@ export default function Page ({ params }: { params: { identifier: string } }) {
   };
 
   switch (def.category) {
-    case ExtensionCategory.SPLITTER:
-      return <ConfigSplitter {...configProps} />;
     case ExtensionCategory.PROMPTING:
       return <ConfigPrompting {...configProps} />;
     case ExtensionCategory.LOADER:
