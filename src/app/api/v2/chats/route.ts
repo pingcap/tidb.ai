@@ -69,7 +69,7 @@ export const POST = defineHandler({
     index,
   });
 
-  const { chat_id, message_ordinal, response } = await chatService.chat(sessionId, auth.user.id!, body.messages.find(m => m.role === 'user')?.content ?? '');
+  const { chat_id, message_ordinal, response } = await chatService.chat(sessionId, auth.user.id!, body.messages.findLast(m => m.role === 'user')?.content ?? '');
 
   return mapResponseToTextStream(chat_id, message_ordinal, response);
 });
