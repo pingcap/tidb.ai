@@ -74,12 +74,6 @@ UPDATE
 SET
     config = JSON_MERGE_PATCH(config, '{
       "parser": {
-        "textSplitter": {
-          "chunkSize": 512,
-          "chunkOverlap": 0,
-          "paragraphSeparator": "\\n",
-          "splitLongParagraph": true
-        }
       }
     }')
 WHERE
