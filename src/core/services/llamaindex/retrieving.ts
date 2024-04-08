@@ -4,7 +4,7 @@ import { getDb } from '@/core/v1/db';
 import type { Index } from '@/core/v1/index_';
 import type { Retrieve, RetrieveResult } from '@/core/v1/retrieve';
 import { getOptionalEnv } from '@/lib/env';
-import { cosineDistance, uuidToBin } from '@/lib/kysely';
+import { cosineDistance, cosineSimilarity, uuidToBin } from '@/lib/kysely';
 import { type BaseRetriever, CohereRerank, NodeRelationship, type NodeWithScore, ObjectType, type RetrieveParams, type ServiceContext, TextNode } from 'llamaindex';
 import type { RelatedNodeInfo, RelatedNodeType } from 'llamaindex/Node';
 import type { UUID } from 'node:crypto';
@@ -79,9 +79,9 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
         'document_node.document_id',
         `llamaindex_document_chunk_node_${this.index.name}.text as chunk_text`,
         eb => eb.ref(`llamaindex_document_chunk_node_${this.index.name}.metadata`).$castTo<any>().as('chunk_metadata'),
-        eb => cosineDistance(eb, 'embedding', queryEmbedding).as('relevance_score'),
+        eb => cosineSimilarity(eb, 'embedding', queryEmbedding).as('relevance_score'),
       ])
-      .orderBy('relevance_score', 'desc')
+      .orderBy(eb => cosineDistance(eb, 'embedding', queryEmbedding), 'asc')
       .limit(top_k)
       .execute();
 
