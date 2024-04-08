@@ -24,10 +24,10 @@ export const GET = defineHandler({
     final.succeed.push(...results.succeed);
     final.failed.push(...results.failed);
     return results.succeed.length > 0 || results.failed.length > 0;
-  })
+  }, 120);
 
   return final;
 });
 
 export const dynamic = 'force-dynamic';
-export const maxDuration = 60;
+export const maxDuration = 300;
