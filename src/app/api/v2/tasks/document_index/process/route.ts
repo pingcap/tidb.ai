@@ -24,7 +24,7 @@ export const GET = defineHandler({
     final.succeed.push(...results.succeed);
     final.failed.push(...results.failed);
     return results.succeed.length > 0;
-  }, 120);
+  }, 60, 0.8, 'document_index_tasks');
 
   return final;
 });
