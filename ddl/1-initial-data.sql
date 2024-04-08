@@ -86,10 +86,6 @@ SET
     config = JSON_MERGE_PATCH(config, '{
       "metadata_extractors": [
         {
-          "provider": "llamaindex.extractor.title",
-          "config": {}
-        },
-        {
           "provider": "llamaindex.extractor.summary",
           "config": {}
         },

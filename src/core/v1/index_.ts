@@ -15,11 +15,6 @@ export interface IndexConfig {
       paragraphSeparator?: string;
       splitLongSentences?: boolean;
     }
-    windowSize?: number;
-    windowMetadataKey?: string;
-    originalTextMetadataKey?: string;
-    includeMetadata?: boolean;
-    includePrevNextRel?: boolean;
   };
   metadata_extractors: {
     provider: string

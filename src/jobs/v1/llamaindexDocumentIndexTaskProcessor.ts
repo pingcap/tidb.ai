@@ -10,7 +10,7 @@ import { createIndexIngestionPipeline } from '@/lib/llamaindex/indexDocument';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
 import type { InsertObject } from 'kysely';
-import { NodeRelationship, SentenceSplitter, SentenceWindowNodeParser } from 'llamaindex';
+import { NodeRelationship, SentenceSplitter, SimpleNodeParser } from 'llamaindex';
 import type { RelatedNodeType } from 'llamaindex/Node';
 import type { UUID } from 'node:crypto';
 
@@ -38,7 +38,7 @@ export function createLlamaindexDocumentIndexTaskProcessor (): DocumentIndexTask
 
     // Initialize llamaindex node parser from config.
     const { textSplitter, ...parserConfig } = index.config.parser;
-    const parser = new SentenceWindowNodeParser({
+    const parser = new SimpleNodeParser({
       textSplitter: new SentenceSplitter(textSplitter),
       ...parserConfig,
     });

@@ -30,11 +30,7 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
       content: content,
       hash: md5(content.join('\n\n\n\n')),
       metadata: {
-        partitions: result.map(item => ({
-          selector: item.selector,
-          position: item.element.position,
-        })),
-        warning: warning.length ? warning : undefined,
+        // warning: warning.length ? warning : undefined,
       },
     } satisfies rag.Content<{}>;
   }
