@@ -50,6 +50,7 @@ export async function createNewDocumentIndexTask (documentId: number, indexId: n
   });
 }
 
+// TODO: a new function to schedule documents with only error index tasks
 export async function scheduleDocumentFirstIndex (indexId: number) {
   return await tx(async () => {
     const ids = await listByNotIndexed(indexId);

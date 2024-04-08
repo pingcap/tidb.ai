@@ -33,6 +33,7 @@ export async function listLatestDocumentIndexTasksByDocumentIndex (documentId: n
     .execute();
 }
 
+// list documents without any index task
 export async function listByNotIndexed (indexId: number) {
   const documents = await getDb()
     .with('cte_indexed_documents', cte => cte
