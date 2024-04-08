@@ -29,5 +29,5 @@ export async function executeInSafeDuration (
     }
   }
 
-  console.info(`${debugName ? debugName + ': ' : ''}execute loops finished: [target=${maxDuration}s, threshold=${threshold * maxDuration}s, times=${times}, mean=${meanDuration / 1000}s, min=${times > 0 ? min : 0}s, max=${max}s]`);
+  console.info(`${debugName ? debugName + ': ' : ''}execute loops finished: [target=${maxDuration}s, threshold=${threshold * maxDuration}s, times=${times}, mean=${meanDuration / 1000}s, min=${times > 0 ? min / 1000 : 0}s, max=${max / 1000}s]`);
 }
