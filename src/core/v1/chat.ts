@@ -42,7 +42,7 @@ export async function listChats (request: PageRequest<{ userId?: string }>) {
         return eb.val(true);
       }
     })
-    .where('deleted_at', 'is not', null)
+    .where('deleted_at', 'is', null)
     .orderBy('created_at desc'), request);
 }
 
