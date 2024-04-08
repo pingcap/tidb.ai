@@ -25,7 +25,7 @@ export const GET = defineHandler({
     const results = await processDocumentImportTasks(n, processor);
     final.succeed.push(...results.succeed);
     final.failed.push(...results.failed);
-    return results.succeed.length > 0 || results.failed.length > 0;
+    return results.succeed.length > 0;
   }, 60);
 
   return final;
