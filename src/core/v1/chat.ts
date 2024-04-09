@@ -64,6 +64,7 @@ export async function listChatContexts (chatId: number) {
     .select([
       'document.name',
       'document.source_uri',
+      'chat_message.ordinal',
     ])
     .where('chat_message.chat_id', '=', chatId)
     .orderBy('retrieve_result.relevance_score desc')

@@ -15,7 +15,7 @@ const getChat = cache(async (id: number) => {
     listChatContexts(id),
   ]);
 
-  return { chat, history, context: context.map((item, index) => ({ ordinal: index, title: item.name, uri: item.source_uri })) };
+  return { chat, history, context: context.map((item, index) => ({ ordinal: item.ordinal, title: item.name, uri: item.source_uri })) };
 });
 
 export default async function Conversations ({ params }: { params: { id: string } }) {
@@ -29,6 +29,8 @@ export default async function Conversations ({ params }: { params: { id: string 
     history,
     context,
   } = await getChat(id);
+
+  console.log(context)
 
   return (
     <div className="xl:pr-side">
