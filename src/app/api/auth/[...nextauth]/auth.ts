@@ -61,6 +61,7 @@ export function auth (...args: any[]): any {
 async function generateNextAuth () {
   const providers = await getProviders();
   const { handlers, auth } = NextAuth({
+    trustHost: true,
     pages: {
       signIn: '/auth/signin',
     },

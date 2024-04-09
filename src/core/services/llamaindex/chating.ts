@@ -1,29 +1,51 @@
 import { AppChatService, type ChatOptions, type ChatResponse } from '@/core/services/chating';
 import { LlamaindexRetrieverWrapper, LlamaindexRetrieveService } from '@/core/services/llamaindex/retrieving';
-import type { RetrievedChunk } from '@/core/services/retrieving';
 import { type Chat, listChatMessages } from '@/core/v1/chat';
 import { getDb } from '@/core/v1/db';
 import { uuidToBin } from '@/lib/kysely';
 import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
 import { getLLM } from '@/lib/llamaindex/converters/llm';
-import { CondenseQuestionChatEngine, type Response, RetrieverQueryEngine, serviceContextFromDefaults } from 'llamaindex';
+import { CompactAndRefine, CondenseQuestionChatEngine, defaultRefinePrompt, defaultTextQaPrompt, MetadataMode, type Response, ResponseSynthesizer, RetrieverQueryEngine, serviceContextFromDefaults } from 'llamaindex';
 import type { UUID } from 'node:crypto';
 
 export class LlamaindexChatService extends AppChatService {
+  getTextQAPrompt (): typeof defaultTextQaPrompt {
+    return ({ query, context }) => `Context information is below.
+---------------------
+${context}
+---------------------
+Given the context information and not prior knowledge, answer the query use markdown format. Add links reference to original contexts if necessary.
+Query: ${query}
+Answer:`;
+  }
+
+  getRefinePrompt (): typeof defaultRefinePrompt {
+    return ({ context, query, existingAnswer }: any) =>
+      `The original query is as follows: ${query}
+We have provided an existing answer: ${existingAnswer}
+We have the opportunity to refine the existing answer (only if needed) with some more context below.
+------------
+${context}
+------------
+Given the new context, refine the original answer to better answer the query. If the context isn't useful, return the original answer.
+Use markdown format to answer. Add links reference to contexts if necessary.
+Refined Answer:`;
+  }
+
   protected async* run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatResponse> {
-    let lastRetrieveId: number | undefined
+    let lastRetrieveId: number | undefined;
 
     const serviceContext = serviceContextFromDefaults({
       llm: getLLM(this.flow, this.index.config.llm.provider, this.index.config.llm.config),
       embedModel: getEmbedding(this.flow, this.index.config.embedding.provider, this.index.config.embedding.config),
     });
 
+    // build queryEngine
     const retrieveService = new LlamaindexRetrieveService({
       reranker: { provider: 'cohere' },
       flow: this.flow,
       index: this.index,
     });
-
     const retriever = new LlamaindexRetrieverWrapper(retrieveService, {
       search_top_k: 100,
       top_k: 5,
@@ -35,19 +57,33 @@ export class LlamaindexChatService extends AppChatService {
       },
     });
 
-    const history = await listChatMessages(chat.id);
+    const responseBuilder = new CompactAndRefine(
+      serviceContext,
+      this.getTextQAPrompt(),
+      this.getRefinePrompt(),
+    );
+    const responseSynthesizer = new ResponseSynthesizer({
+      serviceContext,
+      responseBuilder,
+      metadataMode: MetadataMode.LLM,
+    });
+    const queryEngine = new RetrieverQueryEngine(retriever, responseSynthesizer);
 
-    const engine = new CondenseQuestionChatEngine({
-      queryEngine: new RetrieverQueryEngine(retriever),
-      chatHistory: history.map(message => ({
-        role: message.role as any,
-        content: message.content,
-        additionalKwargs: {},
-      })),
+    // build chatHistory
+    const history = await listChatMessages(chat.id);
+    const chatHistory = history.map(message => ({
+      role: message.role as any,
+      content: message.content,
+      additionalKwargs: {},
+    }));
+
+    const chatEngine = new CondenseQuestionChatEngine({
+      queryEngine,
+      chatHistory,
       serviceContext,
     });
 
-    const stream = engine.chat({
+    const stream = chatEngine.chat({
       stream: true,
       chatHistory: options.history.map(message => ({
         role: message.role as any,

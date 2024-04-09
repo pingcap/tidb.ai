@@ -170,7 +170,11 @@ export class LlamaindexRetrieverWrapper implements BaseRetriever {
         node: new TextNode({
           id_: chunk.document_chunk_node_id,
           text: chunk.text,
-          metadata: chunk.metadata,
+          metadata: {
+            //// MARK: we don't need the metadata from extractors, they are for embedding.
+            // ...chunk.metadata,
+            sourceUri: chunk.document_uri,
+          },
           relationships: Object.fromEntries(Object.entries(chunk.relationships).map(([k, v]) => {
             return [k, { nodeId: v.chunk_node_id, metadata: v.metadata } satisfies RelatedNodeInfo];
           })),
