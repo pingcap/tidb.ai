@@ -1,6 +1,5 @@
 import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import { Conversation } from '@/components/conversation';
-import database from '@/core/db';
 import { getChat as dbGetChat, listChatContexts, listChatMessages } from '@/core/v1/chat';
 import { cache } from 'react';
 
@@ -29,8 +28,6 @@ export default async function Conversations ({ params }: { params: { id: string 
     history,
     context,
   } = await getChat(id);
-
-  console.log(context)
 
   return (
     <div className="xl:pr-side">
