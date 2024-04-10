@@ -80,7 +80,7 @@ export abstract class AppChatService extends AppIndexBaseService {
       async err => {
         await updateChatMessage(message.id, {
           finished_at: new Date(),
-          error_message: getErrorMessage(err).slice(0, 256),
+          error_message: getErrorMessage(err),
           status: 'FAILED',
         });
       });

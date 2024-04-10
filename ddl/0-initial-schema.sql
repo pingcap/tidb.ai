@@ -156,7 +156,7 @@ CREATE TABLE chat_message
     -- ChatOptions { llm, namespaces?, topk?, rerank_topk? }
     options       JSON                                               NOT NULL,
     status        ENUM('CREATED', 'GENERATING', 'SUCCEED', 'FAILED') NOT NULL,
-    error_message VARCHAR(256)                                       NULL,
+    error_message TEXT                                               NULL,
     created_at    DATETIME                                           NOT NULL,
     finished_at   DATETIME                                           NULL,
     deleted_at    DATETIME                                           NULL,
@@ -164,6 +164,7 @@ CREATE TABLE chat_message
     PRIMARY KEY (id),
     FOREIGN KEY fk_cm_on_chat_id (chat_id) REFERENCES chat (id)
 );
+
 
 -- Retrieve
 CREATE TABLE retrieve
@@ -173,7 +174,7 @@ CREATE TABLE retrieve
     index_id          INT              NOT NULL,
     -- If rerank fails, you can actually use the results of ANN search directly.
     status            ENUM('CREATED', 'SEARCHING', 'RERANKING', 'SUCCEED', 'FAILED') NOT NULL,
-    error_message     VARCHAR(256)     NULL,
+    error_message     TEXT             NULL,
     options           JSON             NOT NULL,
     created_at        DATETIME         NOT NULL,
     search_started_at DATETIME,
