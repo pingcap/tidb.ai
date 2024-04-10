@@ -1,4 +1,4 @@
-import { deleteChatEngine, getChatEngine, updateChatEngine } from '@/core/v1/chat_engine';
+import { chatOptionsSchema, deleteChatEngine, getChatEngine, updateChatEngine } from '@/core/v1/chat_engine';
 import { defineHandler } from '@/lib/next/handler';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
@@ -27,7 +27,7 @@ export const PUT = defineHandler({
   body: z.object({
     name: z.string(),
     engine: z.string(),
-    engine_options: z.object({}).passthrough(),
+    engine_options: chatOptionsSchema,
   }),
 }, async ({
   params,

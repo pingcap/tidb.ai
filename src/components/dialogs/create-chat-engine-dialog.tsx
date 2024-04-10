@@ -35,7 +35,7 @@ export function CreateChatEngineDialog ({
           index_id: defaultIndexId,
           retriever: {
             search_top_k: 100,
-            top_k: 1,
+            top_k: 5,
           },
         },
       }}

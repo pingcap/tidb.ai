@@ -5,6 +5,7 @@ import { APIError } from '@/lib/errors';
 import type { Rewrite } from '@/lib/type-utils';
 import type { Insertable, Selectable, Updateable } from 'kysely';
 import { notFound } from 'next/navigation';
+import { z } from 'zod';
 
 export type ChatEngine = Rewrite<Selectable<DBv1['chat_engine']>, { engine_options: ChatEngineOptions }>;
 export type CreateChatEngine = Rewrite<Insertable<DBv1['chat_engine']>, { engine_options: ChatEngineOptions }>;
@@ -15,7 +16,7 @@ export type ChatEngineOptions = CondenseQuestionChatEngineOptions;
 export interface CondenseQuestionChatEngineOptions {
   index_id?: number;
   retriever?: Pick<RetrieveOptions, 'search_top_k' | 'top_k'>;
-  reranker?: { provider: string, config: any };
+  reranker?: { provider: string, config?: any };
   prompts?: {
     textQa?: string
     refine?: string
@@ -23,9 +24,30 @@ export interface CondenseQuestionChatEngineOptions {
   };
   llm?: {
     provider: string
-    config: any;
+    config?: any;
   };
 }
+
+export const chatOptionsSchema = z.object({
+  index_id: z.coerce.number().int().optional(),
+  retriever: z.object({
+    search_top_k: z.coerce.number().int().optional(),
+    top_k: z.coerce.number().int().optional(),
+  }).optional(),
+  reranker: z.object({
+    provider: z.string(),
+    config: z.any().optional(),
+  }).optional(),
+  llm: z.object({
+    provider: z.string(),
+    config: z.any().optional(),
+  }).optional(),
+  prompts: z.object({
+    textQa: z.string().optional(),
+    refine: z.string().optional(),
+    condenseQuestion: z.string().optional(),
+  }).optional(),
+});
 
 export async function getChatEngine (id: number) {
   return await getDb()

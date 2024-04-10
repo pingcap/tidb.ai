@@ -1,4 +1,4 @@
-import { createChatEngine, listChatEngine } from '@/core/v1/chat_engine';
+import { chatOptionsSchema, createChatEngine, listChatEngine } from '@/core/v1/chat_engine';
 import { toPageRequest } from '@/lib/database';
 import { defineHandler } from '@/lib/next/handler';
 import { z } from 'zod';
@@ -12,7 +12,7 @@ export const POST = defineHandler({
   body: z.object({
     name: z.string(),
     engine: z.string(),
-    engine_options: z.object({}).passthrough(),
+    engine_options: chatOptionsSchema,
   }),
 }, async ({
   body,
