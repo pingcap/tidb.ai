@@ -61,7 +61,7 @@ const testNodes: any[] = [
 
 export async function GET (req: NextRequest) {
   const url = new URL(req.url);
-  const query = url.searchParams.get('query') || 'I want to a database to replace MySQL.';
+  const query = url.searchParams.get('query') || 'I want a database to replace MySQL.';
   const llm = new OpenAI({
     model: 'gpt-3.5-turbo',
     apiKey: process.env.OPENAI_API_KEY,
