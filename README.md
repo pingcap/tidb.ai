@@ -18,7 +18,7 @@ A [WIP] out-of-the-box RAG (Retrieval-Augmented Generation) app based on the wor
 
 (screenshot to be uploaded)
 
-## Local Deployment [TODO]
+## Quick Start [Working in Progress]
 To deploy the application in a self-hosted environment, run the following command:
 
 ```
@@ -28,8 +28,6 @@ then:
 ```
 ticloud create-app --template rag
 ```
-
-This is all there is to do.
 
 
 ## Deploy to Vercel [TODO]
