@@ -77,6 +77,7 @@ function InternalSearchBox () {
         .then(res => res.json())
         .then((res: SearchResult) => {
           const set = new Set<string>();
+          console.log(set);
           res.relevantChunks = res.relevantChunks.filter(res => {
             if (set.has(res.source_uri)) {
               return false;
@@ -109,13 +110,13 @@ function InternalSearchBox () {
         <Loader loading={disabled} />
         {result && <CommandGroup heading="Search results">
           {result.relevantChunks.map(item => (
-            <CommandItem key={item.source_uri} className="space-y-1 text-xs block cursor-pointer" onSelect={() => window.open(item.source_uri, '_blank')}>
-              <div className="flex gap-1 items-center whitespace-nowrap overflow-hidden overflow-ellipsis">
+            <CommandItem key={item.source_uri} value={item.source_uri} className="space-y-1 text-xs block cursor-pointer group" onSelect={() => window.open(item.source_uri, '_blank')}>
+              <div className="flex gap-1 items-center whitespace-nowrap overflow-hidden overflow-ellipsis font-bold">
                 <LinkIcon size="1em" />
                 {item.source_name}
               </div>
-              <div>
-                {parseSource(item.source_uri)}
+              <div className='text-muted-foreground'>
+                {item.source_uri}
               </div>
             </CommandItem>
           ))}
