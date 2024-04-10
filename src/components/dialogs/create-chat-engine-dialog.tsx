@@ -129,6 +129,17 @@ export function ChatEngineFields () {
         )}
       />
       <FormField
+        name="engine_options.prompts.condenseQuestion"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Condense Question Prompt</FormLabel>
+            <FormControl>
+              <PromptTemplateEditor {...field} />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      <FormField
         name="engine_options.prompts.textQa"
         render={({ field }) => (
           <FormItem>
@@ -144,17 +155,6 @@ export function ChatEngineFields () {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Refine Prompt</FormLabel>
-            <FormControl>
-              <PromptTemplateEditor {...field} />
-            </FormControl>
-          </FormItem>
-        )}
-      />
-      <FormField
-        name="engine_options.prompts.condenseQuestion"
-        render={({ field }) => (
-          <FormItem>
-            <FormLabel>Condense Question Prompt</FormLabel>
             <FormControl>
               <PromptTemplateEditor {...field} />
             </FormControl>
