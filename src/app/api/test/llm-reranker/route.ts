@@ -1,6 +1,6 @@
 import {LLMRerank} from "@/lib/llamaindex/postprocessors/rerankers/LLMReranker";
 import {OpenAI, TextNode} from "llamaindex";
-import { NextResponse } from 'next/server';
+import {NextRequest, NextResponse} from 'next/server';
 
 const testNodes: any[] = [
   {
@@ -59,7 +59,9 @@ const testNodes: any[] = [
   }
 ];
 
-export async function GET () {
+export async function GET (req: NextRequest) {
+  const url = new URL(req.url);
+  const query = url.searchParams.get('query') || 'I want to a database to replace MySQL.';
   const llm = new OpenAI({
     model: 'gpt-3.5-turbo',
     apiKey: process.env.OPENAI_API_KEY,
@@ -68,7 +70,7 @@ export async function GET () {
     llm
   });
 
-  const nodesWithScores = await reranker.postprocessNodes(testNodes, 'I want to a database to replace MySQL.');
+  const nodesWithScores = await reranker.postprocessNodes(testNodes, query);
 
   return NextResponse.json(nodesWithScores);
 }
