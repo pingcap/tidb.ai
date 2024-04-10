@@ -27,6 +27,7 @@ export async function deleteChat (id: number, by: string) {
     .updateTable('chat')
     .set('deleted_by', by)
     .set('deleted_at', new Date())
+    .where('id', '=', id)
     .execute();
 }
 
