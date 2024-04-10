@@ -71,20 +71,30 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
 
   private async search (queryEmbedding: number[], top_k: number) {
     const rawChunks = await getDb()
-      .selectFrom(`llamaindex_document_chunk_node_${this.index.name}`)
-      .innerJoin('llamaindex_document_node as document_node', `llamaindex_document_chunk_node_${this.index.name}.document_id`, 'document_node.document_id')
+      .with('cte_chunk_node', qc => qc.selectFrom(`llamaindex_document_chunk_node_${this.index.name}`)
+        .select([
+          'id',
+          'document_id',
+          'text',
+          'metadata',
+          eb => eb.fn('bin_to_uuid', [`llamaindex_document_chunk_node_${this.index.name}.id`]).as('document_chunk_node_id'),
+          `llamaindex_document_chunk_node_${this.index.name}.text as chunk_text`,
+          eb => eb.ref(`llamaindex_document_chunk_node_${this.index.name}.metadata`).$castTo<any>().as('chunk_metadata'),
+          eb => cosineDistance(eb, 'embedding', queryEmbedding).as('cosine_distance'),
+        ])
+        .orderBy(eb => cosineDistance(eb, 'embedding', queryEmbedding), 'asc')
+        .limit(top_k))
+      .selectFrom('cte_chunk_node')
+      .innerJoin('llamaindex_document_node as document_node', `cte_chunk_node.document_id`, 'document_node.document_id')
       .select([
-        eb => eb.fn('bin_to_uuid', [`llamaindex_document_chunk_node_${this.index.name}.id`]).as('document_chunk_node_id'),
+        eb => eb.fn('bin_to_uuid', [`cte_chunk_node.id`]).as('document_chunk_node_id'),
         eb => eb.fn('bin_to_uuid', ['document_node.id']).as('document_node_id'),
         'document_node.document_id',
-        `llamaindex_document_chunk_node_${this.index.name}.text as chunk_text`,
-        eb => eb.ref(`llamaindex_document_chunk_node_${this.index.name}.metadata`).$castTo<any>().as('chunk_metadata'),
-        eb => cosineSimilarity(eb, 'embedding', queryEmbedding).as('relevance_score'),
+        `cte_chunk_node.text as chunk_text`,
+        eb => eb(eb.val(1),'-', eb.ref('cte_chunk_node.cosine_distance')).as('relevance_score'),
+        eb => eb.ref(`cte_chunk_node.metadata`).$castTo<any>().as('chunk_metadata'),
       ])
-      .orderBy(eb => cosineDistance(eb, 'embedding', queryEmbedding), 'asc')
-      .limit(top_k)
       .execute();
-
     return await this.parse(this.index, rawChunks);
   }
 
@@ -113,31 +123,34 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     if (results.length === 0) {
       return [];
     }
-    const relationships = await getDb()
-      .selectFrom('llamaindex_node_relationship as rel')
-      .innerJoin(`llamaindex_document_chunk_node_${index.name} as target_chunk_node`, 'rel.target_node_id', `target_chunk_node.id`)
-      .select([
-        eb => eb.fn('bin_to_uuid', ['rel.source_node_id']).as('source_node_id'),
-        eb => eb.fn('bin_to_uuid', ['rel.target_node_id']).as('target_node_id'),
-        'rel.type',
-        'target_chunk_node.metadata',
-      ])
-      .where('rel.source_node_id', 'in', results.map(result => uuidToBin(result.document_chunk_node_id)))
-      .execute();
+
+    //// FIXME: Do we need relationships when retrieving?
+
+    // const relationships = await getDb()
+    //   .selectFrom('llamaindex_node_relationship as rel')
+    //   .innerJoin(`llamaindex_document_chunk_node_${index.name} as target_chunk_node`, 'rel.target_node_id', `target_chunk_node.id`)
+    //   .select([
+    //     eb => eb.fn('bin_to_uuid', ['rel.source_node_id']).as('source_node_id'),
+    //     eb => eb.fn('bin_to_uuid', ['rel.target_node_id']).as('target_node_id'),
+    //     'rel.type',
+    //     'target_chunk_node.metadata',
+    //   ])
+    //   .where('rel.source_node_id', 'in', results.map(result => uuidToBin(result.document_chunk_node_id)))
+    //   .execute();
 
     const nodeRelsMap = new Map<UUID, Record<string, RetrievedChunkReference>>;
 
-    for (let relationship of relationships) {
-      let rels = nodeRelsMap.get(relationship.source_node_id);
-      if (!rels) {
-        nodeRelsMap.set(relationship.source_node_id, rels = {});
-      }
-      rels[relationship.type] = {
-        index_id: index.id,
-        metadata: relationship.metadata,
-        chunk_node_id: relationship.target_node_id,
-      };
-    }
+    // for (let relationship of relationships) {
+    //   let rels = nodeRelsMap.get(relationship.source_node_id);
+    //   if (!rels) {
+    //     nodeRelsMap.set(relationship.source_node_id, rels = {});
+    //   }
+    //   rels[relationship.type] = {
+    //     index_id: index.id,
+    //     metadata: relationship.metadata,
+    //     chunk_node_id: relationship.target_node_id,
+    //   };
+    // }
 
     return results.map(result => ({
       index_id: index.id,
