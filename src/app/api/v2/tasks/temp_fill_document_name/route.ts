@@ -1,17 +1,16 @@
 import { getDb } from '@/core/v1/db';
 import { updateDocument } from '@/core/v1/document';
 import { executeInSafeDuration } from '@/lib/next/executeInSafeDuration';
+import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
 import { select } from 'hast-util-select';
 import { toText } from 'hast-util-to-text';
-import { NextResponse } from 'next/server';
 import path from 'path';
 import rehypeParse from 'rehype-parse';
 import { unified } from 'unified';
 
-export async function GET () {
-
+export const GET = defineHandler({ auth: 'cronjob' }, async () => {
   const flow = await getFlow(baseRegistry);
   const storage = flow.getStorage();
 
@@ -48,8 +47,7 @@ export async function GET () {
 
     return true;
   }, 60, 0.9);
-
-  return NextResponse.json({});
-}
+});
 
 export const dynamic = 'force-dynamic';
+export const maxDuration = 120;

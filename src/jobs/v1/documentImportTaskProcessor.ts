@@ -4,6 +4,11 @@ import type { CreateDocument } from '@/core/v1/document';
 import type { CreateDocumentImportTask } from '@/core/v1/document_import_task';
 import { md5 } from '@/lib/digest';
 import { genId } from '@/lib/id';
+import { select } from 'hast-util-select';
+import { toText } from 'hast-util-to-text';
+import path from 'path';
+import rehypeParse from 'rehype-parse';
+import { unified } from 'unified';
 
 export function createDocumentImportTaskProcessor (flow: Flow): DocumentImportTaskProcessor {
   return async (task) => {
@@ -25,11 +30,23 @@ export function createDocumentImportTaskProcessor (flow: Flow): DocumentImportTa
     if (content) {
       const storage = flow.getStorage();
       const uri = await storage.put(`raw-documents/${genId()}`, content.buffer);
+
+      let name: string | undefined;
+
+      if (content.mime === 'text/html') {
+        const htmlProcessor = unified().use(rehypeParse);
+        const root = htmlProcessor.parse(content.buffer);
+        const node = select('head > title', root);
+        if (node) {
+          name = toText(node);
+        }
+      }
+
       document = {
         content_uri: uri,
         source_uri: task.url,
         mime: content.mime,
-        name: '',
+        name: name ?? path.basename(new URL(task.url).pathname),
         created_at: new Date(),
         last_modified_at: new Date(),
         hash: md5(content.buffer),
