@@ -34,6 +34,14 @@ export interface Chat {
   url_key: string;
 }
 
+export interface ChatEngine {
+  engine: string;
+  engine_options: JsonValue;
+  id: Generated<number>;
+  is_default: 0 | 1;
+  name: string;
+}
+
 export interface ChatMessage {
   chat_id: number;
   content: string;
@@ -180,6 +188,7 @@ export interface Status {
 export interface DB {
   authentication_providers: AuthenticationProviders;
   chat: Chat;
+  chat_engine: ChatEngine;
   chat_message: ChatMessage;
   chat_message_retrieve_rel: ChatMessageRetrieveRel;
   document: Document;

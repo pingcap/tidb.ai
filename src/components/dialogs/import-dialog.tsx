@@ -7,9 +7,11 @@ import { AlertTriangleIcon } from 'lucide-react';
 import { type ReactElement, type ReactNode, useState } from 'react';
 import { type FieldValues, useForm } from 'react-hook-form';
 
-export function ImportDialog<T extends FieldValues> ({ title, description, onSubmit, trigger, children }: { title: ReactNode, onSubmit: (value: T) => Promise<void>, description?: ReactNode, trigger: ReactElement, children: ReactNode }) {
+export function ImportDialog<T extends FieldValues> ({ title, description, onSubmit, trigger, submitTitle = 'Import', defaultValues, children }: { title: ReactNode, onSubmit: (value: T) => Promise<void>, description?: ReactNode, trigger: ReactElement, children: ReactNode, submitTitle?: string, defaultValues?: T }) {
   const [open, setOpen] = useState(false);
-  const form = useForm<T>();
+  const form = useForm<T>({
+    values: defaultValues,
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>();
 
@@ -30,14 +32,14 @@ export function ImportDialog<T extends FieldValues> ({ title, description, onSub
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="max-h-[70vh] overflow-x-hidden overflow-y-auto">
         <DialogHeader>
           {title}
         </DialogHeader>
         {!!error && (<Alert variant="destructive">
           <AlertTriangleIcon className="h-4 w-4" />
           <AlertTitle>
-            Failed to submit
+            Failed to operate
           </AlertTitle>
           <AlertDescription>
             {getErrorMessage(error)}
@@ -51,7 +53,7 @@ export function ImportDialog<T extends FieldValues> ({ title, description, onSub
         {description && <DialogDescription>{description}</DialogDescription>}
         <DialogFooter>
           <Button form="import-uri-list" type="submit" disabled={loading}>
-            Import
+            {submitTitle}
           </Button>
         </DialogFooter>
       </DialogContent>

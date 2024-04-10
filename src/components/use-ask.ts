@@ -10,6 +10,7 @@ export function useAsk(onFinish?: () => void) {
   const [transitioning, startTransition] = useTransition();
 
   const ask = useCallback((message: string, options?: {
+    engine?: number;
     headers?: Record<string, string>;
   }) => {
     startTransition(() => {
@@ -19,6 +20,7 @@ export function useAsk(onFinish?: () => void) {
         body: JSON.stringify({
           messages: [],
           name: message,
+          engine: options?.engine,
         }),
         headers: {...options?.headers},
       }).then(handleErrors)
