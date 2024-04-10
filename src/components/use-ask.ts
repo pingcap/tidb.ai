@@ -27,7 +27,7 @@ export function useAsk(onFinish?: () => void) {
           __setMessage(message);
           startTransition(() => {
             onFinish?.()
-            router.push(`/c/${encodeURIComponent(res.id)}`);
+            router.push(`/c/${encodeURIComponent(res.url_key)}`);
           });
         })
         .finally(() => {

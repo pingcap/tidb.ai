@@ -1,5 +1,5 @@
 import { AppIndexBaseService } from '@/core/services/base';
-import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrieveRel, getChat, listChatMessages, updateChatMessage } from '@/core/v1/chat';
+import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrieveRel, getChat, getChatByUrlKey, listChatMessages, updateChatMessage } from '@/core/v1/chat';
 import { tx } from '@/core/v1/db';
 import { AUTH_FORBIDDEN_ERROR, getErrorMessage } from '@/lib/errors';
 import { notFound } from 'next/navigation';
@@ -18,9 +18,9 @@ export type ChatResponse = {
 }
 
 export abstract class AppChatService extends AppIndexBaseService {
-  async chat (chatId: number, userId: string, userInput: string) {
+  async chat (chatKey: string, userId: string, userInput: string) {
     const { chat, history } = await tx(async () => {
-      const chat = await getChat(chatId);
+      const chat = await getChatByUrlKey(chatKey);
 
       if (!chat) {
         notFound();
@@ -30,7 +30,7 @@ export abstract class AppChatService extends AppIndexBaseService {
         throw AUTH_FORBIDDEN_ERROR;
       }
 
-      const history = await listChatMessages(chatId);
+      const history = await listChatMessages(chat.id);
       return {
         chat, history,
       };

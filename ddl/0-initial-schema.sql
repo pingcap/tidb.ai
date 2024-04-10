@@ -135,6 +135,7 @@ CREATE TABLE IF NOT EXISTS llamaindex_node_relationship (
 CREATE TABLE chat
 (
     id             INT          NOT NULL AUTO_INCREMENT,
+    url_key        VARCHAR(36)  NOT NULL,
     title          VARCHAR(256) NOT NULL,
     engine         VARCHAR(32)  NOT NULL,
     engine_options JSON         NOT NULL,
@@ -142,7 +143,8 @@ CREATE TABLE chat
     created_by     VARCHAR(32)  NOT NULL,
     deleted_at     DATETIME     NULL,
     deleted_by     VARCHAR(32)  NULL,
-    PRIMARY KEY (id)
+    PRIMARY KEY (id),
+    UNIQUE INDEX (url_key)
 );
 
 -- Messages in Chat

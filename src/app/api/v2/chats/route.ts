@@ -3,6 +3,7 @@ import { LlamaindexChatService } from '@/core/services/llamaindex/chating';
 import { createChat, listChats } from '@/core/v1/chat';
 import { getIndexByName } from '@/core/v1/index_';
 import { toPageRequest } from '@/lib/database';
+import { genId } from '@/lib/id';
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
@@ -16,7 +17,7 @@ const ChatRequest = z.object({
     content: z.string(),
     role: z.string(),
   }).array(),
-  sessionId: z.coerce.number().optional(),
+  sessionId: z.string().optional(),
   name: z.string().optional(),
   namespaces: z.string().array().optional(),
   index: z.string().optional(),
@@ -54,7 +55,7 @@ export const POST = defineHandler({
       created_by: auth.user.id!,
       title: body.name ?? 'Untitled',
     });
-    sessionId = chat.id;
+    sessionId = chat.url_key;
   }
 
   const index = await getIndexByName(body.index ?? 'default');

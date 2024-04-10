@@ -1,17 +1,29 @@
 import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import { Conversation } from '@/components/conversation';
-import { getChat as dbGetChat, listChatContexts, listChatMessages } from '@/core/v1/chat';
+import { getChat as getChat_, getChatByUrlKey, listChatContexts, listChatMessages } from '@/core/v1/chat';
+import { notFound, redirect } from 'next/navigation';
 import { cache } from 'react';
 
-const getChat = cache(async (id: number) => {
+const getChat = cache(async (key: string) => {
+  if (/^\d+$/.test(key)) {
+    const chat = await getChat_(parseInt(key));
+    if (!chat) {
+      notFound();
+    }
+    redirect(`/c/${chat.url_key}`);
+  }
+  ;
+
+  const chat = await getChatByUrlKey(key);
+  if (!chat) {
+    notFound();
+  }
   const [
-    chat,
     history,
     context,
   ] = await Promise.all([
-    dbGetChat(id),
-    listChatMessages(id),
-    listChatContexts(id),
+    listChatMessages(chat.id),
+    listChatContexts(chat.id),
   ]);
 
   return { chat, history, context: context.map((item, index) => ({ ordinal: item.ordinal, title: item.name, uri: item.source_uri })) };
@@ -21,13 +33,11 @@ export default async function Conversations ({ params }: { params: { id: string 
   const session = await auth();
   const user = session?.user;
 
-  const id = parseInt(decodeURIComponent(params.id));
-
   const {
     chat,
     history,
     context,
-  } = await getChat(id);
+  } = await getChat(decodeURIComponent(params.id));
 
   return (
     <div className="xl:pr-side">
@@ -43,7 +53,7 @@ export async function generateMetadata ({ params }: { params: { id: string } }) 
     chat,
     history,
     context,
-  } = await getChat(id);
+  } = await getChat(decodeURIComponent(params.id));
 
   const first = history?.find(item => item.role === 'assistant')?.content;
 

@@ -31,6 +31,7 @@ export interface Chat {
   engine_options: Json;
   id: Generated<number>;
   title: string;
+  url_key: string;
 }
 
 export interface ChatMessage {
