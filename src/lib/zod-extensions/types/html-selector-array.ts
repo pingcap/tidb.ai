@@ -1,5 +1,6 @@
-import { addIssueToContext, type ParseInput, type ParseReturnType, undefined, z, ZodType, type ZodTypeDef } from 'zod';
+import { addIssueToContext, type ParseInput, type ParseReturnType, z, ZodType, type ZodTypeDef } from 'zod';
 
+// TODO: rename to ContentExtractionRule is better
 export type HtmlSelectorItemType = {
   type?: 'dom-text' | 'dom-content-attr' | undefined
   selector: string

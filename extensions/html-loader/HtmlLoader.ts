@@ -8,29 +8,36 @@ import { toText } from 'hast-util-to-text';
 import rehypeParse from 'rehype-parse';
 import { Processor, unified } from 'unified';
 import { remove } from 'unist-util-remove';
-import htmlLoaderMeta, { type HtmlLoaderOptions } from './meta';
+import { match } from 'path-to-regexp';
+import htmlLoaderMeta, {
+  DEFAULT_EXCLUDE_SELECTORS,
+  DEFAULT_TEXT_SELECTORS, ExtractedMetadata,
+  HtmlLoaderOptions,
+  MetadataExtractor, MetadataExtractorType, URLMetadataExtractor
+} from './meta';
 
 export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
-  private readonly processor: Processor<Root>;
+  private readonly unifiedProcessor: Processor<Root>;
 
-  constructor (options: HtmlLoaderOptions) {
+  constructor(options: HtmlLoaderOptions) {
     super(options);
-
-    this.processor = unified()
+    this.unifiedProcessor = unified()
       .use(rehypeParse)
       .freeze();
   }
 
   load (buffer: Buffer, url: string): rag.Content<{}> {
-    const { result, warning } = this.process(url, buffer);
-
-    const content = result.map(item => item.content);
+    const matchedTexts = this.extractTextsFromDocument(url, buffer);
+    const metadataFromURL = this.extractMetadataFromURL(url);
 
     return {
-      content: content,
-      hash: md5(content.join('\n\n\n\n')),
+      content: matchedTexts,
+      hash: this.getTextHash(matchedTexts),
       metadata: {
-        // warning: warning.length ? warning : undefined,
+        documentUrl: url,
+        documentMetadata: {
+          ...metadataFromURL
+        }
       },
     } satisfies rag.Content<{}>;
   }
@@ -39,89 +46,162 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
     return /html/.test(mime);
   }
 
-  private process (url: string, buffer: Buffer) {
+  private getTextHash (texts: string[]) {
+    return md5(texts.join('\n\n\n\n'));
+  }
+
+  /**
+   * Extract texts from the HTML document.
+   * @param url The URL of the document.
+   * @param buffer The content buffer of the document.
+   * @private
+   */
+  private extractTextsFromDocument (url: string, buffer: Buffer) {
+    const { selectors, excludeSelectors } = this.getMatchedTextSelectors(url);
+    const documentRoot = this.unifiedProcessor.parse(Uint8Array.from(buffer));
+
+    // Remove excluded nodes.
+    const excludedNodes = new Set<any>(this.selectElements(documentRoot, excludeSelectors));
+    remove(documentRoot, (node) => excludedNodes.has(node) || node.type === 'comment');
+
+    // Select text from matched elements.
+    return this.selectElementTexts(documentRoot, selectors);
+  }
+
+  private getMatchedTextSelectors (url: string) {
     const excludeSelectors: HtmlSelectorItemType[] = [];
     const selectors: HtmlSelectorItemType[] = [];
 
     for (let rule of (this.options.contentExtraction ?? [])) {
       const matcher = createUrlMatcher(rule.url);
       if (matcher(url)) {
-        for (let selector of rule.selectors) {
-          selectors.push(selector);
-        }
-        for (let excludeSelector of rule.excludeSelectors) {
-          excludeSelectors.push(excludeSelector);
-        }
+        selectors.push(...rule.selectors);
+        excludeSelectors.push(...rule.excludeSelectors);
       }
     }
 
-    const failed: string[] = [];
-    const warning: string[] = [];
-
-    if (!selectors.length || !selectors.find(s => s.type == undefined || s.type == 'dom-text')) {
-      selectors.push({ selector: 'body', all: false, type: 'dom-text' });
-      warning.push('No content selector provided for this URL. the default selector `body` always contains redundancy content.');
+    if (!selectors.length || !this.hasTextSelector(selectors)) {
+      console.warn('No text selector provided, fallback to using default selector `body`, which may contains redundancy content.')
+      selectors.push(...DEFAULT_TEXT_SELECTORS);
     }
 
     if (!excludeSelectors.length) {
-      excludeSelectors.push({
-        selector: 'script',
-        type: 'dom-text',
-        all: true,
-      });
+      excludeSelectors.push(...DEFAULT_EXCLUDE_SELECTORS);
     }
 
-    const root = this.processor.parse(Uint8Array.from(buffer));
+    return { selectors, excludeSelectors };
+  }
 
-    const excludedNodes = excludeSelectors.reduce((set, item) => {
-      if (item.all) {
-        selectAll(item.selector, root).forEach(node => set.add(node));
-      } else {
-        const node = select(item.selector, root);
-        if (node) set.add(node);
-      }
-      return set;
-    }, new Set<any>());
+  private hasTextSelector(selectors: HtmlSelectorItemType[]) {
+    // TODO: confirm the type.
+    return selectors.find(s => s.type == undefined || s.type == 'dom-text')
+  }
 
-    remove(root, (node) => excludedNodes.has(node) || node.type === 'comment');
+  private selectElements(root: Root, selectorItems: HtmlSelectorItemType[]){
+    const matchedElements: Element[] = [];
 
-    const result: { content: string, selector: string, element: Element }[] = [];
-    for (let { selector, all: multiple, type } of selectors) {
-      if (multiple) {
+    for (let { selector, all } of selectorItems) {
+      if (all) {
         const elements = selectAll(selector, root);
         if (elements.length > 0) {
-          result.push(...elements.map(element => ({
-            content: getContent(element, type), selector, element,
-          })));
-        } else {
-          failed.push(selector);
+          matchedElements.push(...elements);
         }
       } else {
         const element = select(selector, root);
         if (element) {
-          result.push({
-            content: getContent(element, type), selector, element,
-          });
-        } else {
-          failed.push(selector);
+          matchedElements.push(element);
         }
       }
     }
 
-    if (failed.length > 0) {
-      warning.push(`Select element failed for selector(s): ${failed.map(selector => `\`${selector}\``).join(', ')}`);
+    return matchedElements;
+  }
+
+  private selectElementTexts(root: Root, selectorItems: HtmlSelectorItemType[]){
+    const matchedTexts: string[] = [];
+
+    for (let { selector, all, type } of selectorItems) {
+      if (all) {
+        const elements = selectAll(selector, root);
+        if (elements.length > 0) {
+          matchedTexts.push(...elements.map(element => this.getElementTextContent(element, type)));
+        } else {
+          console.warn(`Selector \`${selector}\` matched no elements.`)
+        }
+      } else {
+        const element = select(selector, root);
+        if (element) {
+          matchedTexts.push(this.getElementTextContent(element, type));
+        } else {
+          console.warn(`Selector \`${selector}\` matched no elements.`)
+        }
+      }
     }
 
-    return { result, failed, warning };
+    return matchedTexts;
   }
+
+  private getElementTextContent(element: Element, type: HtmlSelectorItemType['type']) {
+    if (type === 'dom-content-attr') {
+      return String(element.properties['content'] ?? '');
+    } else {
+      return toText(element);
+    }
+  }
+
+  /**
+   * Extract metadata from the URL.
+   * @param url The URL of the document.
+   * @private
+   */
+  private extractMetadataFromURL(url: string): Record<string, any> {
+    const extractors = this.getMatchedMetadataExecutors(url);
+    const metadata: ExtractedMetadata = {};
+
+    for (let extractor of extractors) {
+      if (extractor.type === MetadataExtractorType.URL_METADATA_EXTRACTOR) {
+        const urlMetadataExtractor = extractor as unknown as URLMetadataExtractor;
+        const urlMatch = match(urlMetadataExtractor.urlMetadataPattern, {
+          decode: decodeURIComponent,
+        });
+
+        // TODO: only support pathname extraction for now.
+        const urlObj = new URL(url);
+        const matchedMetadata = urlMatch(urlObj.pathname);
+
+        if (matchedMetadata) {
+          const params = this.excludeNonNamedParams(matchedMetadata.params);
+          Object.assign(metadata, urlMetadataExtractor.defaultMetadata, params);
+        }
+      }
+    }
+
+    return metadata;
+  }
+
+  private getMatchedMetadataExecutors (url: string) {
+    const rules: MetadataExtractor[] = [];
+
+    for (let rule of (this.options.metadataExtraction ?? [])) {
+      const matcher = createUrlMatcher(rule.urlPattern);
+      if (matcher(url)) {
+        rules.push(...rule.extractors);
+      }
+    }
+
+    return rules;
+  }
+
+  private excludeNonNamedParams(source: Record<string, any>) {
+    const target: Record<string, any> = {};
+    for (let [key, val] of Object.entries(source)) {
+      if (Number.isNaN(Number(key))) {
+        target[key] = val;
+      }
+    }
+    return target;
+  }
+
 }
 
 Object.assign(HtmlLoader, htmlLoaderMeta);
-
-function getContent (element: Element, type: HtmlSelectorItemType['type']) {
-  if (type === 'dom-content-attr') {
-    return String(element.properties['content'] ?? '');
-  } else {
-    return toText(element);
-  }
-}
