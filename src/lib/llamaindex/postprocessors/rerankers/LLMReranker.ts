@@ -54,7 +54,7 @@ export class LLMRerank implements BaseNodePostprocessor {
   }
 
   /**
-   * Reranks the nodes using the Cohere API.
+   * Reranks the nodes using the LLM API.
    * @param nodes Array of nodes with scores.
    * @param query Query string.
    */
