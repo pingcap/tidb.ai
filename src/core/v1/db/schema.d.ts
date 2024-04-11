@@ -36,9 +36,9 @@ export interface Chat {
 
 export interface ChatEngine {
   engine: string;
-  engine_options: JsonValue;
+  engine_options: Json;
   id: Generated<number>;
-  is_default: 0 | 1;
+  is_default: number;
   name: string;
 }
 
@@ -103,7 +103,7 @@ export interface DocumentIndexTask {
 
 export interface Index {
   config: Json;
-  configured: Generated<0 | 1>;
+  configured: Generated<number>;
   created_at: Generated<Date>;
   id: number;
   last_modified_at: Generated<Date>;
@@ -183,7 +183,7 @@ export interface Status {
   last_modified_at: Generated<Date>;
   status_name: string;
   status_type: "array" | "date" | "number" | "object" | "string";
-  status_value: Json | null;
+  status_value: Json;
 }
 
 export interface DB {

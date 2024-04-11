@@ -1,7 +1,7 @@
 import { DBv1, tx } from '@/core/v1/db';
 import { type Document, getDocument } from '@/core/v1/document';
 import { createDocumentIndexTask, createDocumentIndexTasks, dequeueDocumentIndexTaskById, dequeueDocumentIndexTasks, type DocumentIndexTask, type DocumentIndexTaskInfo, finishDocumentIndexTask, listByNotIndexed, listLatestDocumentIndexTasksByDocumentIndex, startDocumentIndexTask, terminateDocumentIndexTask } from '@/core/v1/document_index_task';
-import { getIndex, type Index } from '@/core/v1/index_';
+import {DEFAULT_INDEX_PROVIDER_NAME, getIndex, type Index, IndexProviderName} from '@/core/v1/index_';
 import { getErrorMessage } from '@/lib/errors';
 import { notFound } from 'next/navigation';
 
@@ -130,5 +130,19 @@ async function executeDocumentIndexTask (id: number, processor: DocumentIndexTas
     console.error(e);
     await terminateDocumentIndexTask(id, info, getErrorMessage(e));
     throw e;
+  }
+}
+
+/**
+ * Get the table name of the vector table, which stores the document vectors.
+ * @param provider
+ * @param index
+ */
+export function getDocumentVectorTableName(provider: IndexProviderName = DEFAULT_INDEX_PROVIDER_NAME, index: string = DEFAULT_INDEX_NAME) {
+  switch (provider) {
+    case IndexProviderName.LLAMAINDEX:
+      return `${provider}_document_chunk_node_${index}`;
+    default:
+      throw new Error(`unsupported index provider ${provider}`);
   }
 }

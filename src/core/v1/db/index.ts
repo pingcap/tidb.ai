@@ -2,7 +2,7 @@ import { type IsolationLevel, Kysely, MysqlDialect } from 'kysely';
 import { createPool } from 'mysql2';
 import type { DB } from './schema';
 
-const index = new Kysely<DB>({
+export const kysely = new Kysely<DB>({
   dialect: new MysqlDialect({
     pool: createPool({
       uri: process.env.DATABASE_URL!,
@@ -18,7 +18,7 @@ const currentTx = new AsyncLocalStorage<Kysely<DB>>();
 async function tx<T> (level: IsolationLevel, runner: () => Promise<T>): Promise<T>
 async function tx<T> (runner: () => Promise<T>): Promise<T>
 async function tx<T> (first: IsolationLevel | (() => Promise<T>), runner?: () => Promise<T>): Promise<T> {
-  let builder = index.transaction();
+  let builder = kysely.transaction();
   if (typeof first === 'function') {
     runner = first;
   } else {
@@ -31,7 +31,7 @@ async function tx<T> (first: IsolationLevel | (() => Promise<T>), runner?: () =>
     return runner!();
   }
 
-  return index.transaction().execute(async trx => {
+  return kysely.transaction().execute(async trx => {
     return currentTx.run(trx, runner!);
   });
 }
@@ -41,7 +41,7 @@ function getDb<D extends Partial<DB> = DB> (): Kysely<D> {
   if (tx) {
     return tx as never;
   }
-  return index as never;
+  return kysely as never;
 }
 
 export { getDb, tx };

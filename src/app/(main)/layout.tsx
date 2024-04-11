@@ -6,7 +6,7 @@ import { SemanticSearch } from '@/components/semantic-search';
 import { SiteNavFooter, SiteNavActionBar } from '@/components/site-nav-footer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Toaster } from '@/components/ui/sonner';
-import { usePreloadServerlessTiFlashReplicas } from '@/lib/tiflash';
+import {usePreloadANNIndex} from "@/components/use-preload-ann-index";
 import Link from 'next/link';
 import {ReactNode, useContext, useMemo} from 'react';
 import { WebsiteSettingContext } from "@/components/website-setting-provider";
@@ -15,7 +15,9 @@ export default function Layout ({ children }: {
   children: ReactNode
 }) {
   const setting = useContext(WebsiteSettingContext);
-  usePreloadServerlessTiFlashReplicas();
+
+  // TODO: support preload specified index
+  usePreloadANNIndex();
 
   const socialMemo = useMemo(
     () => ({

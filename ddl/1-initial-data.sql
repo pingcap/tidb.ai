@@ -110,7 +110,9 @@ SET
       "embedding": {
         "provider": "openai",
         "config": {
-          "model": "text-embedding-3-small"
+          "model": "text-embedding-3-small",
+          "vectorColumn": "embedding",
+          "vectorDimension": 1536
         }
       }
     }')
