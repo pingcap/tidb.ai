@@ -16,7 +16,7 @@ export function usePreloadANNIndex (indexId: number = 1) {
   useEffect(() => {
     if (documentVisible) {
       // Skip ANN index preload if disabled.
-      if (Boolean(process.env.PUBLIC_ENABLE_ANN_INDEX_PRELOAD)) return;
+      if (!Boolean(process.env.PUBLIC_ENABLE_ANN_INDEX_PRELOAD ?? true)) return;
 
       // Preload TiFlash replicas periodically.
       triggerANNIndexPreload(indexId);
@@ -32,7 +32,7 @@ export function usePreloadANNIndex (indexId: number = 1) {
 }
 
 const triggerANNIndexPreload = (indexId: number) => {
-  void fetch(`/api/v2/index/${indexId}/preload`, {
+  void fetch(`/api/v2/indexes/${indexId}/preload`, {
     method: 'POST',
     cache: 'no-cache',
   }).catch(() => {});

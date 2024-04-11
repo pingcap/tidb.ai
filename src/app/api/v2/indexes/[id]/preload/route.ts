@@ -61,15 +61,15 @@ export const POST = defineHandler(handlerOptions, async ({ params}) => {
   }
 });
 
-async function preloadTiFlashANNIndex(tableName: string, vectorColumn: string, vectorDimension: number = 1536){
+async function preloadTiFlashANNIndex(tableName: string, vectorColumn: string = 'embedding', vectorDimension: number = 1536){
   const duration = await measure(async () => {
     const vector = generateRandomVector(vectorDimension);
     const stmt = sql`
-        SELECT id
-        FROM ${sql.ref(tableName)}
-        ORDER BY VEC_COSINE_DISTINCE(${sql.ref(vectorColumn)}, ${sql.lit(vector)})})
-        LIMIT 5
-      ;`;
+      SELECT id
+      FROM ${sql.ref(tableName)}
+      ORDER BY VEC_COSINE_DISTANCE(${sql.ref(vectorColumn)}, ${sql.val(vector)})
+      LIMIT 5;
+    ;`;
     console.log(`Preloading ANNIndex for table <${tableName}> with sql:`, stmt.compile(getDb()).sql);
     return await stmt.execute(getDb());
   });
