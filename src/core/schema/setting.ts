@@ -48,7 +48,7 @@ export const WebsiteSetting = z.object({
   }).optional(),
 });
 
-const defaultWebsiteSetting: IWebsiteSettingResult = {
+export const defaultWebsiteSetting: IWebsiteSettingResult = {
   title: 'RAG Template',
   description: 'Hello TiDB Cloud!',
   logo_in_dark_mode: '/tidb-ai.svg',

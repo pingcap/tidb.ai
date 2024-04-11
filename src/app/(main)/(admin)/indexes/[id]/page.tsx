@@ -19,7 +19,7 @@ export default function Page () {
         </p>
         <p>
           You need to setup all configurations in tabs above. Once your configuration is completed,
-          turn on the switch below. You <b>can't</b> change configurations after index is marked `configured`.
+          turn on the switch below. You <b>can&#39;t</b> change configurations after index is marked `configured`.
         </p>
       </article>
       <div className="mt-8">
@@ -30,7 +30,7 @@ export default function Page () {
                 Configured
               </FormLabel>
               <FormDescription className="text-yellow-500">
-                You can't revert this operation
+                You can&#39;t revert this operation
               </FormDescription>
             </div>
             <FormControl>

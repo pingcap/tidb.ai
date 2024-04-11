@@ -14,6 +14,9 @@ export async function listAllProviders (enabled?: true) {
 }
 
 export async function listAllEnabledProvidersWithConfig() {
+  if (!process.env.DATABASE_URL) {
+    return [];
+  }
   return await db.selectFrom('authentication_providers')
     .select(['name', 'enabled', 'config'])
     .where('enabled', '=', 1)
