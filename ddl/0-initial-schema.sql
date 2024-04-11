@@ -254,7 +254,7 @@ CREATE TABLE status
 (
     status_name     VARCHAR(100)   NOT NULL PRIMARY KEY,
     status_type     ENUM('number', 'string', 'object', 'array', 'date') NOT NULL,
-    status_value    JSON           NULL,
+    status_value    JSON           NOT NULL,
     created_at      DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_modified_at DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

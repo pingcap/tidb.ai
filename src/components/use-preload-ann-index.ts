@@ -1,9 +1,8 @@
 import { useEffect, useSyncExternalStore } from 'react';
 
-const PRELOAD_INTERVAL = 180_000;   // 3 minutes
+const TRIGGER_PRELOAD_ANN_INDEX_INTERVAL = 2 * 60 * 1000;   // 2 minutes
 
-export function usePreloadServerlessTiFlashReplicas () {
-  const enableTiFlashPreload = !Boolean(process.env.PUBLIC_ENABLE_TIFLASH_PRELOAD);
+export function usePreloadANNIndex (indexId: number = 1) {
   const documentVisible = useSyncExternalStore(
     onStoreChange => {
       document.addEventListener('visibilitychange', onStoreChange);
@@ -16,24 +15,24 @@ export function usePreloadServerlessTiFlashReplicas () {
 
   useEffect(() => {
     if (documentVisible) {
-      // Skip preload if TiFlash preload is disabled.
-      if (enableTiFlashPreload) return;
+      // Skip ANN index preload if disabled.
+      if (Boolean(process.env.PUBLIC_ENABLE_ANN_INDEX_PRELOAD)) return;
 
       // Preload TiFlash replicas periodically.
-      preload();
+      triggerANNIndexPreload(indexId);
       const h = setInterval(() => {
-        preload();
-      }, PRELOAD_INTERVAL);
+        triggerANNIndexPreload(indexId);
+      }, TRIGGER_PRELOAD_ANN_INDEX_INTERVAL);
 
       return () => {
         clearInterval(h);
       };
     }
-  }, [documentVisible, enableTiFlashPreload]);
+  }, [documentVisible, indexId]);
 }
 
-const preload = () => {
-  void fetch('/api/v1/documents/preload', {
+const triggerANNIndexPreload = (indexId: number) => {
+  void fetch(`/api/v2/index/${indexId}/preload`, {
     method: 'POST',
     cache: 'no-cache',
   }).catch(() => {});

@@ -5,8 +5,14 @@ import { type Selectable } from 'kysely';
 
 export type Index = Rewrite<Selectable<DBv1['index']>, { config: IndexConfig }>;
 
+export enum IndexProviderName {
+  LLAMAINDEX = 'llamaindex',
+}
+
+export const DEFAULT_INDEX_PROVIDER_NAME = IndexProviderName.LLAMAINDEX;
+
 export interface IndexConfig {
-  provider: 'llamaindex';
+  provider: IndexProviderName;
   reader: Record<string, any>;
   parser: {
     textSplitter?: {
@@ -22,7 +28,11 @@ export interface IndexConfig {
   }[];
   embedding: {
     provider: string
-    config: { model: string }
+    config: {
+      model: string,
+      vectorColumn: string,
+      vectorDimension: number
+    }
   };
   llm: {
     provider: string
