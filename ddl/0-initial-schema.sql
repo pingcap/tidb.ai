@@ -66,7 +66,6 @@ CREATE TABLE IF NOT EXISTS `index` (
     configured          BOOLEAN         NOT NULL DEFAULT FALSE,
     created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_modified_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    configured          TINYINT(1)      NOT NULL DEFAULT 0
 );
 
 -- Document Index tasks
