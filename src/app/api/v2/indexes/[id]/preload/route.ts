@@ -10,7 +10,7 @@ import {NextResponse} from 'next/server';
 import {sql} from "kysely";
 import {z} from "zod";
 
-export const MIN_PRELOAD_ANN_INDEX_INTERVAL = 10 * 60 * 1000; // 10 minutes
+const MIN_PRELOAD_ANN_INDEX_INTERVAL = 10 * 60 * 1000; // 10 minutes
 
 const handlerOptions = {
   params: z.object({
