@@ -28,35 +28,37 @@ export default function Page () {
 }
 
 function IndexStats ({}: {}) {
-  type IndexStatsData = Partial<Record<'notIndexed' | 'indexed' | 'staled', number>>
-  const { data, isLoading } = useSWR(['get', '/api/v1/indexes/default/stats'], fetcher<IndexStatsData>, {});
-
-  const sum = (data?.indexed ?? 0) + (data?.staled ?? 0);
+  const { data, isLoading } = useSWR(['get', '/api/v2/stats/document_index_state'], fetcher<{ documents: number, chunks: number }>, {});
 
   return (
     <OverviewCard
       title="Embedded documents"
       icon={BinaryIcon}
-      value={sum}
+      value={data?.documents}
+      description={(
+        <div className="mt-2 flex gap-2 flex-wrap items-center justify-between">
+          <div>
+            {data?.chunks ?? '--'} chunks
+          </div>
+          <Link href="/explore" className="text-xs flex items-center gap-1 transition-colors text-muted-foreground hover:text-foreground">
+            Explore <ArrowRightIcon size="1em" />
+          </Link>
+        </div>
+      )}
     >
-      <div className="mt-2">
-        <Link href="/explore" className="text-xs flex items-center gap-1 transition-colors text-muted-foreground hover:text-foreground">
-          Explore all documents <ArrowRightIcon size="1em" />
-        </Link>
-      </div>
     </OverviewCard>
   );
 }
 
 function TaskStats () {
-  type TaskStatsData = Partial<Record<'pending' | 'processing' | 'succeed' | 'failed', number>>
-  const { data, isLoading } = useSWR(['get', '/api/v1/sources/tasks/stats'], fetcher<TaskStatsData>, {});
+  type TaskStatsData = Partial<Record<'CREATED' | 'SUCCEED' | 'PENDING' | 'IMPORTING' | 'FAILED', number>>
+  const { data, isLoading } = useSWR(['get', '/api/v2/stats/document_import_tasks'], fetcher<TaskStatsData>, {});
 
   return (
     <OverviewCard
-      title="Importing tasks"
+      title="Finished import tasks"
       icon={ListTodoIcon}
-      value={data?.succeed ?? 0}
+      value={data?.SUCCEED ?? 0}
     >
       <div className="mt-2">
         <Link href="/import-tasks" className="text-xs flex items-center gap-1 transition-colors text-muted-foreground hover:text-foreground">
