@@ -12,7 +12,6 @@ const getChat = cache(async (key: string) => {
     }
     redirect(`/c/${chat.url_key}`);
   }
-  ;
 
   const chat = await getChatByUrlKey(key);
   if (!chat) {

@@ -13,7 +13,7 @@ export type ChatOptions = {
 export type ChatResponse = {
   status: 'retrieving' | 'generating' | 'finished'
   content: string
-  sources: { name: string, uri: string }[]
+  sources: { title: string, uri: string }[]
   retrieveId?: number
 }
 

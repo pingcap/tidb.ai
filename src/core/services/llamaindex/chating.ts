@@ -125,7 +125,7 @@ Refined Answer:`;
 
     let last: Response | undefined;
     let message = '';
-    let sources: Map<string, { name: string, uri: string }> = new Map();
+    let sources: Map<string, { title: string, uri: string }> = new Map();
 
     const getSources = async (chunkIds?: string[]) => {
       if (!chunkIds?.length) {
@@ -141,10 +141,10 @@ Refined Answer:`;
           .where(`llamaindex_document_chunk_node_${this.index.name}.id`, 'in', idsToFetch.map(id => uuidToBin(id as UUID)))
           .execute();
 
-        results.forEach(result => sources.set(result.id, { name: result.name, uri: result.source_uri }));
+        results.forEach(result => sources.set(result.id, { title: result.name, uri: result.source_uri }));
       }
 
-      return chunkIds.map(id => sources.get(id)).filter(Boolean) as { name: string, uri: string }[];
+      return chunkIds.map(id => sources.get(id)).filter(Boolean) as { title: string, uri: string }[];
     };
 
     // TODO: yield states
