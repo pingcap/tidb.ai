@@ -101,22 +101,9 @@ export interface DocumentIndexTask {
   type: "CREATE_INDEX" | "REINDEX";
 }
 
-export interface DocumentIndexTaskOld {
-  created_at: Generated<Date>;
-  document_id: number;
-  ended_at: Date | null;
-  id: Generated<number>;
-  index_id: number;
-  info: Json;
-  message: string | null;
-  started_at: Date | null;
-  status: "CREATED" | "FAILED" | "INDEXING" | "PENDING" | "SUCCEED";
-  type: "CREATE_INDEX" | "REINDEX";
-}
-
 export interface Index {
   config: Json;
-  configured: Generated<number | null>;
+  configured: Generated<number>;
   created_at: Generated<Date>;
   id: number;
   last_modified_at: Generated<Date>;
@@ -124,16 +111,6 @@ export interface Index {
 }
 
 export interface LlamaindexDocumentChunkNodeDefault {
-  document_id: number;
-  embedding: unknown | null;
-  hash: string;
-  id: Buffer;
-  index_id: number;
-  metadata: Json;
-  text: string;
-}
-
-export interface LlamaindexDocumentChunkNodeDefaultOld {
   document_id: number;
   embedding: unknown | null;
   hash: string;
@@ -154,24 +131,7 @@ export interface LlamaindexDocumentNode {
   text: string;
 }
 
-export interface LlamaindexDocumentNodeOld {
-  document_id: number;
-  hash: string;
-  id: Buffer;
-  index_id: number;
-  index_info: Json;
-  indexed_at: Date;
-  metadata: Json;
-  text: string;
-}
-
 export interface LlamaindexNodeRelationship {
-  source_node_id: Buffer;
-  target_node_id: Buffer;
-  type: "CHILD" | "NEXT" | "PARENT" | "PREVIOUS" | "SOURCE";
-}
-
-export interface LlamaindexNodeRelationshipOld {
   source_node_id: Buffer;
   target_node_id: Buffer;
   type: "CHILD" | "NEXT" | "PARENT" | "PREVIOUS" | "SOURCE";
@@ -235,14 +195,10 @@ export interface DB {
   document: Document;
   document_import_task: DocumentImportTask;
   document_index_task: DocumentIndexTask;
-  document_index_task_old: DocumentIndexTaskOld;
   index: Index;
   llamaindex_document_chunk_node_default: LlamaindexDocumentChunkNodeDefault;
-  llamaindex_document_chunk_node_default_old: LlamaindexDocumentChunkNodeDefaultOld;
   llamaindex_document_node: LlamaindexDocumentNode;
-  llamaindex_document_node_old: LlamaindexDocumentNodeOld;
   llamaindex_node_relationship: LlamaindexNodeRelationship;
-  llamaindex_node_relationship_old: LlamaindexNodeRelationshipOld;
   option: Option;
   retrieve: Retrieve;
   retrieve_result: RetrieveResult;
