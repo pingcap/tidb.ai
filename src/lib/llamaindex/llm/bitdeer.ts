@@ -7,6 +7,7 @@ import {
   LLMChatParamsStreaming, LLMCompletionParamsNonStreaming, LLMCompletionParamsStreaming,
   LLMMetadata
 } from "llamaindex";
+import * as util from "node:util";
 
 const messageAccessor = (data: any): ChatResponseChunk => {
   return {
@@ -35,7 +36,7 @@ export interface BitdeerLlama2Options extends Record<string, unknown> {
   top_p: number;
 }
 
-export type BitdeerCompletionOptions = BitdeerLlama2Options;
+export type BitdeerAdditionalChatOptions = BitdeerLlama2Options;
 
 /**
  * Bitdeer is a cloud computing platform that provides computing power for cryptocurrency mining.
@@ -44,7 +45,7 @@ export type BitdeerCompletionOptions = BitdeerLlama2Options;
  *
  * Website: https://www.bitdeer.com/
  */
-export class Bitdeer extends BaseEmbedding implements LLM<BitdeerCompletionOptions> {
+export class Bitdeer extends BaseEmbedding implements LLM<BitdeerAdditionalChatOptions> {
   readonly hasStreaming = true;
 
   model: string;
@@ -54,7 +55,6 @@ export class Bitdeer extends BaseEmbedding implements LLM<BitdeerCompletionOptio
   contextWindow: number = 4096;
   requestTimeout: number = 60 * 1000; // Default is 60 seconds
   additionalChatOptions?: Record<string, unknown>;
-  additionalCompletionOptions?: Record<string, unknown>;
 
   private apiSecretAccessKey: string;
 
@@ -148,10 +148,11 @@ export class Bitdeer extends BaseEmbedding implements LLM<BitdeerCompletionOptio
         temperature: this.temperature,
         num_ctx: this.contextWindow,
         top_p: this.topP,
-        ...this.additionalCompletionOptions,
+        ...this.additionalChatOptions,
       },
     };
-    const response = await fetch(`${this.baseURL}/models/${this.model}/generate`, {
+    const url = `${this.baseURL}/models/${this.model}/generate`;
+    const response = await fetch(url, {
       body: JSON.stringify(payload),
       method: "POST",
       // signal: AbortSignal.timeout(this.requestTimeout),
@@ -162,8 +163,14 @@ export class Bitdeer extends BaseEmbedding implements LLM<BitdeerCompletionOptio
     });
 
     if (!stream) {
+      if (!response.ok) {
+        throw new Error(util.format(
+          'Failed to call Bitdeer completion API (status: %d, statusText: %s).',
+          response.status,
+          response.statusText
+        ));
+      }
       const raw = await response.json();
-      console.log(raw.data.response)
       return {
         text: raw.data.response,
         raw,
