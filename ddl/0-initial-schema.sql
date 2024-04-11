@@ -228,9 +228,9 @@ CREATE TABLE retrieve_result
     FOREIGN KEY fk_rr_on_document_id (document_id) REFERENCES document(id)
 );
 
--- Authentication Providers
+-- Authentication Provider
 -- Store the configuration of authentication providers.
-CREATE TABLE authentication_providers
+CREATE TABLE authentication_provider
 (
     name    VARCHAR(32) NOT NULL,
     config  JSON        NOT NULL,

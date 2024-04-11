@@ -1,4 +1,4 @@
-import { listAllEnabledProvidersWithConfig } from '@/core/db/auth';
+import { listAllEnabledProvidersWithConfig } from '@/core/v1/auth';
 import { genId } from '@/lib/id';
 import NextAuth, { type Session } from 'next-auth';
 import AzureAd from 'next-auth/providers/azure-ad';

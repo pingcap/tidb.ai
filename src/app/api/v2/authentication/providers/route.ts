@@ -1,4 +1,4 @@
-import { createProvider, listAllProviders } from '@/core/db/auth';
+import { createProvider, listAllProviders } from '@/core/v1/auth';
 import { adminHandlerGuard } from '@/lib/auth-server';
 import { type NextRequest, NextResponse } from 'next/server';
 import { z } from 'zod';

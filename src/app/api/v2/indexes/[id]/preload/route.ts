@@ -65,11 +65,11 @@ async function preloadTiFlashANNIndex(tableName: string, vectorColumn: string = 
   const duration = await measure(async () => {
     const vector = generateRandomVector(vectorDimension);
     const stmt = sql`
-      SELECT id
-      FROM ${sql.ref(tableName)}
-      ORDER BY VEC_COSINE_DISTANCE(${sql.ref(vectorColumn)}, ${sql.val(vector)})
-      LIMIT 5;
-    ;`;
+    SELECT id
+    FROM ${sql.ref(tableName)}
+    ORDER BY VEC_COSINE_DISTANCE(${sql.ref(vectorColumn)}, ${sql.val(vector)})
+    LIMIT 5
+    `;
     console.log(`Preloading ANNIndex for table <${tableName}> with sql:`, stmt.compile(getDb()).sql);
     return await stmt.execute(getDb());
   });

@@ -1,4 +1,4 @@
-import { toggleProvider } from '@/core/db/auth';
+import {toggleProvider} from "@/core/v1/auth";
 import { adminHandlerGuard } from '@/lib/auth-server';
 import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';

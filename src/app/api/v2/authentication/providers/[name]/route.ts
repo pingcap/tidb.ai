@@ -1,4 +1,4 @@
-import { removeProvider, updateProvider } from '@/core/db/auth';
+import { removeProvider, updateProvider } from '@/core/v1/auth';
 import { adminHandlerGuard } from '@/lib/auth-server';
 import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';
