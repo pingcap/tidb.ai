@@ -15,7 +15,6 @@ export async function getSource (id: number) {
 }
 
 export async function listSource (request: PageRequest) {
-  // FIXME: handle error when there are no tasks.
   return await executePage(
     getDb()
       .with('cte_source_summary', qc => qc
@@ -26,14 +25,17 @@ export async function listSource (request: PageRequest) {
           fn.count<number>('document_import_task.id').as('tasks'),
         ])
         .groupBy('source_id')
-        .groupBy('status')
+        .groupBy('status'),
+      )
+      .with('cte_source_summary_agg', qc => qc.selectFrom('cte_source_summary')
+        .select('source_id')
+        .select(eb => eb.fn('JSON_OBJECTAGG', ['cte_source_summary.status', 'cte_source_summary.tasks']).as('summary'))
+        .groupBy('source_id'),
       )
       .selectFrom('source')
-      .leftJoin('cte_source_summary', 'source.id', 'cte_source_summary.source_id')
+      .leftJoin('cte_source_summary_agg', 'source.id', 'cte_source_summary_agg.source_id')
       .selectAll('source')
-      .select(eb => eb.fn('JSON_OBJECTAGG', ['cte_source_summary.status', 'cte_source_summary.tasks']).as('summary'))
-      .groupBy('source.id')
-    ,
+      .select('summary'),
     request);
 }
 

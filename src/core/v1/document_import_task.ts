@@ -135,3 +135,15 @@ export async function terminateDocumentImportTask (id: number, reason: string) {
 
   return Number(numUpdatedRows) !== 0;
 }
+
+export async function retryDocumentImportTask (id: number) {
+  const { numUpdatedRows } = await getDb()
+    .updateTable('document_import_task')
+    .set('status', 'CREATED')
+    .set('finished_at', null)
+    .where('id', '=', id)
+    .where('status', 'in', ['SUCCEED', 'FAILED'])
+    .executeTakeFirst();
+
+  return Number(numUpdatedRows) !== 0;
+}

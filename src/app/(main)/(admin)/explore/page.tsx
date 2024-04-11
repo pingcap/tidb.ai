@@ -5,7 +5,6 @@ import { DocumentIndexStatusFilter } from '@/components/data-filters/document-in
 import { SearchFilter } from '@/components/data-filters/search-filter';
 import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
-import { ImportFileDialog } from '@/components/dialogs/import-file-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import type { Document } from '@/core/v1/document';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
@@ -66,8 +65,6 @@ export default function Page () {
           <DataTableHeading>
             <SearchFilter />
             <DocumentIndexStatusFilter />
-            <span className="ml-auto" />
-            <ImportFileDialog />
           </DataTableHeading>
         )}
         columns={columns}
