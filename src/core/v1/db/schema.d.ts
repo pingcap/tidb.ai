@@ -103,6 +103,7 @@ export interface DocumentIndexTask {
 
 export interface Index {
   config: Json;
+  configured: Generated<0 | 1>;
   created_at: Generated<Date>;
   id: number;
   last_modified_at: Generated<Date>;

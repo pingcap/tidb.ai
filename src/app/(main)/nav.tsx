@@ -86,6 +86,7 @@ export function Nav () {
         { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon },
         { href: '/explore', title: 'Documents', icon: FileIcon },
         { href: '/sources', title: 'Data Sources', icon: ImportIcon },
+        { href: '/indexes', title: 'Indexes', icon: ListIcon },
         { href: '/import-tasks', title: 'Import Tasks', icon: ListIcon },
         { href: '/index-tasks', title: 'Index Tasks', icon: ListIcon },
         { href: '/settings', title: 'Settings', icon: CogIcon },

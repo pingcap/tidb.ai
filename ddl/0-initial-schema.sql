@@ -63,6 +63,7 @@ CREATE TABLE IF NOT EXISTS `index` (
     name                VARCHAR(20)     NOT NULL,
     -- { provider: 'llamaindex', reader: { ... }, parser: { ... }, metadata_extractors: [ ... ], embedding: { ... } }
     config              JSON            NOT NULL,
+    configured          BOOLEAN         NOT NULL DEFAULT FALSE,
     created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
     last_modified_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );

@@ -1,9 +1,7 @@
-import { getIndex, type IndexConfig, updateIndexConfig } from '@/core/v1/index_';
+import { getIndex, updateIndexConfig } from '@/core/v1/index_';
 import { defineHandler } from '@/lib/next/handler';
 import { notFound } from 'next/navigation';
 import z from 'zod';
-
-type e = IndexConfig
 
 export const GET = defineHandler({
   params: z.object({
