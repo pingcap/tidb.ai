@@ -147,6 +147,17 @@ CREATE TABLE chat
     UNIQUE INDEX (url_key)
 );
 
+-- Chat engine config
+CREATE TABLE chat_engine
+(
+    id             INT          NOT NULL AUTO_INCREMENT,
+    name           VARCHAR(256) NOT NULL,
+    engine         VARCHAR(256) NOT NULL,
+    engine_options JSON         NOT NULL,
+    is_default     BOOLEAN      NOT NULL,
+    PRIMARY KEY    (id)
+);
+
 -- Messages in Chat
 CREATE TABLE chat_message
 (

@@ -1,9 +1,9 @@
 import { type ChatResponse } from '@/core/services/chating';
 import { LlamaindexChatService } from '@/core/services/llamaindex/chating';
 import { createChat, listChats } from '@/core/v1/chat';
+import { getChatEngine, getDefaultChatEngine } from '@/core/v1/chat_engine';
 import { getIndexByName } from '@/core/v1/index_';
 import { toPageRequest } from '@/lib/database';
-import { genId } from '@/lib/id';
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
@@ -21,6 +21,7 @@ const ChatRequest = z.object({
   name: z.string().optional(),
   namespaces: z.string().array().optional(),
   index: z.string().optional(),
+  engine: z.number().int().optional(),
 });
 
 export const POST = defineHandler({
@@ -36,9 +37,26 @@ export const POST = defineHandler({
         message: 'Cannot assign sessionId when creating chats.',
       }, { status: 400 });
     }
+
+    let engine = 'condense-question';
+    let engineOptions = {};
+
+    if (body.engine) {
+      const chatEngine = await getChatEngine(body.engine);
+      if (!chatEngine) {
+        notFound();
+      }
+      engine = chatEngine.engine;
+      engineOptions = chatEngine.engine_options;
+    } else {
+      const chatEngine = await getDefaultChatEngine();
+      engine = chatEngine.engine;
+      engineOptions = chatEngine.engine_options;
+    }
+
     return await createChat({
-      engine: 'condense-question',
-      engine_options: JSON.stringify({}),
+      engine,
+      engine_options: JSON.stringify(engineOptions),
       created_at: new Date(),
       created_by: auth.user.id!,
       title: body.name ?? 'Untitled',

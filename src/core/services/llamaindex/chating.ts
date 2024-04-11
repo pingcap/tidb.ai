@@ -1,14 +1,24 @@
 import { AppChatService, type ChatOptions, type ChatResponse } from '@/core/services/chating';
 import { LlamaindexRetrieverWrapper, LlamaindexRetrieveService } from '@/core/services/llamaindex/retrieving';
 import { type Chat, listChatMessages } from '@/core/v1/chat';
+import type { ChatEngineOptions } from '@/core/v1/chat_engine';
 import { getDb } from '@/core/v1/db';
 import { uuidToBin } from '@/lib/kysely';
 import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
 import { getLLM } from '@/lib/llamaindex/converters/llm';
-import { CompactAndRefine, CondenseQuestionChatEngine, defaultRefinePrompt, defaultTextQaPrompt, MetadataMode, type Response, ResponseSynthesizer, RetrieverQueryEngine, serviceContextFromDefaults } from 'llamaindex';
+import { Liquid } from 'liquidjs';
+import { CompactAndRefine, CondenseQuestionChatEngine, defaultCondenseQuestionPrompt, defaultRefinePrompt, defaultTextQaPrompt, MetadataMode, type Response, ResponseSynthesizer, RetrieverQueryEngine, serviceContextFromDefaults } from 'llamaindex';
 import type { UUID } from 'node:crypto';
 
 export class LlamaindexChatService extends AppChatService {
+  private liquid = new Liquid();
+
+  getPrompt<Tmpl extends (ctx: any) => string> (template: string | undefined, fallback: Tmpl): (ctx: Parameters<Tmpl>[0]) => string {
+    if (!template) return fallback;
+    const tmpl = this.liquid.parse(template);
+    return context => this.liquid.renderSync(tmpl, context);
+  }
+
   getTextQAPrompt (): typeof defaultTextQaPrompt {
     return ({ query, context }) => `Context information is below.
 ---------------------
@@ -33,22 +43,41 @@ Refined Answer:`;
   }
 
   protected async* run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatResponse> {
+    const {
+      llm: {
+        provider: llmProvider = 'openai',
+        config: llmConfig = {},
+      } = {},
+      retriever: {
+        search_top_k = 100,
+        top_k = 5,
+      } = {},
+      reranker = {
+        provider: 'cohere',
+      },
+      prompts: {
+        textQa,
+        refine,
+        condenseQuestion,
+      } = {},
+    } = chat.engine_options as ChatEngineOptions;
+
     let lastRetrieveId: number | undefined;
 
     const serviceContext = serviceContextFromDefaults({
-      llm: getLLM(this.flow, this.index.config.llm.provider, this.index.config.llm.config),
+      llm: getLLM(this.flow, llmProvider, llmConfig),
       embedModel: getEmbedding(this.flow, this.index.config.embedding.provider, this.index.config.embedding.config),
     });
 
     // build queryEngine
     const retrieveService = new LlamaindexRetrieveService({
-      reranker: { provider: 'cohere' },
+      reranker,
       flow: this.flow,
       index: this.index,
     });
     const retriever = new LlamaindexRetrieverWrapper(retrieveService, {
-      search_top_k: 100,
-      top_k: 5,
+      search_top_k,
+      top_k,
       filters: {},
       use_cache: false,
     }, serviceContext, {
@@ -59,8 +88,8 @@ Refined Answer:`;
 
     const responseBuilder = new CompactAndRefine(
       serviceContext,
-      this.getTextQAPrompt(),
-      this.getRefinePrompt(),
+      this.getPrompt(textQa, this.getTextQAPrompt()),
+      this.getPrompt(refine, this.getRefinePrompt()),
     );
     const responseSynthesizer = new ResponseSynthesizer({
       serviceContext,
@@ -81,6 +110,7 @@ Refined Answer:`;
       queryEngine,
       chatHistory,
       serviceContext,
+      condenseMessagePrompt: this.getPrompt(condenseQuestion, defaultCondenseQuestionPrompt),
     });
 
     const stream = chatEngine.chat({
