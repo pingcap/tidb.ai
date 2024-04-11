@@ -1,7 +1,7 @@
-import {type NextRequest, NextResponse} from 'next/server';
-import {sql} from "kysely";
-import database from "@/core/db";
-import {db} from "@/core/db/db";
+import database from '@/core/db';
+import { getDb } from '@/core/v1/db';
+import { sql } from 'kysely';
+import { type NextRequest, NextResponse } from 'next/server';
 
 export async function POST (req: NextRequest) {
   try {
@@ -9,29 +9,29 @@ export async function POST (req: NextRequest) {
       // The interval of preloading should more than 10 minutes.
       return (newDate.getTime() - oldDate.getTime()) > 10 * 60 * 1000;
     }, async () => {
-      console.log('Preloading TiFlash replicas ...')
+      console.log('Preloading TiFlash replicas ...');
       await preloadTiFlashReplicas([
         {
-          table: 'document_index_chunk_partitioned',
-          columns: ['embedding']
-        }
+          table: 'llamaindex_document_chunk_node_default',
+          columns: ['embedding'],
+        },
       ]);
       return;
     });
 
     if (success) {
       return NextResponse.json({
-        message: 'success'
+        message: 'success',
       });
     } else {
       return NextResponse.json({
-        message: 'skipped'
+        message: 'skipped',
       });
     }
   } catch (e) {
     console.error('Failed to preload TiFlash replicas:', e);
     return NextResponse.json({
-      message: 'error'
+      message: 'error',
     });
   }
 }
@@ -41,11 +41,13 @@ interface PreloadConfig {
   columns: string[]
 }
 
-async function preloadTiFlashReplicas(configs: PreloadConfig[]){
+async function preloadTiFlashReplicas (configs: PreloadConfig[]) {
+  const db = getDb();
   for (const cfg of configs) {
     const duration = await measure(async () => {
       const columns = cfg.columns.map((c) => sql.ref(c));
-      const stmt = sql`SELECT /*+ READ_FROM_STORAGE(TIFLASH[${sql.ref(cfg.table)}]) */ COUNT(${sql.join(columns, sql.lit(','))}) FROM ${sql.ref(cfg.table)};`;
+      const stmt = sql`SELECT /*+ READ_FROM_STORAGE(TIFLASH[${sql.ref(cfg.table)}]) */ COUNT(${sql.join(columns, sql.lit(','))})
+                       FROM ${sql.ref(cfg.table)};`;
       console.log(`Preloading table <${cfg.table}> with sql:`, stmt.compile(db).sql);
       return await stmt.execute(db);
     });
@@ -53,7 +55,7 @@ async function preloadTiFlashReplicas(configs: PreloadConfig[]){
   }
 }
 
-async function measure(action: () => Promise<any>){
+async function measure (action: () => Promise<any>) {
   const start = new Date();
   await action();
   const end = new Date();

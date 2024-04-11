@@ -2,7 +2,7 @@ import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 
 export const batchRetry = withToast(async (ids: string[], revalidate: () => void) => {
-  const { updated } = await fetch('/api/v1/sources/tasks/operation/retry', {
+  const { created, failed } = await fetch('/api/v2/tasks/document_import/retry', {
     method: 'post',
     body: JSON.stringify({
       ids: ids.map(i => parseInt(i)),
@@ -13,7 +13,7 @@ export const batchRetry = withToast(async (ids: string[], revalidate: () => void
       revalidate();
     });
 
-  return updated;
+  return { created, failed };
 }, {
-  success: updated => `Rescheduled ${updated} tasks.`,
+  success: result => `${result.created} tasks rescheduled.${result.failed ? ` ${result.failed} failed, see server logs for more information.` : ''}`,
 });

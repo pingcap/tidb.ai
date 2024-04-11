@@ -2,15 +2,15 @@
 
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { AdminPageLayout } from '@/components/admin-page-layout';
+import { metadataCell } from '@/components/cells/metadata';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
-import type { DB } from '@/core/db/schema';
+import type { Chat } from '@/core/v1/chat';
 import { deleteChat } from '@/operations/chats';
 import type { CellContext } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';
-import type { Selectable } from 'kysely';
 import { LinkIcon, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useState } from 'react';
@@ -23,14 +23,14 @@ export default function Page () {
       id: 'name',
       cell: ({ row }) => (
         <Link href={`/c/${row.original.id}`} target="_blank">
-          <LinkIcon className='w-3 h-3 mr-2 inline-block' />
-          {row.original.name}
+          <LinkIcon className="w-3 h-3 mr-2 inline-block" />
+          {row.original.title}
         </Link>
       ),
     }),
     helper.accessor('created_at', { cell: datetime }),
-    helper.accessor('llm', {}),
-    helper.accessor('llm_model', {}),
+    helper.accessor('engine', {}),
+    helper.accessor('engine_options', { cell: metadataCell }),
     helper.display({
       id: 'delete',
       header: 'Delete',
@@ -81,6 +81,6 @@ export default function Page () {
 
 const datetime = (cell: CellContext<any, any>) => <time>{cell.getValue() ? format(cell.getValue(), 'yyyy-MM-dd HH:mm') : ''}</time>;
 
-const helper = createColumnHelper<Selectable<DB['chat']>>();
+const helper = createColumnHelper<Chat>();
 
 export const dynamic = 'force-dynamic';

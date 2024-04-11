@@ -12,8 +12,8 @@ import {
     CustomJsSettingUpdatePayload,
     ISecuritySettingResult,
     SecuritySettingResult,
-    SecuritySettingUpdatePayload,
-} from "@/core/schema/setting";
+    SecuritySettingUpdatePayload, defaultWebsiteSetting,
+} from '@/core/schema/setting';
 import { flattenSettings, unflattenSettings } from "@/lib/utils";
 
 type ListSettingsReturnType<G extends IGroupName> =
@@ -25,7 +25,15 @@ type ListSettingsReturnType<G extends IGroupName> =
     ? ISecuritySettingResult
     : {};
 
-export const getSetting = async <G extends IGroupName>(group: G) => {
+export const getSetting = async <G extends IGroupName>(group: G): Promise<ListSettingsReturnType<G>> => {
+    if (!process.env.DATABASE_URL) {
+        switch (group) {
+            case 'website': return defaultWebsiteSetting as any;
+            case 'custom_js': return {} as any;
+            case 'security': return {} as any;
+        }
+    }
+
     const options = await database.option.findByGroup(group);
     const settings: any = {};
     for (const option of options) {

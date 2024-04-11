@@ -45,7 +45,7 @@ export type BitdeerAdditionalChatOptions = BitdeerLlama2Options;
  *
  * Website: https://www.bitdeer.com/
  */
-export class Bitdeer extends BaseEmbedding implements LLM<BitdeerAdditionalChatOptions> {
+export class Bitdeer extends BaseEmbedding implements LLM {
   readonly hasStreaming = true;
 
   model: string;

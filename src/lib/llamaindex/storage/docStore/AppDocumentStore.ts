@@ -1,7 +1,4 @@
-import db from '@/core/db';
-import { documentToNode, nodeToDocument } from '@/lib/llamaindex/converters/document';
 import { BaseDocumentStore, BaseNode, type RefDocInfo } from 'llamaindex';
-import type { UUID } from 'node:crypto';
 
 function todo (): never {
   throw new Error('todo');
@@ -9,15 +6,15 @@ function todo (): never {
 
 export class AppDocumentStore extends BaseDocumentStore {
   async addDocuments (docs: BaseNode[], allowUpdate: boolean) {
-    await db.document.insertAll(docs.map(doc => nodeToDocument(doc as any)), allowUpdate);
+    todo();
   }
 
   deleteDocument (docId: string, raiseError: boolean): Promise<void> {
-    throw new Error('delete not supported now');
+    todo();
   }
 
   deleteRefDoc (refDocId: string, raiseError: boolean): Promise<void> {
-    throw new Error('delete not supported now');
+    todo();
   }
 
   docs (): Promise<Record<string, BaseNode>> {
@@ -25,16 +22,11 @@ export class AppDocumentStore extends BaseDocumentStore {
   }
 
   async documentExists (docId: string): Promise<boolean> {
-    return !!await db.document.findById(docId as UUID);
+    todo();
   }
 
-  async getAllDocumentHashes () {
-    const docs = await db.document.getAllDigest();
-
-    return docs.reduce((record, doc) => {
-      record[doc.id] = doc.digest;
-      return record;
-    }, {} as Record<string, string>);
+  async getAllDocumentHashes (): Promise<any> {
+    todo();
   }
 
   getAllRefDocInfo (): Promise<Record<string, RefDocInfo> | undefined> {
@@ -42,18 +34,11 @@ export class AppDocumentStore extends BaseDocumentStore {
   }
 
   async getDocument (docId: string, raiseError: boolean): Promise<BaseNode | undefined> {
-    const document = await db.document.findById(docId as UUID);
-    if (!document) {
-      if (raiseError) {
-        throw new Error(`document ${docId} not found`);
-      }
-      return undefined;
-    }
-    return documentToNode(document);
+    todo();
   }
 
   getDocumentHash (docId: string): Promise<string | undefined> {
-    return db.document.getDigest(docId as UUID);
+    todo();
   }
 
   getRefDocInfo (refDocId: string): Promise<RefDocInfo | undefined> {
@@ -61,6 +46,6 @@ export class AppDocumentStore extends BaseDocumentStore {
   }
 
   setDocumentHash (docId: string, docHash: string): void {
-    void db.document.updateDigest(docId as UUID, docHash);
+    todo();
   }
 }

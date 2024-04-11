@@ -2,18 +2,16 @@ import { ImportDialog } from '@/components/dialogs/import-dialog';
 import { Button } from '@/components/ui/button';
 import { FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { handleErrors } from '@/lib/fetch';
-import { withToast } from '@/lib/toast';
-import { ImportIcon } from 'lucide-react';
 import { importWebsite, type ImportWebsiteFormValues } from '@/operations/documents';
+import { ImportIcon } from 'lucide-react';
 
 export function ImportSiteDialog () {
   return (
     <ImportDialog<ImportWebsiteFormValues>
       trigger={(
-        <Button size='sm' className='gap-1'>
+        <Button size="sm" className="gap-1">
           Import website
-          <ImportIcon size='1em' />
+          <ImportIcon size="1em" />
         </Button>
       )}
       title="Import website"

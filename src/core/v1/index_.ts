@@ -69,11 +69,16 @@ export async function updateIndexConfig<Path extends KeyPaths<IndexConfig>> (id:
   if (configPath.startsWith('.embedding')) {
     throw new Error('cannot modify embedding config');
   }
-  await getDb()
+  const { numUpdatedRows } = await getDb()
     .updateTable('index')
     .set('config', eb => eb.fn<string>('json_set', ['index.config', eb.val('$' + configPath), eb.val(JSON.stringify(value))]))
+    .set('last_modified_at', new Date())
     .where('id', '=', id)
-    .execute();
+    .where('configured', '=', 0)
+    .executeTakeFirstOrThrow();
+  if (Number(numUpdatedRows) === 0) {
+    throw new Error('Cannot update index config');
+  }
 }
 
 type KeyPaths<O> = O extends (infer Item)[]

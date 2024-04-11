@@ -1,37 +1,34 @@
-import { db } from '@/core/db/db';
-import type {DB, Json, JsonValue} from '@/core/db/schema';
-import {Selectable, sql, UpdateResult} from 'kysely';
+import { DBv1, getDb } from '@/core/v1/db';
+import { Selectable, UpdateResult } from 'kysely';
 
 export interface StatusDb {
+  findByName (name: string): Promise<Selectable<DBv1['status']> | undefined>;
 
-  findByName(name: string): Promise<Selectable<DB['status']> | undefined>;
+  updateByName (name: string, value: any): Promise<UpdateResult[]>;
 
-  updateByName(name: string, value: any): Promise<UpdateResult[]>;
-
-  compareAndSwap<V>(name: string, newValue: V, needUpdate: (oldVal: V, newVal: V) => boolean, action: () => Promise<void>): Promise<boolean>;
-
+  compareAndSwap<V> (name: string, newValue: V, needUpdate: (oldVal: V, newVal: V) => boolean, action: () => Promise<void>): Promise<boolean>;
 }
 
 export const statusDb: StatusDb = {
 
-  async findByName(name: string) {
-    return await db.selectFrom('status')
+  async findByName (name: string) {
+    return await getDb().selectFrom('status')
       .selectAll()
       .where('status_name', '=', eb => eb.val(name))
       .executeTakeFirst();
   },
 
-  async updateByName(name: string, value: any) {
-    return await db.updateTable('status')
-        .set({
-          status_value: JSON.stringify(value)
-        })
-        .where('status_name', '=', name)
-        .execute();
+  async updateByName (name: string, value: any) {
+    return await getDb().updateTable('status')
+      .set({
+        status_value: JSON.stringify(value),
+      })
+      .where('status_name', '=', name)
+      .execute();
   },
 
-  async compareAndSwap<V>(name: string, newValue: V, needUpdate: (oldVal: V, newVal: V) => boolean, action: () => Promise<void>): Promise<boolean> {
-    return await db.transaction().execute(async txn => {
+  async compareAndSwap<V> (name: string, newValue: V, needUpdate: (oldVal: V, newVal: V) => boolean, action: () => Promise<void>): Promise<boolean> {
+    return await getDb().transaction().execute(async txn => {
       let oldStatus;
       try {
         oldStatus = await txn.selectFrom('status')
@@ -68,12 +65,11 @@ export const statusDb: StatusDb = {
 
       await txn.updateTable('status')
         .set({
-          status_value: JSON.stringify(newValue)
+          status_value: JSON.stringify(newValue),
         })
         .where('status_name', '=', name)
         .execute();
       return true;
     });
-  }
-
+  },
 };

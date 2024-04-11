@@ -1,21 +1,35 @@
-import db from '@/core/db';
+import { getDocument } from '@/core/v1/document';
+import { defineHandler } from '@/lib/next/handler';
+import { baseRegistry } from '@/rag-spec/base';
+import { getFlow } from '@/rag-spec/createFlow';
 import { notFound } from 'next/navigation';
-import { type NextRequest, NextResponse } from 'next/server';
-import {UUID} from "node:crypto";
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
-export async function GET (req: NextRequest, { params }: { params: { id: string } }) {
-  const id = decodeURIComponent(params.id) as UUID;
-  const documentIndex = await db.index.getDocumentIndex('default', id);
-  const document = await db.document.findById(id);
-  if (!documentIndex || !document) {
+export const GET = defineHandler({
+  auth: 'admin',
+  params: z.object({
+    id: z.coerce.number().int(),
+  }),
+}, async ({ params }) => {
+  const document = await getDocument(params.id);
+  if (!document) {
     notFound();
   }
 
-  return NextResponse.json({
-    name: document.name,
-    text_content: documentIndex.text_content,
-    source_uri: document.source_uri,
+  const flow = await getFlow(baseRegistry);
+
+  const storage = flow.getStorage();
+
+  const content = await storage.get(document.content_uri);
+
+  return new NextResponse(content, {
+    headers: {
+      'Content-Type': document.mime,
+      'X-Source-Name': document.name,
+      'X-Source-Uri': document.source_uri,
+    },
   });
-}
+});
 
 export const dynamic = 'force-dynamic';
