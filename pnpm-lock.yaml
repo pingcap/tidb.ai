@@ -143,9 +143,6 @@ importers:
       fast-xml-parser:
         specifier: ^4.3.3
         version: 4.3.3
-      fflate:
-        specifier: ^0.8.1
-        version: 0.8.1
       hast-util-select:
         specifier: ^6.0.2
         version: 6.0.2
@@ -7086,10 +7083,6 @@ packages:
 
   /fecha@4.2.3:
     resolution: {integrity: sha512-OP2IUU6HeYKJi3i0z4A19kHMQoLVs4Hc+DPqqxI2h/DPZHTm/vjsfC6P0b4jCMy14XizLBqvndQ+UilD7707Jw==}
-    dev: false
-
-  /fflate@0.8.1:
-    resolution: {integrity: sha512-/exOvEuc+/iaUm105QIiOt4LpBdMTWsXxqR0HDF35vx3fmaKzw7354gTilCh5rkzEt8WYyG//ku3h3nRmd7CHQ==}
     dev: false
 
   /file-entry-cache@6.0.1:
