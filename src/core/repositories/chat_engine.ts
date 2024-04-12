@@ -1,5 +1,5 @@
 import type { RetrieveOptions } from '@/core/services/retrieving';
-import { type DBv1, getDb, tx } from '@/core/v1/db';
+import { type DBv1, getDb, tx } from '@/core/db';
 import { executePage, type PageRequest } from '@/lib/database';
 import { APIError } from '@/lib/errors';
 import type { Rewrite } from '@/lib/type-utils';

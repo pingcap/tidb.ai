@@ -1,4 +1,4 @@
-import { getIndexByName } from '@/core/v1/index_';
+import { getIndexByName } from '@/core/repositories/index_';
 import { defaultCondenseQuestionPrompt, defaultRefinePrompt, defaultTextQaPrompt } from 'llamaindex';
 import ClientPage from './page.client';
 

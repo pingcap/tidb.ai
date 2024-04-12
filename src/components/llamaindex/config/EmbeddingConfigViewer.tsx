@@ -2,7 +2,7 @@ import { useIndexConfigPart } from '@/components/llamaindex/config/use-index-con
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import type { Index } from '@/core/v1/index_';
+import type { Index } from '@/core/repositories/index_';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';

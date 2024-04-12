@@ -1,7 +1,7 @@
 import { Flow } from '@/core';
 import type { DocumentImportTaskProcessor } from '@/core/services/importing';
-import type { CreateDocument } from '@/core/v1/document';
-import type { CreateDocumentImportTask } from '@/core/v1/document_import_task';
+import type { CreateDocument } from '@/core/repositories/document';
+import type { CreateDocumentImportTask } from '@/core/repositories/document_import_task';
 import { md5 } from '@/lib/digest';
 import { genId } from '@/lib/id';
 import { select } from 'hast-util-select';

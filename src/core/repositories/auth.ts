@@ -1,4 +1,4 @@
-import { getDb } from '@/core/v1/db';
+import { getDb } from '@/core/db';
 
 export async function listAllProviders (enabled?: true) {
   return await getDb().selectFrom('authentication_provider')

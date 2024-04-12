@@ -1,6 +1,6 @@
 'use client';
 
-import type { Index } from '@/core/v1/index_';
+import type { Index } from '@/core/repositories/index_';
 import { createContext, type ReactNode, useContext } from 'react';
 
 const IndexContext = createContext<Index>(null as any);

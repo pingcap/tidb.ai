@@ -1,5 +1,5 @@
 import type { RetrieveOptions } from '@/core/services/retrieving';
-import { DBv1, getDb, tx } from '@/core/v1/db';
+import { DBv1, getDb, tx } from '@/core/db';
 import { executePage, type PageRequest } from '@/lib/database';
 import { uuidToBin } from '@/lib/kysely';
 import type { Overwrite } from '@tanstack/table-core';

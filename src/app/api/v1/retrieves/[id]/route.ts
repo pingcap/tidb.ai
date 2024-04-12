@@ -1,4 +1,4 @@
-import { getRetrieve, getRetrieveResults } from '@/core/v1/retrieve';
+import { getRetrieve, getRetrieveResults } from '@/core/repositories/retrieve';
 import { defineHandler } from '@/lib/next/handler';
 import { notFound } from 'next/navigation';
 import z from 'zod';

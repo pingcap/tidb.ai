@@ -1,5 +1,5 @@
-import { getDb } from '@/core/v1/db';
-import { updateDocument } from '@/core/v1/document';
+import { getDb } from '@/core/db';
+import { updateDocument } from '@/core/repositories/document';
 import { executeInSafeDuration } from '@/lib/next/executeInSafeDuration';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';

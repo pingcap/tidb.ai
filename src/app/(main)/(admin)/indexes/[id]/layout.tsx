@@ -1,5 +1,5 @@
 import { IndexConfigNav } from '@/app/(main)/(admin)/indexes/[id]/nav';
-import { getIndex } from '@/core/v1/index_';
+import { getIndex } from '@/core/repositories/index_';
 import type { LayoutProps } from '@/lib/next/types';
 import { notFound } from 'next/navigation';
 import { IndexProvider } from './context';

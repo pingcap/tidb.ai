@@ -3,7 +3,7 @@ import { Accordion } from '@/components/ui/accordion';
 import AutoFormArray from '@/components/ui/auto-form/fields/array';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import type { Index } from '@/core/v1/index_';
+import type { Index } from '@/core/repositories/index_';
 import { htmlSelectorArray } from '@/lib/zod-extensions/types/html-selector-array';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';

@@ -5,7 +5,7 @@ import { AdminPageHeading } from '@/components/admin-page-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { ImportSiteDialog } from '@/components/dialogs/import-site-dialog';
 import { Separator } from '@/components/ui/separator';
-import type { Source } from '@/core/v1/source';
+import type { Source } from '@/core/repositories/source';
 import { rescheduleDocumentImportTasks, scheduleDocumentImportTasks } from '@/operations/sources';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';

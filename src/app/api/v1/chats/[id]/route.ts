@@ -1,4 +1,4 @@
-import { deleteChat, getChat } from '@/core/v1/chat';
+import { deleteChat, getChat } from '@/core/repositories/chat';
 import {defineHandler} from "@/lib/next/handler";
 import { NextResponse } from 'next/server';
 import {z} from "zod";

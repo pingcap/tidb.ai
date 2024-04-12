@@ -1,5 +1,5 @@
-import { getDb, tx } from '@/core/v1/db';
-import { getIndex } from '@/core/v1/index_';
+import { getDb, tx } from '@/core/db';
+import { getIndex } from '@/core/repositories/index_';
 import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
 import { getLLM } from '@/lib/llamaindex/converters/llm';
 import {

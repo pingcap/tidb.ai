@@ -1,5 +1,5 @@
 // import { RecaptchaEnterpriseServiceClient } from '@google-cloud/recaptcha-enterprise';
-import {getOptionsByGroup} from "@/core/v1/option";
+import {getOptionsByGroup} from "@/core/repositories/option";
 import { NextRequest, NextResponse } from 'next/server';
 import {
   RECAPTCHA_INVALID_MODE_ERROR,

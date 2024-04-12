@@ -1,5 +1,5 @@
-import { listDocuments } from '@/core/v1/document';
-import {createSource} from "@/core/v1/source";
+import { listDocuments } from '@/core/repositories/document';
+import {createSource} from "@/core/repositories/source";
 import { toPageRequest } from '@/lib/database';
 import { defineHandler } from '@/lib/next/handler';
 import {type NextRequest, NextResponse} from "next/server";

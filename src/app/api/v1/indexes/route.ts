@@ -1,4 +1,4 @@
-import { listIndexes } from '@/core/v1/index_';
+import { listIndexes } from '@/core/repositories/index_';
 import { toPageRequest } from '@/lib/database';
 import { defineHandler } from '@/lib/next/handler';
 

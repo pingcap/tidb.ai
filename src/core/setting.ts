@@ -1,4 +1,4 @@
-import {getOptionsByGroup, updateOptionsByGroup} from "@/core/v1/option";
+import {getOptionsByGroup, updateOptionsByGroup} from "@/core/repositories/option";
 import {z} from "zod";
 import {cache} from "react";
 import {
@@ -60,6 +60,7 @@ export const getSetting = async <G extends IGroupName>(group: G): Promise<ListSe
 }
 
 export const getCachedSetting = cache(getSetting);
+
 export async function updateSetting(group: string, settings: z.infer<typeof WebsiteSettingUpdatePayload | typeof CustomJsSettingUpdatePayload | typeof SecuritySettingUpdatePayload>) {
     const parsedSettings = group === GroupName.enum.website ? flattenSettings(settings, 2) : settings;
 

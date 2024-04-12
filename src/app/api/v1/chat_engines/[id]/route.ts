@@ -1,4 +1,4 @@
-import { chatOptionsSchema, deleteChatEngine, getChatEngine, updateChatEngine } from '@/core/v1/chat_engine';
+import { chatOptionsSchema, deleteChatEngine, getChatEngine, updateChatEngine } from '@/core/repositories/chat_engine';
 import { defineHandler } from '@/lib/next/handler';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';

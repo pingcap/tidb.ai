@@ -1,4 +1,4 @@
-import { retryDocumentImportTask } from '@/core/v1/document_import_task';
+import { retryDocumentImportTask } from '@/core/repositories/document_import_task';
 import { defineHandler } from '@/lib/next/handler';
 import { z } from 'zod';
 

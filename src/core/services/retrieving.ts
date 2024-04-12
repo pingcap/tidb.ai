@@ -1,6 +1,6 @@
 import { AppIndexBaseService, type AppIndexBaseServiceOptions } from '@/core/services/base';
-import { Document, getDocuments } from '@/core/v1/document';
-import { createRetrieve, finishRetrieve, type Retrieve, type RetrieveResult, startRetrieveRerank, startRetrieveSearch, terminateRetrieve } from '@/core/v1/retrieve';
+import { Document, getDocuments } from '@/core/repositories/document';
+import { createRetrieve, finishRetrieve, type Retrieve, type RetrieveResult, startRetrieveRerank, startRetrieveSearch, terminateRetrieve } from '@/core/repositories/retrieve';
 import { getErrorMessage } from '@/lib/errors';
 import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
 import type { UUID } from 'node:crypto';

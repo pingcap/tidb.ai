@@ -1,6 +1,6 @@
 import type { DocumentIndexTaskProcessor } from '@/core/services/indexing';
-import { DBv1, getDb, tx } from '@/core/v1/db';
-import type { Json } from '@/core/v1/db/schema';
+import { DBv1, getDb, tx } from '@/core/db';
+import type { Json } from '@/core/db/schema';
 import { uuidToBin, vectorToSql } from '@/lib/kysely';
 import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
 import { getMetadataExtractor } from '@/lib/llamaindex/converters/extractor';
@@ -24,7 +24,7 @@ export interface LlamaindexDocumentChunkNodeTable {
   text: string;
 }
 
-declare module '@/core/v1/db/schema' {
+declare module '@/core/db/schema' {
   interface DB extends Record<`llamaindex_document_chunk_node_${string}`, LlamaindexDocumentChunkNodeTable> {
   }
 }

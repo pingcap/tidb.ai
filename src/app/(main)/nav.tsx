@@ -10,7 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAsk } from '@/components/use-ask';
 import { useHref } from '@/components/use-href';
-import type { Chat } from '@/core/v1/chat';
+import type { Chat } from '@/core/repositories/chat';
 import { useUser } from '@/lib/auth';
 import type { Page } from '@/lib/database';
 import { fetcher } from '@/lib/fetch';

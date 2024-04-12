@@ -6,7 +6,7 @@ import { ImportTaskStatusFilter } from '@/components/data-filters/task-status-fi
 import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { Button } from '@/components/ui/button';
-import type { DocumentImportTask } from '@/core/v1/source';
+import type { DocumentImportTask } from '@/core/repositories/source';
 import { batchRetry } from '@/operations/batchRetry';
 import type { CellContext } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';

@@ -1,4 +1,4 @@
-import { listRetrieves } from '@/core/v1/retrieve';
+import { listRetrieves } from '@/core/repositories/retrieve';
 import { toPageRequest } from '@/lib/database';
 import { defineHandler } from '@/lib/next/handler';
 

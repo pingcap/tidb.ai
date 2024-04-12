@@ -1,8 +1,8 @@
 import { rag } from '@/core/interface';
 import { AppRetrieveService, type AppRetrieveServiceOptions, type RetrieveCallbacks, type RetrievedChunk, type RetrievedChunkReference, type RetrieveOptions } from '@/core/services/retrieving';
-import { getDb } from '@/core/v1/db';
-import type { Index } from '@/core/v1/index_';
-import type { Retrieve, RetrieveResult } from '@/core/v1/retrieve';
+import { getDb } from '@/core/db';
+import type { Index } from '@/core/repositories/index_';
+import type { Retrieve, RetrieveResult } from '@/core/repositories/retrieve';
 import { getOptionalEnv } from '@/lib/env';
 import { cosineDistance, cosineSimilarity, uuidToBin } from '@/lib/kysely';
 import { type BaseRetriever, CohereRerank, NodeRelationship, type NodeWithScore, ObjectType, type RetrieveParams, type ServiceContext, TextNode } from 'llamaindex';

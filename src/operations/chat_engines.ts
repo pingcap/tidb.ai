@@ -1,4 +1,4 @@
-import type { ChatEngineOptions } from '@/core/v1/chat_engine';
+import type { ChatEngineOptions } from '@/core/repositories/chat_engine';
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 

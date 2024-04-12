@@ -1,4 +1,4 @@
-import { DBv1, getDb } from '@/core/v1/db';
+import { DBv1, getDb } from '@/core/db';
 import { executePage, type PageRequest } from '@/lib/database';
 import type { Insertable, Selectable, Updateable } from 'kysely';
 

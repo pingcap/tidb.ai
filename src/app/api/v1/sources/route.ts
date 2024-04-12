@@ -1,4 +1,4 @@
-import { createSource, listSource } from '@/core/v1/source';
+import { createSource, listSource } from '@/core/repositories/source';
 import { toPageRequest } from '@/lib/database';
 import { defineHandler } from '@/lib/next/handler';
 import z from 'zod';

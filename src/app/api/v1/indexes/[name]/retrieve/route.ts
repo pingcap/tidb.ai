@@ -1,6 +1,6 @@
 import { LlamaindexRetrieveService } from '@/core/services/llamaindex/retrieving';
 import { retrieveOptionsSchema } from '@/core/services/retrieving';
-import {getIndexByName} from '@/core/v1/index_';
+import {getIndexByName} from '@/core/repositories/index_';
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
