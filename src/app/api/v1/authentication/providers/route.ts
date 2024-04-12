@@ -1,4 +1,4 @@
-import { createProvider, listAllProviders } from '@/core/v1/auth';
+import { createProvider, listAllProviders } from '@/core/repositories/auth';
 import {defineHandler} from "@/lib/next/handler";
 import { NextResponse } from 'next/server';
 import { z } from 'zod';

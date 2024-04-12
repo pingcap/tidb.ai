@@ -6,7 +6,7 @@ import { metadataCell } from '@/components/cells/metadata';
 import { IndexTaskStatusFilter } from '@/components/data-filters/index-task-status-filter';
 import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
-import type { DocumentIndexTask } from '@/core/v1/document_index_task';
+import type { DocumentIndexTask } from '@/core/repositories/document_index_task';
 import type { CellContext } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';

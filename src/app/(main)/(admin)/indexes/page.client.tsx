@@ -3,7 +3,7 @@
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { metadataCell } from '@/components/cells/metadata';
 import { DataTableRemote } from '@/components/data-table-remote';
-import type { Index } from '@/core/v1/index_';
+import type { Index } from '@/core/repositories/index_';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { LinkIcon } from 'lucide-react';

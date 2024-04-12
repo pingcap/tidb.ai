@@ -1,7 +1,7 @@
 import {getDocumentVectorTableName} from "@/core/services/indexing";
-import {getDb, kysely} from "@/core/v1/db";
-import {getIndex, getIndexByName} from "@/core/v1/index_";
-import {compareAndSwap} from "@/core/v1/status";
+import {getDb, kysely} from "@/core/db";
+import {getIndex, getIndexByName} from "@/core/repositories/index_";
+import {compareAndSwap} from "@/core/repositories/status";
 import {defineHandler} from "@/lib/next/handler";
 import {measure} from "@/lib/time";
 import {DateTime} from "luxon";

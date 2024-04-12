@@ -1,5 +1,4 @@
-import type { Json } from '@/core/v1/db/schema';
-import type { LlamaindexDocumentChunkNodeTable } from '@/jobs/v1/llamaindexDocumentIndexTaskProcessor';
+import type { Json } from '@/core/db/schema';
 import type { Overwrite } from '@tanstack/table-core';
 import {
   BaseNode,
@@ -8,10 +7,10 @@ import {
   VectorStore,
   VectorStoreQuery,
   VectorStoreQueryResult,
-  TextNode, RetrieverQueryEngine, NodeRelationship,
+  TextNode,
 } from 'llamaindex';
 import type { PoolOptions } from "mysql2/promise";
-import type {ExpressionBuilder, Kysely, Sql} from "kysely";
+import type {Kysely, Sql} from "kysely";
 import {binToUUID, cosineDistance, uuidToBin} from "@/lib/kysely";
 import {randomUUID, UUID} from "node:crypto";
 

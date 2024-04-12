@@ -1,4 +1,4 @@
-import { getDb } from '@/core/v1/db';
+import { getDb } from '@/core/db';
 import { defineHandler } from '@/lib/next/handler';
 import { z } from 'zod';
 

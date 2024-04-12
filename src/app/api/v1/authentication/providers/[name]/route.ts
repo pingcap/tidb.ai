@@ -1,4 +1,4 @@
-import { removeProvider, updateProvider } from '@/core/v1/auth';
+import { removeProvider, updateProvider } from '@/core/repositories/auth';
 import {defineHandler} from "@/lib/next/handler";
 import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';

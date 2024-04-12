@@ -1,4 +1,4 @@
-import { getDocument } from '@/core/v1/document';
+import { getDocument } from '@/core/repositories/document';
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';

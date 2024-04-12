@@ -1,5 +1,5 @@
 import { Flow } from '@/core';
-import type { Index } from '@/core/v1/index_';
+import type { Index } from '@/core/repositories/index_';
 
 export interface AppIndexBaseServiceOptions {
   flow: Flow;

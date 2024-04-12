@@ -1,7 +1,7 @@
-import { DBv1, tx } from '@/core/v1/db';
-import { type Document, getDocument } from '@/core/v1/document';
-import { createDocumentIndexTask, createDocumentIndexTasks, dequeueDocumentIndexTaskById, dequeueDocumentIndexTasks, type DocumentIndexTask, type DocumentIndexTaskInfo, finishDocumentIndexTask, listByNotIndexed, listLatestDocumentIndexTasksByDocumentIndex, startDocumentIndexTask, terminateDocumentIndexTask } from '@/core/v1/document_index_task';
-import {DEFAULT_INDEX_PROVIDER_NAME, getIndex, type Index, IndexProviderName} from '@/core/v1/index_';
+import { DBv1, tx } from '@/core/db';
+import { type Document, getDocument } from '@/core/repositories/document';
+import { createDocumentIndexTask, createDocumentIndexTasks, dequeueDocumentIndexTaskById, dequeueDocumentIndexTasks, type DocumentIndexTask, type DocumentIndexTaskInfo, finishDocumentIndexTask, listByNotIndexed, listLatestDocumentIndexTasksByDocumentIndex, startDocumentIndexTask, terminateDocumentIndexTask } from '@/core/repositories/document_index_task';
+import {DEFAULT_INDEX_PROVIDER_NAME, getIndex, type Index, IndexProviderName} from '@/core/repositories/index_';
 import { getErrorMessage } from '@/lib/errors';
 import { notFound } from 'next/navigation';
 

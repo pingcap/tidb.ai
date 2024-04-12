@@ -1,5 +1,5 @@
-import {getDb, tx} from "@/core/v1/db";
-import {DB as DBv1, Status} from "@/core/v1/db/schema";
+import {getDb, tx} from "@/core/db";
+import {DB as DBv1, Status} from "@/core/db/schema";
 import {ValueExpression} from "kysely";
 
 export type StatusDataType = ValueExpression<DBv1, "status", "string" | "number" | "object" | "array" | "date">;

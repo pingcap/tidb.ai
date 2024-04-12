@@ -1,5 +1,5 @@
 import { rag } from '@/core/interface';
-import type { Document as CoreDocument } from '@/core/v1/document';
+import type { Document as CoreDocument } from '@/core/repositories/document';
 import { nodeToChunk, nodeToContent } from '@/lib/llamaindex/converters/base';
 import type { AppReader } from '@/lib/llamaindex/converters/reader';
 import { BaseEmbedding, BaseExtractor, BaseNode, Document, IngestionPipeline, type NodeParser } from 'llamaindex';

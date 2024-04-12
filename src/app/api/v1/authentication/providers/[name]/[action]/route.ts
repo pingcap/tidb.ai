@@ -1,4 +1,4 @@
-import {toggleProvider} from "@/core/v1/auth";
+import {toggleProvider} from "@/core/repositories/auth";
 import {defineHandler} from "@/lib/next/handler";
 import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';

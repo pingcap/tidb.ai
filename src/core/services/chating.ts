@@ -1,6 +1,6 @@
 import { AppIndexBaseService } from '@/core/services/base';
-import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrieveRel, getChatByUrlKey, listChatMessages, updateChatMessage } from '@/core/v1/chat';
-import { tx } from '@/core/v1/db';
+import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrieveRel, getChatByUrlKey, listChatMessages, updateChatMessage } from '@/core/repositories/chat';
+import { tx } from '@/core/db';
 import { AUTH_FORBIDDEN_ERROR, getErrorMessage } from '@/lib/errors';
 import { notFound } from 'next/navigation';
 

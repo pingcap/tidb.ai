@@ -1,4 +1,4 @@
-import { DBv1, getDb } from '@/core/v1/db';
+import { DBv1, getDb } from '@/core/db';
 
 export async function getOptionByName (name: string) {
   return await getDb().selectFrom('option')

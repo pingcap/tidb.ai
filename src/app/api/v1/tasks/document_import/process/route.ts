@@ -1,5 +1,5 @@
 import { processDocumentImportTasks } from '@/core/services/importing';
-import { createDocumentImportTaskProcessor } from '@/jobs/v1/documentImportTaskProcessor';
+import { createDocumentImportTaskProcessor } from '@/jobs/documentImportTaskProcessor';
 import { executeInSafeDuration } from '@/lib/next/executeInSafeDuration';
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';

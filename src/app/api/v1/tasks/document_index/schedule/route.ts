@@ -1,5 +1,5 @@
 import { DEFAULT_INDEX_NAME, scheduleDocumentFirstIndex } from '@/core/services/indexing';
-import { getIndexByName } from '@/core/v1/index_';
+import { getIndexByName } from '@/core/repositories/index_';
 import { INDEX_NOT_FOUND_ERROR } from '@/lib/errors';
 import { defineHandler } from '@/lib/next/handler';
 import z from 'zod';

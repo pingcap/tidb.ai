@@ -1,5 +1,5 @@
 import { processDocumentIndexTasks } from '@/core/services/indexing';
-import { createLlamaindexDocumentIndexTaskProcessor } from '@/jobs/v1/llamaindexDocumentIndexTaskProcessor';
+import { createLlamaindexDocumentIndexTaskProcessor } from '@/jobs/llamaindexDocumentIndexTaskProcessor';
 import { executeInSafeDuration } from '@/lib/next/executeInSafeDuration';
 import { defineHandler } from '@/lib/next/handler';
 import z from 'zod';

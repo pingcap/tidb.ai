@@ -1,8 +1,8 @@
 import { type ChatResponse } from '@/core/services/chating';
 import { LlamaindexChatService } from '@/core/services/llamaindex/chating';
-import { createChat, listChats } from '@/core/v1/chat';
-import { getChatEngine, getDefaultChatEngine } from '@/core/v1/chat_engine';
-import { getIndexByName } from '@/core/v1/index_';
+import { createChat, listChats } from '@/core/repositories/chat';
+import { getChatEngine, getDefaultChatEngine } from '@/core/repositories/chat_engine';
+import { getIndexByName } from '@/core/repositories/index_';
 import { toPageRequest } from '@/lib/database';
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';

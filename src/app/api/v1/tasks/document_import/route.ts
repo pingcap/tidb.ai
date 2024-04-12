@@ -1,4 +1,4 @@
-import { listDocumentImportTasks } from '@/core/v1/document_import_task';
+import { listDocumentImportTasks } from '@/core/repositories/document_import_task';
 import { toPageRequest } from '@/lib/database';
 import { defineHandler } from '@/lib/next/handler';
 import z from 'zod';

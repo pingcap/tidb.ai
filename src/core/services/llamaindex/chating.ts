@@ -1,8 +1,8 @@
 import { AppChatService, type ChatOptions, type ChatResponse } from '@/core/services/chating';
 import { LlamaindexRetrieverWrapper, LlamaindexRetrieveService } from '@/core/services/llamaindex/retrieving';
-import { type Chat, listChatMessages } from '@/core/v1/chat';
-import type { ChatEngineOptions } from '@/core/v1/chat_engine';
-import { getDb } from '@/core/v1/db';
+import { type Chat, listChatMessages } from '@/core/repositories/chat';
+import type { ChatEngineOptions } from '@/core/repositories/chat_engine';
+import { getDb } from '@/core/db';
 import { uuidToBin } from '@/lib/kysely';
 import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
 import { getLLM } from '@/lib/llamaindex/converters/llm';

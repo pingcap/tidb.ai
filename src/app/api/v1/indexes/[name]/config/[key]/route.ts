@@ -1,4 +1,4 @@
-import {getIndex, getIndexByName, updateIndexConfig} from '@/core/v1/index_';
+import {getIndex, getIndexByName, updateIndexConfig} from '@/core/repositories/index_';
 import { defineHandler } from '@/lib/next/handler';
 import { notFound } from 'next/navigation';
 import z from 'zod';
