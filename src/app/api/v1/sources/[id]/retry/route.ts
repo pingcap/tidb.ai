@@ -2,13 +2,18 @@ import { getDb } from '@/core/v1/db';
 import { defineHandler } from '@/lib/next/handler';
 import { z } from 'zod';
 
+const paramsSchema = z.object({
+  id: z.coerce.number().int(),
+});
+
+const bodySchema = z.object({
+  status: z.enum(['FAILED']),
+});
+
 export const POST = defineHandler({
-  params: z.object({
-    id: z.coerce.number().int(),
-  }),
-  body: z.object({
-    status: z.enum(['FAILED']),
-  }),
+  auth: 'admin',
+  params: paramsSchema,
+  body: bodySchema,
 }, async ({
   params,
   body: { status },
