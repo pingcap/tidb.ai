@@ -26,7 +26,7 @@ const columns = [
 export default function PageClient ({ ...props }: ComponentProps<typeof CreateChatEngineDialog>) {
   return (
     <>
-      <AdminPageHeading title="Explore all chat engines" />
+      <AdminPageHeading title="Chat Engines" />
       <DataTableRemote
         before={(
           <DataTableHeading>

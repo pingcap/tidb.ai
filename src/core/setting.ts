@@ -1,5 +1,5 @@
+import {getOptionsByGroup, updateOptionsByGroup} from "@/core/v1/option";
 import {z} from "zod";
-import database from "@/core/db";
 import {cache} from "react";
 import {
     GroupName,
@@ -34,7 +34,7 @@ export const getSetting = async <G extends IGroupName>(group: G): Promise<ListSe
         }
     }
 
-    const options = await database.option.findByGroup(group);
+    const options = await getOptionsByGroup(group);
     const settings: any = {};
     for (const option of options) {
         settings[option.option_name] = option.option_value
@@ -43,8 +43,8 @@ export const getSetting = async <G extends IGroupName>(group: G): Promise<ListSe
     let result;
     switch (group) {
         case GroupName.enum.website:
-            const unflattenedSettings = unflattenSettings(settings);
-            result = WebsiteSettingResult.parse(unflattenedSettings);
+            const unFlattenedSettings = unflattenSettings(settings);
+            result = WebsiteSettingResult.parse(unFlattenedSettings);
             break
         case GroupName.enum.custom_js:
             result = CustomJsSettingResult.parse(settings);
@@ -69,5 +69,5 @@ export async function updateSetting(group: string, settings: z.infer<typeof Webs
             option_value: value
         }
     });
-    return await database.option.updateByGroup(group, options);
+    return await updateOptionsByGroup(group, options);
 }

@@ -1,6 +1,6 @@
 // import { RecaptchaEnterpriseServiceClient } from '@google-cloud/recaptcha-enterprise';
+import {getOptionsByGroup} from "@/core/v1/option";
 import { NextRequest, NextResponse } from 'next/server';
-import { optionDb } from '@/core/db/options';
 import {
   RECAPTCHA_INVALID_MODE_ERROR,
   RECAPTCHA_INVALID_TOKEN_ERROR,
@@ -162,7 +162,7 @@ export async function createEnterpriseAssessment({
 }
 
 export async function validateNextRequestWithReCaptcha(req: NextRequest) {
-  const reCaptchaCfg = await optionDb.findByGroup('security');
+  const reCaptchaCfg = await getOptionsByGroup('security');
   const reCaptchaSiteKey = reCaptchaCfg
     ?.find((item) => item.option_name === 'google_recaptcha_site_key')
     ?.option_value?.toString();
