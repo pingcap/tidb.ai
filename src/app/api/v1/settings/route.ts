@@ -28,15 +28,15 @@ export const GET = defineHandler({
 });
 
 const UpdateSettingRequestSchema = z.object({
-  group: GroupName,
+  group: z.literal('website'),
   settings: WebsiteSettingUpdatePayload,
 });
 const UpdateCustomJsSettingRequestSchema = z.object({
-  group: GroupName,
+  group: z.literal('custom_js'),
   settings: CustomJsSettingUpdatePayload,
 });
 const UpdateSecuritySettingRequestSchema = z.object({
-  group: GroupName,
+  group: z.literal('security'),
   settings: SecuritySettingUpdatePayload,
 });
 

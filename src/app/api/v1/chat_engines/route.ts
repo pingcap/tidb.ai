@@ -7,7 +7,7 @@ export const GET = defineHandler({ auth: 'admin' }, async ({ request }) => {
   return listChatEngine(toPageRequest(request));
 });
 
-export const bodySchema = z.object({
+const bodySchema = z.object({
   name: z.string(),
   engine: z.string(),
   engine_options: chatOptionsSchema,

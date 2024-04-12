@@ -3,7 +3,7 @@ import { defineHandler } from '@/lib/next/handler';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
 
-export const paramsSchema = z.object({
+const paramsSchema = z.object({
   id: z.coerce.number().int(),
 });
 

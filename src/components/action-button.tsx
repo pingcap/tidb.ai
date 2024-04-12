@@ -5,7 +5,8 @@ interface ActionButtonProps extends ButtonProps {
   action?: () => Promise<void>;
 }
 
-export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>((
+// eslint-disable-next-line react/display-name
+const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>((
   {
     action,
     onClick,
@@ -34,3 +35,7 @@ export const ActionButton = forwardRef<HTMLButtonElement, ActionButtonProps>((
     />
   );
 });
+
+export {
+  ActionButton
+};

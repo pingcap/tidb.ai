@@ -18,8 +18,7 @@ function useExtensions () {
   return { extensions, isLoading };
 }
 
-export default async function ExtensionsPage () {
-  await authGuard('admin');
+export default function ExtensionsPage () {
   const { extensions, isLoading } = useExtensions();
 
   return (
