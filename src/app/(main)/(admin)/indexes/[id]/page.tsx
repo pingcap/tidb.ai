@@ -34,9 +34,7 @@ export default function Page () {
               </FormDescription>
             </div>
             <FormControl>
-              <Switch
-
-              />
+              <Switch checked={!!index.configured} disabled={!!index.configured} />
             </FormControl>
           </FormItem>
         </Form>

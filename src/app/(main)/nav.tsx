@@ -67,7 +67,7 @@ export function Nav () {
           ] : []),
           ...(history?.data.map(chat => (
             {
-              href: `/c/${chat.id}`,
+              href: `/c/${chat.url_key}`,
               title: chat.title,
               variant: (active: boolean) => (active ? 'secondary' : 'ghost'),
               className: conversationItemClassName,

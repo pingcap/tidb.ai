@@ -20,10 +20,11 @@ const schema = z.object({
 
 export function ParserConfigViewer ({ index }: { index: Index }) {
   const { data: parser, update: updateParser, isUpdating, isLoading } = useIndexConfigPart(index, 'parser');
+  const disabled = !!index.configured || isLoading || isUpdating;
 
   const form = useForm({
     values: parser,
-    disabled: isLoading || isUpdating,
+    disabled,
     resolver: zodResolver(schema),
   });
 
@@ -93,7 +94,7 @@ export function ParserConfigViewer ({ index }: { index: Index }) {
             </FormItem>
           )}
         />
-        <Button className='mt-4' disabled>Submit</Button>
+        <Button className='mt-4' disabled={disabled}>Submit</Button>
       </Form>
     </form>
   );

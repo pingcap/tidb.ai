@@ -35,10 +35,11 @@ function fromSafeName (record: Record<string, any>) {
 
 export function ReaderConfigViewer ({ index }: { index: Index }) {
   const { data: reader, update: updateReader, isUpdating, isLoading } = useIndexConfigPart(index, 'reader');
+  const disabled = !!index.configured || isLoading || isUpdating;
 
   const form = useForm({
     values: toSafeName(reader),
-    disabled: isLoading || isUpdating,
+    disabled,
     resolver: zodResolver(schema),
   });
 
@@ -59,7 +60,7 @@ export function ReaderConfigViewer ({ index }: { index: Index }) {
         <Accordion type="single" defaultValue="rag_$loader_$html.contentExtraction">
           <AutoFormArray name="rag_$loader_$html.contentExtraction" path={['rag_$loader_$html', 'contentExtraction']} item={schema.shape.rag_$loader_$html} form={form} />
         </Accordion>
-        <Button className="mt-4" disabled>Submit</Button>
+        <Button className="mt-4" disabled={disabled}>Submit</Button>
       </Form>
     </form>
   );

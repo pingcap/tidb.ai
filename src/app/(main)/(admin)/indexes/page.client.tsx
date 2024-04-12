@@ -6,6 +6,8 @@ import { DataTableRemote } from '@/components/data-table-remote';
 import type { Index } from '@/core/v1/index_';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
+import { LinkIcon } from 'lucide-react';
+import Link from 'next/link';
 
 export default function PageClient () {
   return (
@@ -24,7 +26,14 @@ const helper = createColumnHelper<Index>();
 
 const columns: ColumnDef<Index, any>[] = [
   helper.accessor('id', {}),
-  helper.accessor('name', {}),
+  helper.accessor('name', {
+    cell: (ctx) => (
+      <Link className='flex gap-2 items-center underline' href={`/indexes/${ctx.row.original.id}`}>
+        {ctx.getValue()}
+        <LinkIcon className='w-3 h-3' />
+      </Link>
+    ),
+  }),
   helper.display({ cell: ctx => ctx.row.original.config.provider, header: 'type' }),
   helper.accessor('config', { cell: metadataCell }),
 ];

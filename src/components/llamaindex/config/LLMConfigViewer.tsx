@@ -19,10 +19,11 @@ const schema = z.object({
 
 export function LlmConfigViewer ({ index }: { index: Index }) {
   const { data: llm, update: updateLlm, isUpdating, isLoading } = useIndexConfigPart(index, 'llm');
+  const disabled = !!index.configured || isLoading || isUpdating;
 
   const form = useForm({
     values: llm,
-    disabled: isLoading || isUpdating || true,
+    disabled,
     resolver: zodResolver(schema),
   });
 
@@ -66,7 +67,7 @@ export function LlmConfigViewer ({ index }: { index: Index }) {
             </FormItem>
           )}
         />
-        <Button className='mt-4' disabled>Submit</Button>
+        <Button className='mt-4' disabled={disabled}>Submit</Button>
       </Form>
     </form>
   );

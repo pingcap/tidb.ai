@@ -19,10 +19,10 @@ const schema = z.object({
 
 export function EmbeddingConfigViewer ({ index }: { index: Index }) {
   const { data: embedding, update: updateEmbedding, isUpdating, isLoading } = useIndexConfigPart(index, 'embedding');
-
+  const disabled = !!index.configured || isLoading || isUpdating;
   const form = useForm({
     values: embedding,
-    disabled: isLoading || isUpdating || true,
+    disabled,
     resolver: zodResolver(schema),
   });
 
@@ -66,7 +66,7 @@ export function EmbeddingConfigViewer ({ index }: { index: Index }) {
             </FormItem>
           )}
         />
-        <Button className='mt-4' disabled>Submit</Button>
+        <Button className="mt-4" disabled={disabled}>Submit</Button>
       </Form>
     </form>
   );
