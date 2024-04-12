@@ -67,6 +67,7 @@ const updateSettingBodySchema = z.object({
 });
 
 export const PUT = defineHandler({
+  auth: 'admin',
   body: updateSettingBodySchema,
 }, async ({
   request

@@ -1,6 +1,5 @@
 'use client';
 
-import { parseSource } from '@/components/conversation-message-group';
 import { Loader } from '@/components/loader';
 import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -44,7 +43,6 @@ export function SemanticSearch () {
 type SearchResult = {
   'queryId': string,
   'relevantChunks': {
-    'namespace_id': number;
     'document_index_chunk_id': string,
     'document_id': string,
     'text_content': string,
@@ -65,13 +63,11 @@ function InternalSearchBox () {
   const search = (text: string) => {
     setLoading(true);
     startTransition(() => {
-      fetch('/api/v1/indexes/1/query', {
+      fetch('/api/v1/indexes/default/retrieve', {
         method: 'post',
         body: JSON.stringify({
           text,
           top_k: 5,
-          // TODO: Support specifying namespaces manually.
-          namespaces: [],
         }),
       }).then(handleErrors)
         .then(res => res.json())

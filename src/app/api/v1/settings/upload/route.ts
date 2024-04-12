@@ -1,11 +1,15 @@
 
+import {defineHandler} from "@/lib/next/handler";
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function POST (req: NextRequest) {
-  // TODO: limit the request.
-  const formData = await req.formData();
+export const POST = defineHandler({
+  auth: 'admin'
+}, async ({
+  request
+}) => {
+  const formData = await request.formData();
   const file = formData.get('file');
 
   if (!(file instanceof Blob)) {
@@ -31,6 +35,6 @@ export async function POST (req: NextRequest) {
   return NextResponse.json({
     url: url
   });
-}
+});
 
 export const dynamic = 'force-dynamic';
