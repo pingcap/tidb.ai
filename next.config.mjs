@@ -5,6 +5,7 @@ const withMDX = mdx({});
 
 /** @type {import('next').NextConfig} */
 let nextConfig = withSvgr(withMDX({
+  output: process.env.STANDALONE_BUILD ? 'standalone' : undefined,
   experimental: {
     serverComponentsExternalPackages: ['pdfjs-dist', 'llamaindex'],
     outputFileTracingExcludes: {

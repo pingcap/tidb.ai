@@ -1,13 +1,16 @@
 'use client';
 
+import { ActionButton } from '@/components/action-button';
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { ImportSiteDialog } from '@/components/dialogs/import-site-dialog';
 import { Separator } from '@/components/ui/separator';
 import type { Source } from '@/core/v1/source';
+import { rescheduleDocumentImportTasks, scheduleDocumentImportTasks } from '@/operations/sources';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';
+import { ClockIcon, RotateCwIcon } from 'lucide-react';
 
 interface SourceWithSummary extends Source {
   summary: Record<string, string>;
@@ -43,6 +46,30 @@ export default function Page () {
       },
     }),
     helper.accessor('created_at', { cell: datetime }),
+    helper.display({
+      header: 'Operations',
+      cell: (ctx) => {
+        if (!ctx.row.original.summary) {
+          return (
+            <ActionButton variant='secondary' size='sm' action={async () => {
+              await scheduleDocumentImportTasks(ctx.row.original.id);
+            }}>
+              <ClockIcon className='w-4 h-4 mr-2' />
+              Schedule
+            </ActionButton>
+          );
+        } else if (ctx.row.original.summary.FAILED) {
+          return (
+            <ActionButton variant='secondary' size='sm' action={async () => {
+              await rescheduleDocumentImportTasks(ctx.row.original.id, 'FAILED');
+            }}>
+              <RotateCwIcon className='w-4 h-4 mr-2' />
+              Retry all Failed
+            </ActionButton>
+          );
+        }
+      },
+    }),
   ];
 
   return (
