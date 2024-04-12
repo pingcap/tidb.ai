@@ -2,19 +2,19 @@
   "crons": [
     {
       "schedule": "* * * * *",
-      "path": "/api/v2/tasks/document_import/process"
+      "path": "/api/v1/tasks/document_import/process"
     },
     {
       "schedule": "* * * * *",
-      "path": "/api/v2/tasks/document_index/schedule"
+      "path": "/api/v1/tasks/document_index/schedule"
     },
     {
       "schedule": "* * * * *",
-      "path": "/api/v2/tasks/document_index/process"
+      "path": "/api/v1/tasks/document_index/process"
     },
     {
       "schedule": "* * * * *",
-      "path": "/api/v2/tasks/temp_fill_document_name"
+      "path": "/api/v1/tasks/temp_fill_document_name"
     }
   ],
   "rewrites": [

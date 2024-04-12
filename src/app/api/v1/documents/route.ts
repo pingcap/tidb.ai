@@ -1,15 +1,23 @@
-import { createSource } from '@/core/v1/source';
-import { adminHandlerGuard } from '@/lib/auth-server';
-import { type NextRequest, NextResponse } from 'next/server';
+import { listDocuments } from '@/core/v1/document';
+import {createSource} from "@/core/v1/source";
+import { toPageRequest } from '@/lib/database';
+import { defineHandler } from '@/lib/next/handler';
+import {type NextRequest, NextResponse} from "next/server";
 
-export { GET } from '@/app/api/v2/documents/route';
+export const GET = defineHandler({
+  auth: 'admin',
+}, async ({ request }) => {
+  return await listDocuments(toPageRequest(request));
+});
 
-export const PUT = adminHandlerGuard(async (req) => {
-  const contentType = req.headers.get('Content-Type')?.split(';')[0];
+export const PUT = defineHandler({
+  auth: 'admin',
+},  async ({ request}) => {
+  const contentType = request.headers.get('Content-Type')?.split(';')[0];
 
   switch (contentType) {
     case 'text/uri-list':
-      await handleUriListV2(req);
+      await handleUriListV2(request);
       break;
     default:
       return new NextResponse(undefined, { status: 406 });
@@ -17,8 +25,6 @@ export const PUT = adminHandlerGuard(async (req) => {
 
   return NextResponse.json({});
 });
-
-export const dynamic = 'force-dynamic';
 
 async function handleUriListV2 (req: NextRequest) {
   const uriList = (await req.text())
@@ -33,3 +39,5 @@ async function handleUriListV2 (req: NextRequest) {
     });
   }
 }
+
+export const dynamic = 'force-dynamic';

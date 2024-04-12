@@ -35,7 +35,7 @@ export default function PageClient ({ ...props }: ComponentProps<typeof CreateCh
           </DataTableHeading>
         )}
         columns={columns}
-        api="/api/v2/chat_engines"
+        api="/api/v1/chat_engines"
         idColumn="id"
       />
     </>

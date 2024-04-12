@@ -41,7 +41,7 @@ export function MessageInput ({
 
   const session = useSession();
   const showShowSelectChatEngine = onEngineChange && session.data?.user?.role === 'admin';
-  const { data } = useSWR(showShowSelectChatEngine ? ['get', '/api/v2/chat_engines?page_size=999'] : undefined, fetcher<Page<ChatEngine>>);
+  const { data } = useSWR(showShowSelectChatEngine ? ['get', '/api/v1/chat_engines?page_size=999'] : undefined, fetcher<Page<ChatEngine>>);
 
   return (
     <div className={cn('bg-background flex gap-2 items-end border p-2 rounded-lg', className)}>

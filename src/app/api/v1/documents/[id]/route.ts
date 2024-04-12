@@ -6,11 +6,13 @@ import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
+const paramsSchema = z.object({
+  id: z.coerce.number().int(),
+});
+
 export const GET = defineHandler({
   auth: 'admin',
-  params: z.object({
-    id: z.coerce.number().int(),
-  }),
+  params: paramsSchema,
 }, async ({ params }) => {
   const document = await getDocument(params.id);
   if (!document) {

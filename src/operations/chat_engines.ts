@@ -10,7 +10,7 @@ export interface CreateChatEngineFormValues {
 
 export const createChatEngine = withToast(
   async (data: CreateChatEngineFormValues) => {
-    await fetch('/api/v2/chat_engines', {
+    await fetch('/api/v1/chat_engines', {
       method: 'post',
       body: JSON.stringify(data),
       headers: {},

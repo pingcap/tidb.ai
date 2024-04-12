@@ -24,7 +24,7 @@ export default function TasksPage ({}: {}) {
           </DataTableHeading>
         }
         idColumn="id"
-        api="/api/v2/tasks/document_index"
+        api="/api/v1/tasks/document_index"
         columns={columns as any}
       />
     </>

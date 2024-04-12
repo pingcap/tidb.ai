@@ -26,7 +26,7 @@ export default function TasksPage ({}: {}) {
         }
         idColumn="id"
         selectable
-        api="/api/v2/tasks/document_import"
+        api="/api/v1/tasks/document_import"
         columns={columns as any}
         batchOperations={(rows, revalidate) => (
           <Button variant="secondary" onClick={() => batchRetry(rows, revalidate)}>

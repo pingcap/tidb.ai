@@ -65,7 +65,7 @@ function InternalSearchBox () {
   const search = (text: string) => {
     setLoading(true);
     startTransition(() => {
-      fetch('/api/v1/indexes/default/query', {
+      fetch('/api/v1/indexes/1/query', {
         method: 'post',
         body: JSON.stringify({
           text,

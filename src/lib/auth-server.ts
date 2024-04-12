@@ -17,6 +17,11 @@ export async function authGuard (role?: 'admin') {
   }
 }
 
+/**
+ * @deprecated
+ * TODO: REMOVE it
+ * @param handler
+ */
 export function adminHandlerGuard<Context extends { params: Record<string, string | string[] | undefined> }> (handler: (request: NextRequest & { auth: Session }, ctx: Context) => Promise<Response>): (req: NextRequest, ctx: Context) => Promise<Response> {
   return auth(async (req, ctx) => {
     if (!req.auth?.user || req.auth.user.role === 'anonymous') {
