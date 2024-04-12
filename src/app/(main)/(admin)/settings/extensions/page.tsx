@@ -5,19 +5,21 @@ import { AdminPageHeading } from '@/components/admin-page-heading';
 import { AdminPageLayout } from '@/components/admin-page-layout';
 import { Loader } from '@/components/loader';
 import { Button } from '@/components/ui/button';
+import {authGuard} from "@/lib/auth-server";
 import { fetcher } from '@/lib/fetch';
-import { PlayIcon, Settings2 } from 'lucide-react';
+import { PlayIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import useSWR from 'swr';
 
 function useExtensions () {
-  const { data: extensions = [], isLoading } = useSWR(['get', '/api/v2/extensions'], fetcher<{ identifier: string, displayName: string }[]>);
+  const { data: extensions = [], isLoading } = useSWR(['get', '/api/v1/extensions'], fetcher<{ identifier: string, displayName: string }[]>);
 
   return { extensions, isLoading };
 }
 
-export default function ExtensionsPage () {
+export default async function ExtensionsPage () {
+  await authGuard('admin');
   const { extensions, isLoading } = useExtensions();
 
   return (

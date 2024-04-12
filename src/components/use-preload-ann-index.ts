@@ -2,7 +2,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 
 const TRIGGER_PRELOAD_ANN_INDEX_INTERVAL = 2 * 60 * 1000;   // 2 minutes
 
-export function usePreloadANNIndex (indexId: number = 1) {
+export function usePreloadANNIndex (indexName: string = 'default') {
   const documentVisible = useSyncExternalStore(
     onStoreChange => {
       document.addEventListener('visibilitychange', onStoreChange);
@@ -19,20 +19,20 @@ export function usePreloadANNIndex (indexId: number = 1) {
       if (!Boolean(process.env.PUBLIC_ENABLE_ANN_INDEX_PRELOAD ?? true)) return;
 
       // Preload TiFlash replicas periodically.
-      triggerANNIndexPreload(indexId);
+      triggerANNIndexPreload(indexName);
       const h = setInterval(() => {
-        triggerANNIndexPreload(indexId);
+        triggerANNIndexPreload(indexName);
       }, TRIGGER_PRELOAD_ANN_INDEX_INTERVAL);
 
       return () => {
         clearInterval(h);
       };
     }
-  }, [documentVisible, indexId]);
+  }, [documentVisible, indexName]);
 }
 
-const triggerANNIndexPreload = (indexId: number) => {
-  void fetch(`/api/v2/indexes/${indexId}/preload`, {
+const triggerANNIndexPreload = (indexName: string) => {
+  void fetch(`/api/v1/indexes/${indexName}/preload`, {
     method: 'POST',
     cache: 'no-cache',
   }).catch(() => {});

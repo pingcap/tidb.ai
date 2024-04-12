@@ -11,7 +11,6 @@ import { Bar, BarChart, ResponsiveContainer } from 'recharts';
 import useSWR from 'swr';
 
 export default function Page () {
-
   return (
     <>
       <AdminPageHeading title="Overview" />
@@ -28,7 +27,7 @@ export default function Page () {
 }
 
 function IndexStats ({}: {}) {
-  const { data, isLoading } = useSWR(['get', '/api/v2/stats/document_index_state'], fetcher<{ documents: number, chunks: number }>, {});
+  const { data, isLoading } = useSWR(['get', '/api/v1/stats/document_index_state'], fetcher<{ documents: number, chunks: number }>, {});
 
   return (
     <OverviewCard
@@ -52,7 +51,7 @@ function IndexStats ({}: {}) {
 
 function TaskStats () {
   type TaskStatsData = Partial<Record<'CREATED' | 'SUCCEED' | 'PENDING' | 'IMPORTING' | 'FAILED', number>>
-  const { data, isLoading } = useSWR(['get', '/api/v2/stats/document_import_tasks'], fetcher<TaskStatsData>, {});
+  const { data, isLoading } = useSWR(['get', '/api/v1/stats/document_import_tasks'], fetcher<TaskStatsData>, {});
 
   return (
     <OverviewCard
@@ -73,7 +72,7 @@ type ChatStatsData = Partial<Record<'chats' | 'chat_messages' | 'sessions', numb
 type DailyChatStatsData = (ChatStatsData & { date: string })[];
 
 function ChatStats () {
-  const { data, isLoading } = useSWR(['get', '/api/v1/chats/stats'], fetcher<ChatStatsData>);
+  const { data, isLoading } = useSWR(['get', '/api/v1/stats/chats'], fetcher<ChatStatsData>);
 
   return (
     <OverviewCard
@@ -101,7 +100,7 @@ function ChatStats () {
 }
 
 function ChatDailyStats () {
-  const { data = [] } = useSWR(['get', '/api/v1/chats/daily-stats'], fetcher<DailyChatStatsData>);
+  const { data = [] } = useSWR(['get', '/api/v1/stats/chats_daily'], fetcher<DailyChatStatsData>);
 
   const refinedData = useMemo(() => {
     const res: { day: number, value: number }[] = [];

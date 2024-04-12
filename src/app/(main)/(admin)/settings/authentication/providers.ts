@@ -48,7 +48,7 @@ export function useProvider () {
   const [submitError, setSubmitError] = React.useState<unknown>();
 
   React.useEffect(() => {
-    fetch('/api/v2/authentication/providers')
+    fetch('/api/v1/authentication/providers')
       .then((res) => res.json())
       .then((res: { name: string, enabled: number }[]) => {
         setConfiguredProviders(supportedProviders.map(provider => {
@@ -70,7 +70,7 @@ export function useProvider () {
       client_secret: string;
     }) => {
       setSubmitting(true);
-      fetch('/api/v2/authentication/providers', {
+      fetch('/api/v1/authentication/providers', {
         method: 'post',
         headers: {
           'Content-Type': 'application/json',
@@ -101,7 +101,7 @@ export function useProvider () {
     },
     act: (type: 'enable' | 'disable', provider: string) => {
       setSubmitting(true);
-      fetch(`/api/v2/authentication/providers/${provider}/${type}`, {
+      fetch(`/api/v1/authentication/providers/${provider}/${type}`, {
         method: 'post',
         headers: {
           'Content-Type': 'application/json',
@@ -124,7 +124,7 @@ export function useProvider () {
     },
     remove: (provider: string) => {
       setSubmitting(true);
-      fetch(`/api/v2/authentication/providers/${provider}`, {
+      fetch(`/api/v1/authentication/providers/${provider}`, {
         method: 'delete',
         headers: {
           'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ export function useProvider () {
       },
     ) => {
       setSubmitting(true);
-      fetch(`/api/v2/authentication/providers/${provider}`, {
+      fetch(`/api/v1/authentication/providers/${provider}`, {
         method: 'put',
         headers: {
           'Content-Type': 'application/json',

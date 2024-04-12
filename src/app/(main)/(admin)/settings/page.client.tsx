@@ -14,6 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {authGuard} from "@/lib/auth-server";
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -44,7 +45,7 @@ function useSettingsForm() {
   return form;
 }
 
-export default function SettingsPage() {
+export default async function SettingsPage() {
   const form = useSettingsForm();
 
   const { mutate } = useSWRConfig();

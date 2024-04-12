@@ -2,7 +2,7 @@ import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 
 export const batchRetry = withToast(async (ids: string[], revalidate: () => void) => {
-  const { created, failed } = await fetch('/api/v2/tasks/document_import/retry', {
+  const { created, failed } = await fetch('/api/v1/tasks/document_import/retry', {
     method: 'post',
     body: JSON.stringify({
       ids: ids.map(i => parseInt(i)),

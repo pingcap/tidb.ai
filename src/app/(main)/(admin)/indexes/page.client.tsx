@@ -13,7 +13,7 @@ export default function PageClient () {
       <AdminPageHeading title="Explore all indexes" />
       <DataTableRemote
         columns={columns}
-        api="/api/v2/indexes"
+        api="/api/v1/indexes"
         idColumn="id"
       />
     </>
