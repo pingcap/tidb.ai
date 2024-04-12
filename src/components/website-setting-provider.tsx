@@ -1,7 +1,7 @@
 'use client';
 
 import {createContext} from 'react';
-import {useSettings} from "@/hooks";
+import {useSettings} from "@/components/hooks";
 import {IWebsiteSettingResult} from "@/core/schema/setting";
 
 export const WebsiteSettingContext = createContext<IWebsiteSettingResult>({});

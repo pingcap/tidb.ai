@@ -3,7 +3,7 @@ import { PromptTemplateEditor } from '@/components/ui/auto-form/zod-extensions/p
 import { Button } from '@/components/ui/button';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { createChatEngine } from '@/operations/chat_engines';
+import { createChatEngine } from '@/client/operations/chat_engines';
 
 export function CreateChatEngineDialog ({
   defaultIndexId,

@@ -7,7 +7,7 @@ import { DataTableRemote } from '@/components/data-table-remote';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import type { Chat } from '@/core/repositories/chat';
-import { deleteChat } from '@/operations/chats';
+import { deleteChat } from '@/client/operations/chats';
 import type { CellContext } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';

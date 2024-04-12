@@ -3,7 +3,7 @@ import {Avatar, AvatarFallback, AvatarImage} from "@/components/ui/avatar";
 import {Input} from "@/components/ui/input";
 import {Loader2} from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
-import { updateSettingImage } from "@/operations/settings";
+import { updateSettingImage } from "@/client/operations/settings";
 
 export interface ImageUploaderProps
   extends React.InputHTMLAttributes<HTMLInputElement> {

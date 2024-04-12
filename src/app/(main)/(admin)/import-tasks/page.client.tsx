@@ -7,7 +7,7 @@ import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { Button } from '@/components/ui/button';
 import type { DocumentImportTask } from '@/core/repositories/source';
-import { batchRetry } from '@/operations/batchRetry';
+import { batchRetry } from '@/client/operations/batchRetry';
 import type { CellContext } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';

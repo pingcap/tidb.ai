@@ -15,7 +15,7 @@ import { useUser } from '@/lib/auth';
 import type { Page } from '@/lib/database';
 import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
-import { deleteChat } from '@/operations/chats';
+import { deleteChat } from '@/client/operations/chats';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { ActivitySquareIcon, CogIcon, CommandIcon, FileIcon, HomeIcon, ImportIcon, ListIcon, MenuIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react';
 import Link from 'next/link';

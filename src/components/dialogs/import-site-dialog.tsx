@@ -2,7 +2,7 @@ import { ImportDialog } from '@/components/dialogs/import-dialog';
 import { Button } from '@/components/ui/button';
 import { FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
-import { importWebsite, type ImportWebsiteFormValues } from '@/operations/documents';
+import { importWebsite, type ImportWebsiteFormValues } from '@/client/operations/documents';
 import { ImportIcon } from 'lucide-react';
 
 export function ImportSiteDialog () {

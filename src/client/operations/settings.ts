@@ -1,6 +1,6 @@
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
-import { z } from 'zod';
+import { z } from '../../../packages/zod-extension';
 import {
   CustomJsSettingUpdatePayload,
   WebsiteSettingUpdatePayload,

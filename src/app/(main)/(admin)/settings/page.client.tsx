@@ -3,7 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { IWebsiteSettingResult } from '@/core/schema/setting';
-import { useSettings } from '@/hooks';
+import { useSettings } from '@/components/hooks';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Form,
@@ -29,7 +29,7 @@ import { LanguageSelector } from '@/components/language-selector';
 import { Loader2 } from 'lucide-react';
 import { useSWRConfig } from 'swr';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
-import { updateSettingWebsite as updateSetting } from '@/operations/settings';
+import { updateSettingWebsite as updateSetting } from '@/client/operations/settings';
 
 
 function useSettingsForm() {

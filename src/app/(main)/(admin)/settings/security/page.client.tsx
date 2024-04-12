@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useSettings } from '@/hooks';
+import { useSettings } from '@/components/hooks';
 import {
   Form,
   FormControl,
@@ -23,7 +23,7 @@ import {
   SecuritySettingUpdatePayload,
 } from '@/core/schema/setting';
 import { ReCaptchaSelector } from '@/components/reCaptcha-selector';
-import { updateSettingSecurity as updateSetting } from '@/operations/settings';
+import { updateSettingSecurity as updateSetting } from '@/client/operations/settings';
 
 export default function SecurityPage() {
   const [data, setData] = React.useState<ISecuritySettingResult>({});

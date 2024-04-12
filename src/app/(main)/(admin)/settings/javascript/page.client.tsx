@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useSettings } from '@/hooks';
+import { useSettings } from '@/components/hooks';
 import {
   Form,
   FormControl,
@@ -28,7 +28,7 @@ import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import { a11yDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import copy from 'copy-to-clipboard';
 import { ThemeSelector } from '@/components/theme-selector';
-import { updateSettingCustomJS as updateSetting } from '@/operations/settings';
+import { updateSettingCustomJS as updateSetting } from '@/client/operations/settings';
 import { ReCaptchaSelector } from '@/components/reCaptcha-selector';
 
 SyntaxHighlighter.registerLanguage('javascript', js);
