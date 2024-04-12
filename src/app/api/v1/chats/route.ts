@@ -88,9 +88,9 @@ export const POST = defineHandler({
     index,
   });
 
-  const { chat_id, message_ordinal, response } = await chatService.chat(sessionId, auth.user.id!, body.messages.findLast(m => m.role === 'user')?.content ?? '');
+  const { session_id, message_ordinal, response } = await chatService.chat(sessionId, auth.user.id!, body.messages.findLast(m => m.role === 'user')?.content ?? '');
 
-  return mapResponseToTextStream(chat_id, message_ordinal, response);
+  return mapResponseToTextStream(session_id, message_ordinal, response);
 });
 
 export const GET = defineHandler({
@@ -111,7 +111,7 @@ export const GET = defineHandler({
   return NextResponse.json(await listChats({ page, pageSize, userId }));
 });
 
-async function mapResponseToTextStream (chat_id: number, message_ordinal: number, responseStream: AsyncGenerator<ChatResponse>) {
+async function mapResponseToTextStream (session_id: string, message_ordinal: number, responseStream: AsyncGenerator<ChatResponse>) {
   const data = new experimental_StreamData();
 
   const rs = new ReadableStream({
@@ -136,7 +136,7 @@ async function mapResponseToTextStream (chat_id: number, message_ordinal: number
 
   return new StreamingTextResponse(rs, {
     headers: {
-      'X-CreateRag-Session': chat_id.toString(),
+      'X-CreateRag-Session': session_id,
     },
   }, data);
 }
