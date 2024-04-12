@@ -1,4 +1,4 @@
-import { ArchiveIcon, ArrowDownWideNarrowIcon, BinaryIcon, CpuIcon, HardDriveDownloadIcon, type LucideIcon, ScanTextIcon, SplitSquareVerticalIcon, WorkflowIcon } from 'lucide-react';
+import { ArchiveIcon, ArrowDownWideNarrowIcon, BinaryIcon, CpuIcon, HardDriveDownloadIcon, type LucideIcon, ScanTextIcon } from 'lucide-react';
 
 export const enum ExtensionCategory {
   LOADER = 'rag.loader',

@@ -12,7 +12,7 @@ import Link from 'next/link';
 import useSWR from 'swr';
 
 function useExtensions () {
-  const { data: extensions = [], isLoading } = useSWR(['get', '/api/v1/extensions'], fetcher<{ identifier: string, displayName: string }[]>);
+  const { data: extensions = [], isLoading } = useSWR(['get', '/api/v2/extensions'], fetcher<{ identifier: string, displayName: string }[]>);
 
   return { extensions, isLoading };
 }
