@@ -3,6 +3,7 @@ import { Document, getDocuments } from '@/core/repositories/document';
 import { createRetrieve, finishRetrieve, type Retrieve, type RetrieveResult, startRetrieveRerank, startRetrieveSearch, terminateRetrieve } from '@/core/repositories/retrieve';
 import { getErrorMessage } from '@/lib/errors';
 import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
+import {ServiceContext} from "llamaindex";
 import type { UUID } from 'node:crypto';
 import z, { ZodType } from 'zod';
 
@@ -51,15 +52,18 @@ export const retrieveOptionsSchema: ZodType<RetrieveOptions> = z.object({
 });
 
 export interface AppRetrieveServiceOptions extends AppIndexBaseServiceOptions {
+  serviceContext: ServiceContext;
   reranker?: { provider: string, options?: any };
 }
 
 export abstract class AppRetrieveService extends AppIndexBaseService {
+  protected readonly serviceContext: ServiceContext;
   protected readonly rerankerOptions?: AppRetrieveServiceOptions['reranker'];
 
-  constructor ({ reranker, ...options }: AppRetrieveServiceOptions) {
+  constructor ({ reranker, serviceContext, ...options }: AppRetrieveServiceOptions) {
     super(options);
     this.rerankerOptions = reranker;
+    this.serviceContext = serviceContext;
   }
 
   async retrieve (options: RetrieveOptions, callbacks?: RetrieveCallbacks): Promise<RetrievedChunk[]> {

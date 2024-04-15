@@ -85,7 +85,7 @@ export const POST = defineHandler({
 
   const chatService = new LlamaindexChatService({
     flow,
-    index,
+    index
   });
 
   const { session_id, message_ordinal, response } = await chatService.chat(sessionId, auth.user.id!, body.messages.findLast(m => m.role === 'user')?.content ?? '');

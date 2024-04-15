@@ -24,12 +24,14 @@ export const POST = defineHandler({
   const flow = await getFlow(baseRegistry);
 
   const retrieveService = new LlamaindexRetrieveService({
+    // TODO: support llm reranker
     reranker: {
       provider: 'cohere',
       options: {},
     },
     flow,
     index,
+    serviceContext: {} as any
   });
 
   const result = await retrieveService.retrieve(body);
