@@ -1,14 +1,12 @@
-import { rag } from '@/core/interface';
 import { AppRetrieveService, type AppRetrieveServiceOptions, type RetrieveCallbacks, type RetrievedChunk, type RetrievedChunkReference, type RetrieveOptions } from '@/core/services/retrieving';
 import { getDb } from '@/core/db';
 import type { Index } from '@/core/repositories/index_';
 import type { Retrieve, RetrieveResult } from '@/core/repositories/retrieve';
-import { getOptionalEnv } from '@/lib/env';
-import { cosineDistance, cosineSimilarity, uuidToBin } from '@/lib/kysely';
-import { type BaseRetriever, CohereRerank, NodeRelationship, type NodeWithScore, ObjectType, type RetrieveParams, type ServiceContext, TextNode } from 'llamaindex';
+import { cosineDistance } from '@/lib/kysely';
+import {getReranker} from "@/lib/llamaindex/converters/reranker";
+import { type BaseRetriever, NodeRelationship, type NodeWithScore, ObjectType, type RetrieveParams, type ServiceContext, TextNode } from 'llamaindex';
 import type { RelatedNodeInfo, RelatedNodeType } from 'llamaindex/Node';
 import type { UUID } from 'node:crypto';
-import Vector = rag.Vector;
 
 export class LlamaindexRetrieveService extends AppRetrieveService {
   protected async run (retrieve: Retrieve, {
@@ -30,7 +28,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
       chunks = chunks.filter(chunk => set.has(chunk.metadata.namespace_id));
     }
 
-    if (!this.rerankerOptions) {
+    if (!this.rerankerOptions?.provider) {
       return chunks.slice(0, top_k);
     }
 
@@ -99,17 +97,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
   }
 
   private async rerank (chunks: RetrievedChunk[], text: string, top_k: number, rerankerOptions: NonNullable<AppRetrieveServiceOptions['reranker']>) {
-    // TODO: support custom rag rerankers like: `getReranker(flow, raranker.provider, reranker.options)`
-    if (rerankerOptions.provider !== 'cohere') {
-      throw new Error(`reranker ${rerankerOptions.provider} not supported`);
-    }
-
-    const reranker = new CohereRerank({
-      apiKey: getOptionalEnv('COHERE_TOKEN'),
-      ...rerankerOptions.options,
-      topN: top_k,
-    });
-
+    const reranker = getReranker(this.serviceContext, rerankerOptions.provider, rerankerOptions, top_k);
     const chunksMap = new Map(chunks.map(chunk => [chunk.document_chunk_node_id, chunk]));
     const nodesWithScore = await reranker.postprocessNodes(chunks.map(chunk => ({ score: chunk.relevance_score, node: transform(chunk) })), text);
 

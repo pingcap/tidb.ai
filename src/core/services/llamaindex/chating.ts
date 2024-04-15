@@ -52,9 +52,7 @@ Refined Answer:`;
         search_top_k = 100,
         top_k = 5,
       } = {},
-      reranker = {
-        provider: 'cohere',
-      },
+      reranker,
       prompts: {
         textQa,
         refine,
@@ -74,6 +72,7 @@ Refined Answer:`;
       reranker,
       flow: this.flow,
       index: this.index,
+      serviceContext
     });
     const retriever = new LlamaindexRetrieverWrapper(retrieveService, {
       search_top_k,

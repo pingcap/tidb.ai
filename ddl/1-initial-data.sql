@@ -209,4 +209,4 @@ VALUES
     ('last_preload_at', 'date', '"1970-01-01"');
 
 INSERT INTO
-    chat_engine (name, engine, engine_options, is_default) VALUE ('default', 'condense-question', '{}', true);
+    chat_engine (name, engine, engine_options, is_default) VALUE ('default', 'condense-question', '{"reranker": {"provider": "llm"}}', true);
