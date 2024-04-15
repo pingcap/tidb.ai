@@ -1,9 +1,11 @@
 import { DBv1, getDb } from '@/core/db';
 import { executePage, type PageRequest } from '@/lib/database';
 import type { Rewrite } from '@/lib/type-utils';
-import { type Selectable } from 'kysely';
+import { type Insertable, type Selectable, sql } from 'kysely';
+import { notFound } from 'next/navigation';
 
 export type Index = Rewrite<Selectable<DBv1['index']>, { config: IndexConfig }>;
+export type CreateIndex = Rewrite<Insertable<DBv1['index']>, { config: IndexConfig }>;
 
 export enum IndexProviderName {
   LLAMAINDEX = 'llamaindex',
@@ -63,6 +65,57 @@ export async function getIndexByName (name: string) {
     .$castTo<Index>()
     .where('name', '=', eb => eb.val(name))
     .executeTakeFirst();
+}
+
+export async function createIndex ({ config, ...create }: CreateIndex) {
+  await getDb()
+    .insertInto('index')
+    .values({
+      ...create,
+      config: JSON.stringify(config),
+    })
+    .execute();
+
+  return (await getIndex(create.id))!;
+}
+
+export async function enableIndex (id: number) {
+  const index = await getIndex(id);
+  if (!index) {
+    notFound();
+  }
+  if (index.config.provider !== 'llamaindex') {
+    throw new Error(`index type ${index.config.provider} not supported`);
+  }
+
+  if (index.configured) {
+    throw new Error(`index ${index.name} already enabled`);
+  }
+
+  await sql`
+      CREATE TABLE IF NOT EXISTS ${index.config.provider}_document_chunk_node_${index.name}
+      (
+          -- Text Node Common Fields
+          id          BINARY(16)   NOT NULL,
+          hash        VARCHAR(256) NOT NULL,
+          text        TEXT         NOT NULL,
+          metadata    JSON         NOT NULL,
+          embedding   VECTOR< FLOAT >(${index.config.embedding.config.vectorDimension}) NULL COMMENT 'hnsw(distance=cosine)',
+          -- Extra Document Chunk Node Fields
+          index_id    INT          NOT NULL,
+          document_id INT          NOT NULL,
+          PRIMARY KEY (id),
+          KEY idx_ldcn_on_index_id_document_id (index_id, document_id),
+          FOREIGN KEY fk_ldcn_on_index_id (index_id) REFERENCES \`index\` (id),
+          FOREIGN KEY fk_ldcn_on_document_id (document_id) REFERENCES \`document\` (id)
+      );
+  `.execute(getDb());
+
+  await getDb()
+    .updateTable('index')
+    .set('configured', 1)
+    .where('id', '=', id)
+    .execute();
 }
 
 export async function updateIndexConfig<Path extends KeyPaths<IndexConfig>> (id: number, configPath: Path, value: Extract<IndexConfig, Path>) {

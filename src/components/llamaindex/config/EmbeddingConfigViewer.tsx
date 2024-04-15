@@ -9,12 +9,10 @@ import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
 const schema = z.object({
-  textSplitter: z.object({
-    chunkSize: z.coerce.number().optional(),
-    chunkOverlap: z.coerce.number().optional(),
-    paragraphSeparator: z.string().optional(),
-    splitLongSentences: z.boolean().optional(),
-  }),
+  provider: z.string(),
+  config: z.object({
+    model: z.string(),
+  })
 });
 
 export function EmbeddingConfigViewer ({ index }: { index: Index }) {

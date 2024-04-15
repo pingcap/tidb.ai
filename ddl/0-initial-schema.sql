@@ -65,7 +65,8 @@ CREATE TABLE IF NOT EXISTS `index` (
     config              JSON            NOT NULL,
     configured          BOOLEAN         NOT NULL DEFAULT FALSE,
     created_at          DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    last_modified_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    last_modified_at    DATETIME        NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE INDEX (name)
 );
 
 -- Document Index tasks

@@ -9,7 +9,7 @@ export default function Layout ({ children }: LayoutProps) {
 
   return (
     <>
-      {index.configured && <Alert className='mb-4'>
+      {!!index.configured && <Alert className='mb-4'>
         <AlertTitle>
           Index configuration is readonly
         </AlertTitle>

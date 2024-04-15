@@ -3,14 +3,17 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTrigger } from '@/components/ui/dialog';
 import { Form } from '@/components/ui/form';
 import { getErrorMessage } from '@/lib/errors';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { AlertTriangleIcon } from 'lucide-react';
 import { type ReactElement, type ReactNode, useState } from 'react';
 import { type FieldValues, useForm } from 'react-hook-form';
+import { ZodType } from 'zod';
 
-export function ImportDialog<T extends FieldValues> ({ title, description, onSubmit, trigger, submitTitle = 'Import', defaultValues, children }: { title: ReactNode, onSubmit: (value: T) => Promise<void>, description?: ReactNode, trigger: ReactElement, children: ReactNode, submitTitle?: string, defaultValues?: T }) {
+export function ImportDialog<T extends FieldValues> ({ title, description, onSubmit, trigger, submitTitle = 'Import', defaultValues, schema, children }: { title: ReactNode, onSubmit: (value: T) => Promise<void>, description?: ReactNode, trigger: ReactElement, children: ReactNode, submitTitle?: string, defaultValues?: T, schema?: ZodType<T> }) {
   const [open, setOpen] = useState(false);
   const form = useForm<T>({
     values: defaultValues,
+    resolver: schema ? zodResolver(schema) : undefined,
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>();
