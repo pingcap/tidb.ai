@@ -46,33 +46,13 @@ const updateSettingSchema = z.discriminatedUnion("group", [
   UpdateSecuritySettingRequestSchema
 ]);
 
-type UpdateSetting = z.infer<typeof updateSettingSchema>;
-
-async function parseUpdateSetting (reqJson: any): Promise<UpdateSetting> {
-  switch (reqJson?.group) {
-    case GroupName.enum.website:
-      return UpdateSettingRequestSchema.parse(reqJson);
-    case GroupName.enum.custom_js:
-      return UpdateCustomJsSettingRequestSchema.parse(reqJson);
-    case GroupName.enum.security:
-      return UpdateSecuritySettingRequestSchema.parse(reqJson);
-    default:
-      throw new Error('Invalid setting group');
-  }
-}
-
-const updateSettingBodySchema = z.object({
-  group: GroupName,
-  settings: updateSettingSchema,
-});
-
 export const PUT = defineHandler({
   auth: 'admin',
-  body: updateSettingBodySchema,
+  body: updateSettingSchema,
 }, async ({
-  request
+  body,
 }) => {
-  const { group, settings } = await parseUpdateSetting(request.json());
+  const { group, settings } = body;
   const updated = await updateSetting(group, settings);
 
   return NextResponse.json({
