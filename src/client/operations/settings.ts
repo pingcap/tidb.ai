@@ -1,11 +1,11 @@
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
-import { z } from '../../../packages/zod-extension';
 import {
   CustomJsSettingUpdatePayload,
   WebsiteSettingUpdatePayload,
   SecuritySettingUpdatePayload,
 } from '@/core/schema/setting';
+import z from "zod";
 
 export const updateSettingCustomJS = withToast(
   async (data: z.infer<typeof CustomJsSettingUpdatePayload>, mutate: any) => {
