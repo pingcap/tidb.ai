@@ -17,7 +17,7 @@ import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
 import { deleteChat } from '@/client/operations/chats';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { ActivitySquareIcon, CogIcon, CommandIcon, FileIcon, HomeIcon, ImportIcon, ListIcon, MenuIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react';
+import { ActivitySquareIcon, BinaryIcon, CogIcon, CommandIcon, FileIcon, GlobeIcon, HomeIcon, ImportIcon, ListIcon, MenuIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
@@ -86,8 +86,8 @@ export function Nav () {
         { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon },
         { href: '/explore', title: 'Documents', icon: FileIcon },
         { href: '/sources', title: 'Data Sources', icon: ImportIcon },
-        { href: '/indexes', title: 'Indexes', icon: ListIcon },
-        { href: '/import-tasks', title: 'Import Tasks', icon: ListIcon },
+        { href: '/indexes', title: 'Indexes', icon: BinaryIcon },
+        { href: '/import-tasks', title: 'Import Tasks', icon: GlobeIcon },
         { href: '/index-tasks', title: 'Index Tasks', icon: ListIcon },
         { href: '/settings', title: 'Settings', icon: CogIcon },
       ],

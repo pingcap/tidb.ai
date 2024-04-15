@@ -1,4 +1,5 @@
 import { getDb } from '@/core/db';
+import { getDocumentIndexTasksSummary } from '@/core/repositories/document_index_task';
 import { defineHandler } from '@/lib/next/handler';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
@@ -7,7 +8,8 @@ const StatType = z.enum([
   'document_index_state',
   'document_import_tasks',
   'chats',
-  'chats_daily'
+  'chats_daily',
+  'document_index_status_summary',
 ]);
 
 const paramsSchema = z.object({
@@ -16,7 +18,7 @@ const paramsSchema = z.object({
 
 export const GET = defineHandler({
   auth: 'admin',
-  params: paramsSchema
+  params: paramsSchema,
 }, async ({ params, request }) => {
   switch (params.type) {
     case StatType.enum.document_import_tasks:
@@ -27,12 +29,14 @@ export const GET = defineHandler({
       return await getChatsStats();
     case StatType.enum.chats_daily:
       return await getChatDailyStats();
+    case StatType.enum.document_index_status_summary:
+      return await getDocumentIndexTasksSummary(parseInt(request.nextUrl.searchParams.get('index_id')!));
     default:
       notFound();
   }
 });
 
-async function getDocumentIndexStateStats() {
+async function getDocumentIndexStateStats () {
   const { documents } = await getDb()
     .selectFrom('llamaindex_document_node')
     .select(eb => eb.fn.countAll().as('documents'))
@@ -49,7 +53,7 @@ async function getDocumentIndexStateStats() {
   };
 }
 
-async function getDocumentImportTasksStats() {
+async function getDocumentImportTasksStats () {
   const { result } = await getDb()
     .with('cte_agg', qc => qc.selectFrom('document_import_task')
       .select(eb => ([
@@ -66,7 +70,7 @@ async function getDocumentImportTasksStats() {
   return result;
 }
 
-async function getChatsStats() {
+async function getChatsStats () {
   return await getDb().selectFrom('chat_message')
     .leftJoin('chat', 'chat.id', 'chat_message.chat_id')
     .select([
@@ -78,7 +82,7 @@ async function getChatsStats() {
     .executeTakeFirstOrThrow();
 }
 
-async function getChatDailyStats() {
+async function getChatDailyStats () {
   return await getDb().selectFrom('chat_message')
     .leftJoin('chat', 'chat.id', 'chat_message.chat_id')
     .select([

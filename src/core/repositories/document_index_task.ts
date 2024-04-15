@@ -188,3 +188,18 @@ export async function terminateDocumentIndexTask (id: number, info: DocumentInde
 
   return Number(numUpdatedRows) !== 0;
 }
+
+export async function getDocumentIndexTasksSummary (id: number) {
+  const { summary } = await getDb()
+    .with('cte_status_agg', qc =>
+      qc.selectFrom('document_index_task')
+        .where('index_id', '=', id)
+        .select('status')
+        .select(eb => eb.fn.countAll().as('count'))
+        .groupBy('status'))
+    .selectFrom('cte_status_agg')
+    .select(eb => eb.fn<Record<DocumentIndexTask['status'], number>>('json_objectagg', ['status', 'count']).as('summary'))
+    .executeTakeFirstOrThrow();
+
+  return summary;
+}
