@@ -45,7 +45,7 @@ function useSettingsForm() {
   return form;
 }
 
-export default async function SettingsPage() {
+export default function SettingsPage() {
   const form = useSettingsForm();
 
   const { mutate } = useSWRConfig();

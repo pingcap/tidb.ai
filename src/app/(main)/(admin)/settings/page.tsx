@@ -1,6 +1,6 @@
 import SettingsPage from '@/app/(main)/(admin)/settings/page.client';
 
-export default async function ServerSettingsPage () {
+export default function ServerSettingsPage () {
   return (
     <SettingsPage />
   );
