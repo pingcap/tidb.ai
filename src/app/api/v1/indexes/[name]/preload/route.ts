@@ -1,74 +1,73 @@
-import {getDocumentVectorTableName} from "@/core/services/indexing";
-import {getDb, kysely} from "@/core/db";
-import {getIndex, getIndexByName} from "@/core/repositories/index_";
-import {compareAndSwap} from "@/core/repositories/status";
-import {defineHandler} from "@/lib/next/handler";
-import {measure} from "@/lib/time";
-import {DateTime} from "luxon";
-import {notFound} from "next/navigation";
-import {NextResponse} from 'next/server';
-import {sql} from "kysely";
-import {z} from "zod";
+import { getDb } from '@/core/db';
+import { getIndexByName } from '@/core/repositories/index_';
+import { compareAndSwap } from '@/core/repositories/status';
+import { DocumentIndexService } from '@/core/services/indexing';
+import { defineHandler } from '@/lib/next/handler';
+import { measure } from '@/lib/time';
+import { sql } from 'kysely';
+import { notFound } from 'next/navigation';
+import { NextResponse } from 'next/server';
+import { z } from 'zod';
 
 const MIN_PRELOAD_ANN_INDEX_INTERVAL = 10 * 60 * 1000; // 10 minutes
 
 const handlerOptions = {
   params: z.object({
-    name: z.string()
+    name: z.string(),
   }),
 };
 
-export const POST = defineHandler(handlerOptions, async ({ params}) => {
+export const POST = defineHandler(handlerOptions, async ({ params }) => {
   const index = await getIndexByName(params.name);
   if (!index) {
     notFound();
   }
 
   try {
-    const statusName = `${index.name}_ann_index_last_preload_at`
+    const statusName = `${index.name}_ann_index_last_preload_at`;
     const success = await compareAndSwap<Date>(
       {
         status_name: statusName,
         status_type: 'date',
-        status_value: new Date()
+        status_value: new Date(),
       },
-      (oldDate , newDate) => {
+      (oldDate, newDate) => {
         return (newDate.getTime() - oldDate.getTime()) > MIN_PRELOAD_ANN_INDEX_INTERVAL;
       },
       async () => {
         const { provider, embedding } = index.config;
         const { vectorColumn, vectorDimension } = embedding.config;
-        const tableName = getDocumentVectorTableName(provider, index.name);
+        const tableName = DocumentIndexService.getDocumentVectorTableName(provider, index.name);
         await preloadTiFlashANNIndex(tableName, vectorColumn, vectorDimension);
       },
-      true
+      true,
     );
 
     if (success) {
       return NextResponse.json({
-        message: 'success'
+        message: 'success',
       });
     } else {
       return NextResponse.json({
-        message: 'skipped'
+        message: 'skipped',
       });
     }
   } catch (e) {
     console.error('Failed to preload TiFlash replicas:', e);
     return NextResponse.json({
-      message: 'error'
+      message: 'error',
     });
   }
 });
 
-async function preloadTiFlashANNIndex(tableName: string, vectorColumn: string = 'embedding', vectorDimension: number = 1536){
+async function preloadTiFlashANNIndex (tableName: string, vectorColumn: string = 'embedding', vectorDimension: number = 1536) {
   const duration = await measure(async () => {
     const vector = generateRandomVector(vectorDimension);
     const stmt = sql`
-    SELECT id
-    FROM ${sql.ref(tableName)}
-    ORDER BY VEC_COSINE_DISTANCE(${sql.ref(vectorColumn)}, ${sql.val(vector)})
-    LIMIT 5
+        SELECT id
+        FROM ${sql.ref(tableName)}
+        ORDER BY VEC_COSINE_DISTANCE(${sql.ref(vectorColumn)}, ${sql.val(vector)})
+        LIMIT 5
     `;
     console.log(`Preloading ANNIndex for table <${tableName}> with sql:`, stmt.compile(getDb()).sql);
     return await stmt.execute(getDb());
@@ -76,8 +75,8 @@ async function preloadTiFlashANNIndex(tableName: string, vectorColumn: string = 
   console.log(`Preloaded ANNIndex for table <${tableName}>, took ${duration} ms`);
 }
 
-function generateRandomVector(dimension: number): string {
-  const vector = Array.from({length: dimension}, () => parseFloat((Math.random() * 2 - 1).toFixed(2)));
+function generateRandomVector (dimension: number): string {
+  const vector = Array.from({ length: dimension }, () => parseFloat((Math.random() * 2 - 1).toFixed(2)));
   return JSON.stringify(vector);
 }
 

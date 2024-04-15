@@ -1,6 +1,9 @@
-import type { DocumentIndexTaskProcessor } from '@/core/services/indexing';
 import { DBv1, getDb, tx } from '@/core/db';
 import type { Json } from '@/core/db/schema';
+import type { Document } from '@/core/repositories/document';
+import type { DocumentIndexTask, DocumentIndexTaskInfo } from '@/core/repositories/document_index_task';
+import type { Index } from '@/core/repositories/index_';
+import { DocumentIndexProvider, type DocumentIndexTaskResult } from '@/core/services/indexing';
 import { uuidToBin, vectorToSql } from '@/lib/kysely';
 import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
 import { getMetadataExtractor } from '@/lib/llamaindex/converters/extractor';
@@ -29,8 +32,8 @@ declare module '@/core/db/schema' {
   }
 }
 
-export function createLlamaindexDocumentIndexTaskProcessor (): DocumentIndexTaskProcessor {
-  return async (task, document, index, mutableInfo) => {
+export class LlamaindexIndexProvider extends DocumentIndexProvider {
+  async process (task: DocumentIndexTask, document: Document, index: Index, mutableInfo: DocumentIndexTaskInfo): Promise<DocumentIndexTaskResult> {
     const flow = await getFlow(baseRegistry, undefined, index.config);
 
     // Initialize the reader from legacy loaders.
