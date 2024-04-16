@@ -73,7 +73,6 @@ function InternalSearchBox () {
         .then(res => res.json())
         .then((res: SearchResult) => {
           const set = new Set<string>();
-          console.log(set);
           res.relevantChunks = res.relevantChunks.filter(res => {
             if (set.has(res.source_uri)) {
               return false;

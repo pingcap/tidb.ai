@@ -12,6 +12,8 @@ const schema = z.object({
   provider: z.string(),
   config: z.object({
     model: z.string(),
+    vectorColumn: z.literal('embedding').default('embedding'),
+    vectorDimension: z.coerce.number(),
   })
 });
 
@@ -25,8 +27,7 @@ export function EmbeddingConfigViewer ({ index }: { index: Index }) {
   });
 
   const handleSubmit = form.handleSubmit((value) => {
-    // updateEmbedding(value);
-    console.log(value);
+    updateEmbedding(value);
   });
 
   useEffect(() => {
@@ -57,6 +58,19 @@ export function EmbeddingConfigViewer ({ index }: { index: Index }) {
           render={({ field }) => (
             <FormItem>
               <FormLabel>Model Name</FormLabel>
+              <FormControl>
+                <Input {...field} value={field.value ?? ''} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="config.vectorDimension"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Vector Dimensions</FormLabel>
               <FormControl>
                 <Input {...field} value={field.value ?? ''} />
               </FormControl>

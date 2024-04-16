@@ -5,7 +5,7 @@ import { useCallback, useState } from 'react';
 import useSWR from 'swr';
 
 export function useIndexConfigPart<K extends keyof IndexConfig> (index: Index, part: K) {
-  const { data, isLoading, mutate } = useSWR<IndexConfig[K]>(['get', `/api/v1/indexes/${index.id}/config/${part}`], {
+  const { data, isLoading, mutate } = useSWR<IndexConfig[K]>(['get', `/api/v1/indexes/${index.name}/config/${part}`], {
     fetcher,
     revalidateOnMount: false,
     fallbackData: index.config[part],
@@ -15,7 +15,7 @@ export function useIndexConfigPart<K extends keyof IndexConfig> (index: Index, p
 
   const update = useCallback((value: IndexConfig[K]) => {
     setIsUpdating(true);
-    updateIndexConfigPart(index.id, part, value)
+    updateIndexConfigPart(index.name, part, value)
       .then(() => {
         try {
           index.config[part] = value;

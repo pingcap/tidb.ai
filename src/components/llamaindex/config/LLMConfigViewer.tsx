@@ -26,8 +26,7 @@ export function LlmConfigViewer ({ index }: { index: Index }) {
   });
 
   const handleSubmit = form.handleSubmit((value) => {
-    // updateLlm(value);
-    console.log(value);
+    updateLlm(value);
   });
 
   useEffect(() => {

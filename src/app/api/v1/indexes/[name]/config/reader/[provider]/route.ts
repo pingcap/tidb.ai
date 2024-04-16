@@ -24,15 +24,16 @@ export const GET = defineHandler({ params }, async ({
 
 export const PUT = defineHandler({
   params: z.object({
-    id: z.coerce.number().int(),
+    name: z.string(),
     provider: z.string(),
   }),
   body: z.any(),
 }, async ({
-  params: { id, provider },
+  params: { name, provider },
   body,
 }) => {
-  if (!await getIndex(id)) {
+  const index = await getIndexByName(name);
+  if (!index) {
     notFound();
   }
   const component = await baseRegistry.getComponent(provider);
@@ -43,7 +44,7 @@ export const PUT = defineHandler({
 
   await component.optionsSchema.parse(body);
 
-  await updateIndexConfig(id, `.reader.${provider}`, body);
+  await updateIndexConfig(index.id, `.reader.${provider}`, body);
 });
 
 export const dynamic = 'force-dynamic';

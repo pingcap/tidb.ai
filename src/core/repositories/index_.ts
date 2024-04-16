@@ -102,7 +102,7 @@ export async function enableIndex (id: number) {
   }
 
   await sql`
-      CREATE TABLE IF NOT EXISTS ${index.config.provider}_document_chunk_node_${index.name}
+      CREATE TABLE IF NOT EXISTS ${sql.raw(`${index.config.provider}_document_chunk_node_${index.name}`)}
       (
           -- Text Node Common Fields
           id          BINARY(16)   NOT NULL,
@@ -128,12 +128,9 @@ export async function enableIndex (id: number) {
 }
 
 export async function updateIndexConfig<Path extends KeyPaths<IndexConfig>> (id: number, configPath: Path, value: Extract<IndexConfig, Path>) {
-  if (configPath.startsWith('.embedding')) {
-    throw new Error('cannot modify embedding config');
-  }
   const { numUpdatedRows } = await getDb()
     .updateTable('index')
-    .set('config', eb => eb.fn<string>('json_set', ['index.config', eb.val('$' + configPath), eb.val(JSON.stringify(value))]))
+    .set('config', eb => eb.fn<string>('json_set', ['index.config', eb.val('$' + configPath), eb.fn('JSON_EXTRACT', [eb.val(JSON.stringify(value)), eb.val('$')])]))
     .set('last_modified_at', new Date())
     .where('id', '=', id)
     .where('configured', '=', 0)

@@ -29,8 +29,7 @@ export function ParserConfigViewer ({ index }: { index: Index }) {
   });
 
   const handleSubmit = form.handleSubmit((value) => {
-    // updateParser(value);
-    console.log(value);
+    updateParser(value);
   });
 
   useEffect(() => {

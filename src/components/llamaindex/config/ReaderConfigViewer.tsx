@@ -12,10 +12,12 @@ import { z } from 'zod';
 
 const schema = z.object({
   'rag_$loader_$html': z.object({
-    url: z.string(),
-    excludeSelectors: htmlSelectorArray(),
-    selectors: htmlSelectorArray(),
-  }).array().describe('HTML Loader Configuration'),
+    contentExtraction: z.object({
+      url: z.string(),
+      excludeSelectors: htmlSelectorArray(),
+      selectors: htmlSelectorArray(),
+    }).array().describe('HTML Loader Rules')
+  }).describe('HTML Loader Configuration'),
 });
 
 function toSafeName (record: Record<string, any> | undefined) {
@@ -44,8 +46,10 @@ export function ReaderConfigViewer ({ index }: { index: Index }) {
   });
 
   const handleSubmit = form.handleSubmit((value) => {
-    // updateReader(value);
     value = fromSafeName(value);
+    updateReader(value);
+  }, e => {
+    console.log(e)
   });
 
   useEffect(() => {
@@ -58,7 +62,7 @@ export function ReaderConfigViewer ({ index }: { index: Index }) {
     <form onSubmit={handleSubmit}>
       <Form {...form}>
         <Accordion type="single" defaultValue="rag_$loader_$html.contentExtraction">
-          <AutoFormArray name="rag_$loader_$html.contentExtraction" path={['rag_$loader_$html', 'contentExtraction']} item={schema.shape.rag_$loader_$html} form={form} />
+          <AutoFormArray name="rag_$loader_$html.contentExtraction" path={['rag_$loader_$html', 'contentExtraction']} item={schema.shape.rag_$loader_$html.shape.contentExtraction} form={form} />
         </Accordion>
         <Button className="mt-4" disabled={disabled}>Submit</Button>
       </Form>
