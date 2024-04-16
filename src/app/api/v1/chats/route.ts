@@ -72,7 +72,7 @@ export const POST = defineHandler({
       engine_options: JSON.stringify({}),
       created_at: new Date(),
       created_by: userId,
-      title: body.name ?? DEFAULT_CHAT_TITLE,
+      title: body.name ?? body.messages.findLast(message => message.role === 'user')?.content ?? DEFAULT_CHAT_TITLE,
     });
     sessionId = chat.url_key;
   }
