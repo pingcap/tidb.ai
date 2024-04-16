@@ -1,5 +1,6 @@
 import { DBv1, getDb } from '@/core/db';
 import { executePage, type PageRequest } from '@/lib/database';
+import {INDEX_NOT_FOUND_ERROR} from "@/lib/errors";
 import type { Rewrite } from '@/lib/type-utils';
 import { type Insertable, type Selectable, sql } from 'kysely';
 import { notFound } from 'next/navigation';
@@ -65,6 +66,14 @@ export async function getIndexByName (name: string) {
     .$castTo<Index>()
     .where('name', '=', eb => eb.val(name))
     .executeTakeFirst();
+}
+
+export async function getIndexByNameOrThrow(name: string): Promise<Index> {
+  const index = await getIndexByName(name);
+  if (!index) {
+    throw INDEX_NOT_FOUND_ERROR;
+  }
+  return index;
 }
 
 export async function createIndex ({ config, ...create }: CreateIndex) {

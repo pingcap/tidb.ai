@@ -5,6 +5,7 @@ export interface APIErrorOptions {
   name?: string;
   cause?: Error | null;
 }
+
 export class APIError extends Error {
 
   public name: string = 'API_ERROR';
@@ -84,3 +85,13 @@ export const RECAPTCHA_INVALID_MODE_ERROR = APIError.new('ReCaptcha mode invalid
  * Index related errors
  */
 export const INDEX_NOT_FOUND_ERROR = APIError.new('Index %s not found', 404);
+
+/**
+ * Chat Engine Related
+ */
+export const CHAT_ENGINE_NOT_FOUND_ERROR = APIError.new(`Specified chat engine %s is not found.`, 404);
+
+/**
+ * Chat Related
+ */
+export const CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR = APIError.new( 'Cannot assign sessionId when creating chats.', 400);

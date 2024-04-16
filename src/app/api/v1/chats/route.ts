@@ -1,14 +1,21 @@
 import { type ChatResponse } from '@/core/services/chating';
 import { LlamaindexChatService } from '@/core/services/llamaindex/chating';
 import { createChat, listChats } from '@/core/repositories/chat';
-import { getChatEngine, getDefaultChatEngine } from '@/core/repositories/chat_engine';
-import { getIndexByName } from '@/core/repositories/index_';
+import {
+  ChatEngineOptions,
+  getChatEngine,
+  getDefaultChatEngine
+} from '@/core/repositories/chat_engine';
+import { getIndexByNameOrThrow } from '@/core/repositories/index_';
 import { toPageRequest } from '@/lib/database';
+import {
+  CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR,
+  CHAT_ENGINE_NOT_FOUND_ERROR,
+} from "@/lib/errors";
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
 import { experimental_StreamData, StreamingTextResponse } from 'ai';
-import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -24,6 +31,8 @@ const ChatRequest = z.object({
   engine: z.number().int().optional(),
 });
 
+const DEFAULT_CHAT_TITLE = 'Untitled';
+
 export const POST = defineHandler({
   body: ChatRequest,
   auth: 'anonymous',
@@ -31,67 +40,68 @@ export const POST = defineHandler({
   body,
   auth,
 }) => {
-  if (body.messages.length === 0) {
+  const userId = auth.user.id!;
+  let {
+    index: indexName = 'default',
+    messages
+  } = body;
+
+  // TODO: need refactor, it is too complex now
+  // For chat page, create a chat and return the session ID (url_key) first.
+  const creatingChat = messages.length === 0;
+  if (creatingChat) {
     if (body.sessionId) {
-      return NextResponse.json({
-        message: 'Cannot assign sessionId when creating chats.',
-      }, { status: 400 });
+      return CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR;
     }
 
-    let engine = 'condense-question';
-    let engineOptions = {};
-
-    if (body.engine) {
-      const chatEngine = await getChatEngine(body.engine);
-      if (!chatEngine) {
-        notFound();
-      }
-      engine = chatEngine.engine;
-      engineOptions = chatEngine.engine_options;
-    } else {
-      const chatEngine = await getDefaultChatEngine();
-      engine = chatEngine.engine;
-      engineOptions = chatEngine.engine_options;
-    }
-
+    const [engine, engineOptions] = await getChatEngineConfig(body.engine);
     return await createChat({
-      engine,
+      engine: engine,
       engine_options: JSON.stringify(engineOptions),
       created_at: new Date(),
-      created_by: auth.user.id!,
-      title: body.name ?? 'Untitled',
+      created_by: userId,
+      title: body.name ?? DEFAULT_CHAT_TITLE,
     });
   }
 
+  // For Ask Widget.
   let sessionId = body.sessionId;
-
   if (!sessionId) {
     const chat = await createChat({
       engine: 'condense-question',
       engine_options: JSON.stringify({}),
       created_at: new Date(),
-      created_by: auth.user.id!,
-      title: body.name ?? 'Untitled',
+      created_by: userId,
+      title: body.name ?? DEFAULT_CHAT_TITLE,
     });
     sessionId = chat.url_key;
   }
 
-  const index = await getIndexByName(body.index ?? 'default');
-  if (!index) {
-    notFound();
-  }
-
+  const index = await getIndexByNameOrThrow(indexName);
   const flow = await getFlow(baseRegistry);
-
-  const chatService = new LlamaindexChatService({
-    flow,
-    index
-  });
-
-  const { session_id, message_ordinal, response } = await chatService.chat(sessionId, auth.user.id!, body.messages.findLast(m => m.role === 'user')?.content ?? '');
+  const chatService = new LlamaindexChatService({ flow, index });
+  const lastUserMessage = messages.findLast(m => m.role === 'user')?.content ?? '';
+  const {
+    session_id,
+    message_ordinal,
+    response
+  } = await chatService.chat(sessionId, userId, lastUserMessage);
 
   return mapResponseToTextStream(session_id, message_ordinal, response);
 });
+
+async function getChatEngineConfig(engineConfigId?: number): Promise<[string, ChatEngineOptions]> {
+  if (engineConfigId) {
+    const chatEngine = await getChatEngine(engineConfigId);
+    if (!chatEngine) {
+      throw CHAT_ENGINE_NOT_FOUND_ERROR.format(engineConfigId);
+    }
+    return [chatEngine.engine, chatEngine.engine_options];
+  } else {
+    const config = await getDefaultChatEngine();
+    return [config.engine, config.engine_options];
+  }
+}
 
 export const GET = defineHandler({
   auth: 'anonymous',
