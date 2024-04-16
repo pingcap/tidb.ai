@@ -1,9 +1,10 @@
+import {BaseLLM} from "llamaindex/llm/base";
 import {ok} from "node:assert";
 import {
-  BaseEmbedding, ChatResponse,
+  ChatResponse,
   ChatResponseChunk,
   CompletionResponse,
-  LLM, LLMChatParamsNonStreaming,
+  LLMChatParamsNonStreaming,
   LLMChatParamsStreaming, LLMCompletionParamsNonStreaming, LLMCompletionParamsStreaming,
   LLMMetadata
 } from "llamaindex";
@@ -45,8 +46,8 @@ export type BitdeerAdditionalChatOptions = BitdeerLlama2Options;
  *
  * Website: https://www.bitdeer.com/
  */
-export class Bitdeer extends BaseEmbedding implements LLM {
-  readonly hasStreaming = true;
+export class Bitdeer implements BaseLLM<BitdeerAdditionalChatOptions> {
+  readonly hasStreaming = false;
 
   model: string;
   baseURL: string = "https://www.bitdeer.ai/public/v1";
@@ -54,7 +55,7 @@ export class Bitdeer extends BaseEmbedding implements LLM {
   topP: number = 0.9;
   contextWindow: number = 4096;
   requestTimeout: number = 60 * 1000; // Default is 60 seconds
-  additionalChatOptions?: Record<string, unknown>;
+  additionalChatOptions?: BitdeerAdditionalChatOptions;
 
   private apiSecretAccessKey: string;
 
@@ -68,10 +69,8 @@ export class Bitdeer extends BaseEmbedding implements LLM {
       apiSecretAccessKey: string;
     },
   ) {
-    super();
-
     if (!init.apiSecretAccessKey) {
-      throw new Error("API secret access key is required.");
+      throw new Error("Bitdeer API secret access key is required.");
     }
 
     this.model = init.model ?? 'llama2';
@@ -99,8 +98,55 @@ export class Bitdeer extends BaseEmbedding implements LLM {
   async chat(
     params: LLMChatParamsNonStreaming | LLMChatParamsStreaming,
   ): Promise<ChatResponse | AsyncIterable<ChatResponseChunk>> {
-    // Notice: Bitdeer does not support chat API for now.
-    throw new Error("Method not implemented.");
+    const { messages, stream } = params;
+    const payload = {
+      model: this.model,
+      messages: messages.map((message) => ({
+        role: message.role,
+        content: message.content,
+      })),
+      stream: !!stream,
+      options: {
+        temperature: this.temperature,
+        num_ctx: this.contextWindow,
+        top_p: this.topP,
+        ...this.additionalChatOptions,
+      },
+    };
+
+    const url = `${this.baseURL}/models/${this.model}/generate`;
+    const response = await fetch(url, {
+      body: JSON.stringify(payload),
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Api-Key": this.apiSecretAccessKey,
+      },
+    });
+    if (!stream) {
+      if (!response.ok) {
+        throw new Error(util.format(
+          'Failed to call Bitdeer chat completion API (status: %d, statusText: %s).',
+          response.status,
+          response.statusText
+        ));
+      }
+
+      const raw = await response.json();
+      const { message } = raw.data;
+      return {
+        message: {
+          role: "assistant",
+          content: message.content,
+        },
+        raw,
+      };
+    } else {
+      const stream = response.body;
+      ok(stream, "stream is null");
+      ok(stream instanceof ReadableStream, "stream is not readable");
+      return this.streamChat(stream, messageAccessor);
+    }
   }
 
   private async *streamChat<T>(
@@ -183,16 +229,4 @@ export class Bitdeer extends BaseEmbedding implements LLM {
     }
   }
 
-  private async getEmbedding(prompt: string): Promise<number[]> {
-    // Notice: Bitdeer does not support embedding API for now.
-    throw new Error("Method not implemented.");
-  }
-
-  async getTextEmbedding(text: string): Promise<number[]> {
-    return this.getEmbedding(text);
-  }
-
-  async getQueryEmbedding(query: string): Promise<number[]> {
-    return this.getEmbedding(query);
-  }
 }
