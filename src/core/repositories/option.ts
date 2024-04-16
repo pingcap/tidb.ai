@@ -1,4 +1,5 @@
 import { DBv1, getDb } from '@/core/db';
+import { cache } from 'react';
 
 export async function getOptionByName (name: string) {
   return await getDb().selectFrom('option')
@@ -7,11 +8,14 @@ export async function getOptionByName (name: string) {
     .executeTakeFirst();
 }
 
-export async function getOptionsByGroup (group: string) {
+const listOptions = cache(async function listOptions () {
   return await getDb().selectFrom('option')
     .selectAll()
-    .where('group_name', '=', group)
     .execute();
+});
+
+export async function getOptionsByGroup (group: string) {
+  return (await listOptions()).filter(option => option.group_name === group);
 }
 
 export async function updateOptionByName (name: string, value: any) {

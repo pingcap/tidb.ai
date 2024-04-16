@@ -2,8 +2,7 @@
 
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { IWebsiteSettingResult } from '@/core/schema/setting';
-import { useSettings } from '@/components/hooks';
+import { useSettingGroup } from '@/components/website-setting-provider';
 import { Textarea } from '@/components/ui/textarea';
 import {
   Form,
@@ -15,6 +14,7 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import {authGuard} from "@/lib/auth-server";
+import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -33,9 +33,10 @@ import { updateSettingWebsite as updateSetting } from '@/client/operations/setti
 
 
 function useSettingsForm() {
-  const settings = useSettings<IWebsiteSettingResult>();
+  const settings = useSettingGroup('website');
   const form = useForm<z.infer<typeof WebsiteSettingUpdatePayload>>({
     resolver: zodResolver(WebsiteSettingUpdatePayload),
+    // defaultValues: settings,
   });
 
   useEffect(() => {
@@ -46,12 +47,12 @@ function useSettingsForm() {
 }
 
 export default function SettingsPage() {
+  const router = useRouter();
   const form = useSettingsForm();
 
-  const { mutate } = useSWRConfig();
-
   async function onSubmit(data: z.infer<typeof WebsiteSettingUpdatePayload>) {
-    await updateSetting(data, mutate);
+    await updateSetting(data);
+    router.refresh();
   }
 
   const exampleQuestionsForm = useFieldArray({

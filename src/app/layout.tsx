@@ -32,10 +32,11 @@ export default async function RootLayout ({
   children: React.ReactNode,
 }) {
 
-  const [session, website, security] = await Promise.all([
+  const [session, website, security, custom_js] = await Promise.all([
     auth(),
     getSetting('website'),
     getSetting('security'),
+    getSetting('custom_js')
   ]);
 
   return (
@@ -56,7 +57,7 @@ export default async function RootLayout ({
       {security?.google_recaptcha_site_key && security?.google_recaptcha && (<ReCaptcha mode={security.google_recaptcha} siteKey={security.google_recaptcha_site_key} />)}
     </head>
     <body className={font.className}>
-        <Providers session={session} website={website} security={security}>
+        <Providers session={session} website={website} security={security} custom_js={custom_js}>
       {children}
     </Providers>
     <Toaster />

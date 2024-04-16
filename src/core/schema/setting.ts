@@ -123,3 +123,9 @@ export const SecuritySetting = z.object({
 export const SecuritySettingResult = SecuritySetting.partial();
 export type ISecuritySettingResult = z.infer<typeof SecuritySettingResult>;
 export const SecuritySettingUpdatePayload = SecuritySetting.partial();
+
+export type SettingGroups = {
+  website: IWebsiteSettingResult,
+  security: ISecuritySettingResult,
+  custom_js: ICustomJsSettingResult,
+}

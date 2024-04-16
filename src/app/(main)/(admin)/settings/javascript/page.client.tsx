@@ -1,9 +1,10 @@
 'use client';
 
+import { useSettingGroup } from '@/components/website-setting-provider';
+import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useSettings } from '@/components/hooks';
 import {
   Form,
   FormControl,
@@ -34,9 +35,10 @@ import { ReCaptchaSelector } from '@/components/reCaptcha-selector';
 SyntaxHighlighter.registerLanguage('javascript', js);
 
 export default function ClientPage(props: any) {
+  const router = useRouter();
   const [data, setData] = React.useState<ICustomJsSettingResult>({});
 
-  const settings = useSettings<ICustomJsSettingResult>({}, 'custom_js');
+  const settings = useSettingGroup('custom_js');
   const form = useForm<z.infer<typeof CustomJsSettingUpdatePayload>>({
     resolver: zodResolver(CustomJsSettingUpdatePayload),
   });
@@ -46,10 +48,10 @@ export default function ClientPage(props: any) {
     setData(settings);
   }, [settings]);
 
-  const { mutate } = useSWRConfig();
 
   async function onSubmit(data: z.infer<typeof CustomJsSettingUpdatePayload>) {
-    await updateSetting(data, mutate);
+    await updateSetting(data);
+    router.refresh();
   }
 
   const exampleQuestionsForm = useFieldArray({

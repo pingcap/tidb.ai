@@ -1,14 +1,10 @@
+import { CustomJsSettingUpdatePayload, SecuritySettingUpdatePayload, WebsiteSettingUpdatePayload } from '@/core/schema/setting';
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
-import {
-  CustomJsSettingUpdatePayload,
-  WebsiteSettingUpdatePayload,
-  SecuritySettingUpdatePayload,
-} from '@/core/schema/setting';
-import z from "zod";
+import z from 'zod';
 
 export const updateSettingCustomJS = withToast(
-  async (data: z.infer<typeof CustomJsSettingUpdatePayload>, mutate: any) => {
+  async (data: z.infer<typeof CustomJsSettingUpdatePayload>) => {
     await fetch('/api/v1/settings', {
       method: 'PUT',
       headers: {
@@ -19,13 +15,12 @@ export const updateSettingCustomJS = withToast(
         settings: data,
       }),
     })
-      .then(handleErrors)
-      .then(() => mutate(['GET', '/api/v1/settings?group=custom_js']));
-  }
+      .then(handleErrors);
+  },
 );
 
 export const updateSettingWebsite = withToast(
-  async (data: z.infer<typeof WebsiteSettingUpdatePayload>, mutate: any) => {
+  async (data: z.infer<typeof WebsiteSettingUpdatePayload>) => {
     await fetch('/api/v1/settings', {
       method: 'PUT',
       headers: {
@@ -36,11 +31,8 @@ export const updateSettingWebsite = withToast(
         settings: data,
       }),
     })
-      .then(handleErrors)
-      .then(() => {
-        mutate(['GET', '/api/v1/settings?group=website']);
-      });
-  }
+      .then(handleErrors);
+  },
 );
 
 export const updateSettingImage = withToast(
@@ -60,7 +52,7 @@ export const updateSettingImage = withToast(
   },
   {
     error: (resData: any) => resData?.message || 'Failed to upload image.',
-  }
+  },
 );
 
 export const updateSettingSecurity = withToast(
@@ -75,7 +67,6 @@ export const updateSettingSecurity = withToast(
         settings: data,
       }),
     })
-      .then(handleErrors)
-      .then(() => mutate(['GET', '/api/v1/settings?group=security']));
-  }
+      .then(handleErrors);
+  },
 );
