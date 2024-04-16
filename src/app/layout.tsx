@@ -3,7 +3,6 @@ import { Providers } from '@/app/providers';
 import { Toaster } from '@/components/ui/toaster';
 import { GroupName } from '@/core/schema/setting';
 import { getSetting } from '@/core/setting';
-import { getSiteWizardState } from '@/core/wizard';
 import type { Metadata } from 'next';
 import { Noto_Sans as Font } from 'next/font/google';
 import './globals.css';
