@@ -17,3 +17,13 @@ export const createChatEngine = withToast(
     }).then(handleErrors);
   },
 );
+
+export const updateChatEngine = withToast(
+  async (id: number, data: CreateChatEngineFormValues) => {
+    await fetch(`/api/v1/chat_engines/${id}`, {
+      method: 'put',
+      body: JSON.stringify(data),
+      headers: {},
+    }).then(handleErrors);
+  },
+);

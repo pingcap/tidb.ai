@@ -5,6 +5,7 @@ import { metadataCell } from '@/components/cells/metadata';
 import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { CreateChatEngineDialog } from '@/components/dialogs/create-chat-engine-dialog';
+import { UpdateChatEngineDialog } from '@/components/dialogs/update-chat-engine-dialog';
 import type { ChatEngine } from '@/core/repositories/chat_engine';
 import type { Document } from '@/core/repositories/document';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
@@ -21,6 +22,14 @@ const columns = [
   helper.accessor('engine', { cell: mono }),
   helper.accessor('engine_options', { cell: metadataCell }),
   helper.accessor('is_default', { cell: (ctx) => ctx.getValue() ? 'Yes' : '' }),
+  helper.display({
+    header: 'Operations',
+    cell: (ctx) => (
+      <>
+        <UpdateChatEngineDialog id={ctx.row.original.id} defaultValues={ctx.row.original} />
+      </>
+    ),
+  }),
 ] as ColumnDef<Document>[];
 
 export default function PageClient ({ ...props }: ComponentProps<typeof CreateChatEngineDialog>) {
