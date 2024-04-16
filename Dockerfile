@@ -6,7 +6,8 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /app
 # Install dependencies based on the preferred package manager
 COPY . .
-RUN corepack enable pnpm && pnpm i
+RUN corepack enable
+RUN pnpm i
 
 # 2. Rebuild the source code only when needed
 FROM base AS builder
@@ -15,13 +16,14 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 # This will do the trick, use the corresponding env file for each environment.
 # COPY .env.production.sample .env.production
-RUN corepack enable pnpm && STANDALONE_BUILD=1 pnpm run build
+RUN corepack enable
+RUN STANDALONE_BUILD=1 pnpm run build
 
 # 3. Production image, copy all the files and run next
 FROM base AS runner
 WORKDIR /app
 ENV NODE_ENV=production
-RUN corepack enable pnpm
+RUN corepack enable
 RUN addgroup -g 1001 -S nodejs
 RUN adduser -S nextjs -u 1001
 # Automatically leverage output traces to reduce image size

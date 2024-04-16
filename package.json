@@ -136,6 +136,7 @@
     "tailwindcss": "^3.3.0",
     "typescript": "^5"
   },
+  "packageManager": "pnpm@8.15.7",
   "pnpm": {
     "overrides": {
       "pdfjs-dist>canvas": "file:../_EXCLUDED_"
