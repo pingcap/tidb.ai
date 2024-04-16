@@ -27,7 +27,6 @@ import { useEffect } from 'react';
 import { ImageUploader } from '@/components/image-uploader';
 import { LanguageSelector } from '@/components/language-selector';
 import { Loader2 } from 'lucide-react';
-import { useSWRConfig } from 'swr';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
 import { updateSettingWebsite as updateSetting } from '@/client/operations/settings';
 
@@ -36,7 +35,7 @@ function useSettingsForm() {
   const settings = useSettingGroup('website');
   const form = useForm<z.infer<typeof WebsiteSettingUpdatePayload>>({
     resolver: zodResolver(WebsiteSettingUpdatePayload),
-    // defaultValues: settings,
+    defaultValues: settings,
   });
 
   useEffect(() => {
@@ -199,16 +198,14 @@ export default function SettingsPage() {
                     <FormField
                       control={form.control}
                       disabled={form.formState.isSubmitting}
-                      name={`homepage.example_questions.${index}`}
+                      name={`homepage.example_questions.${index}.text`}
                       render={({ field }) => {
                         return (
                           <FormItem>
                             <FormControl>
                               <Input
                                 placeholder='Example question'
-                                {...form.register(
-                                  `homepage.example_questions.${index}.text` as const
-                                )}
+                                {...field}
                               />
                             </FormControl>
                             <FormMessage />
@@ -261,9 +258,7 @@ export default function SettingsPage() {
                               <Input
                                 placeholder='Text'
                                 className='w-full'
-                                {...form.register(
-                                  `homepage.footer_links.${index}.text` as const
-                                )}
+                                {...field}
                               />
                             </FormControl>
                             <FormMessage />
@@ -281,9 +276,7 @@ export default function SettingsPage() {
                             <FormControl>
                               <Input
                                 placeholder='Link'
-                                {...form.register(
-                                  `homepage.footer_links.${index}.href` as const
-                                )}
+                                {...field}
                               />
                             </FormControl>
                             <FormMessage />

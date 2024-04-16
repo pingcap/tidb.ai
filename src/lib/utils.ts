@@ -5,6 +5,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// FIXME: flatten by schema
 export function flattenSettings<T>(obj: T, maxDepth?: number): T {
   // {homepage: { title: 'a', description: 'b', example_questions: [{text: 'c'}, {text: 'd'}]}} => {'homepage.title': 'a', 'homepage.description': 'b', 'homepage.example_questions': [{text: 'c'}, {text: 'd'}]}
   const result: any = {};
@@ -13,6 +14,7 @@ export function flattenSettings<T>(obj: T, maxDepth?: number): T {
       result[prop] = cur;
     } else {
       let isEmpty = true;
+      const isArray = cur instanceof Array;
       for (const p in cur) {
         if (maxDepth && depth >= maxDepth) {
           result[prop] = cur;
@@ -22,7 +24,8 @@ export function flattenSettings<T>(obj: T, maxDepth?: number): T {
         recurse(cur[p], prop ? `${prop}.${p}` : p, depth + 1);
       }
       if (isEmpty && prop) {
-        result[prop] = {};
+        // FIXME: what if an array schema with nullish value?
+        result[prop] = isArray ? [] : {};
       }
     }
   }
