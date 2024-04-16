@@ -30,7 +30,12 @@ export const POST = defineHandler({
   }
 
   const store = (await getFlow(baseRegistry)).getStorage();
-  const url = await store.put(`images/${file.name}`, Buffer.from(await file.arrayBuffer()), false);
+  let url = await store.put(`images/${file.name}`, Buffer.from(await file.arrayBuffer()), false);
+
+  // FIXME: remove magic check
+  if (store.identifier === 'rag.document-storage.fs') {
+    url = `/assets/images/${file.name}`
+  }
 
   return NextResponse.json({
     url: url

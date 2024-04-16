@@ -34,9 +34,10 @@ const ImageUploader = React.forwardRef<HTMLInputElement, ImageUploaderProps>(
       if (!image) return;
       setLoading(true);
 
-      await updateSettingImage(image, onChange);
-
-      setLoading(false);
+      await updateSettingImage(image, onChange)
+        .finally(() => {
+          setLoading(false);
+        });
     };
 
     const handleInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
