@@ -30,10 +30,15 @@ export const maxExampleQuestions = 5;
 export const maxHomepageFooterLinks = 5;
 
 const assetUrl = (message: string) =>
-  z.string().url(message).or(z.string().regex(/^\/assets\//, message));
+  z.union([
+    z.string().url(message),
+    z.string().regex(/^\/assets\//, message)
+  ]);
 
-const optionalAssetUrl = (message: string) =>
-  z.string().url(message).optional().or(z.string().regex(/^\/assets\//, message).optional());
+const urlOrEmpty = (message: string) => z.union([
+  z.literal(''),
+  z.string().url(),
+]).optional()
 
 export const WebsiteSetting = z.object({
   title: z.string().min(1, 'title must has at latest 1 character').max(20, 'title must has at most 20 characters'),
@@ -48,9 +53,9 @@ export const WebsiteSetting = z.object({
     footer_links: z.array(z.object({ text: z.string().min(1), href: z.string().min(1) })).optional(),
   }),
   social: z.object({
-    twitter: z.string().url('twitter should be a correct URL').optional(),
-    github: z.string().url('github should be a correct URL').optional(),
-    discord: z.string().url('discord should be a correct URL').optional(),
+    twitter: urlOrEmpty('twitter should be a correct URL').optional(),
+    github: urlOrEmpty('github should be a correct URL').optional(),
+    discord: urlOrEmpty('discord should be a correct URL').optional(),
   }).optional(),
 });
 
@@ -95,7 +100,7 @@ export const CustomJsSetting = z.object({
   button_label: z.string({
     required_error: 'Button label is required',
   }),
-  button_img_src: optionalAssetUrl('Button Image Src should be a correct URL of image'),
+  button_img_src: assetUrl('Button Image Src should be a correct URL of image').optional(),
   example_questions: z
     .array(z.object({ text: z.string().min(1) }))
     .max(
@@ -103,7 +108,7 @@ export const CustomJsSetting = z.object({
       `example questions must has at most ${maxExampleQuestions} questions`,
     )
     .optional(),
-  logo_src: optionalAssetUrl('Logo Src should be a correct URL of image'),
+  logo_src: assetUrl('Logo Src should be a correct URL of image').optional(),
   widget_title: z.string().min(1, 'title must has at latest 1 character').max(50, 'title must has at most 50 characters').optional(),
   widget_input_placeholder: z.string().min(1, 'input placeholder must has at latest 1 character').max(50, 'input placeholder must has at most 50 characters').optional(),
   widget_color_mode: theme.optional(),
