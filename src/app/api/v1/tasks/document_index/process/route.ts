@@ -1,5 +1,4 @@
-import { processDocumentIndexTasks } from '@/core/services/indexing';
-import { createLlamaindexDocumentIndexTaskProcessor } from '@/jobs/llamaindexDocumentIndexTaskProcessor';
+import { DocumentIndexService } from '@/core/services/indexing';
 import { executeInSafeDuration } from '@/lib/next/executeInSafeDuration';
 import { defineHandler } from '@/lib/next/handler';
 import z from 'zod';
@@ -17,10 +16,11 @@ export const GET = defineHandler({
     failed: [] as number[],
   };
 
-  const processor = createLlamaindexDocumentIndexTaskProcessor();
+  const service = new DocumentIndexService();
+  await service.prepareProviders();
 
   await executeInSafeDuration(async () => {
-    const results = await processDocumentIndexTasks(n, processor);
+    const results = await service.runDocumentIndexTasks(n);
     final.succeed.push(...results.succeed);
     final.failed.push(...results.failed);
     return results.succeed.length > 0;

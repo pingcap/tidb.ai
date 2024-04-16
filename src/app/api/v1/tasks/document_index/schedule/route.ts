@@ -1,5 +1,5 @@
-import { DEFAULT_INDEX_NAME, scheduleDocumentFirstIndex } from '@/core/services/indexing';
 import { getIndexByName } from '@/core/repositories/index_';
+import { DEFAULT_INDEX_NAME, DocumentIndexService } from '@/core/services/indexing';
 import { INDEX_NOT_FOUND_ERROR } from '@/lib/errors';
 import { defineHandler } from '@/lib/next/handler';
 import z from 'zod';
@@ -20,7 +20,7 @@ export const GET = defineHandler({
     console.log(`Index ${index.name} was not marked configured. Please confirm configuration state on <your_domain>/indexes/${index.id}/config page.`);
   }
 
-  return await scheduleDocumentFirstIndex(index.id);
+  return await DocumentIndexService.scheduleDocumentFirstIndex(index.id);
 });
 
 export const dynamic = 'force-dynamic';

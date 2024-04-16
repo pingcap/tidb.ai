@@ -1,4 +1,4 @@
-import { createDocumentImportTaskFromSource } from '@/core/services/importing';
+import { DocumentImportService } from '@/core/services/importing';
 import { defineHandler } from '@/lib/next/handler';
 import z from 'zod';
 
@@ -8,7 +8,7 @@ export const POST = defineHandler({
     id: z.coerce.number().int(),
   }),
 }, async ({ params: { id } }) => {
-  return await createDocumentImportTaskFromSource(id);
+  return await DocumentImportService.createTaskFromSource(id);
 });
 
 export const dynamic = 'force-dynamic';

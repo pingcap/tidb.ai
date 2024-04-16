@@ -1,5 +1,4 @@
-import { processDocumentImportTasks } from '@/core/services/importing';
-import { createDocumentImportTaskProcessor } from '@/jobs/documentImportTaskProcessor';
+import { DefaultDocumentImportService } from '@/core/services/importing';
 import { executeInSafeDuration } from '@/lib/next/executeInSafeDuration';
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';
@@ -19,10 +18,10 @@ export const GET = defineHandler({
     failed: [] as number[],
   };
 
-  const processor = createDocumentImportTaskProcessor(await getFlow(baseRegistry));
+  const service = new DefaultDocumentImportService({ flow: await getFlow(baseRegistry) });
 
   await executeInSafeDuration(async () => {
-    const results = await processDocumentImportTasks(n, processor);
+    const results = await service.runTasks(n);
     final.succeed.push(...results.succeed);
     final.failed.push(...results.failed);
     return results.succeed.length > 0;

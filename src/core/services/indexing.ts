@@ -1,9 +1,8 @@
 import { DBv1, tx } from '@/core/db';
 import { type Document, getDocument } from '@/core/repositories/document';
-import { createDocumentIndexTask, createDocumentIndexTasks, dequeueDocumentIndexTaskById, dequeueDocumentIndexTasks, type DocumentIndexTask, type DocumentIndexTaskInfo, finishDocumentIndexTask, listByNotIndexed, listLatestDocumentIndexTasksByDocumentIndex, startDocumentIndexTask, terminateDocumentIndexTask } from '@/core/repositories/document_index_task';
-import {DEFAULT_INDEX_PROVIDER_NAME, getIndex, type Index, IndexProviderName} from '@/core/repositories/index_';
+import { createDocumentIndexTasks, dequeueDocumentIndexTaskById, dequeueDocumentIndexTasks, type DocumentIndexTask, type DocumentIndexTaskInfo, finishDocumentIndexTask, listByNotIndexed, startDocumentIndexTask, terminateDocumentIndexTask } from '@/core/repositories/document_index_task';
+import { DEFAULT_INDEX_PROVIDER_NAME, getIndex, type Index, IndexProviderName } from '@/core/repositories/index_';
 import { getErrorMessage } from '@/lib/errors';
-import { notFound } from 'next/navigation';
 
 export const DEFAULT_INDEX_NAME = 'default';
 
@@ -16,133 +15,101 @@ export type DocumentIndexTaskResult = {
   isNewDocumentNode: boolean;
 }
 
-export async function createNewDocumentIndexTask (documentId: number, indexId: number) {
-  const document = await getDocument(documentId);
-  const index = await getIndex(indexId);
+export class DocumentIndexService {
+  providers: Record<string, DocumentIndexProvider> = {};
 
-  if (!document || !index) {
-    notFound();
-  }
+  static async scheduleDocumentFirstIndex (indexId: number) {
+    return await tx(async () => {
+      const ids = await listByNotIndexed(indexId);
+      if (ids.length === 0) {
+        return [];
+      }
 
-  const recentTasks = await listLatestDocumentIndexTasksByDocumentIndex(documentId, indexId, 1);
-  if (recentTasks.length === 0) {
-    return await createDocumentIndexTask({
-      index_id: indexId,
-      document_id: documentId,
-      created_at: new Date(),
-      type: 'CREATE_INDEX',
-      status: 'CREATED',
-      info: {},
+      await createDocumentIndexTasks(ids.map(id => ({
+        document_id: id,
+        type: 'CREATE_INDEX',
+        info: {},
+        index_id: indexId,
+        created_at: new Date(),
+        status: 'CREATED',
+      })));
+
+      return ids;
     });
   }
-  const task = recentTasks[0];
-  if (!['SUCCEED', 'FAILED'].includes(task.status)) {
-    throw new Error(`not finished document index task #${task.id} already exists`);
+
+  static getDocumentVectorTableName (provider: IndexProviderName = DEFAULT_INDEX_PROVIDER_NAME, index: string = DEFAULT_INDEX_NAME) {
+    switch (provider) {
+      case IndexProviderName.LLAMAINDEX:
+        return `${provider}_document_chunk_node_${index}`;
+      default:
+        throw new Error(`unsupported index provider ${provider}`);
+    }
   }
 
-  return await createDocumentIndexTask({
-    index_id: indexId,
-    document_id: documentId,
-    created_at: new Date(),
-    type: 'REINDEX',
-    status: 'CREATED',
-    info: {},
-  });
-}
+  async prepareProviders () {
+    // TODO: DI?
+    this.providers.llamaindex = await (() => import('./llamaindex/indexing').then(module => new module.LlamaindexIndexProvider()))();
+  }
 
-// TODO: a new function to schedule documents with only error index tasks
-export async function scheduleDocumentFirstIndex (indexId: number) {
-  return await tx(async () => {
-    const ids = await listByNotIndexed(indexId);
-    if (ids.length === 0) {
-      return [];
+  async runDocumentIndexTask (id: number) {
+    if (!await dequeueDocumentIndexTaskById(id)) {
+      throw new Error(`cannot dequeue document index task #${id}`);
     }
 
-    await createDocumentIndexTasks(ids.map(id => ({
-      document_id: id,
-      type: 'CREATE_INDEX',
-      info: {},
-      index_id: indexId,
-      created_at: new Date(),
-      status: 'CREATED',
-    })));
-
-    return ids;
-  });
-}
-
-/**
- * Process a single document index task.
- * @param id
- * @param processor
- */
-export async function processDocumentIndexTask (id: number, processor: DocumentIndexTaskProcessor) {
-  if (!await dequeueDocumentIndexTaskById(id)) {
-    throw new Error(`cannot dequeue document index task #${id}`);
+    await this.executeDocumentIndexTask(id);
   }
 
-  await executeDocumentIndexTask(id, processor);
-}
+  async runDocumentIndexTasks (n: number) {
+    const tasks = await dequeueDocumentIndexTasks(n);
+    const results = await Promise.allSettled(tasks.map(id => this.executeDocumentIndexTask(id)));
 
-/**
- * Process multiple document index tasks.
- * @param n
- * @param processor
- */
-export async function processDocumentIndexTasks (n: number, processor: DocumentIndexTaskProcessor) {
-  const tasks = await dequeueDocumentIndexTasks(n);
-  const results = await Promise.allSettled(tasks.map(id => executeDocumentIndexTask(id, processor)));
+    const succeed: number[] = [];
+    const failed: number[] = [];
 
-  const succeed: number[] = [];
-  const failed: number[] = [];
+    results.forEach((result, i) => {
+      if (result.status === 'fulfilled') {
+        succeed.push(tasks[i]);
+      } else {
+        failed.push(tasks[i]);
+      }
+    });
 
-  results.forEach((result, i) => {
-    if (result.status === 'fulfilled') {
-      succeed.push(tasks[i]);
-    } else {
-      failed.push(tasks[i]);
+    return { succeed, failed };
+  }
+
+  private async executeDocumentIndexTask (id: number) {
+    const task = await startDocumentIndexTask(id);
+    if (!task) {
+      throw new Error(`cannot start document index task #${id}`);
     }
-  });
+    let info: DocumentIndexTaskInfo = {};
 
-  return { succeed, failed };
-}
+    try {
+      info = { ...task.info };
+      const document = (await getDocument(task.document_id))!;
+      const index = (await getIndex(task.index_id))!;
+      const providerName = index.config.provider;
+      const provider = this.providers[providerName];
+      if (!provider) {
+        throw new Error(`Unknown index provider ${providerName}`);
+      }
 
-async function executeDocumentIndexTask (id: number, processor: DocumentIndexTaskProcessor) {
-  const task = await startDocumentIndexTask(id);
-  if (!task) {
-    throw new Error(`cannot start document index task #${id}`);
-  }
-  let info: DocumentIndexTaskInfo = {};
+      const result = await provider.process(task, document, index, info);
 
-  try {
-    info = { ...task.info };
-    const document = (await getDocument(task.document_id))!;
-    const index = (await getIndex(task.index_id))!;
+      info.document_node_id = result.documentNode;
+      info.document_node_table_name = result.documentNodeTableName;
+      info.document_chunk_node_table_name = result.documentChunkNodeTableName;
 
-    const result = await processor(task, document, index, info);
-
-    info.document_node_id = result.documentNode;
-    info.document_node_table_name = result.documentNodeTableName;
-    info.document_chunk_node_table_name = result.documentChunkNodeTableName;
-
-    await finishDocumentIndexTask(id, info);
-  } catch (e) {
-    console.error(e);
-    await terminateDocumentIndexTask(id, info, getErrorMessage(e));
-    throw e;
+      await finishDocumentIndexTask(id, info);
+    } catch (e) {
+      console.error(e);
+      await terminateDocumentIndexTask(id, info, getErrorMessage(e));
+      throw e;
+    }
   }
 }
 
-/**
- * Get the table name of the vector table, which stores the document vectors.
- * @param provider
- * @param index
- */
-export function getDocumentVectorTableName(provider: IndexProviderName = DEFAULT_INDEX_PROVIDER_NAME, index: string = DEFAULT_INDEX_NAME) {
-  switch (provider) {
-    case IndexProviderName.LLAMAINDEX:
-      return `${provider}_document_chunk_node_${index}`;
-    default:
-      throw new Error(`unsupported index provider ${provider}`);
-  }
+export abstract class DocumentIndexProvider {
+  abstract process (task: DocumentIndexTask, document: Document, index: Index, mutableInfo: DocumentIndexTaskInfo): Promise<DocumentIndexTaskResult>
 }
