@@ -25,7 +25,7 @@ type ListSettingsReturnType<G extends IGroupName> =
     ? ISecuritySettingResult
     : {};
 
-export const getSetting = async <G extends IGroupName>(group: G): Promise<ListSettingsReturnType<G>> => {
+export const getSetting = cache(async <G extends IGroupName>(group: G): Promise<ListSettingsReturnType<G>> => {
     if (!process.env.DATABASE_URL) {
         switch (group) {
             case 'website': return defaultWebsiteSetting as any;
@@ -57,9 +57,7 @@ export const getSetting = async <G extends IGroupName>(group: G): Promise<ListSe
     }
 
     return result as ListSettingsReturnType<G>;
-}
-
-export const getCachedSetting = cache(getSetting);
+});
 
 export async function updateSetting(group: string, settings: z.infer<typeof WebsiteSettingUpdatePayload | typeof CustomJsSettingUpdatePayload | typeof SecuritySettingUpdatePayload>) {
     const parsedSettings = group === GroupName.enum.website ? flattenSettings(settings, 2) : settings;

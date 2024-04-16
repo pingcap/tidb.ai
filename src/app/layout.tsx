@@ -2,7 +2,8 @@ import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import { Providers } from '@/app/providers';
 import { Toaster } from '@/components/ui/toaster';
 import { GroupName } from '@/core/schema/setting';
-import { getCachedSetting, getSetting } from '@/core/setting';
+import { getSetting } from '@/core/setting';
+import { getSiteWizardState } from '@/core/wizard';
 import type { Metadata } from 'next';
 import { Noto_Sans as Font } from 'next/font/google';
 import './globals.css';
@@ -13,7 +14,7 @@ const font = Font({ subsets: ['latin', 'latin-ext'] });
 
 export async function generateMetadata (): Promise<Metadata> {
   // TODO: react cache is only for per request, need global cache to optimize performance.
-  const setting = await getCachedSetting(GroupName.enum.website);
+  const setting = await getSetting(GroupName.enum.website);
 
   return {
     title: setting?.title || 'RAG Template',
@@ -36,7 +37,7 @@ export default async function RootLayout ({
     auth(),
     getSetting('website'),
     getSetting('security'),
-    getSetting('custom_js')
+    getSetting('custom_js'),
   ]);
 
   return (
@@ -57,7 +58,7 @@ export default async function RootLayout ({
       {security?.google_recaptcha_site_key && security?.google_recaptcha && (<ReCaptcha mode={security.google_recaptcha} siteKey={security.google_recaptcha_site_key} />)}
     </head>
     <body className={font.className}>
-        <Providers session={session} website={website} security={security} custom_js={custom_js}>
+    <Providers session={session} website={website} security={security} custom_js={custom_js}>
       {children}
     </Providers>
     <Toaster />
@@ -70,15 +71,15 @@ const ReCaptcha = (props: { siteKey: string; mode: 'v3' | 'enterprise' }) => {
   if (props.mode === 'v3') {
     return (
       <Script
-        strategy='beforeInteractive'
+        strategy="beforeInteractive"
         src={`https://www.google.com/recaptcha/api.js?render=${props.siteKey}`}
       ></Script>
     );
   } else if (props.mode === 'enterprise') {
     return (
       <Script
-        id='google_recaptcha_enterprise'
-        strategy='beforeInteractive'
+        id="google_recaptcha_enterprise"
+        strategy="beforeInteractive"
         src={`https://www.google.com/recaptcha/enterprise.js?render=${props.siteKey}`}
       ></Script>
     );
