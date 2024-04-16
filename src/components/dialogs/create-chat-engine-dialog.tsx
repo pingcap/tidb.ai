@@ -112,7 +112,18 @@ export function ChatEngineFields () {
           <FormItem>
             <FormLabel>Reranker Provider</FormLabel>
             <FormControl>
-              <Input readOnly {...field} />
+              <Input {...field} />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      <FormField
+        name="engine_options.reranker.config.model"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>Reranker Provider</FormLabel>
+            <FormControl>
+              <Input {...field} />
             </FormControl>
           </FormItem>
         )}
@@ -123,7 +134,18 @@ export function ChatEngineFields () {
           <FormItem>
             <FormLabel>LLM Provider</FormLabel>
             <FormControl>
-              <Input readOnly {...field} />
+              <Input {...field} />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      <FormField
+        name="engine_options.llm.config.model"
+        render={({ field }) => (
+          <FormItem>
+            <FormLabel>LLM Provider</FormLabel>
+            <FormControl>
+              <Input {...field} />
             </FormControl>
           </FormItem>
         )}
