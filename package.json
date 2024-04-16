@@ -88,7 +88,7 @@
     "unified": "^11.0.4",
     "unist-util-remove": "^4.0.0",
     "vaul": "^0.8.0",
-    "zod": "workspace:zod-extension@^"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@createrag/extension-cohere-reranker": "workspace:^",

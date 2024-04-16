@@ -1,9 +1,0 @@
-{
-  "name": "zod-extension",
-  "main": "index.js",
-  "version": "3.22.4",
-  "module": "index.mjs",
-  "dependencies": {
-    "zod": "^3.22.4"
-  }
-}

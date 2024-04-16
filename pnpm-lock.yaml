@@ -246,8 +246,8 @@ importers:
         specifier: ^0.8.0
         version: 0.8.7(@types/react-dom@18.2.18)(@types/react@18.2.48)(react-dom@18.2.0)(react@18.2.0)
       zod:
-        specifier: workspace:zod-extension@^
-        version: link:packages/zod-extension
+        specifier: ^3.22.4
+        version: 3.22.4
     devDependencies:
       '@createrag/extension-cohere-reranker':
         specifier: workspace:^
@@ -326,7 +326,7 @@ importers:
         version: 1.32.5
       ai:
         specifier: ^3.0.15
-        version: 3.0.15(react@18.2.0)(solid-js@1.8.12)(svelte@4.2.9)(vue@3.4.15)(zod@packages+zod-extension)
+        version: 3.0.15(react@18.2.0)(solid-js@1.8.12)(svelte@4.2.9)(vue@3.4.15)(zod@3.22.4)
       autoprefixer:
         specifier: ^10.0.1
         version: 10.4.17(postcss@8.4.33)
@@ -405,12 +405,6 @@ importers:
   extensions/text-loader: {}
 
   extensions/vercel-blob-document-storage: {}
-
-  packages/zod-extension:
-    dependencies:
-      zod:
-        specifier: ^3.22.4
-        version: 3.22.4
 
   www:
     dependencies:
@@ -4869,7 +4863,7 @@ packages:
       humanize-ms: 1.2.1
     dev: false
 
-  /ai@3.0.15(react@18.2.0)(solid-js@1.8.12)(svelte@4.2.9)(vue@3.4.15)(zod@packages+zod-extension):
+  /ai@3.0.15(react@18.2.0)(solid-js@1.8.12)(svelte@4.2.9)(vue@3.4.15)(zod@3.22.4):
     resolution: {integrity: sha512-ZQOsVWvH8OOAz9nuOluOWUs/3U+c3w7m6iWEQPbaxsuRcG/8W6fjPD6gdtzwRA+wX5i2OxoA/01iX1VD2yVA1A==}
     engines: {node: '>=14.6'}
     peerDependencies:
@@ -4903,8 +4897,8 @@ packages:
       swr-store: 0.10.6
       swrv: 1.0.4(vue@3.4.15)
       vue: 3.4.15(typescript@5.3.3)
-      zod: link:packages/zod-extension
-      zod-to-json-schema: 3.22.5(zod@packages+zod-extension)
+      zod: 3.22.4
+      zod-to-json-schema: 3.22.5(zod@3.22.4)
     dev: true
 
   /ajv-keywords@3.5.2(ajv@6.12.6):
@@ -13433,17 +13427,16 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  /zod-to-json-schema@3.22.5(zod@packages+zod-extension):
+  /zod-to-json-schema@3.22.5(zod@3.22.4):
     resolution: {integrity: sha512-+akaPo6a0zpVCCseDed504KBJUQpEW5QZw7RMneNmKw+fGaML1Z9tUNLnHHAC8x6dzVRO1eB2oEMyZRnuBZg7Q==}
     peerDependencies:
       zod: ^3.22.4
     dependencies:
-      zod: link:packages/zod-extension
+      zod: 3.22.4
     dev: true
 
   /zod@3.22.4:
     resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
-    dev: false
 
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}

@@ -68,9 +68,7 @@ export default function AutoFormObject<
         let item = shape[name] as z.ZodAny;
         item = handleIfZodNumber(item) as z.ZodAny;
         const zodBaseType = getBaseType(item);
-        const itemName = item._def.label ?? beautifyObjectName(name);
-        const itemPlaceholder = item._def.placeholder;
-        const itemDescription = item._def.description;
+        const itemName = item._def.description ?? beautifyObjectName(name);
         const key = [...path, name].join(".");
 
         const {
@@ -150,7 +148,6 @@ export default function AutoFormObject<
               const value = field.value ?? defaultValue ?? "";
 
               const fieldProps = {
-                placeholder: itemPlaceholder,
                 ...zodToHtmlInputProps(item),
                 ...field,
                 ...fieldConfigItem.inputProps,
@@ -170,7 +167,6 @@ export default function AutoFormObject<
                     field={field}
                     fieldConfigItem={fieldConfigItem}
                     label={itemName}
-                    description={itemDescription}
                     isRequired={isRequired}
                     zodItem={item}
                     fieldProps={fieldProps}

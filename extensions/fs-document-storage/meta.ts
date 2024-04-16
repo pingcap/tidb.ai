@@ -5,7 +5,7 @@ import Readme from './readme.mdx';
 const identifier = 'rag.document-storage.fs';
 const displayName = 'File system storage';
 const optionsSchema = z.object({
-  path: z.string().optional().placeholder('DOCUMENT_STORE_PATH'),
+  path: z.string().optional(),
 });
 
 export type FileSystemDocumentStorageOptions = z.infer<typeof optionsSchema>;
