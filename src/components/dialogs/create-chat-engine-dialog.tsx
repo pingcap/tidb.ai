@@ -19,14 +19,14 @@ export function CreateChatEngineDialog ({
   return (
     <ImportDialog
       trigger={<Button className="gap-1" size="sm" variant="secondary">New</Button>}
-      title="Create chat engine"
+      title="Create Chat Engine"
       onSubmit={createChatEngine}
       defaultValues={{
         name: '',
         engine: 'condense-question',
         engine_options: {
-          reranker: { provider: 'cohere', config: {} },
-          llm: { provider: 'openai', config: {} },
+          reranker: { provider: 'llm', config: { model: '-' } },
+          llm: { provider: 'openai', config: { model: 'gpt-3.5-turbo' } },
           prompts: {
             textQa: defaultTextQaPrompt,
             refine: defaultRefinePrompt,
