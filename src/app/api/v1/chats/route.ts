@@ -127,14 +127,23 @@ async function mapResponseToTextStream (session_id: string, message_ordinal: num
   const rs = new ReadableStream({
     pull: async (controller) => {
       try {
+        let sourceConsumed = false;
         for await (const response of responseStream) {
+          let sources: any = undefined;
+          if (!sourceConsumed) {
+            if (response.sources.length > 0) {
+              sources = response.sources;
+              sourceConsumed = true;
+            }
+          }
           controller.enqueue('0:' + JSON.stringify(response.content) + '\n');
-          data.append({
-            [message_ordinal]: {
-              context: response.sources,
-              status: response.status,
-            },
-          });
+          if (sources) {
+            data.append({
+              [message_ordinal]: {
+                context: sources,
+              },
+            });
+          }
         }
         await data.close();
       } catch (e) {
