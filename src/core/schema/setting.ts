@@ -1,20 +1,20 @@
-import {z} from "zod";
+import { z } from 'zod';
 
 export const GroupName = z.enum(['website', 'custom_js', 'security']);
 
 export type IGroupName = z.infer<typeof GroupName>;
 
 export const languages = [
-  { label: "English", value: "en-US" },
-  { label: "Chinese", value: "zh-CN" }
+  { label: 'English', value: 'en-US' },
+  { label: 'Chinese', value: 'zh-CN' },
 ] as const;
 
-export const language = z.enum(["en-US", "zh-CN"]);
+export const language = z.enum(['en-US', 'zh-CN']);
 
 export const themes = [
-  { label: "Light", value: "light" },
-  { label: "Dark", value: "dark" },
-  { label: "System", value: "system" }
+  { label: 'Light', value: 'light' },
+  { label: 'Dark', value: 'dark' },
+  { label: 'System', value: 'system' },
 ] as const;
 
 export const theme = z.enum(['light', 'dark', 'system']);
@@ -22,7 +22,7 @@ export const theme = z.enum(['light', 'dark', 'system']);
 export const reCaptcha = [
   { label: 'V3', value: 'v3' },
   { label: 'Enterprise', value: 'enterprise' },
-  { label: 'None', value: '' }
+  { label: 'None', value: '' },
 ] as const;
 export const reCaptchas = z.enum(['', 'v3', 'enterprise']);
 
@@ -31,6 +31,9 @@ export const maxHomepageFooterLinks = 5;
 
 const assetUrl = (message: string) =>
   z.string().url(message).or(z.string().regex(/^\/assets\//, message));
+
+const optionalAssetUrl = (message: string) =>
+  z.string().url(message).optional().or(z.string().regex(/^\/assets\//, message).optional());
 
 export const WebsiteSetting = z.object({
   title: z.string().min(1, 'title must has at latest 1 character').max(20, 'title must has at most 20 characters'),
@@ -45,9 +48,9 @@ export const WebsiteSetting = z.object({
     footer_links: z.array(z.object({ text: z.string().min(1), href: z.string().min(1) })).optional(),
   }),
   social: z.object({
-    twitter: assetUrl('twitter should be a correct URL').optional(),
-    github: assetUrl('github should be a correct URL').optional(),
-    discord: assetUrl('discord should be a correct URL').optional(),
+    twitter: z.string().url('twitter should be a correct URL').optional(),
+    github: z.string().url('github should be a correct URL').optional(),
+    discord: z.string().url('discord should be a correct URL').optional(),
   }).optional(),
 });
 
@@ -92,17 +95,15 @@ export const CustomJsSetting = z.object({
   button_label: z.string({
     required_error: 'Button label is required',
   }),
-  button_img_src: assetUrl('Button Image Src should be a correct URL of image')
-    .optional(),
+  button_img_src: optionalAssetUrl('Button Image Src should be a correct URL of image'),
   example_questions: z
     .array(z.object({ text: z.string().min(1) }))
     .max(
       maxExampleQuestions,
-      `example questions must has at most ${maxExampleQuestions} questions`
+      `example questions must has at most ${maxExampleQuestions} questions`,
     )
     .optional(),
-  logo_src: assetUrl('Logo Src should be a correct URL of image')
-    .optional(),
+  logo_src: optionalAssetUrl('Logo Src should be a correct URL of image'),
   widget_title: z.string().min(1, 'title must has at latest 1 character').max(50, 'title must has at most 50 characters').optional(),
   widget_input_placeholder: z.string().min(1, 'input placeholder must has at latest 1 character').max(50, 'input placeholder must has at most 50 characters').optional(),
   widget_color_mode: theme.optional(),
