@@ -1,27 +1,14 @@
-import database from '@/core/db';
-import { scheduleImportSourceTask } from '@/jobs/scheduleImportSourceTask';
-import { adminHandlerGuard } from '@/lib/auth-server';
-import { getErrorMessage } from '@/lib/error';
-import { notFound } from 'next/navigation';
-import { NextResponse } from 'next/server';
+import { DocumentImportService } from '@/core/services/importing';
+import { defineHandler } from '@/lib/next/handler';
+import z from 'zod';
 
-export const POST = adminHandlerGuard(async (req, { params }: { params: { id: string } }) => {
-  const id = decodeURIComponent(params.id);
-  const source = await database.importSource.find(id);
-
-  if (!source) {
-    notFound();
-  }
-  try {
-    await scheduleImportSourceTask(source);
-  } catch (e) {
-    return NextResponse.json({
-      message: getErrorMessage(e),
-    }, { status: 400 });
-  }
-  return NextResponse.json({
-    scheduled: true,
-  });
+export const POST = defineHandler({
+  auth: 'admin',
+  params: z.object({
+    id: z.coerce.number().int(),
+  }),
+}, async ({ params: { id } }) => {
+  return await DocumentImportService.createTaskFromSource(id);
 });
 
 export const dynamic = 'force-dynamic';

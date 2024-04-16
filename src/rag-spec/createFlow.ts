@@ -8,21 +8,17 @@ namespace IndexFlowConfig {
   }
 
   export type Loader = BaseComponentConfig;
-  export type Splitter = BaseComponentConfig
   export type Embeddings = BaseComponentConfig
   export type DocumentStorage = BaseComponentConfig
   export type ChatModel = BaseComponentConfig
-  export type Prompting = BaseComponentConfig;
   export type Reranker = BaseComponentConfig;
 }
 
 interface IndexFlowConfig {
   documentStorage: IndexFlowConfig.DocumentStorage[];
   loaders: IndexFlowConfig.Loader[];
-  splitters: IndexFlowConfig.Splitter[];
   embeddings: IndexFlowConfig.Embeddings[];
   chatModels: IndexFlowConfig.ChatModel[];
-  promptings: IndexFlowConfig.Prompting[];
   rerankers: IndexFlowConfig.Reranker[];
 }
 
@@ -47,10 +43,8 @@ export async function getFlow (registry: RagExtensionsRegistry, config?: IndexFl
   if (config) {
     config.documentStorage.forEach(add);
     config.loaders.forEach(add);
-    config.splitters.forEach(add);
     config.embeddings.forEach(add);
     config.chatModels.forEach(add);
-    config.promptings.forEach(add);
     config.rerankers.forEach(add);
   } else {
     registry._createAll(options).forEach(comp => flow.add(comp));

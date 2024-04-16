@@ -1,8 +1,9 @@
 'use client';
 
+import { deleteChat } from '@/client/operations/chats';
 import { Ask } from '@/components/ask';
 import { type NavGroup, SiteNav } from '@/components/site-nav';
-import { SiteNavFooter, type SiteSocialsType } from '@/components/site-nav-footer';
+import { SiteNavFooter } from '@/components/site-nav-footer';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogOverlay, DialogPortal } from '@/components/ui/dialog';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
@@ -10,21 +11,18 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useAsk } from '@/components/use-ask';
 import { useHref } from '@/components/use-href';
-import type { DB } from '@/core/db/schema';
-import { useUser } from '@/lib/auth';
+import type { Chat } from '@/core/repositories/chat';
 import type { Page } from '@/lib/database';
 import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
-import { deleteChat } from '@/operations/chats';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import type { Selectable } from 'kysely';
-import { ActivitySquareIcon, CogIcon, CommandIcon, FileIcon, HomeIcon, ImportIcon, ListIcon, MenuIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react';
+import { ActivitySquareIcon, BinaryIcon, CogIcon, CommandIcon, FileIcon, GlobeIcon, HomeIcon, ImportIcon, ListIcon, MenuIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react';
+import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
 const conversationItemClassName = 'opacity-80 text-xs p-2 py-1.5 h-max font-light w-[86%] ml-[14%] block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold';
-const docsItemClassName = 'text-xs p-2 py-1.5 h-max font-normal block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold';
 
 export function Nav () {
   const href = useHref();
@@ -32,11 +30,19 @@ export function Nav () {
   const ask = useAsk(() => {
     setOpen(false);
   });
-  const user = useUser();
-  const { data: history, mutate, isLoading } = useSWR(['get', '/api/v1/chats'], fetcher<Page<Selectable<DB['chat']>>>, {});
+  const session = useSession();
+  const user = session.data?.user;
+  const isLoggedIn = user && user.role !== 'anonymous';
+  const { data: history, mutate, isLoading } = useSWR(['get', '/api/v1/chats'], fetcher<Page<Chat>>, {
+    revalidateOnMount: false,
+  });
 
   useEffect(() => {
-    void mutate();
+    if (user?.id) {
+      void mutate();
+    } else {
+      void mutate(undefined, { revalidate: false });
+    }
   }, [user?.id]);
 
   useEffect(() => {
@@ -54,7 +60,7 @@ export function Nav () {
   }, []);
 
   const groups = useMemo(() => {
-    const disableIfNotAuthenticated = !user ? <><Link className="font-semibold underline" href={`/auth/login?callbackUrl=${encodeURIComponent(href)}`}>Login</Link> to continue</> : false;
+    const disableIfNotAuthenticated = !isLoggedIn ? <><Link className="font-semibold underline" href={`/auth/login?callbackUrl=${encodeURIComponent(href)}`}>Login</Link> to continue</> : false;
 
     const groups: NavGroup[] = [
       {
@@ -69,33 +75,37 @@ export function Nav () {
           ] : []),
           ...(history?.data.map(chat => (
             {
-              href: `/c/${chat.id}`,
-              title: chat.name,
+              href: `/c/${chat.url_key}`,
+              title: chat.title,
               variant: (active: boolean) => (active ? 'secondary' : 'ghost'),
               className: conversationItemClassName,
-              onDelete: () => {
+              onDelete: isLoggedIn ? () => {
                 deleteChat(chat.id).then(() => mutate(undefined, { revalidate: true }));
-              },
+              } : undefined,
             }
           )) ?? []),
         ],
       },
     ];
 
-    groups.push({
-      title: 'Admin',
-      items: [
-        { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon },
-        { href: '/explore', title: 'Documents', icon: FileIcon },
-        { href: '/sources', title: 'Data Sources', icon: ImportIcon },
-        { href: '/import-tasks', title: 'Import Tasks', icon: ListIcon },
-        { href: '/settings', title: 'Settings', icon: CogIcon },
-      ],
-      sectionProps: { className: 'mt-auto mb-0' },
-    });
+    if (user?.role === 'admin') {
+      groups.push({
+        title: 'Admin',
+        items: [
+          { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon },
+          { href: '/explore', title: 'Documents', icon: FileIcon },
+          { href: '/sources', title: 'Data Sources', icon: ImportIcon },
+          { href: '/indexes', title: 'Indexes', icon: BinaryIcon },
+          { href: '/import-tasks', title: 'Import Tasks', icon: GlobeIcon },
+          { href: '/index-tasks', title: 'Index Tasks', icon: ListIcon },
+          { href: '/settings', title: 'Settings', icon: CogIcon },
+        ],
+        sectionProps: { className: 'mt-auto mb-0' },
+      });
+    }
 
     return groups;
-  }, [user, history, href]);
+  }, [isLoggedIn, user?.role, history, href]);
 
   return (
     <>
@@ -117,7 +127,7 @@ export function Nav () {
   );
 }
 
-export function NavDrawer() {
+export function NavDrawer () {
   return (
     <Drawer>
       <DrawerTrigger className="flex md:hidden flex-shrink-0" asChild>

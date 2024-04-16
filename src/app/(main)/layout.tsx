@@ -3,25 +3,27 @@
 import { Nav, NavDrawer } from '@/app/(main)/nav';
 import { Branding } from '@/components/branding';
 import { SemanticSearch } from '@/components/semantic-search';
-import { SiteNavFooter, SiteNavActionBar } from '@/components/site-nav-footer';
+import { SiteNavActionBar, SiteNavFooter } from '@/components/site-nav-footer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Toaster } from '@/components/ui/sonner';
-import { usePreloadServerlessTiFlashReplicas } from '@/lib/tiflash';
+import { usePreloadANNIndex } from '@/components/use-preload-ann-index';
+import { useSettingGroup } from '@/components/website-setting-provider';
 import Link from 'next/link';
-import {ReactNode, useContext, useMemo} from 'react';
-import { WebsiteSettingContext } from "@/components/website-setting-provider";
+import { ReactNode, useMemo } from 'react';
 
 export default function Layout ({ children }: {
   children: ReactNode
 }) {
-  const setting = useContext(WebsiteSettingContext);
-  usePreloadServerlessTiFlashReplicas();
+  const setting = useSettingGroup('website');
+
+  // TODO: support preload specified index
+  usePreloadANNIndex();
 
   const socialMemo = useMemo(
     () => ({
       ...setting?.social,
     }),
-    [setting]
+    [setting],
   );
 
   return (
@@ -29,20 +31,20 @@ export default function Layout ({ children }: {
       <div className="md:flex md:min-h-screen">
         <header className="md:hidden h-header px-2 sticky top-0 bg-background border-b z-10 flex gap-2 items-center">
           <NavDrawer />
-          <Branding setting={setting}/>
+          <Branding setting={setting} />
         </header>
         <div className="fixed top-0 right-2 md:top-4 md:right-4 z-10">
           <div className="flex gap-2 items-center">
             <SemanticSearch />
-            <SiteNavActionBar className='flex h-fit' social={socialMemo} />
+            <SiteNavActionBar className="flex h-fit" social={socialMemo} />
           </div>
         </div>
         <aside className="flex-shrink-0 gap-4 w-side h-full hidden md:block border-r fixed top-0 left-0">
           <Link className="h-header flex gap-4 items-left justify-left px-4 py-8 bg-background" href="/" prefetch={false}>
-            <Branding setting={setting}/>
+            <Branding setting={setting} />
           </Link>
           <ScrollArea className="h-[calc(100%-6rem)] pr-2">
-            <div className='w-side'>
+            <div className="w-side">
               <Nav />
             </div>
           </ScrollArea>

@@ -1,11 +1,15 @@
 
+import {defineHandler} from "@/lib/next/handler";
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
-import { type NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 
-export async function POST (req: NextRequest) {
-  // TODO: limit the request.
-  const formData = await req.formData();
+export const POST = defineHandler({
+  auth: 'admin'
+}, async ({
+  request
+}) => {
+  const formData = await request.formData();
   const file = formData.get('file');
 
   if (!(file instanceof Blob)) {
@@ -26,12 +30,16 @@ export async function POST (req: NextRequest) {
   }
 
   const store = (await getFlow(baseRegistry)).getStorage();
-  const url = await store.put(`images/${file.name}`, Buffer.from(await file.arrayBuffer()), false);
-  console.log(url)
+  let url = await store.put(`images/${file.name}`, Buffer.from(await file.arrayBuffer()), false);
+
+  // FIXME: remove magic check
+  if (store.identifier === 'rag.document-storage.fs') {
+    url = `/assets/images/${file.name}`
+  }
 
   return NextResponse.json({
     url: url
   });
-}
+});
 
 export const dynamic = 'force-dynamic';

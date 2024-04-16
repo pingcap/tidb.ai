@@ -1,26 +1,23 @@
-import db from '@/core/db';
-import { addImportSources } from '@/jobs/addImportSources';
-import { saveDocument } from '@/jobs/saveDocument';
-import { adminHandlerGuard } from '@/lib/auth-server';
+import { listDocuments } from '@/core/repositories/document';
+import {createSource} from "@/core/repositories/source";
 import { toPageRequest } from '@/lib/database';
-import { genId } from '@/lib/id';
-import { baseRegistry } from '@/rag-spec/base';
-import { getFlow } from '@/rag-spec/createFlow';
-import { type NextRequest, NextResponse } from 'next/server';
+import { defineHandler } from '@/lib/next/handler';
+import {type NextRequest, NextResponse} from "next/server";
 
-export async function GET (req: NextRequest) {
-  return NextResponse.json(await db.document.listAll(toPageRequest(req, ['index_state', 'q'])));
-}
+export const GET = defineHandler({
+  auth: 'admin',
+}, async ({ request }) => {
+  return await listDocuments(toPageRequest(request));
+});
 
-export const PUT = adminHandlerGuard(async (req) => {
-  const contentType = req.headers.get('Content-Type')?.split(';')[0];
+export const PUT = defineHandler({
+  auth: 'admin',
+},  async ({ request}) => {
+  const contentType = request.headers.get('Content-Type')?.split(';')[0];
 
   switch (contentType) {
     case 'text/uri-list':
-      await handleUriListV2(req);
-      break;
-    case 'multipart/form-data':
-      await handleMultipart(req);
+      await handleUriListV2(request);
       break;
     default:
       return new NextResponse(undefined, { status: 406 });
@@ -29,33 +26,18 @@ export const PUT = adminHandlerGuard(async (req) => {
   return NextResponse.json({});
 });
 
-export const dynamic = 'force-dynamic';
-
 async function handleUriListV2 (req: NextRequest) {
   const uriList = (await req.text())
     .split('\n')
     .map(s => s.trim())
     .filter(Boolean);
-  await addImportSources(uriList);
+  for (let uri of uriList) {
+    await createSource({
+      type: 'robots',
+      url: uri,
+      created_at: new Date(),
+    });
+  }
 }
 
-async function handleMultipart (req: NextRequest) {
-  const formData = await req.formData();
-  const file = formData.get('file');
-  const sourceUri = formData.get('sourceUri');
-
-  if (!(file instanceof Blob)) {
-    throw new Error('file is required');
-  }
-  if (typeof sourceUri !== 'string') {
-    throw new Error('sourceUri is required');
-  }
-  const store = (await getFlow(baseRegistry)).getStorage();
-
-  await saveDocument(store, {
-    id: genId(),
-    sourceUrl: sourceUri,
-    mime: file.type,
-    buffer: Buffer.from(await file.arrayBuffer()),
-  });
-}
+export const dynamic = 'force-dynamic';

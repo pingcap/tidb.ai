@@ -2,21 +2,18 @@
 
 import AnonymousSessionProvider from '@/components/anonymous-session-provider';
 import { ThemeProvider } from '@/components/theme-provider';
-import { WebsiteSettingProvider } from '@/components/website-setting-provider';
-import { SecuritySettingProvider } from '@/components/security-setting-provider';
-import { IWebsiteSettingResult, ISecuritySettingResult } from '@/core/schema/setting';
+import { SettingProvider } from '@/components/website-setting-provider';
+import { type SettingGroups } from '@/core/schema/setting';
 import type { Session } from 'next-auth';
 import { SessionProvider } from 'next-auth/react';
 import type { ReactNode } from 'react';
 
-export interface ProvidersProps {
+export interface ProvidersProps extends SettingGroups {
   session: Session;
-  website: IWebsiteSettingResult;
-  security: ISecuritySettingResult;
   children: ReactNode;
 }
 
-export function Providers ({ session, website, security, children }: ProvidersProps) {
+export function Providers ({ session, children, ...settingGroups }: ProvidersProps) {
   return (
     <ThemeProvider
       attribute="class"
@@ -26,11 +23,9 @@ export function Providers ({ session, website, security, children }: ProvidersPr
     >
       <SessionProvider session={session}>
         <AnonymousSessionProvider>
-          <WebsiteSettingProvider value={website}>
-            <SecuritySettingProvider value={security}>
-              {children}
-            </SecuritySettingProvider>
-          </WebsiteSettingProvider>
+          <SettingProvider value={settingGroups}>
+            {children}
+          </SettingProvider>
         </AnonymousSessionProvider>
       </SessionProvider>
     </ThemeProvider>

@@ -10,7 +10,7 @@ export interface JinaAIRerankerOptions {
 const identifier = 'rag.reranker.jinaai';
 const displayName = 'Jina AI Reranker';
 const optionsSchema = z.object({
-  token: z.string().optional().placeholder('JINAAI_TOKEN'),
+  token: z.string().optional(),
   model: z.string().optional(),
 });
 

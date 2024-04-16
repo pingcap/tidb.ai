@@ -1,54 +1,58 @@
-import { GroupName, WebsiteSettingUpdatePayload, CustomJsSettingUpdatePayload, SecuritySettingUpdatePayload } from '@/core/schema/setting';
-import { getSetting, updateSetting } from '@/core/setting';
-import { adminHandlerGuard } from '@/lib/auth-server';
-import { notFound } from 'next/navigation';
-import { type NextRequest, NextResponse } from 'next/server';
-import { z } from 'zod';
+import {
+  CustomJsSettingUpdatePayload,
+  GroupName,
+  SecuritySettingUpdatePayload,
+  WebsiteSettingUpdatePayload
+} from '@/core/schema/setting';
+import {getSetting, updateSetting} from '@/core/setting';
+import {defineHandler} from "@/lib/next/handler";
+import {notFound} from 'next/navigation';
+import {NextResponse} from 'next/server';
+import { z} from 'zod';
 
-function InvalidParamsErrorResponse (parseResult: z.SafeParseError<any>) {
-  return NextResponse.json({
-    message: 'Invalid request parameters',
-    issues: parseResult.error.issues,
-  }, {
-    status: 400,
-  });
-}
+const searchParamsSchema = z.object({
+  group: GroupName,
+});
 
-export async function GET (req: NextRequest) {
-  const parseResult = GroupName.safeParse(req.nextUrl.searchParams.get('group'));
-  if (!parseResult.success) {
-    return InvalidParamsErrorResponse(parseResult);
-  }
-  const settings = await getSetting(parseResult.data);
+export const GET = defineHandler({
+  searchParams: searchParamsSchema,
+}, async ({
+  searchParams: { group }
+}) => {
+  const settings = await getSetting(group);
   if (Object.keys(settings!).length === 0) {
     notFound();
   }
 
   return NextResponse.json(settings);
-}
+});
 
 const UpdateSettingRequestSchema = z.object({
-  group: GroupName,
+  group: z.literal('website'),
   settings: WebsiteSettingUpdatePayload,
 });
 const UpdateCustomJsSettingRequestSchema = z.object({
-  group: GroupName,
+  group: z.literal('custom_js'),
   settings: CustomJsSettingUpdatePayload,
 });
 const UpdateSecuritySettingRequestSchema = z.object({
-  group: GroupName,
+  group: z.literal('security'),
   settings: SecuritySettingUpdatePayload,
 });
 
-export const PUT = adminHandlerGuard(async (req) => {
-  const parseResult = await handleUpdateSetting(req);
-  if (!parseResult) {
-    return notFound();
-  }
-  if (!parseResult.success) {
-    return InvalidParamsErrorResponse(parseResult);
-  }
-  const { group, settings } = parseResult.data;
+const updateSettingSchema = z.discriminatedUnion("group", [
+  UpdateSettingRequestSchema,
+  UpdateCustomJsSettingRequestSchema,
+  UpdateSecuritySettingRequestSchema
+]);
+
+export const PUT = defineHandler({
+  auth: 'admin',
+  body: updateSettingSchema,
+}, async ({
+  body,
+}) => {
+  const { group, settings } = body;
   const updated = await updateSetting(group, settings);
 
   return NextResponse.json({
@@ -56,23 +60,5 @@ export const PUT = adminHandlerGuard(async (req) => {
     updated,
   });
 });
-
-async function handleUpdateSetting (req: NextRequest) {
-  const reqJson = await req.json();
-  const group: string = reqJson.group || '';
-  if (group === 'website') {
-    const parseSettingResult = UpdateSettingRequestSchema.strict().safeParse(reqJson);
-    return parseSettingResult;
-  }
-  if (group === 'custom_js') {
-    const parseCustomJsResult = UpdateCustomJsSettingRequestSchema.strict().safeParse(reqJson);
-    return parseCustomJsResult;
-  }
-  if (group === 'security') {
-    const parseSecurityResult = UpdateSecuritySettingRequestSchema.strict().safeParse(reqJson);
-    return parseSecurityResult;
-  }
-  return undefined;
-}
 
 export const dynamic = 'force-dynamic';

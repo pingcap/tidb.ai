@@ -4,15 +4,12 @@ import { Ask } from '@/components/ask';
 import { Button } from '@/components/ui/button';
 import { useAsk } from '@/components/use-ask';
 import NextLink from 'next/link';
-import { useContext } from 'react';
-import { WebsiteSettingContext } from "@/components/website-setting-provider";
-import { SecuritySettingContext } from '@/components/security-setting-provider';
+import { useSettingContext } from '@/components/website-setting-provider';
 import { withReCaptcha } from '@/components/security-setting-provider';
 
 export default function Page() {
   const { loading, ask } = useAsk();
-  const { homepage } = useContext(WebsiteSettingContext);
-  const security = useContext(SecuritySettingContext);
+  const { website: { homepage }, security } = useSettingContext();
 
   return (
     <div className='h-screen'>

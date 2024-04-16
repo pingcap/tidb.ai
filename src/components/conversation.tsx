@@ -3,17 +3,14 @@
 import { __useHandleInitialMessage } from '@/app/(main)/(public)/c/[id]/internal';
 import { ConversationMessageGroups } from '@/components/conversation-message-group';
 import { MessageInput } from '@/components/message-input';
-import type { DB } from '@/core/db/schema';
+import { SecuritySettingContext, withReCaptcha } from '@/components/security-setting-provider';
+import type { ChatMessage } from '@/core/repositories/chat';
 import { cn } from '@/lib/utils';
 import { useChat } from 'ai/react';
-import type { Selectable } from 'kysely';
 import { useParams, usePathname, useRouter } from 'next/navigation';
-import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
-import { withReCaptcha } from '@/components/security-setting-provider';
-import { useContext } from 'react';
-import { SecuritySettingContext } from '@/components/security-setting-provider';
+import { type FormEvent, useContext, useEffect, useMemo, useRef, useState } from 'react';
 
-export function Conversation ({ open, history, context }: { open: boolean, history: Selectable<DB['chat_message']>[], context: { ordinal: number, title: string, uri: string }[] }) {
+export function Conversation ({ open, history, context }: { open: boolean, history: ChatMessage[], context: { ordinal: number, title: string, uri: string }[] }) {
   const { handleInputChange, isWaiting, handleSubmit, input, isLoading, data, error, messages } = useMyChat(history, context);
   const [size, setSize] = useState<DOMRectReadOnly | undefined>(undefined);
   const ref = useRef<HTMLDivElement>(null);
@@ -49,10 +46,10 @@ export function Conversation ({ open, history, context }: { open: boolean, histo
             'X-Recaptcha-Token': token,
             'X-Recaptcha-Action': action,
           },
-        }
+        },
       });
     });
-  }
+  };
 
   return (
     <>
@@ -69,7 +66,7 @@ export function Conversation ({ open, history, context }: { open: boolean, histo
   );
 }
 
-function useMyChat (history: Selectable<DB['chat_message']>[], context: { ordinal: number, title: string, uri: string }[]) {
+function useMyChat (history: ChatMessage[], context: { ordinal: number, title: string, uri: string }[]) {
   const params = useParams<{ id: string }>();
   const pathname = usePathname();
 
@@ -93,7 +90,11 @@ function useMyChat (history: Selectable<DB['chat_message']>[], context: { ordina
       namespaces: [],
     },
     key: session,
-    initialMessages: history,
+    initialMessages: history.map(message => ({
+      id: String(message.id),
+      role: message.role as any,
+      content: message.content,
+    })),
     onResponse: response => {
       setWaiting(false);
       setSession(response.headers.get('X-CreateRag-Session') ?? undefined);

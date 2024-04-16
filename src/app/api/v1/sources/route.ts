@@ -1,25 +1,35 @@
-import database from '@/core/db';
-import { NextResponse } from 'next/server';
+import { createSource, listSource } from '@/core/repositories/source';
+import { toPageRequest } from '@/lib/database';
+import { defineHandler } from '@/lib/next/handler';
+import z from 'zod';
 
-export async function GET () {
-  const sources = await database.importSource.list();
-  const sourceIds = sources.map(source => source.id);
-  const taskSummaryItems = await database.importSource.calcTaskSummary(sourceIds);
-  const result = sources.map(source => {
-    const tasksByStatus = taskSummaryItems
-      .filter(taskSummaryItem => taskSummaryItem.import_source_id === source.id)
-      .reduce((acc, taskSummaryItem) => {
-        acc[taskSummaryItem.status] = taskSummaryItem.tasks;
-        return acc;
-      }, {} as Record<string, number>);
+const schema = z.object({
+  url: z.string(),
+});
 
-    return {
-      ...source,
-      summary: tasksByStatus
-    }
-  });
+export const GET = defineHandler({}, async ({ request }) => {
+  return await listSource(toPageRequest(request));
+});
 
-  return NextResponse.json(result);
-}
+export const POST = defineHandler({
+  body: z.object({
+    url: z.string().url(),
+  }),
+}, async ({ body }) => {
+  const url = new URL(body.url);
+  if (url.pathname === '' || url.pathname === '/') {
+    return await createSource({
+      url: body.url,
+      type: 'robots',
+      created_at: new Date(),
+    });
+  } else {
+    return await createSource({
+      url: body.url,
+      type: 'file',
+      created_at: new Date(),
+    });
+  }
+});
 
 export const dynamic = 'force-dynamic';

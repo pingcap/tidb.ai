@@ -1,9 +1,6 @@
 import SettingsPage from '@/app/(main)/(admin)/settings/page.client';
-import { authGuard } from '@/lib/auth-server';
 
-export default async function ServerSettingsPage () {
-  await authGuard('admin');
-
+export default function ServerSettingsPage () {
   return (
     <SettingsPage />
   );

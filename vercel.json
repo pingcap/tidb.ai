@@ -2,11 +2,19 @@
   "crons": [
     {
       "schedule": "* * * * *",
-      "path": "/api/v1/indexes/default/reindex"
+      "path": "/api/v1/tasks/document_import/process"
     },
     {
       "schedule": "* * * * *",
-      "path": "/api/v1/sources/tasks/process"
+      "path": "/api/v1/tasks/document_index/schedule"
+    },
+    {
+      "schedule": "* * * * *",
+      "path": "/api/v1/tasks/document_index/process"
+    },
+    {
+      "schedule": "* * * * *",
+      "path": "/api/v1/tasks/temp_fill_document_name"
     }
   ],
   "rewrites": [

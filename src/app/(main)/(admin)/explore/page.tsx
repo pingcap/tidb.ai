@@ -1,22 +1,18 @@
 'use client';
 
 import { AdminPageHeading } from '@/components/admin-page-heading';
-import { indexStateCell } from '@/components/cells/index-state';
-import { metadataCell } from '@/components/cells/metadata';
 import { DocumentIndexStatusFilter } from '@/components/data-filters/document-index-status-filter';
 import { SearchFilter } from '@/components/data-filters/search-filter';
 import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
-import { ImportFileDialog } from '@/components/dialogs/import-file-dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
-import type { DB } from '@/core/db/schema';
+import type { Document } from '@/core/repositories/document';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';
-import type { Selectable } from 'kysely';
 import { GithubIcon } from 'lucide-react';
 
-const helper = createColumnHelper<Selectable<DB['document']> & { index_state: string, metadata: any, trace: string | null, indexed_at: Date | null }>();
+const helper = createColumnHelper<Document>();
 
 const mono = (cell: CellContext<any, any>) => <span className="font-mono">{cell.getValue()}</span>;
 
@@ -52,16 +48,13 @@ const datetime = (cell: CellContext<any, any>) => <time>{format(cell.getValue(),
 
 const columns = [
   helper.accessor('id', { cell: mono }),
-  helper.accessor('index_state', { cell: indexStateCell }),
-  helper.accessor('metadata', { cell: metadataCell }),
   helper.accessor('name', { cell: mono }),
   helper.accessor('mime', { cell: mono }),
   helper.accessor('source_uri', { cell: sourceUri }),
-  helper.accessor('digest', { cell: mono }),
+  helper.accessor('hash', { cell: mono }),
   helper.accessor('created_at', { cell: datetime }),
   helper.accessor('last_modified_at', { cell: datetime }),
-  helper.accessor('indexed_at', { cell: datetime }),
-] as ColumnDef<Selectable<DB['document']> & { index_state: string, metadata: any, indexed_at: Date | null }>[];
+] as ColumnDef<Document>[];
 
 export default function Page () {
   return (
@@ -72,8 +65,6 @@ export default function Page () {
           <DataTableHeading>
             <SearchFilter />
             <DocumentIndexStatusFilter />
-            <span className="ml-auto" />
-            <ImportFileDialog />
           </DataTableHeading>
         )}
         columns={columns}

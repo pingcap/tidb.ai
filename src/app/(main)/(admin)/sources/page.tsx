@@ -1,67 +1,91 @@
 'use client';
 
-import { DataTable } from '@/components/data-table';
-import { ImportSiteDialog } from '@/components/dialogs/import-site-dialog';
+import { ActionButton } from '@/components/action-button';
 import { AdminPageHeading } from '@/components/admin-page-heading';
-import type { DB } from '@/core/db/schema';
-import type { CellContext } from '@tanstack/react-table';
+import { DataTableRemote } from '@/components/data-table-remote';
+import { ImportSiteDialog } from '@/components/dialogs/import-site-dialog';
+import { Separator } from '@/components/ui/separator';
+import type { Source } from '@/core/repositories/source';
+import { rescheduleDocumentImportTasks, scheduleDocumentImportTasks } from '@/client/operations/sources';
+import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';
-import type { Selectable } from 'kysely';
-import useSWR from 'swr';
-import {Separator} from "@/components/ui/separator";
+import { ClockIcon, RotateCwIcon } from 'lucide-react';
+
+interface SourceWithSummary extends Source {
+  summary: Record<string, string>;
+}
+
+const helper = createColumnHelper<SourceWithSummary>();
 
 export default function Page () {
-  const { data = [] } = useSWR<ColumnDef[]>(['/api/v1/sources'], { fetcher });
-  const columns = [
+  const columns: ColumnDef<SourceWithSummary, any>[] = [
     helper.accessor('id', {}),
     helper.accessor('url', {}),
     helper.accessor('type', {}),
     helper.accessor('summary', {
       header: 'Process',
-      cell: (cell: CellContext<ColumnDef, any>) => {
+      cell: (cell: CellContext<SourceWithSummary, any>) => {
         const summary = cell.row.original.summary;
+        if (!summary) {
+          return <span>No state</span>;
+        }
         return (
           <div className="flex h-5 items-center space-x-4">
-            <div>Pending: {summary.pending || 0}</div>
-            <Separator orientation="vertical"/>
-            <div>Processing: {summary.processing || 0}</div>
-            <Separator orientation="vertical"/>
-            <div>Succeed: {summary.succeed || 0}</div>
-            <Separator orientation="vertical"/>
-            <div>Failed: {summary.failed || 0}</div>
+            <div>Created: {summary.CREATED || 0}</div>
+            <Separator orientation="vertical" />
+            <div>Pending: {summary.PENDING || 0}</div>
+            <Separator orientation="vertical" />
+            <div>Importing: {summary.IMPORTING || 0}</div>
+            <Separator orientation="vertical" />
+            <div>Succeed: {summary.SUCCEED || 0}</div>
+            <Separator orientation="vertical" />
+            <div>Failed: {summary.FAILED || 0}</div>
           </div>
-        )
-      }
+        );
+      },
     }),
     helper.accessor('created_at', { cell: datetime }),
+    helper.display({
+      header: 'Operations',
+      cell: (ctx) => {
+        if (!ctx.row.original.summary) {
+          return (
+            <ActionButton variant='secondary' size='sm' action={async () => {
+              await scheduleDocumentImportTasks(ctx.row.original.id);
+            }}>
+              <ClockIcon className='w-4 h-4 mr-2' />
+              Schedule
+            </ActionButton>
+          );
+        } else if (ctx.row.original.summary.FAILED) {
+          return (
+            <ActionButton variant='secondary' size='sm' action={async () => {
+              await rescheduleDocumentImportTasks(ctx.row.original.id, 'FAILED');
+            }}>
+              <RotateCwIcon className='w-4 h-4 mr-2' />
+              Retry all Failed
+            </ActionButton>
+          );
+        }
+      },
+    }),
   ];
 
   return (
     <>
       <AdminPageHeading title="Sources" />
-      <div className='flex justify-end'>
+      <div className="flex justify-end">
         <ImportSiteDialog />
       </div>
-      <DataTable columns={columns} data={data} />
+      <DataTableRemote
+        columns={columns}
+        api="/api/v1/sources"
+        idColumn="id"
+      />
     </>
   );
 }
 
 const datetime = (cell: CellContext<any, any>) => <time>{format(cell.getValue(), 'yyyy-MM-dd HH:mm')}</time>;
 
-interface ColumnDef extends Selectable<DB['import_source']> {
-  summary: Record<string, string>;
-}
-
-const helper = createColumnHelper<ColumnDef>();
-
-const fetcher = async ([url]: [string]) => {
-  const res = await fetch(url);
-  if (!res.ok || res.redirected) {
-    const error = new Error(`${res.status} ${res.statusText}`);
-    throw error;
-  }
-
-  return res.json();
-};

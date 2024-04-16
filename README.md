@@ -66,6 +66,6 @@ For deploying the application to production, there are many options available:
 * Adapt the system for AWS Redrock Claude3, with an anticipated completion date of April 15th.
 * Finalize the "How It Works" series of documentation by April 30th.
 
-
 ## License
+
 TiDB.AI is open-source under the Apache License, Version 2.0. You can [find it here](/LICENSE.txt).

@@ -5,8 +5,8 @@ import Readme from './readme.mdx';
 const identifier = 'rag.document-storage.vercel-blob';
 const displayName = 'Vercel Blob';
 const optionsSchema = z.object({
-  token: z.string().optional().placeholder('VERCEL_BLOB_STORAGE_TOKEN'),
-  prefix: z.string().optional().placeholder('VERCEL_BLOB_STORAGE_PREFIX'),
+  token: z.string().optional(),
+  prefix: z.string().optional(),
 });
 
 export type VercelBlobDocumentStorageOptions = z.infer<typeof optionsSchema>;

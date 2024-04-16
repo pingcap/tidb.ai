@@ -1,9 +1,11 @@
 import { getDef } from '@/app/(main)/(admin)/settings/extensions/utils';
 import { BackwardButton } from '@/components/navigation/backward-button';
+import {authGuard} from "@/lib/auth-server";
 import { baseRegistry } from '@/rag-spec/base';
 import { notFound } from 'next/navigation';
 
 export default async function Page ({ params }: { params: { identifier: string } }) {
+  await authGuard('admin');
   const identifier = decodeURIComponent(params.identifier);
 
   const def = getDef(identifier);

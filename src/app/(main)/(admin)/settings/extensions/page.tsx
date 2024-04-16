@@ -5,8 +5,9 @@ import { AdminPageHeading } from '@/components/admin-page-heading';
 import { AdminPageLayout } from '@/components/admin-page-layout';
 import { Loader } from '@/components/loader';
 import { Button } from '@/components/ui/button';
+import {authGuard} from "@/lib/auth-server";
 import { fetcher } from '@/lib/fetch';
-import { PlayIcon, Settings2 } from 'lucide-react';
+import { PlayIcon } from 'lucide-react';
 import Link from 'next/link';
 
 import useSWR from 'swr';
@@ -67,11 +68,6 @@ const match = (identifier: string) => {
             </Link>
           </Button>
         )}
-        <Button className="ml-auto gap-1 text-xs h-max w-max py-1" size="sm" variant="ghost" asChild>
-          <Link href={`/settings/extensions/${identifier}/config`}>
-            <Settings2 size="1em" />
-          </Link>
-        </Button>
       </div>
     );
   }

@@ -150,7 +150,7 @@ export function useCustomProviders () {
   useSWR(
     [
       'get',
-      `/api/v1/authentication-providers`,
+      `/api/v1/authentication/providers`,
       {
         enabled: true,
       },

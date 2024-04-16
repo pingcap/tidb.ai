@@ -1,32 +1,49 @@
-import { chatDb, type ChatDb } from '@/core/db/chat';
-import { indexDb, type IndexDb } from '@/core/db/db_index';
-import { documentDb, type DocumentDb } from '@/core/db/document';
-import { importSourceDb, type ImportSourceDb } from '@/core/db/importSource';
-import { taskDb, type TaskDb } from '@/core/db/task';
-import {OptionDb, optionDb} from "@/core/db/options";
-import {statusDb, StatusDb} from "@/core/db/status";
-import {NamespaceDb, namespaceDb} from "@/core/db/namespace";
+import { type IsolationLevel, Kysely, MysqlDialect } from 'kysely';
+import { createPool } from 'mysql2';
+import type { DB } from './schema';
 
-export interface Database {
-  document: DocumentDb;
-  namespace: NamespaceDb;
-  index: IndexDb;
-  option: OptionDb;
-  task: TaskDb;
-  importSource: ImportSourceDb,
-  chat: ChatDb,
-  status: StatusDb;
+export const kysely = new Kysely<DB>({
+  dialect: new MysqlDialect({
+    pool: createPool({
+      uri: process.env.DATABASE_URL!,
+      ssl: process.env.DATABASE_URL?.includes('tidbcloud.com') ? {
+        minVersion: 'TLSv1.2',
+      } : undefined,
+    }),
+  }),
+});
+
+const currentTx = new AsyncLocalStorage<Kysely<DB>>();
+
+async function tx<T> (level: IsolationLevel, runner: () => Promise<T>): Promise<T>
+async function tx<T> (runner: () => Promise<T>): Promise<T>
+async function tx<T> (first: IsolationLevel | (() => Promise<T>), runner?: () => Promise<T>): Promise<T> {
+  let builder = kysely.transaction();
+  if (typeof first === 'function') {
+    runner = first;
+  } else {
+    builder.setIsolationLevel(first);
+  }
+
+  // Join current transaction
+  const current = currentTx.getStore();
+  if (current) {
+    return runner!();
+  }
+
+  return kysely.transaction().execute(async trx => {
+    return currentTx.run(trx, runner!);
+  });
 }
 
-const database = {
-  namespace: namespaceDb,
-  document: documentDb,
-  index: indexDb,
-  option: optionDb,
-  task: taskDb,
-  importSource: importSourceDb,
-  chat: chatDb,
-  status: statusDb
-} satisfies Database;
+function getDb<D extends Partial<DB> = DB> (): Kysely<D> {
+  const tx = currentTx.getStore();
+  if (tx) {
+    return tx as never;
+  }
+  return kysely as never;
+}
 
-export default database;
+export { getDb, tx };
+
+export type { DB as DBv1 } from './schema';

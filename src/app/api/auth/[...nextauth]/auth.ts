@@ -1,4 +1,4 @@
-import { listAllEnabledProvidersWithConfig } from '@/core/db/auth';
+import { listAllEnabledProvidersWithConfig } from '@/core/repositories/auth';
 import { genId } from '@/lib/id';
 import NextAuth, { type Session } from 'next-auth';
 import AzureAd from 'next-auth/providers/azure-ad';
@@ -61,6 +61,7 @@ export function auth (...args: any[]): any {
 async function generateNextAuth () {
   const providers = await getProviders();
   const { handlers, auth } = NextAuth({
+    trustHost: true,
     pages: {
       signIn: '/auth/signin',
     },

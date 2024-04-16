@@ -1,4 +1,4 @@
-import { TASK_STATUS } from '@/components/cells/task-status';
+import { TASK_STATUS } from '@/components/cells/import-task-status';
 import { DataTableFacetedFilter, type DataTableFacetedFilterOption } from '@/components/data-filters/facted-filter';
 import { useDataTable } from '@/components/use-data-table';
 

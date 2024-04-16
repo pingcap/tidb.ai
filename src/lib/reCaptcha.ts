@@ -1,6 +1,12 @@
 // import { RecaptchaEnterpriseServiceClient } from '@google-cloud/recaptcha-enterprise';
+import {getOptionsByGroup} from "@/core/repositories/option";
 import { NextRequest, NextResponse } from 'next/server';
-import { optionDb } from '@/core/db/options';
+import {
+  RECAPTCHA_INVALID_MODE_ERROR,
+  RECAPTCHA_INVALID_TOKEN_ERROR,
+  RECAPTCHA_REQUIRE_TOKEN_ERROR,
+  RECAPTCHA_RETRIEVE_CONFIG_ERROR
+} from "@/lib/errors/api_errors";
 
 /**
  * Create an assessment to analyze the risk of a UI action.
@@ -156,7 +162,7 @@ export async function createEnterpriseAssessment({
 }
 
 export async function validateNextRequestWithReCaptcha(req: NextRequest) {
-  const reCaptchaCfg = await optionDb.findByGroup('security');
+  const reCaptchaCfg = await getOptionsByGroup('security');
   const reCaptchaSiteKey = reCaptchaCfg
     ?.find((item) => item.option_name === 'google_recaptcha_site_key')
     ?.option_value?.toString();
@@ -170,7 +176,7 @@ export async function validateNextRequestWithReCaptcha(req: NextRequest) {
   const reCaptchaAction = req.headers.get('X-ReCaptcha-Action');
 
   if (!reCaptchaToken || !reCaptchaAction) {
-    return new NextResponse('Need ReCaptcha Token', { status: 401 });
+    return RECAPTCHA_REQUIRE_TOKEN_ERROR.toResponse();
   }
 
   const reCaptchaMode = reCaptchaCfg
@@ -190,9 +196,7 @@ export async function validateNextRequestWithReCaptcha(req: NextRequest) {
     !reCaptchaSecretKey ||
     !reCaptchaEnterpriseProjectId
   ) {
-    return new NextResponse('Failed to retrieve reCaptcha config', {
-      status: 501,
-    });
+    return RECAPTCHA_RETRIEVE_CONFIG_ERROR.toResponse();
   }
 
   if (reCaptchaMode === 'v3') {
@@ -203,7 +207,7 @@ export async function validateNextRequestWithReCaptcha(req: NextRequest) {
     if (result) {
       return null;
     } else {
-      return new NextResponse('ReCaptcha Token Invalid', { status: 401 });
+      return RECAPTCHA_INVALID_TOKEN_ERROR.toResponse();
     }
   } else if (reCaptchaMode === 'enterprise') {
     const result = await createEnterpriseAssessment({
@@ -216,9 +220,9 @@ export async function validateNextRequestWithReCaptcha(req: NextRequest) {
     if (result) {
       return null;
     } else {
-      return new NextResponse('ReCaptcha Token Invalid', { status: 401 });
+      return RECAPTCHA_INVALID_TOKEN_ERROR.toResponse();
     }
   } else {
-    return new NextResponse('ReCaptcha Mode Invalid', { status: 501 });
+    return RECAPTCHA_INVALID_MODE_ERROR.toResponse();
   }
 }

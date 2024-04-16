@@ -1,6 +1,5 @@
 'use client';
 
-import { parseSource } from '@/components/conversation-message-group';
 import { Loader } from '@/components/loader';
 import { Button } from '@/components/ui/button';
 import { Command, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -44,7 +43,6 @@ export function SemanticSearch () {
 type SearchResult = {
   'queryId': string,
   'relevantChunks': {
-    'namespace_id': number;
     'document_index_chunk_id': string,
     'document_id': string,
     'text_content': string,
@@ -65,13 +63,11 @@ function InternalSearchBox () {
   const search = (text: string) => {
     setLoading(true);
     startTransition(() => {
-      fetch('/api/v1/indexes/default/query', {
+      fetch('/api/v1/indexes/default/retrieve', {
         method: 'post',
         body: JSON.stringify({
           text,
           top_k: 5,
-          // TODO: Support specifying namespaces manually.
-          namespaces: [],
         }),
       }).then(handleErrors)
         .then(res => res.json())
@@ -109,13 +105,13 @@ function InternalSearchBox () {
         <Loader loading={disabled} />
         {result && <CommandGroup heading="Search results">
           {result.relevantChunks.map(item => (
-            <CommandItem key={item.source_uri} className="space-y-1 text-xs block cursor-pointer" onSelect={() => window.open(item.source_uri, '_blank')}>
-              <div className="flex gap-1 items-center whitespace-nowrap overflow-hidden overflow-ellipsis">
+            <CommandItem key={item.source_uri} value={item.source_uri} className="space-y-1 text-xs block cursor-pointer group" onSelect={() => window.open(item.source_uri, '_blank')}>
+              <div className="flex gap-1 items-center whitespace-nowrap overflow-hidden overflow-ellipsis font-bold">
                 <LinkIcon size="1em" />
                 {item.source_name}
               </div>
-              <div>
-                {parseSource(item.source_uri)}
+              <div className='text-muted-foreground'>
+                {item.source_uri}
               </div>
             </CommandItem>
           ))}

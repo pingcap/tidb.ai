@@ -22,12 +22,12 @@ export default class PdfLoader extends rag.Loader<PdfLoaderOptions, {}> {
 
     return {
       content,
-      digest: md5(buffer),
+      hash: md5(buffer),
       metadata: {},
     };
   }
 
-  support (mime: string): boolean | Promise<boolean> {
+  support (mime: string): boolean {
     return mime === 'application/pdf';
   }
 }

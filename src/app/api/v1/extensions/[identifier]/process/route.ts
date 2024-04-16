@@ -1,14 +1,20 @@
 import { rag } from '@/core/interface';
-import { adminHandlerGuard } from '@/lib/auth-server';
-import { getErrorMessage } from '@/lib/error';
+import { getErrorMessage } from '@/lib/errors';
 import { handleErrors } from '@/lib/fetch';
+import {defineHandler} from "@/lib/next/handler";
 import { baseRegistry } from '@/rag-spec/base';
 import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';
 import { z, type ZodObject } from 'zod';
 
-export const POST = adminHandlerGuard(async (req, { params }: { params: { identifier: string } }) => {
-  const identifier = decodeURIComponent(params.identifier);
+const paramsSchema = z.object({
+  identifier: z.string(),
+});
+
+export const POST = defineHandler({
+  auth: 'admin',
+  params: paramsSchema,
+}, async ({ request, params: { identifier } }) => {
   const ctor = await baseRegistry.getComponent(identifier);
   if (!ctor) {
     notFound();
@@ -17,18 +23,11 @@ export const POST = adminHandlerGuard(async (req, { params }: { params: { identi
   const { content, options } = z.object({
     content: z.string(),
     options: ctor.optionsSchema as ZodObject<any>,
-  }).parse(await req.json());
+  }).parse(await request.json());
 
   try {
     const component = await baseRegistry.create(identifier, options);
-    if (component instanceof rag.Splitter) {
-      const result = await component.split({
-        content: [content],
-        digest: '',
-        metadata: {},
-      });
-      return NextResponse.json(result);
-    } else if (component instanceof rag.Loader) {
+    if (component instanceof rag.Loader) {
       const response = await fetch(content).then(handleErrors);
       const result = await component.load(Buffer.from(await response.arrayBuffer()), content);
       return NextResponse.json(result);

@@ -10,7 +10,7 @@ export interface CohereRerankerOptions {
 const identifier = 'rag.reranker.cohere';
 const displayName = 'Cohere Reranker';
 const optionsSchema = z.object({
-  token: z.string().optional().placeholder('COHERE_TOKEN'),
+  token: z.string().optional(),
   model: z.string().optional(),
 });
 

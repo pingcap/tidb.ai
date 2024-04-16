@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 import { UploadIcon } from 'lucide-react';
-import { uploadFile, type UploadFileFormValues } from '@/operations/documents';
+import { uploadFile, type UploadFileFormValues } from '@/client/operations/documents';
 
 
 export function ImportFileDialog () {

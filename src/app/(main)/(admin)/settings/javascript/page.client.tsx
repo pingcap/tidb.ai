@@ -1,9 +1,10 @@
 'use client';
 
+import { useSettingGroup } from '@/components/website-setting-provider';
+import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { useSettings } from '@/hooks';
 import {
   Form,
   FormControl,
@@ -28,15 +29,16 @@ import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import { a11yDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 import copy from 'copy-to-clipboard';
 import { ThemeSelector } from '@/components/theme-selector';
-import { updateSettingCustomJS as updateSetting } from '@/operations/settings';
+import { updateSettingCustomJS as updateSetting } from '@/client/operations/settings';
 import { ReCaptchaSelector } from '@/components/reCaptcha-selector';
 
 SyntaxHighlighter.registerLanguage('javascript', js);
 
 export default function ClientPage(props: any) {
+  const router = useRouter();
   const [data, setData] = React.useState<ICustomJsSettingResult>({});
 
-  const settings = useSettings<ICustomJsSettingResult>({}, 'custom_js');
+  const settings = useSettingGroup('custom_js');
   const form = useForm<z.infer<typeof CustomJsSettingUpdatePayload>>({
     resolver: zodResolver(CustomJsSettingUpdatePayload),
   });
@@ -46,10 +48,10 @@ export default function ClientPage(props: any) {
     setData(settings);
   }, [settings]);
 
-  const { mutate } = useSWRConfig();
 
   async function onSubmit(data: z.infer<typeof CustomJsSettingUpdatePayload>) {
-    await updateSetting(data, mutate);
+    await updateSetting(data);
+    router.refresh();
   }
 
   const exampleQuestionsForm = useFieldArray({
@@ -276,8 +278,10 @@ export default function ClientPage(props: any) {
 function CustomJsCodeBlock(props: { data: ICustomJsSettingResult }) {
   const { data } = props;
 
+  const origin = location.origin;
+
   const strMemo = React.useMemo(() => {
-    const strHead = `<script\n  async\n  src='https://tidb.ai/rag-widget.js'\n  data-id='tidb-ai-widget'\n  data-name='tidb-ai-widget'`;
+    const strHead = `<script\n  async\n  src='${origin}/rag-widget.js'\n  data-id='tidb-ai-widget'\n  data-name='tidb-ai-widget'`;
     const strTail = '\n/>';
     const template = {
       ['data-api-base-url']: data.api_base_url,

@@ -1,8 +1,13 @@
 'use client';
 
-import {createContext} from 'react';
-import {useSettings} from "@/hooks";
-import {IWebsiteSettingResult} from "@/core/schema/setting";
+import { type SettingGroups } from '@/core/schema/setting';
+import { createContext, useContext } from 'react';
 
-export const WebsiteSettingContext = createContext<IWebsiteSettingResult>({});
-export const WebsiteSettingProvider = WebsiteSettingContext.Provider;
+export const SettingContext = createContext<SettingGroups>(null as any);
+export const SettingProvider = SettingContext.Provider;
+export const useSettingContext = () => {
+  return useContext(SettingContext);
+};
+export const useSettingGroup = <K extends keyof SettingGroups> (group: K) => {
+  return useSettingContext()[group];
+};
