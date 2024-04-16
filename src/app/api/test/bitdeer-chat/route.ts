@@ -1,10 +1,15 @@
-import {Bitdeer} from "@/lib/llamaindex/llm/bitdeer";
+import type {ChatResponse} from "@/core/services/chating";
+import {getLLM} from "@/lib/llamaindex/converters/llm";
+import {baseRegistry} from "@/rag-spec/base";
+import {getFlow} from "@/rag-spec/createFlow";
 import {NextRequest, NextResponse} from 'next/server';
+
+const flow = await getFlow(baseRegistry);
 
 export async function GET (req: NextRequest) {
   const url = new URL(req.url);
   const query = url.searchParams.get('query') || 'Why TiDB is the advanced MySQL alternative?';
-  const llm = new Bitdeer({
+  const llm = getLLM(flow, 'bitdeer', {
     model: 'mistral',
     apiSecretAccessKey: process.env.BITDEER_API_SECRET_ACCESS_KEY!
   })
