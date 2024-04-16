@@ -1,10 +1,12 @@
 import { __setMessage } from '@/app/(main)/(public)/c/[id]/internal';
 import { handleErrors } from '@/lib/fetch';
+import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState, useTransition } from 'react';
 import { mutate } from 'swr'
 
 export function useAsk(onFinish?: () => void) {
+  const session = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [transitioning, startTransition] = useTransition();

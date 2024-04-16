@@ -22,11 +22,10 @@ export const POST = defineHandler({
 });
 
 const searchParamsSchema = z.object({
-  enabled: z.boolean().optional(),
+  enabled: z.coerce.boolean().optional(),
 });
 
 export const GET = defineHandler({
-  auth: 'admin',
   searchParams: searchParamsSchema
 }, async ({
   searchParams: { enabled }
