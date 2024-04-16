@@ -31,10 +31,14 @@ export function Nav () {
     setOpen(false);
   });
   const user = useUser();
-  const { data: history, mutate, isLoading } = useSWR(['get', '/api/v1/chats'], fetcher<Page<Chat>>, {});
+  const { data: history, mutate, isLoading } = useSWR(['get', '/api/v1/chats'], fetcher<Page<Chat>>, {
+    revalidateOnMount: false,
+  });
 
   useEffect(() => {
-    void mutate();
+    if (user?.id) {
+      void mutate();
+    }
   }, [user?.id]);
 
   useEffect(() => {
