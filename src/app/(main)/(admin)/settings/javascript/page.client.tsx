@@ -278,8 +278,10 @@ export default function ClientPage(props: any) {
 function CustomJsCodeBlock(props: { data: ICustomJsSettingResult }) {
   const { data } = props;
 
+  const origin = location.origin;
+
   const strMemo = React.useMemo(() => {
-    const strHead = `<script\n  async\n  src='https://tidb.ai/rag-widget.js'\n  data-id='tidb-ai-widget'\n  data-name='tidb-ai-widget'`;
+    const strHead = `<script\n  async\n  src='${origin}/rag-widget.js'\n  data-id='tidb-ai-widget'\n  data-name='tidb-ai-widget'`;
     const strTail = '\n/>';
     const template = {
       ['data-api-base-url']: data.api_base_url,
