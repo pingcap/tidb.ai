@@ -10,14 +10,16 @@ import {
 } from "llamaindex";
 import * as util from "node:util";
 
+// FIXME
 const messageAccessor = (data: any): ChatResponseChunk => {
   return {
     delta: data.message.content,
-  };
+  } as never;
 };
 
+// FIXME
 const completionAccessor = (data: any): CompletionResponse => {
-  return { text: data.response };
+  return { text: data.response } as never;
 };
 
 export type BitdeerModel = "llama2" | "mistral";
