@@ -12,13 +12,17 @@
     "type": "separator",
     "title": "Deploy this RAG"
   },
-  "deploy-on-aws": "Deploy with AWS",
-  "deploy-on-vercel": "Deploy on Vercel",
+  "deploy-with-docker": "Deploy with Docker",
+  "deploy-to-vercel": "Deploy to Vercel",
+  "-- Usage": {
+    "type": "separator",
+    "title": "Usage"
+  },
+  "js": "Embed JavaScript Code Snippet on Your Website)",
   "-- Configuration": {
     "type": "separator",
     "title": "Configuration"
   },
-  "js": "JavaScript Code Snip",
   "llm": "LLM",
   "prompt": "RAG Prompt",
   "document-loader": "Document Loader",
