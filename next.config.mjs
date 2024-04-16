@@ -7,6 +7,7 @@ const withMDX = mdx({});
 let nextConfig = withSvgr(withMDX({
   output: process.env.STANDALONE_BUILD ? 'standalone' : undefined,
   experimental: {
+    optimizePackageImports: ['ai', 'lucide-react'],
     serverComponentsExternalPackages: ['pdfjs-dist', 'llamaindex'],
     outputFileTracingExcludes: {
       '*': ['**canvas**'],

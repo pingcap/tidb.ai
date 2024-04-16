@@ -45,7 +45,7 @@ export default async function RootLayout ({
       <link rel="icon" href="/tidb-ai-light.svg" sizes="any" />
       <script
         async
-        src="https://tidb.ai/rag-widget.js"
+        src="/rag-widget.js"
         data-id="tidb-ai-widget"
         data-name="tidb-ai-widget"
         data-btn-label="Ask AI"

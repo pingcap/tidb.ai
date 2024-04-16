@@ -15,7 +15,7 @@ import {
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
-import { experimental_StreamData, StreamingTextResponse } from 'ai';
+import { StreamData, StreamingTextResponse } from 'ai';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -122,7 +122,7 @@ export const GET = defineHandler({
 });
 
 async function mapResponseToTextStream (session_id: string, message_ordinal: number, responseStream: AsyncGenerator<ChatResponse>) {
-  const data = new experimental_StreamData();
+  const data = new StreamData();
 
   const rs = new ReadableStream({
     pull: async (controller) => {
