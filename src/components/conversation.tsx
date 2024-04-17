@@ -5,6 +5,7 @@ import { ConversationMessageGroups } from '@/components/conversation-message-gro
 import { MessageInput } from '@/components/message-input';
 import { SecuritySettingContext, withReCaptcha } from '@/components/security-setting-provider';
 import type { ChatMessage } from '@/core/repositories/chat';
+import { type AppChatStreamSource, AppChatStreamState } from '@/lib/ai/AppChatStreamData';
 import { cn } from '@/lib/utils';
 import { useChat } from 'ai/react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
@@ -56,7 +57,7 @@ export function Conversation ({ open, history, context }: { open: boolean, histo
       <div ref={ref} className={cn(
         'md:max-w-screen-md mx-auto space-y-4 transition-all relative md:min-h-screen md:p-body',
       )}>
-        <ConversationMessageGroups messages={messages} data={data} error={error} isLoading={isLoading || isWaiting} />
+        <ConversationMessageGroups history={history} messages={messages} data={data} error={error} isLoading={isLoading || isWaiting} />
         <div className="h-24"></div>
       </div>
       {size && open && <form className="block h-max p-4 fixed bottom-0" onSubmit={submitWithReCaptcha} style={{ left: size.x, width: size.width }}>
@@ -108,7 +109,7 @@ function useMyChat (history: ChatMessage[], context: { ordinal: number, title: s
 
   __useHandleInitialMessage(chat, setWaiting);
 
-  const data = useMemo(() => {
+  const data: MyChatData = useMemo(() => {
     const ssrData = context.reduce((res, item) => {
       res[String(item.ordinal)] = res[String(item.ordinal)] || { context: [] };
       res[String(item.ordinal)].context.push(item);
@@ -128,3 +129,5 @@ function useMyChat (history: ChatMessage[], context: { ordinal: number, title: s
     },
   };
 }
+
+export type MyChatData = Record<string, { context?: AppChatStreamSource[], state?: AppChatStreamState, stateMessage?: string }>;

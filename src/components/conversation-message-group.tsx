@@ -1,11 +1,14 @@
+import type { MyChatData } from '@/components/conversation';
 import { RemarkContent } from '@/components/remark-content';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
+import type { ChatMessage } from '@/core/repositories/chat';
+import type { AppChatStreamState } from '@/lib/ai/AppChatStreamData';
 import { getErrorMessage } from '@/lib/errors';
 import { Message } from 'ai';
-import { AlertTriangleIcon, AlignLeftIcon, ClipboardIcon, LinkIcon, RefreshCwIcon, ShareIcon, TextSearchIcon, ThumbsDown } from 'lucide-react';
+import { AlertTriangleIcon, ClipboardIcon, LinkIcon, LoaderIcon, RefreshCwIcon, ShareIcon, TextSearchIcon, ThumbsDown } from 'lucide-react';
 import { useMemo } from 'react';
 
 type MessageContext = { uri: string, title: string };
@@ -18,6 +21,9 @@ type FinishedConversationMessage = {
   assistantMessage: Message
   assistantContext: MessageContext[]
   finished: true
+  state?: AppChatStreamState
+  stateMessage?: string
+  error_message?: string
 }
 
 type PendingConversationMessage = {
@@ -26,14 +32,20 @@ type PendingConversationMessage = {
   assistantMessage: Message | undefined
   assistantContext: MessageContext[]
   finished: false
+  state?: AppChatStreamState
+  stateMessage?: string
+  error_message?: string
 }
 
-function useGroupedConversationMessages (messages: Message[], data: any, isLoading: boolean, error: unknown) {
+// TODO: refactor
+function useGroupedConversationMessages (history: ChatMessage[], messages: Message[], data: MyChatData, isLoading: boolean, error: unknown) {
   return useMemo(() => {
     const groups: ConversationMessageGroupProps[] = [];
     let userMessage: Message | undefined;
     let assistantMessage: Message | undefined;
     let context: { uri: string, title: string }[] | undefined;
+    let state: AppChatStreamState | undefined;
+    let stateMessage: string | undefined;
 
     for (let i = 0; i < messages.length; i++) {
       const message = messages[i];
@@ -41,7 +53,10 @@ function useGroupedConversationMessages (messages: Message[], data: any, isLoadi
         userMessage = message;
       } else if (message.role === 'assistant') {
         assistantMessage = message;
-        context = data[String(i)]?.context;
+        const messageData = data[String(i)];
+        context = messageData?.context;
+        state = messageData?.state;
+        stateMessage = messageData?.stateMessage;
       }
       if (userMessage && assistantMessage) {
         const uriSet = new Set<string>();
@@ -59,10 +74,15 @@ function useGroupedConversationMessages (messages: Message[], data: any, isLoadi
             }
           }),
           finished: true,
+          state,
+          stateMessage,
+          error_message: history[i]?.error_message ?? undefined,
         });
         userMessage = undefined;
         assistantMessage = undefined;
         context = undefined;
+        state = undefined;
+        stateMessage = undefined;
       }
     }
 
@@ -73,11 +93,18 @@ function useGroupedConversationMessages (messages: Message[], data: any, isLoadi
         assistantMessage: undefined,
         assistantContext: context ?? [],
         finished: false,
+        state,
+        stateMessage,
       });
     }
 
     if (isLoading) {
-      groups[groups.length - 1].finished = false;
+      const group = groups[groups.length - 1];
+      group.finished = false;
+
+      if (!group.state) {
+        group.state = 'CONNECTING' as AppChatStreamState;
+      }
     }
 
     if (error) {
@@ -99,8 +126,8 @@ export function parseSource (uri: string) {
   }
 }
 
-export function ConversationMessageGroups ({ messages, data, error, isLoading }: { messages: Message[], data: any, error: unknown, isLoading: boolean }) {
-  const groups = useGroupedConversationMessages(messages, data, isLoading, error);
+export function ConversationMessageGroups ({ history, messages, data, error, isLoading }: { history: ChatMessage[], messages: Message[], data: MyChatData, error: unknown, isLoading: boolean }) {
+  const groups = useGroupedConversationMessages(history, messages, data, isLoading, error);
 
   return (
     <div className="space-y-8">
@@ -142,8 +169,10 @@ function ConversationMessageGroup ({ group }: { group: ConversationMessageGroupP
           <img className="hidden dark:block h-4" src="/answer-white.svg" alt="logo" />
           Answer
         </div>
+        <MessageAnnotation group={group} />
+        <MessageError error={group.error_message} />
         <article className="prose prose-sm prose-neutral dark:prose-invert overflow-x-hidden break-all">
-          {!group.finished && !group.assistantMessage?.content && (
+          {!group.finished && !group.assistantMessage?.content && group.state === 'GENERATING' && (
             <Skeleton className="w-12 h-4 inline-block rounded-lg" />
           )}
           {group.assistantMessage?.content && <RemarkContent>
@@ -191,4 +220,49 @@ function MessageContextSource ({ context }: { context: MessageContext }) {
       </a>
     </li>
   );
+}
+
+function MessageAnnotation ({ group }: { group: ConversationMessageGroupProps }) {
+  let text: string | undefined;
+  switch (group.state) {
+    case 'CONNECTING':
+      text = group.stateMessage || 'Connecting to server...';
+      break;
+    case 'CREATING':
+      text = group.stateMessage || 'Preparing chat...';
+      break;
+    case 'SEARCHING':
+      text = group.stateMessage || 'Searching...';
+      break;
+    case 'RERANKING':
+      text = group.stateMessage || 'Reranking...';
+      break;
+    case 'GENERATING':
+      text = group.stateMessage || 'Generating...';
+      break;
+  }
+
+  if (!text) {
+    return null;
+  }
+
+  return (
+    <div className="text-muted-foreground leading-tight">
+      <LoaderIcon className="inline-block animate-spin w-4 h-4 mr-2" />
+      <span className="text-xs">{text}</span>
+    </div>
+  );
+}
+
+function MessageError ({ error }: { error: string | undefined }) {
+  if (error) {
+    return (
+      <Alert variant="destructive">
+        <AlertTitle>Failed to generate response</AlertTitle>
+        <AlertDescription>{error}</AlertDescription>
+      </Alert>
+    );
+  } else {
+    return null;
+  }
 }

@@ -1,6 +1,8 @@
-import { AppIndexBaseService } from '@/core/services/base';
-import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrieveRel, getChatByUrlKey, listChatMessages, updateChatMessage } from '@/core/repositories/chat';
 import { tx } from '@/core/db';
+import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrieveRel, getChatByUrlKey, listChatMessages, updateChatMessage } from '@/core/repositories/chat';
+import { AppIndexBaseService } from '@/core/services/base';
+import { AppChatStream } from '@/lib/ai/AppChatStream';
+import { type AppChatStreamSource, AppChatStreamState } from '@/lib/ai/AppChatStreamData';
 import { AUTH_FORBIDDEN_ERROR, getErrorMessage } from '@/lib/errors';
 import { notFound } from 'next/navigation';
 
@@ -11,10 +13,12 @@ export type ChatOptions = {
 }
 
 export type ChatResponse = {
-  status: 'retrieving' | 'generating' | 'finished'
-  content: string
-  sources: { title: string, uri: string }[]
-  retrieveId?: number
+  status: AppChatStreamState;
+  statusMessage: string;
+  sources: AppChatStreamSource[];
+  content: string;
+  retrieveId?: number;
+  error?: unknown;
 }
 
 export abstract class AppChatService extends AppIndexBaseService {
@@ -57,57 +61,55 @@ export abstract class AppChatService extends AppIndexBaseService {
       });
     });
 
-    const response = trackAsyncGenerator(
-      () => this.run(chat, { userInput, history, userId }),
-      async results => {
+    return AppChatStream.create(sessionId, history.length + 1, async (controller, data) => {
+      try {
+        let content = '';
+        let retrieveIds = new Set<number>();
+        for await (const chunk of this.run(chat, { userInput, history, userId })) {
+          data.setChatState(chunk.status, chunk.statusMessage);
+          data.setSources(chunk.sources);
+          controller.enqueue(chunk);
+          content += chunk.content;
+          if (chunk.retrieveId) {
+            retrieveIds.add(chunk.retrieveId);
+          }
+        }
+        data.setChatState(AppChatStreamState.FINISHED);
+
         await updateChatMessage(message.id, {
-          content: results.map(result => result.content).join(''),
+          content,
           finished_at: new Date(),
           status: 'SUCCEED',
         });
-        const retrieves = results
-          .map(result => result.retrieveId)
-          .filter((id: number | undefined): id is number => typeof id === 'number')
-          .reduce((set, id) => set.add(id), new Set<number>());
-        for (let retrieve of retrieves) {
+        for (let retrieve of retrieveIds) {
           await createChatMessageRetrieveRel({
             chat_message_id: message.id,
             retrieve_id: retrieve,
             info: JSON.stringify({}), // TODO: what use?
           });
         }
-      },
-      async err => {
+      } catch (error) {
         await updateChatMessage(message.id, {
           finished_at: new Date(),
-          error_message: getErrorMessage(err),
+          error_message: getErrorMessage(error),
           status: 'FAILED',
         });
-      });
-
-    return {
-      session_id: chat.url_key,
-      message_ordinal: history.length + 1,
-      response,
-    };
+        controller.enqueue({
+          status: AppChatStreamState.ERROR,
+          error,
+          content: '',
+          sources: [],
+          statusMessage: getErrorMessage(error)
+        });
+        data.setChatState(AppChatStreamState.ERROR, getErrorMessage(error));
+        return Promise.reject(error);
+      } finally {
+        await data.close();
+        controller.close();
+      }
+    });
   }
 
-  protected abstract run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatResponse>;
-
+  protected abstract run (chat: Chat, options: ChatOptions): AsyncIterable<ChatResponse>;
 }
 
-function trackAsyncGenerator<T> (generator: () => AsyncGenerator<T>, onFinish: (results: T[]) => Promise<void>, onFailed: (reason: unknown) => Promise<void>) {
-  return async function* () {
-    try {
-      const results: T[] = [];
-      for await (let item of generator()) {
-        yield item;
-        results.push(item);
-      }
-      await onFinish(results);
-    } catch (e) {
-      await onFailed(e);
-      throw e;
-    }
-  }();
-}

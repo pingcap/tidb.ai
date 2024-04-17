@@ -1,13 +1,14 @@
-import { AppChatService, type ChatOptions, type ChatResponse } from '@/core/services/chating';
-import { LlamaindexRetrieverWrapper, LlamaindexRetrieveService } from '@/core/services/llamaindex/retrieving';
+import { getDb } from '@/core/db';
 import { type Chat, listChatMessages } from '@/core/repositories/chat';
 import type { ChatEngineOptions } from '@/core/repositories/chat_engine';
-import { getDb } from '@/core/db';
+import { AppChatService, type ChatOptions, type ChatResponse } from '@/core/services/chating';
+import { LlamaindexRetrieverWrapper, LlamaindexRetrieveService } from '@/core/services/llamaindex/retrieving';
+import { AppChatStreamState } from '@/lib/ai/AppChatStreamData';
 import { uuidToBin } from '@/lib/kysely';
 import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
 import { getLLM } from '@/lib/llamaindex/converters/llm';
 import { Liquid } from 'liquidjs';
-import { CompactAndRefine, CondenseQuestionChatEngine, defaultCondenseQuestionPrompt, defaultRefinePrompt, defaultTextQaPrompt, MetadataMode, type Response, ResponseSynthesizer, RetrieverQueryEngine, serviceContextFromDefaults } from 'llamaindex';
+import { CompactAndRefine, CondenseQuestionChatEngine, defaultCondenseQuestionPrompt, defaultRefinePrompt, defaultTextQaPrompt, MetadataMode, Response, ResponseSynthesizer, RetrieverQueryEngine, serviceContextFromDefaults } from 'llamaindex';
 import type { UUID } from 'node:crypto';
 
 export class LlamaindexChatService extends AppChatService {
@@ -43,6 +44,14 @@ Refined Answer:`;
   }
 
   protected async* run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatResponse> {
+    yield {
+      status: AppChatStreamState.CREATING,
+      sources: [],
+      statusMessage: '',
+      retrieveId: undefined,
+      content: '',
+    };
+
     const {
       llm: {
         provider: llmProvider = 'openai',
@@ -60,8 +69,6 @@ Refined Answer:`;
       } = {},
     } = chat.engine_options as ChatEngineOptions;
 
-    let lastRetrieveId: number | undefined;
-
     const serviceContext = serviceContextFromDefaults({
       llm: getLLM(this.flow, llmProvider, llmConfig),
       embedModel: getEmbedding(this.flow, this.index.config.embedding.provider, this.index.config.embedding.config),
@@ -72,18 +79,52 @@ Refined Answer:`;
       reranker,
       flow: this.flow,
       index: this.index,
-      serviceContext
+      serviceContext,
     });
-    const retriever = new LlamaindexRetrieverWrapper(retrieveService, {
+
+    const {
+      returns: retriever,
+      iterator: retrieverStateIterator,
+    } = createInnerAsyncIterable<ChatResponse, LlamaindexRetrieverWrapper>((next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
       search_top_k,
       top_k,
       filters: {},
       use_cache: false,
     }, serviceContext, {
-      onRetrieved: (id, chunks) => {
-        lastRetrieveId = id;
+      onStartSearch: (id, text) => {
+        next({
+          done: false,
+          value: {
+            content: '',
+            status: AppChatStreamState.SEARCHING,
+            statusMessage: `Searching document chunks: ${text}`,
+            sources: [],
+            retrieveId: id,
+          },
+        });
       },
-    });
+      onStartRerank: (id, chunks) => {
+        next({
+          done: false,
+          value: {
+            content: '',
+            status: AppChatStreamState.RERANKING,
+            statusMessage: `Reranking ${chunks.length} searched document chunks using ${reranker?.provider}:${reranker?.config?.model}...`,
+            sources: [],
+            retrieveId: id,
+          },
+        });
+      },
+      onRetrieved: (id, chunks) => {
+        next({
+          done: true,
+          value: undefined,
+        });
+      },
+      onRetrieveFailed: (id, reason) => {
+        fail(reason);
+      },
+    }));
 
     const responseBuilder = new CompactAndRefine(
       serviceContext,
@@ -122,8 +163,6 @@ Refined Answer:`;
       message: options.userInput,
     });
 
-    let last: Response | undefined;
-    let message = '';
     let sources: Map<string, { title: string, uri: string }> = new Map();
 
     const getSources = async (chunkIds?: string[]) => {
@@ -146,32 +185,116 @@ Refined Answer:`;
       return chunkIds.map(id => sources.get(id)).filter(Boolean) as { title: string, uri: string }[];
     };
 
-    // TODO: yield states
-    // yield {
-    //   sources: [],
-    //   status: 'retrieving',
-    //   content: '',
-    // }
-    for await (const response of await stream) {
-      message += response.response;
-      yield {
-        content: response.response,
-        status: 'generating',
-        sources: await getSources(response.sourceNodes?.map(node => node.id_)),
-        retrieveId: lastRetrieveId,
-      };
-      last = response;
+    function transformLlamaindexChatResponses (stream: Promise<AsyncIterable<Response>>) {
+      return mapAsyncIterable(stream, async response => {
+        return {
+          content: response.response,
+          status: AppChatStreamState.GENERATING,
+          statusMessage: `Generating using ${llmProvider}:${llmConfig.model ?? 'unknown-model'}`,
+          sources: await getSources(response.sourceNodes?.map(node => node.id_)),
+          retrieveId: undefined,
+        };
+      });
     }
-    if (last) {
-      yield {
-        content: '',
-        status: 'finished',
-        sources: await getSources(last.sourceNodes?.map(node => node.id_)),
-        retrieveId: lastRetrieveId,
-      };
-    } else {
-      // use `return` instead of `await` to avoid goto catch block.
-      throw new Error('No response from LLM');
+
+    for await (const response of select(retrieverStateIterator, transformLlamaindexChatResponses(stream))) {
+      yield response;
     }
+  }
+}
+
+function createInnerAsyncIterable<T, R> (run: (next: (result: IteratorResult<T, undefined>) => void, fail: (error: unknown) => void) => R) {
+  let _resolve: (value: IteratorResult<T, undefined>) => void = () => {};
+  let _reject: (error: unknown) => void = () => {};
+  const queue: Promise<IteratorResult<T, undefined>>[] = [
+    new Promise((resolve, reject) => {
+      _resolve = resolve;
+      _reject = reject;
+    }),
+  ];
+  let returns: R;
+  returns = run(
+    (result) => {
+      queue.push(new Promise((resolve, reject) => {
+        cursor++;
+        _resolve(result);
+
+        _resolve = resolve;
+        _reject = reject;
+      }));
+    },
+    (reason) => {
+      _reject(reason);
+    });
+
+  let cursor = 0;
+  const iterator: AsyncIterator<T> = {
+    async next () {
+      return await queue[cursor];
+    },
+  };
+
+  return {
+    iterator: {
+      [Symbol.asyncIterator] () {
+        return iterator;
+      },
+    },
+    returns,
+  };
+}
+
+function select<T> (...iterables: AsyncIterable<T>[]): AsyncIterable<T> {
+  return {
+    [Symbol.asyncIterator] () {
+      let _resolve: (value: IteratorResult<T, undefined>) => void = () => {};
+      let _reject: (error: unknown) => void = () => {};
+      const queue: Promise<IteratorResult<T, undefined>>[] = [
+        new Promise((resolve, reject) => {
+          _resolve = resolve;
+          _reject = reject;
+        }),
+      ];
+
+      let finished = 0;
+      for (let iterable of iterables) {
+        const iterator = iterable[Symbol.asyncIterator]();
+        const iterate = () => {
+          iterator.next()
+            .then(result => {
+              if (result.done) {
+                finished += 1;
+                if (finished === iterables.length) {
+                  _resolve({
+                    done: true,
+                    value: undefined,
+                  });
+                }
+              } else {
+                _resolve(result);
+                queue.push(new Promise((resolve, reject) => {
+                  _resolve = resolve;
+                  _reject = reject;
+                }));
+                iterate();
+              }
+            })
+            .catch(_reject);
+        };
+        iterate();
+      }
+
+      return {
+        async next () {
+          return await queue[queue.length - 1];
+        },
+      };
+    },
+  };
+}
+
+async function* mapAsyncIterable<T, R> (iterable: Promise<AsyncIterable<T>> | AsyncIterable<T>, map: (value: T) => R | Promise<R>): AsyncIterable<R> {
+  for await (const value of await iterable) {
+    yield map(value);
   }
 }

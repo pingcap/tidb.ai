@@ -35,7 +35,10 @@ export interface RetrievedChunkReference {
 }
 
 export interface RetrieveCallbacks {
-  onRetrieved: (id: number, retrievedChunk: RetrievedChunk[]) => void;
+  onStartSearch: (id: number, text: string) => void;
+  onStartRerank: (id: number, searchedChunks: RetrievedChunk[]) => void;
+  onRetrieved: (id: number, retrievedChunks: RetrievedChunk[]) => void;
+  onRetrieveFailed: (id: number, reason: unknown) => void;
 }
 
 export const retrieveOptionsSchema: ZodType<RetrieveOptions> = z.object({
@@ -67,6 +70,10 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
   }
 
   async retrieve (options: RetrieveOptions, callbacks?: RetrieveCallbacks): Promise<RetrievedChunk[]> {
+    if (callbacks) {
+      this.on('start-search', callbacks.onStartSearch);
+      this.on('start-rerank', callbacks.onStartRerank);
+    }
     const retrieve = await createRetrieve({
       index_id: this.index.id,
       text: options.text,
@@ -93,6 +100,7 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
       return result;
     } catch (e) {
       await terminateRetrieve(retrieve.id, getErrorMessage(e));
+      callbacks?.onRetrieveFailed(retrieve.id, e);
       throw e;
     }
   }
