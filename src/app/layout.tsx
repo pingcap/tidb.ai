@@ -39,8 +39,6 @@ export default async function RootLayout ({
     getSetting('custom_js'),
   ]);
 
-  console.log(custom_js)
-
   return (
     <html lang="en" suppressHydrationWarning>
     <head>
@@ -52,9 +50,9 @@ export default async function RootLayout ({
         data-name="tidb-ai-widget"
         data-btn-label={custom_js.button_label || 'Ask AI'}
         data-btn-img-src={custom_js.button_img_src || 'https://tidb.ai/tidb-ai.svg'}
-        data-example-questions={custom_js.example_questions ? JSON.stringify(custom_js.example_questions) : '["What is TiDB","Does TiDB support Foreign Key","What is TiDB Serverless","How to use TiDB Serverless"]'}
+        data-example-questions={custom_js.example_questions ? JSON.stringify(custom_js.example_questions.map(question => question.text)) : '["What is TiDB","Does TiDB support Foreign Key","What is TiDB Serverless","How to use TiDB Serverless"]'}
         data-logo-src={custom_js.logo_src || 'https://tidb.ai/tidb-ai.svg'}
-        data-preferred-mode={custom_js.widget_color_mode || 'systen'}
+        data-preferred-mode={custom_js.widget_color_mode || 'system'}
         data-input-placeholder={custom_js.widget_input_placeholder}
         data-site-key={custom_js.widget_site_key}
         data-title={custom_js.widget_title}
