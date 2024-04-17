@@ -1,4 +1,4 @@
----
+--
 -- Default Index Config
 --
 
