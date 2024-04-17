@@ -1,3 +1,19 @@
+DROP TABLE llamaindex_document_chunk_node_default;
+CREATE TABLE llamaindex_document_chunk_node_default
+(
+    id          BINARY(16)   NOT NULL,
+    hash        VARCHAR(256) NOT NULL,
+    text        TEXT         NOT NULL,
+    metadata    JSON         NOT NULL,
+    embedding   VECTOR<FLOAT>(1024) NULL COMMENT 'hnsw(distance=cosine)',
+    index_id    INT          NOT NULL,
+    document_id INT          NOT NULL,
+    PRIMARY KEY (id),
+    KEY idx_ldcn_on_index_id_document_id (index_id, document_id),
+    FOREIGN KEY fk_ldcn_on_index_id (index_id) REFERENCES `index` (id),
+    FOREIGN KEY fk_ldcn_on_document_id (document_id) REFERENCES `document` (id)
+);
+
 --
 -- Default Index Config
 --
