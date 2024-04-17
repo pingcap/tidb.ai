@@ -1,3 +1,4 @@
+import {getEnv} from "@/lib/env";
 import {BaseLLM} from "llamaindex/llm/base";
 import {ok} from "node:assert";
 import {
@@ -10,16 +11,18 @@ import {
 } from "llamaindex";
 import * as util from "node:util";
 
-// FIXME
 const messageAccessor = (data: any): ChatResponseChunk => {
   return {
+    raw: null,
     delta: data.message.content,
-  } as never;
+  };
 };
 
-// FIXME
 const completionAccessor = (data: any): CompletionResponse => {
-  return { text: data.response } as never;
+  return {
+    raw: null,
+    text: data.response
+  };
 };
 
 export type BitdeerModel = "llama2" | "mistral";
@@ -51,7 +54,7 @@ export type BitdeerAdditionalChatOptions = BitdeerLlama2Options;
 export class Bitdeer implements BaseLLM<BitdeerAdditionalChatOptions> {
   readonly hasStreaming = false;
 
-  model: string;
+  model: string = "llama2";
   baseURL: string = "https://www.bitdeer.ai/public/v1";
   temperature: number = 0.7;
   topP: number = 0.9;
@@ -59,9 +62,9 @@ export class Bitdeer implements BaseLLM<BitdeerAdditionalChatOptions> {
   requestTimeout: number = 60 * 1000; // Default is 60 seconds
   additionalChatOptions?: BitdeerAdditionalChatOptions;
 
-  private apiSecretAccessKey: string;
+  private apiSecretAccessKey: string = getEnv("BITDEER_API_SECRET_ACCESS_KEY");
 
-  protected modelMetadata: Partial<LLMMetadata>;
+  protected modelMetadata: Partial<LLMMetadata> = {};
 
   constructor(
     init: Partial<Bitdeer> & {
@@ -71,14 +74,10 @@ export class Bitdeer implements BaseLLM<BitdeerAdditionalChatOptions> {
       apiSecretAccessKey: string;
     },
   ) {
-    if (!init.apiSecretAccessKey) {
-      throw new Error("Bitdeer API secret access key is required.");
-    }
-
-    this.model = init.model ?? 'llama2';
-    this.modelMetadata = init.modelMetadata ?? {};
-    this.apiSecretAccessKey = init.apiSecretAccessKey;
     Object.assign(this, init);
+    if (!this.apiSecretAccessKey) {
+      throw new Error("BITDEER_API_SECRET_ACCESS_KEY is required.");
+    }
   }
 
   get metadata(): LLMMetadata {
@@ -101,6 +100,11 @@ export class Bitdeer implements BaseLLM<BitdeerAdditionalChatOptions> {
     params: LLMChatParamsNonStreaming | LLMChatParamsStreaming,
   ): Promise<ChatResponse | AsyncIterable<ChatResponseChunk>> {
     const { messages, stream } = params;
+
+    if (stream) {
+      throw new Error("Bitdeer chat completion API does not support streaming mode.");
+    }
+
     const payload = {
       model: this.model,
       messages: messages.map((message) => ({
@@ -188,6 +192,11 @@ export class Bitdeer implements BaseLLM<BitdeerAdditionalChatOptions> {
     params: LLMCompletionParamsStreaming | LLMCompletionParamsNonStreaming,
   ): Promise<CompletionResponse | AsyncIterable<CompletionResponse>> {
     const { prompt, stream } = params;
+
+    if (stream) {
+      throw new Error("Bitdeer completion API does not support streaming mode.");
+    }
+
     const payload = {
       model: this.model,
       prompt: prompt,
@@ -203,7 +212,6 @@ export class Bitdeer implements BaseLLM<BitdeerAdditionalChatOptions> {
     const response = await fetch(url, {
       body: JSON.stringify(payload),
       method: "POST",
-      // signal: AbortSignal.timeout(this.requestTimeout),
       headers: {
         "Content-Type": "application/json",
         "X-Api-Key": this.apiSecretAccessKey,

@@ -76,15 +76,21 @@ export class LLMRerank implements BaseNodePostprocessor {
 
       const fmtBatchStr = this.formatNodeBatchFn(nodesBatch);
       // call each batch independently
-      const rawResponse = await this.llm.complete({
-        prompt: this.choiceSelectPrompt({
-          queryStr: query,
-          contextStr: fmtBatchStr,
-        })
+      const choiceSelectPrompt = this.choiceSelectPrompt({
+        queryStr: query,
+        contextStr: fmtBatchStr,
+      });
+      const rawResponse = await this.llm.chat({
+        messages: [
+          {
+            role: "system",
+            content: choiceSelectPrompt
+          },
+        ]
       });
 
       const [rawChoices, relevances] = this.parseChoiceSelectAnswerFn(
-        rawResponse.text,
+        rawResponse.message.content as string,
         nodesBatch.length
       );
 

@@ -6,6 +6,7 @@ import { cosineDistance } from '@/lib/kysely';
 import {getReranker} from "@/lib/llamaindex/converters/reranker";
 import { type BaseRetriever, NodeRelationship, type NodeWithScore, ObjectType, type RetrieveParams, type ServiceContext, TextNode } from 'llamaindex';
 import type { RelatedNodeInfo, RelatedNodeType } from 'llamaindex/Node';
+import {DateTime} from "luxon";
 import type { UUID } from 'node:crypto';
 
 export class LlamaindexRetrieveService extends AppRetrieveService {
@@ -21,7 +22,12 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     this.emit('start-search', retrieve.id, text);
     await this.startSearch(retrieve);
 
+    console.log(`Start embedding searching for query "${text}".`, { top_k })
+    const searchStart = DateTime.now();
     let chunks = await this.search(queryEmbedding, search_top_k);
+    const searchEnd = DateTime.now();
+    const searchDuration = searchEnd.diff(searchStart, 'milliseconds').milliseconds;
+    console.log(`Finish embedding searching, take ${searchDuration} ms, found ${chunks.length} chunks.`, { top_k });
 
     // Could support more filters here
     if (filters.namespaces && filters.namespaces.length > 0) {
@@ -36,7 +42,14 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     this.emit('start-rerank', retrieve.id, chunks);
     await this.startRerank(retrieve);
 
-    return this.rerank(chunks, text, top_k, this.rerankerOptions);
+    console.log(`Start reranking for query "${text}".`, { top_k });
+    const rerankStart = DateTime.now();
+    const rerankedResult = await this.rerank(chunks, text, top_k, this.rerankerOptions);
+    const rerankEnd = DateTime.now();
+    const rerankDuration = rerankEnd.diff(rerankStart, 'milliseconds').milliseconds;
+    console.log(`Finish reranking, take ${rerankDuration} ms.`);
+
+    return rerankedResult;
   }
 
   private async search (queryEmbedding: number[], top_k: number) {
@@ -136,9 +149,9 @@ export class LlamaindexRetrieverWrapper implements BaseRetriever {
   async retrieve (params: RetrieveParams): Promise<NodeWithScore[]> {
     const chunks = await this.retrieveService.retrieve({ ...this.options, text: params.query }, this.callbacks);
 
-    const detaildChunks = await this.retrieveService.extendResultDetails(chunks);
+    const detailedChunks = await this.retrieveService.extendResultDetails(chunks);
 
-    return detaildChunks.map(chunk => {
+    return detailedChunks.map(chunk => {
       return {
         node: new TextNode({
           id_: chunk.document_chunk_node_id,

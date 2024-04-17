@@ -3,44 +3,26 @@ import { type Chat, listChatMessages } from '@/core/repositories/chat';
 import type { ChatEngineOptions } from '@/core/repositories/chat_engine';
 import { AppChatService, type ChatOptions, type ChatResponse } from '@/core/services/chating';
 import { LlamaindexRetrieverWrapper, LlamaindexRetrieveService } from '@/core/services/llamaindex/retrieving';
-import { AppChatStreamState } from '@/lib/ai/AppChatStreamData';
+import { type AppChatStreamSource, AppChatStreamState } from '@/lib/ai/AppChatStreamData';
 import { uuidToBin } from '@/lib/kysely';
 import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
 import { getLLM } from '@/lib/llamaindex/converters/llm';
 import { Liquid } from 'liquidjs';
-import { CompactAndRefine, CondenseQuestionChatEngine, defaultCondenseQuestionPrompt, defaultRefinePrompt, defaultTextQaPrompt, MetadataMode, Response, ResponseSynthesizer, RetrieverQueryEngine, serviceContextFromDefaults } from 'llamaindex';
+import { CompactAndRefine, CondenseQuestionChatEngine, defaultCondenseQuestionPrompt, defaultRefinePrompt, defaultTextQaPrompt, MetadataMode, ResponseSynthesizer, RetrieverQueryEngine, serviceContextFromDefaults, SimplePrompt } from 'llamaindex';
+import { DateTime } from 'luxon';
 import type { UUID } from 'node:crypto';
+
+interface SourceWithNodeId extends AppChatStreamSource {
+  id: string;
+}
 
 export class LlamaindexChatService extends AppChatService {
   private liquid = new Liquid();
 
-  getPrompt<Tmpl extends (ctx: any) => string> (template: string | undefined, fallback: Tmpl): (ctx: Parameters<Tmpl>[0]) => string {
+  getPrompt<Tmpl extends SimplePrompt> (template: string | undefined, fallback: Tmpl): (ctx: Parameters<Tmpl>[0]) => string {
     if (!template) return fallback;
     const tmpl = this.liquid.parse(template);
     return context => this.liquid.renderSync(tmpl, context);
-  }
-
-  getTextQAPrompt (): typeof defaultTextQaPrompt {
-    return ({ query, context }) => `Context information is below.
----------------------
-${context}
----------------------
-Given the context information and not prior knowledge, answer the query use markdown format. Add links reference to original contexts if necessary.
-Query: ${query}
-Answer:`;
-  }
-
-  getRefinePrompt (): typeof defaultRefinePrompt {
-    return ({ context, query, existingAnswer }: any) =>
-      `The original query is as follows: ${query}
-We have provided an existing answer: ${existingAnswer}
-We have the opportunity to refine the existing answer (only if needed) with some more context below.
-------------
-${context}
-------------
-Given the new context, refine the original answer to better answer the query. If the context isn't useful, return the original answer.
-Use markdown format to answer. Add links reference to contexts if necessary.
-Refined Answer:`;
   }
 
   protected async* run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatResponse> {
@@ -74,7 +56,9 @@ Refined Answer:`;
       embedModel: getEmbedding(this.flow, this.index.config.embedding.provider, this.index.config.embedding.config),
     });
 
-    // build queryEngine
+    const allSources = new Map<string, AppChatStreamSource>();
+
+    // Build Retriever.
     const retrieveService = new LlamaindexRetrieveService({
       reranker,
       flow: this.flow,
@@ -82,10 +66,8 @@ Refined Answer:`;
       serviceContext,
     });
 
-    const {
-      returns: retriever,
-      iterator: retrieverStateIterator,
-    } = createInnerAsyncIterable<ChatResponse, LlamaindexRetrieverWrapper>((next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
+    // FIXME: This method only support a single retrieve call currently.
+    const retriever = withAsyncIterable<ChatResponse, LlamaindexRetrieverWrapper>((next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
       search_top_k,
       top_k,
       filters: {},
@@ -115,22 +97,37 @@ Refined Answer:`;
           },
         });
       },
-      onRetrieved: (id, chunks) => {
-        next({
-          done: true,
-          value: undefined,
-        });
+      onRetrieved: async (id, chunks) => {
+        try {
+          const chunkIds = chunks.map(chunk => chunk.document_chunk_node_id);
+          await this.appendSource(allSources, chunkIds);
+          next({
+            done: false,
+            value: {
+              content: '',
+              status: AppChatStreamState.GENERATING,
+              statusMessage: `Generating using ${llmProvider}:${llmConfig.model ?? 'unknown-model'}`,
+              sources: Array.from(allSources.values()),
+              retrieveId: id,
+            },
+          });
+          next({
+            done: true,
+            value: undefined,
+          });
+        } catch (error) {
+          fail(error);
+        }
       },
       onRetrieveFailed: (id, reason) => {
         fail(reason);
       },
     }));
 
-    const responseBuilder = new CompactAndRefine(
-      serviceContext,
-      this.getPrompt(textQa, this.getTextQAPrompt()),
-      this.getPrompt(refine, this.getRefinePrompt()),
-    );
+    // Build Query Engine.
+    const textQaPrompt = this.getPrompt(textQa, defaultTextQaPrompt);
+    const refinePrompt = this.getPrompt(refine, defaultRefinePrompt);
+    const responseBuilder = new CompactAndRefine(serviceContext, textQaPrompt, refinePrompt);
     const responseSynthesizer = new ResponseSynthesizer({
       serviceContext,
       responseBuilder,
@@ -138,7 +135,7 @@ Refined Answer:`;
     });
     const queryEngine = new RetrieverQueryEngine(retriever, responseSynthesizer);
 
-    // build chatHistory
+    // Build ChatHistory.
     const history = await listChatMessages(chat.id);
     const chatHistory = history.map(message => ({
       role: message.role as any,
@@ -146,15 +143,21 @@ Refined Answer:`;
       additionalKwargs: {},
     }));
 
+    // Build ChatEngine.
+    const stream = llmConfig?.stream ?? true;
+    const condenseMessagePrompt = this.getPrompt(condenseQuestion, defaultCondenseQuestionPrompt);
     const chatEngine = new CondenseQuestionChatEngine({
       queryEngine,
       chatHistory,
       serviceContext,
-      condenseMessagePrompt: this.getPrompt(condenseQuestion, defaultCondenseQuestionPrompt),
+      condenseMessagePrompt,
     });
 
-    const stream = chatEngine.chat({
-      stream: true,
+    // Chatting with LLM via ChatEngine.
+    console.log(`Start chatting for chat <${chat.id}>.`, { stream });
+    const start = DateTime.now();
+    const responses = chatEngine.chat({
+      stream: stream,
       chatHistory: options.history.map(message => ({
         role: message.role as any,
         content: message.content,
@@ -163,47 +166,63 @@ Refined Answer:`;
       message: options.userInput,
     });
 
-    let sources: Map<string, { title: string, uri: string }> = new Map();
-
-    const getSources = async (chunkIds?: string[]) => {
-      if (!chunkIds?.length) {
-        return [];
-      }
-      const idsToFetch = chunkIds.filter(id => !sources.has(id));
-      if (idsToFetch.length > 0) {
-        const results = await getDb().selectFrom(`llamaindex_document_chunk_node_${this.index.name}`)
-          .innerJoin('document', 'document.id', `llamaindex_document_chunk_node_${this.index.name}.document_id`)
-          .select(eb => eb.fn('bin_to_uuid', [`llamaindex_document_chunk_node_${this.index.name}.id`]).as('id'))
-          .select('document.name')
-          .select('document.source_uri')
-          .where(`llamaindex_document_chunk_node_${this.index.name}.id`, 'in', idsToFetch.map(id => uuidToBin(id as UUID)))
-          .execute();
-
-        results.forEach(result => sources.set(result.id, { title: result.name, uri: result.source_uri }));
-      }
-
-      return chunkIds.map(id => sources.get(id)).filter(Boolean) as { title: string, uri: string }[];
-    };
-
-    function transformLlamaindexChatResponses (stream: Promise<AsyncIterable<Response>>) {
-      return mapAsyncIterable(stream, async response => {
+    // poll from chat response iterators and yield
+    for await (const response of poll(
+      retriever,
+      mapAsyncIterable(responses, async response => {
         return {
           content: response.response,
           status: AppChatStreamState.GENERATING,
           statusMessage: `Generating using ${llmProvider}:${llmConfig.model ?? 'unknown-model'}`,
-          sources: await getSources(response.sourceNodes?.map(node => node.id_)),
+          sources: Array.from(allSources.values()),
           retrieveId: undefined,
         };
-      });
+      }),
+    )) {
+      yield response;
     }
 
-    for await (const response of select(retrieverStateIterator, transformLlamaindexChatResponses(stream))) {
-      yield response;
+    const end = DateTime.now();
+    const duration = end.diff(start, 'seconds').seconds;
+    console.log(`Finished chatting for chat <${chat.id}>, take ${duration} seconds.`, { stream });
+  }
+
+  async getSourcesByChunkIds (chunkIds: string[]): Promise<SourceWithNodeId[]> {
+    if (chunkIds.length === 0) {
+      return [];
+    }
+
+    const results = await getDb().selectFrom(`llamaindex_document_chunk_node_${this.index.name}`)
+      .innerJoin('document', 'document.id', `llamaindex_document_chunk_node_${this.index.name}.document_id`)
+      .select(eb => eb.fn('bin_to_uuid', [`llamaindex_document_chunk_node_${this.index.name}.id`]).as('id'))
+      .select('document.name')
+      .select('document.source_uri')
+      .where(`llamaindex_document_chunk_node_${this.index.name}.id`, 'in', chunkIds.map(id => uuidToBin(id as UUID)))
+      .execute();
+
+    return results.map(result => ({
+      id: result.id,
+      title: result.name,
+      uri: result.source_uri,
+    }));
+  }
+
+  async appendSource (sources: Map<string, AppChatStreamSource>, chunkIds?: string[]) {
+    if (!Array.isArray(chunkIds) || chunkIds.length === 0) {
+      return;
+    }
+
+    const idsToFetch = chunkIds.filter(id => !sources.has(id));
+    const sourcesWithId = await this.getSourcesByChunkIds(idsToFetch);
+
+    for (let source of sourcesWithId) {
+      const { id, title, uri } = source;
+      sources.set(id, { title, uri });
     }
   }
 }
 
-function createInnerAsyncIterable<T, R> (run: (next: (result: IteratorResult<T, undefined>) => void, fail: (error: unknown) => void) => R) {
+function withAsyncIterable<T, R> (run: (next: (result: IteratorResult<T, undefined>) => void, fail: (error: unknown) => void) => R) {
   let _resolve: (value: IteratorResult<T, undefined>) => void = () => {};
   let _reject: (error: unknown) => void = () => {};
   const queue: Promise<IteratorResult<T, undefined>>[] = [
@@ -234,17 +253,21 @@ function createInnerAsyncIterable<T, R> (run: (next: (result: IteratorResult<T, 
     },
   };
 
-  return {
-    iterator: {
-      [Symbol.asyncIterator] () {
-        return iterator;
-      },
-    },
-    returns,
-  };
+  Object.defineProperty(returns, Symbol.asyncIterator, {
+    value: () => iterator,
+    writable: false,
+    configurable: false,
+    enumerable: false,
+  });
+
+  return returns as R & AsyncIterable<T>;
 }
 
-function select<T> (...iterables: AsyncIterable<T>[]): AsyncIterable<T> {
+/**
+ * Create a single AsyncIterable from several AsyncIterables with same type.
+ * @param iterables
+ */
+function poll<T> (...iterables: AsyncIterable<T>[]): AsyncIterable<T> {
   return {
     [Symbol.asyncIterator] () {
       let _resolve: (value: IteratorResult<T, undefined>) => void = () => {};
