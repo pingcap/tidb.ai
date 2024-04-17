@@ -1,6 +1,6 @@
+import {getEnv} from "@llamaindex/env";
 import {BaseEmbedding} from "llamaindex";
 import util from "node:util";
-
 
 export enum BitdeerEmbeddingModelType {
   MISTRAL_EMBED_LARGE = "mxbai-embed-large",
@@ -8,18 +8,17 @@ export enum BitdeerEmbeddingModelType {
 
 export class BitdeerEmbedding extends BaseEmbedding {
   baseURL: string = "https://www.bitdeer.ai/public/v1";
-  model: BitdeerEmbeddingModelType;
+  model: BitdeerEmbeddingModelType = BitdeerEmbeddingModelType.MISTRAL_EMBED_LARGE;
 
-  apiSecretAccessKey: string;
+  apiSecretAccessKey?: string = getEnv("BITDEER_API_SECRET_ACCESS_KEY");
   requestTimeout: number = 60 * 1000; // Default is 60 seconds
 
   constructor(init?: Partial<BitdeerEmbedding>) {
     super();
-    this.model = BitdeerEmbeddingModelType.MISTRAL_EMBED_LARGE;
-    if (typeof init?.apiSecretAccessKey !== "string") {
-      throw new Error("Bitdeer API secret access key is required.");
+    Object.assign(this, init);
+    if (!this.apiSecretAccessKey) {
+      throw new Error("BITDEER_API_SECRET_ACCESS_KEY is required.");
     }
-    this.apiSecretAccessKey = init?.apiSecretAccessKey;
   }
 
   private async getBitdeerEmbedding(input: string) {
@@ -31,10 +30,10 @@ export class BitdeerEmbedding extends BaseEmbedding {
     const response = await fetch(url, {
       body: JSON.stringify(payload),
       method: "POST",
-      // signal: AbortSignal.timeout(this.requestTimeout),
+      signal: AbortSignal.timeout(this.requestTimeout),
       headers: {
         "Content-Type": "application/json",
-        "X-Api-Key": this.apiSecretAccessKey,
+        "X-Api-Key": this.apiSecretAccessKey!,
       },
     });
 
