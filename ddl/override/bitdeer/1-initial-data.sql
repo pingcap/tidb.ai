@@ -29,6 +29,11 @@ INSERT INTO `index` (id, name, config) VALUES (1, 'default', '{
         "rag.loader.html": {
             "contentExtraction": [
                 {
+                    "selectors": [
+                        {
+                            "selector": "body"
+                        }
+                    ],
                     "excludeSelectors": [
                         {
                             "selector": ".header"
