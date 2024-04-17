@@ -46,6 +46,8 @@ export const POST = defineHandler({
     messages
   } = body;
 
+  const [engine, engineOptions] = await getChatEngineConfig(body.engine);
+
   // TODO: need refactor, it is too complex now
   // For chat page, create a chat and return the session ID (url_key) first.
   const creatingChat = messages.length === 0;
@@ -54,9 +56,8 @@ export const POST = defineHandler({
       return CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR;
     }
 
-    const [engine, engineOptions] = await getChatEngineConfig(body.engine);
     return await createChat({
-      engine: engine,
+      engine,
       engine_options: JSON.stringify(engineOptions),
       created_at: new Date(),
       created_by: userId,
@@ -68,8 +69,8 @@ export const POST = defineHandler({
   let sessionId = body.sessionId;
   if (!sessionId) {
     const chat = await createChat({
-      engine: 'condense-question',
-      engine_options: JSON.stringify({}),
+      engine,
+      engine_options: JSON.stringify(engineOptions),
       created_at: new Date(),
       created_by: userId,
       title: body.name ?? body.messages.findLast(message => message.role === 'user')?.content ?? DEFAULT_CHAT_TITLE,
