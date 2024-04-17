@@ -7,7 +7,8 @@ INSERT INTO `index` (id, name, config) VALUES (1, 'default', '{
     "llm": {
         "provider": "bitdeer",
         "config": {
-            "model": "mistral"
+            "model": "mistral",
+            "stream": false
         }
     },
     "embedding": {
@@ -52,21 +53,21 @@ INSERT INTO chat_engine (name, engine, engine_options, is_default) VALUE ('defau
 UPDATE `chat_engine`
 SET engine_options = JSON_MERGE_PATCH(engine_options, '{
     "index_id": 1,
-      "llm": {
-      "provider": "bitdeer",
+    "llm": {
+        "provider": "bitdeer",
         "config": {
-        "model": "mistral",
-          "stream": false
-      }
+            "model": "mistral",
+            "stream": false
+        }
     },
     "prompts":{
-      "condenseQuestion": "Given a conversation (between Human and Assistant) and a follow up message from Human, rewrite the message to be a standalone question that captures all relevant context from the conversation.\\n\\n<Chat History>\\n{{chatHistory}}\\n\\n<Follow Up Message>\\n{{question}}\\n\\n<Standalone question>\\n",
+        "condenseQuestion": "Given a conversation (between Human and Assistant) and a follow up message from Human, rewrite the message to be a standalone question that captures all relevant context from the conversation.\\n\\n<Chat History>\\n{{chatHistory}}\\n\\n<Follow Up Message>\\n{{question}}\\n\\n<Standalone question>\\n",
         "refine": "The original query is as follows: {{query}}\\nWe have provided an existing answer: {{existingAnswer}}\\nWe have the opportunity to refine the existing answer (only if needed) with some more context below.\\n------------\\n{{context}}\\n------------\\nGiven the new context, refine the original answer to better answer the query. If the context isn''t useful, return the original answer.\\nRefined Answer:",
         "textQa": "Context information is below.\\n---------------------\\n{{context}}\\n---------------------\\nGiven the context information and not prior knowledge, answer the query.\\nQuery: {{query}}\\nAnswer:"
     },
     "reranker": {},
     "retriever": {
-      "search_top_k": 25,
+        "search_top_k": 25,
         "top_k": 7
     }
 }')
