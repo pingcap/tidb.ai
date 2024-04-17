@@ -1,3 +1,5 @@
+import {RefinePrompt, TextQaPrompt} from "llamaindex";
+
 export type PromptTemplate = (promptArgs: Record<string, any>) => string;
 
 export const defaultChoiceSelectPrompt: PromptTemplate = ({ queryStr, contextStr }): string => {
@@ -23,4 +25,26 @@ ${contextStr}\n
 Question: ${queryStr}\n
 Answer:\n
 `
+}
+
+export const defaultTextQaPrompt: TextQaPrompt = ({ query, context }) => {
+  return `Context information is below.
+---------------------
+${context}
+---------------------
+Given the context information and not prior knowledge, answer the query use markdown format. Add links reference to original contexts if necessary.
+Query: ${query}
+Answer:`;
+};
+
+export const defaultRefinePrompt: RefinePrompt = ({ context, query, existingAnswer }: any) => {
+  return `The original query is as follows: ${query}
+We have provided an existing answer: ${existingAnswer}
+We have the opportunity to refine the existing answer (only if needed) with some more context below.
+------------
+${context}
+------------
+Given the new context, refine the original answer to better answer the query. If the context isn't useful, return the original answer.
+Use markdown format to answer. Add links reference to contexts if necessary.
+Refined Answer:`;
 }
