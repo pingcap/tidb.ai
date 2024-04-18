@@ -1,8 +1,10 @@
+import { useMyChatContext } from '@/components/chat/context';
 import type { ConversationMessageGroupProps } from '@/components/chat/use-grouped-conversation-messages';
 import { Button } from '@/components/ui/button';
 import { ClipboardIcon, RefreshCwIcon, ShareIcon, ThumbsDown } from 'lucide-react';
 
 export function MessageOperations ({ group }: { group: ConversationMessageGroupProps }) {
+  const { handleRegenerate } = useMyChatContext();
   if (!group.finished) {
     return;
   }
@@ -12,7 +14,12 @@ export function MessageOperations ({ group }: { group: ConversationMessageGroupP
         <ShareIcon size="1em" />
         Share
       </Button>
-      <Button size="sm" className="gap-1 text-xs px-2 py-1 h-max" variant="ghost">
+      <Button
+        size="sm"
+        className="gap-1 text-xs px-2 py-1 h-max"
+        variant="ghost"
+        onClick={() => handleRegenerate(group.assistantMessage.id)}
+      >
         <RefreshCwIcon size="1em" />
         Regenerate
       </Button>
