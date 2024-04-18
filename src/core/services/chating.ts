@@ -32,9 +32,9 @@ export abstract class AppChatService extends AppIndexBaseService {
         let content = '';
         let retrieveIds = new Set<number>();
         for await (const chunk of this.run(chat, { userInput, history, userId })) {
+          controller.appendText(chunk.content, chunk.status === AppChatStreamState.CREATING /* force send an empty text chunk first, to avoid a dependency BUG */);
           controller.setChatState(chunk.status, chunk.statusMessage);
           controller.setSources(chunk.sources);
-          controller.appendText(chunk.content);
           content += chunk.content;
           if (chunk.retrieveId) {
             retrieveIds.add(chunk.retrieveId);

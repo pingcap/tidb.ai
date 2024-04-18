@@ -54,7 +54,10 @@ export class AppChatStreamController {
   constructor (private controller: ReadableStreamDefaultController<StreamString>) {
   }
 
-  appendText (text: string) {
+  appendText (text: string, force: boolean = false) {
+    if (!force && !text) {
+      return;
+    }
     this.encodeText(text);
   }
 
