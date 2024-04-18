@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { styled, css } from '@mui/system';
 import { useChat } from 'ai/react';
+import { withReCaptcha } from '../../lib/withCaptcha.ts';
 
 import { ChatItem, ChatItemLoading, ExampleQuestions } from './ChatItem';
 import { ChatActionBar, ChatItemActionBar } from './ChatActionBar';
@@ -13,41 +14,6 @@ import { CfgContext } from '../../context';
 declare module 'ai/react' {
   interface Message {
     context?: string[];
-  }
-}
-
-declare const grecaptcha: {
-  ready: (cb: () => void) => void;
-  execute: (siteKey: string, options: { action: string }) => Promise<string>;
-  enterprise: {
-    ready: (cb: () => void) => void;
-    execute: (siteKey: string, options: { action: string }) => Promise<string>;
-  };
-};
-
-async function withReCaptcha(
-  options: {
-    action: string;
-    siteKey: string;
-    mode?: 'v3' | 'enterprise';
-  },
-  func: (data: { action: string; siteKey: string; token: string }) => void
-) {
-  const { action, siteKey } = options;
-  // skip if no siteKey
-  if (!siteKey) {
-    return func({ action, siteKey, token: '' });
-  }
-  if (options.mode === 'v3') {
-    grecaptcha.ready(async () => {
-      const token = await grecaptcha.execute(siteKey, { action });
-      func({ action, siteKey, token });
-    });
-  } else if (options.mode === 'enterprise') {
-    grecaptcha.enterprise.ready(async () => {
-      const token = await grecaptcha.enterprise.execute(siteKey, { action });
-      func({ action, siteKey, token });
-    });
   }
 }
 
@@ -145,9 +111,7 @@ export default function ChatContainer(props: {
               items={exampleQuestions}
             />
           )}
-          {isLoading && messages[messages.length - 1]?.role !== 'assistant' && (
-            <ChatItemLoading />
-          )}
+          {isLoading && <ChatItemLoading annotations={messages[messages.length - 1]?.annotations ?? [] as any} />}
           {messages
             .sort((a, b) => {
               const aTime = new Date(a.createdAt || 0).getTime();
