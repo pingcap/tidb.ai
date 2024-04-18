@@ -1,8 +1,7 @@
 import { tx } from '@/core/db';
 import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrieveRel, getChatByUrlKey, listChatMessages, updateChatMessage } from '@/core/repositories/chat';
 import { AppIndexBaseService } from '@/core/services/base';
-import { AppChatStream } from '@/lib/ai/AppChatStream';
-import { type AppChatStreamSource, AppChatStreamState } from '@/lib/ai/AppChatStreamData';
+import { AppChatStream, type AppChatStreamSource, AppChatStreamState } from '@/lib/ai/AppChatStream';
 import { AUTH_FORBIDDEN_ERROR, getErrorMessage } from '@/lib/errors';
 import { notFound } from 'next/navigation';
 
@@ -12,7 +11,8 @@ export type ChatOptions = {
   history: ChatMessage[]
 }
 
-export type ChatResponse = {
+// TODO: split into different type of events?
+export type ChatStreamEvent = {
   status: AppChatStreamState;
   statusMessage: string;
   sources: AppChatStreamSource[];
@@ -22,8 +22,36 @@ export type ChatResponse = {
 }
 
 export abstract class AppChatService extends AppIndexBaseService {
+
   async chat (sessionId: string, userId: string, userInput: string) {
-    const { chat, history } = await tx(async () => {
+    const { chat, history } = await this.getSessionInfo(sessionId, userId);
+    const message = await this.startChat(chat, history, userInput);
+
+    return new AppChatStream(sessionId, async controller => {
+      try {
+        let content = '';
+        let retrieveIds = new Set<number>();
+        for await (const chunk of this.run(chat, { userInput, history, userId })) {
+          controller.setChatState(chunk.status, chunk.statusMessage);
+          controller.setSources(chunk.sources);
+          controller.appendText(chunk.content);
+          content += chunk.content;
+          if (chunk.retrieveId) {
+            retrieveIds.add(chunk.retrieveId);
+          }
+        }
+        controller.setChatState(AppChatStreamState.FINISHED);
+        await this.finishChat(message, content, retrieveIds);
+      } catch (error) {
+        controller.setChatState(AppChatStreamState.ERROR, getErrorMessage(error));
+        await this.terminateChat(message, error);
+        return Promise.reject(error);
+      }
+    });
+  }
+
+  private async getSessionInfo (sessionId: string, userId: string) {
+    return await tx(async () => {
       const chat = await getChatByUrlKey(sessionId);
 
       if (!chat) {
@@ -35,12 +63,13 @@ export abstract class AppChatService extends AppIndexBaseService {
       }
 
       const history = await listChatMessages(chat.id);
-      return {
-        chat, history,
-      };
-    });
 
-    const message = await tx(async () => {
+      return { chat, history };
+    });
+  }
+
+  private async startChat (chat: Chat, history: ChatMessage[], userInput: string) {
+    return await tx(async () => {
       await createChatMessage({
         role: 'user',
         chat_id: chat.id,
@@ -60,56 +89,31 @@ export abstract class AppChatService extends AppIndexBaseService {
         options: JSON.stringify({}),
       });
     });
+  }
 
-    return AppChatStream.create(sessionId, history.length + 1, async (controller, data) => {
-      try {
-        let content = '';
-        let retrieveIds = new Set<number>();
-        for await (const chunk of this.run(chat, { userInput, history, userId })) {
-          data.setChatState(chunk.status, chunk.statusMessage);
-          data.setSources(chunk.sources);
-          controller.enqueue(chunk);
-          content += chunk.content;
-          if (chunk.retrieveId) {
-            retrieveIds.add(chunk.retrieveId);
-          }
-        }
-        data.setChatState(AppChatStreamState.FINISHED);
+  private async finishChat (message: ChatMessage, content: string, retrieveIds: Iterable<number>) {
+    await updateChatMessage(message.id, {
+      content,
+      finished_at: new Date(),
+      status: 'SUCCEED',
+    });
+    for (let retrieve of retrieveIds) {
+      await createChatMessageRetrieveRel({
+        chat_message_id: message.id,
+        retrieve_id: retrieve,
+        info: JSON.stringify({}), // TODO: what use?
+      });
+    }
+  }
 
-        await updateChatMessage(message.id, {
-          content,
-          finished_at: new Date(),
-          status: 'SUCCEED',
-        });
-        for (let retrieve of retrieveIds) {
-          await createChatMessageRetrieveRel({
-            chat_message_id: message.id,
-            retrieve_id: retrieve,
-            info: JSON.stringify({}), // TODO: what use?
-          });
-        }
-      } catch (error) {
-        await updateChatMessage(message.id, {
-          finished_at: new Date(),
-          error_message: getErrorMessage(error),
-          status: 'FAILED',
-        });
-        controller.enqueue({
-          status: AppChatStreamState.ERROR,
-          error,
-          content: '',
-          sources: [],
-          statusMessage: getErrorMessage(error)
-        });
-        data.setChatState(AppChatStreamState.ERROR, getErrorMessage(error));
-        return Promise.reject(error);
-      } finally {
-        await data.close();
-        controller.close();
-      }
+  private async terminateChat (message: ChatMessage, error: unknown) {
+    await updateChatMessage(message.id, {
+      finished_at: new Date(),
+      error_message: getErrorMessage(error),
+      status: 'FAILED',
     });
   }
 
-  protected abstract run (chat: Chat, options: ChatOptions): AsyncIterable<ChatResponse>;
+  protected abstract run (chat: Chat, options: ChatOptions): AsyncIterable<ChatStreamEvent>;
 }
 

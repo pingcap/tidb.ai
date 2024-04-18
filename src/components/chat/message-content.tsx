@@ -1,0 +1,12 @@
+import type { ConversationMessageGroupProps } from '@/components/chat/use-grouped-conversation-messages';
+import { RemarkContent } from '@/components/remark-content';
+
+export function MessageContent ({ group }: { group: ConversationMessageGroupProps }) {
+  return (
+    <article className="prose prose-sm prose-neutral dark:prose-invert overflow-x-hidden break-all">
+      {group.assistantMessage?.content && <RemarkContent>
+        {group.assistantMessage.content}
+      </RemarkContent>}
+    </article>
+  );
+}

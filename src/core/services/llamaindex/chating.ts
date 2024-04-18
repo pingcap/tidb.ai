@@ -1,12 +1,13 @@
 import { getDb } from '@/core/db';
 import { type Chat, listChatMessages } from '@/core/repositories/chat';
 import type { ChatEngineOptions } from '@/core/repositories/chat_engine';
-import { AppChatService, type ChatOptions, type ChatResponse } from '@/core/services/chating';
+import { AppChatService, type ChatOptions, type ChatStreamEvent } from '@/core/services/chating';
 import { LlamaindexRetrieverWrapper, LlamaindexRetrieveService } from '@/core/services/llamaindex/retrieving';
-import { type AppChatStreamSource, AppChatStreamState } from '@/lib/ai/AppChatStreamData';
+import { type AppChatStreamSource, AppChatStreamState } from '@/lib/ai/AppChatStream';
 import { uuidToBin } from '@/lib/kysely';
 import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
 import { getLLM } from '@/lib/llamaindex/converters/llm';
+import { ManagedAsyncIterable } from '@/lib/ManagedAsyncIterable';
 import { Liquid } from 'liquidjs';
 import { CompactAndRefine, CondenseQuestionChatEngine, defaultCondenseQuestionPrompt, defaultRefinePrompt, defaultTextQaPrompt, MetadataMode, ResponseSynthesizer, RetrieverQueryEngine, serviceContextFromDefaults, SimplePrompt } from 'llamaindex';
 import { DateTime } from 'luxon';
@@ -25,7 +26,7 @@ export class LlamaindexChatService extends AppChatService {
     return context => this.liquid.renderSync(tmpl, context);
   }
 
-  protected async* run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatResponse> {
+  protected async* run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatStreamEvent> {
     yield {
       status: AppChatStreamState.CREATING,
       sources: [],
@@ -67,7 +68,7 @@ export class LlamaindexChatService extends AppChatService {
     });
 
     // FIXME: This method only support a single retrieve call currently.
-    const retriever = withAsyncIterable<ChatResponse, LlamaindexRetrieverWrapper>((next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
+    const retriever = withAsyncIterable<ChatStreamEvent, LlamaindexRetrieverWrapper>((next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
       search_top_k,
       top_k,
       filters: {},
@@ -91,7 +92,7 @@ export class LlamaindexChatService extends AppChatService {
           value: {
             content: '',
             status: AppChatStreamState.RERANKING,
-            statusMessage: `Reranking ${chunks.length} searched document chunks using ${reranker?.provider}:${reranker?.config?.model}...`,
+            statusMessage: `Reranking ${chunks.length} searched document chunks using ${reranker?.provider}:${reranker?.config?.model ?? 'default'}...`,
             sources: [],
             retrieveId: id,
           },
@@ -106,7 +107,7 @@ export class LlamaindexChatService extends AppChatService {
             value: {
               content: '',
               status: AppChatStreamState.GENERATING,
-              statusMessage: `Generating using ${llmProvider}:${llmConfig.model ?? 'unknown-model'}`,
+              statusMessage: `Generating using ${llmProvider}:${llmConfig.model ?? 'default'}`,
               sources: Array.from(allSources.values()),
               retrieveId: id,
             },
@@ -173,7 +174,7 @@ export class LlamaindexChatService extends AppChatService {
         return {
           content: response.response,
           status: AppChatStreamState.GENERATING,
-          statusMessage: `Generating using ${llmProvider}:${llmConfig.model ?? 'unknown-model'}`,
+          statusMessage: `Generating using ${llmProvider}:${llmConfig.model ?? 'default'}`,
           sources: Array.from(allSources.values()),
           retrieveId: undefined,
         };
@@ -223,38 +224,23 @@ export class LlamaindexChatService extends AppChatService {
 }
 
 function withAsyncIterable<T, R> (run: (next: (result: IteratorResult<T, undefined>) => void, fail: (error: unknown) => void) => R) {
-  let _resolve: (value: IteratorResult<T, undefined>) => void = () => {};
-  let _reject: (error: unknown) => void = () => {};
-  const queue: Promise<IteratorResult<T, undefined>>[] = [
-    new Promise((resolve, reject) => {
-      _resolve = resolve;
-      _reject = reject;
-    }),
-  ];
+  const managed = new ManagedAsyncIterable<T>();
+
   let returns: R;
   returns = run(
     (result) => {
-      queue.push(new Promise((resolve, reject) => {
-        cursor++;
-        _resolve(result);
-
-        _resolve = resolve;
-        _reject = reject;
-      }));
+      if (result.done) {
+        managed.finish();
+      } else {
+        managed.next(result.value);
+      }
     },
     (reason) => {
-      _reject(reason);
+      managed.fail(reason);
     });
 
-  let cursor = 0;
-  const iterator: AsyncIterator<T> = {
-    async next () {
-      return await queue[cursor];
-    },
-  };
-
   Object.defineProperty(returns, Symbol.asyncIterator, {
-    value: () => iterator,
+    value: () => managed[Symbol.asyncIterator](),
     writable: false,
     configurable: false,
     enumerable: false,
@@ -268,52 +254,31 @@ function withAsyncIterable<T, R> (run: (next: (result: IteratorResult<T, undefin
  * @param iterables
  */
 function poll<T> (...iterables: AsyncIterable<T>[]): AsyncIterable<T> {
-  return {
-    [Symbol.asyncIterator] () {
-      let _resolve: (value: IteratorResult<T, undefined>) => void = () => {};
-      let _reject: (error: unknown) => void = () => {};
-      const queue: Promise<IteratorResult<T, undefined>>[] = [
-        new Promise((resolve, reject) => {
-          _resolve = resolve;
-          _reject = reject;
-        }),
-      ];
-
-      let finished = 0;
-      for (let iterable of iterables) {
-        const iterator = iterable[Symbol.asyncIterator]();
-        const iterate = () => {
-          iterator.next()
-            .then(result => {
+  return new ManagedAsyncIterable<T>((managed) => {
+    let finished = 0;
+    for (let iterable of iterables) {
+      const iterator = iterable[Symbol.asyncIterator]();
+      const iterate = () => {
+        iterator.next()
+          .then(
+            result => {
               if (result.done) {
                 finished += 1;
                 if (finished === iterables.length) {
-                  _resolve({
-                    done: true,
-                    value: undefined,
-                  });
+                  managed.finish();
                 }
               } else {
-                _resolve(result);
-                queue.push(new Promise((resolve, reject) => {
-                  _resolve = resolve;
-                  _reject = reject;
-                }));
+                managed.next(result.value);
                 iterate();
               }
-            })
-            .catch(_reject);
-        };
-        iterate();
-      }
-
-      return {
-        async next () {
-          return await queue[queue.length - 1];
-        },
+            },
+            error => {
+              managed.fail(error);
+            });
       };
-    },
-  };
+      iterate();
+    }
+  });
 }
 
 async function* mapAsyncIterable<T, R> (iterable: Promise<AsyncIterable<T>> | AsyncIterable<T>, map: (value: T) => R | Promise<R>): AsyncIterable<R> {
