@@ -19,12 +19,13 @@ export class AppChatStream extends ReadableStream<StreamString> {
 
   constructor (
     public readonly sessionId: string,
+    messageId: number,
     pull: (controller: AppChatStreamController) => Promise<void>,
   ) {
     super({
       pull: async (controller) => {
         try {
-          await pull(new AppChatStreamController(controller));
+          await pull(new AppChatStreamController(messageId, controller));
         } catch (e) {
           controller.error(e);
           return Promise.reject(e);
@@ -51,7 +52,7 @@ export class AppChatStreamController {
   private stateMessage: string = '';
   private sources: AppChatStreamSource[] = [];
 
-  constructor (private controller: ReadableStreamDefaultController<StreamString>) {
+  constructor (private messageId: number, private controller: ReadableStreamDefaultController<StreamString>) {
   }
 
   appendText (text: string, force: boolean = false) {
@@ -62,7 +63,8 @@ export class AppChatStreamController {
   }
 
   setChatState (state: AppChatStreamState, stateMessage = '') {
-    const delta: any = {
+    const delta: MyChatMessageAnnotation = {
+      messageId: this.messageId,
       ts: Date.now(),
     };
     let changed = false;
@@ -85,7 +87,9 @@ export class AppChatStreamController {
     if (!compareSources(sources, this.sources)) {
       this.sources = sources;
       this.encodeMessageAnnotation({
+        ts: Date.now(),
         context: sources,
+        messageId: this.messageId,
       });
     }
   }

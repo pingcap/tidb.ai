@@ -1,4 +1,4 @@
-import { createChat, listChats } from '@/core/repositories/chat';
+import { type Chat, createChat, getChatByUrlKey, listChats } from '@/core/repositories/chat';
 import { ChatEngineOptions, getChatEngine, getDefaultChatEngine } from '@/core/repositories/chat_engine';
 import { getIndexByNameOrThrow } from '@/core/repositories/index_';
 import { LlamaindexChatService } from '@/core/services/llamaindex/chating';
@@ -7,6 +7,7 @@ import { CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR, CHAT_ENGINE_NOT_FOUND_ERROR } fro
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
+import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
@@ -20,6 +21,8 @@ const ChatRequest = z.object({
   namespaces: z.string().array().optional(),
   index: z.string().optional(),
   engine: z.number().int().optional(),
+  regenerate: z.boolean().optional(),
+  messageId: z.coerce.number().int().optional(),
 });
 
 const DEFAULT_CHAT_TITLE = 'Untitled';
@@ -57,9 +60,10 @@ export const POST = defineHandler({
   }
 
   // For Ask Widget.
+  let chat: Chat | undefined;
   let sessionId = body.sessionId;
   if (!sessionId) {
-    const chat = await createChat({
+    chat = await createChat({
       engine,
       engine_options: JSON.stringify(engineOptions),
       created_at: new Date(),
@@ -67,13 +71,27 @@ export const POST = defineHandler({
       title: body.name ?? body.messages.findLast(message => message.role === 'user')?.content ?? DEFAULT_CHAT_TITLE,
     });
     sessionId = chat.url_key;
+  } else {
+    chat = await getChatByUrlKey(sessionId);
+    if (!chat) {
+      notFound();
+    }
   }
 
   const index = await getIndexByNameOrThrow(indexName);
   const flow = await getFlow(baseRegistry);
   const chatService = new LlamaindexChatService({ flow, index });
+
+  if (body.regenerate) {
+    if (!body.messageId) {
+      throw new Error('Regenerate requires messageId');
+    }
+
+    await chatService.deleteHistoryFromMessage(chat, body.messageId);
+  }
+
   const lastUserMessage = messages.findLast(m => m.role === 'user')?.content ?? '';
-  const chatStream = await chatService.chat(sessionId, userId, lastUserMessage);
+  const chatStream = await chatService.chat(sessionId, userId, lastUserMessage, body.regenerate ?? false);
 
   return chatStream.toResponse();
 });

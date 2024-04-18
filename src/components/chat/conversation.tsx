@@ -1,5 +1,6 @@
 'use client';
 
+import { MyChatProvider } from '@/components/chat/context';
 import { ConversationMessageGroups } from '@/components/chat/conversation-message-groups';
 import { useMyChat } from '@/components/chat/use-my-chat';
 import { MessageInput } from '@/components/message-input';
@@ -10,7 +11,8 @@ import { cn } from '@/lib/utils';
 import { type FormEvent, useContext } from 'react';
 
 export function Conversation ({ open, history, context }: { open: boolean, history: ChatMessage[], context: { ordinal: number, title: string, uri: string }[] }) {
-  const { handleInputChange, isWaiting, handleSubmit, input, isLoading, error, messages } = useMyChat(history, context);
+  const myChat = useMyChat(history, context);
+  const { handleInputChange, handleRegenerate, isWaiting, handleSubmit, input, isLoading, error, messages, reload } = myChat;
   const { ref, size } = useSize();
 
   const security = useContext(SecuritySettingContext);
@@ -34,16 +36,16 @@ export function Conversation ({ open, history, context }: { open: boolean, histo
   };
 
   return (
-    <>
+    <MyChatProvider value={myChat}>
       <div ref={ref} className={cn(
         'md:max-w-screen-md mx-auto space-y-4 transition-all relative md:min-h-screen md:p-body',
       )}>
-        <ConversationMessageGroups history={history} messages={messages} error={error} isLoading={isLoading || isWaiting} />
+        <ConversationMessageGroups history={history} />
         <div className="h-24"></div>
       </div>
       {size && open && <form className="block h-max p-4 fixed bottom-0" onSubmit={submitWithReCaptcha} style={{ left: size.x, width: size.width }}>
         <MessageInput className="w-full transition-all" disabled={isLoading} inputProps={{ value: input, onChange: handleInputChange, disabled: isLoading }} />
       </form>}
-    </>
+    </MyChatProvider>
   );
 }

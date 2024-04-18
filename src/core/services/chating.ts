@@ -1,5 +1,5 @@
 import { tx } from '@/core/db';
-import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrieveRel, getChatByUrlKey, listChatMessages, updateChatMessage } from '@/core/repositories/chat';
+import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrieveRel, deleteChatMessages, getChatByUrlKey, getChatMessage, listChatMessages, updateChatMessage } from '@/core/repositories/chat';
 import { AppIndexBaseService } from '@/core/services/base';
 import { AppChatStream, type AppChatStreamSource, AppChatStreamState } from '@/lib/ai/AppChatStream';
 import { AUTH_FORBIDDEN_ERROR, getErrorMessage } from '@/lib/errors';
@@ -23,11 +23,11 @@ export type ChatStreamEvent = {
 
 export abstract class AppChatService extends AppIndexBaseService {
 
-  async chat (sessionId: string, userId: string, userInput: string) {
+  async chat (sessionId: string, userId: string, userInput: string, regenerating: boolean) {
     const { chat, history } = await this.getSessionInfo(sessionId, userId);
-    const message = await this.startChat(chat, history, userInput);
+    const message = await this.startChat(chat, history, userInput, regenerating);
 
-    return new AppChatStream(sessionId, async controller => {
+    return new AppChatStream(sessionId, message.id, async controller => {
       try {
         let content = '';
         let retrieveIds = new Set<number>();
@@ -50,6 +50,22 @@ export abstract class AppChatService extends AppIndexBaseService {
     });
   }
 
+  async deleteHistoryFromMessage (chat: Chat, messageId: number) {
+    await tx(async () => {
+      const message = await getChatMessage(messageId);
+
+      if (!message || message.chat_id !== chat.id) {
+        notFound();
+      }
+
+      if (message.role !== 'assistant') {
+        throw new Error('Can only regenerate assistant messages.')
+      }
+
+      await deleteChatMessages(chat.id, message.ordinal, 'REGENERATE');
+    })
+  }
+
   private async getSessionInfo (sessionId: string, userId: string) {
     return await tx(async () => {
       const chat = await getChatByUrlKey(sessionId);
@@ -68,24 +84,27 @@ export abstract class AppChatService extends AppIndexBaseService {
     });
   }
 
-  private async startChat (chat: Chat, history: ChatMessage[], userInput: string) {
+  private async startChat (chat: Chat, history: ChatMessage[], userInput: string, regenerating: boolean) {
     return await tx(async () => {
-      await createChatMessage({
-        role: 'user',
-        chat_id: chat.id,
-        content: userInput,
-        created_at: new Date(),
-        status: 'SUCCEED',
-        ordinal: history.length,
-        options: JSON.stringify({}),
-      });
+      let ordinal = history.length;
+      if (!regenerating) {
+        await createChatMessage({
+          role: 'user',
+          chat_id: chat.id,
+          content: userInput,
+          created_at: new Date(),
+          status: 'SUCCEED',
+          ordinal: ordinal++,
+          options: JSON.stringify({}),
+        });
+      }
       return await createChatMessage({
         role: 'assistant',
         chat_id: chat.id,
         content: '',
         created_at: new Date(),
         status: 'GENERATING',
-        ordinal: history.length + 1,
+        ordinal: ordinal,
         options: JSON.stringify({}),
       });
     });

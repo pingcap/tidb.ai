@@ -1,4 +1,4 @@
-import type { MyChatMessageAnnotation } from '@/components/chat/use-grouped-conversation-messages';
+import { EMPTY_CHAT_MESSAGE_ANNOTATION, type MyChatMessageAnnotation } from '@/components/chat/use-grouped-conversation-messages';
 import type { ChatMessage } from '@/core/repositories/chat';
 import type { AppChatStreamSource } from '@/lib/ai/AppChatStream';
 import { Message } from 'ai';
@@ -16,7 +16,7 @@ export function parseSource (uri: string) {
 
 export function getChatMessageAnnotations (message: Message | undefined) {
   return ((message?.annotations ?? []) as MyChatMessageAnnotation[])
-    .reduce((annotation, next) => Object.assign(annotation, next), {});
+    .reduce((annotation, next) => Object.assign({}, annotation, next), EMPTY_CHAT_MESSAGE_ANNOTATION);
 }
 
 export function createInitialMessages (history: ChatMessage[], context: { ordinal: number, title: string, uri: string }[]): Message[] {
@@ -35,7 +35,7 @@ export function createInitialMessages (history: ChatMessage[], context: { ordina
     role: message.role as any,
     content: message.content,
     annotations: message.role === 'assistant' ? [
-      { context: contextMap.get(message.ordinal) ?? [] } as MyChatMessageAnnotation,
+      { context: contextMap.get(message.ordinal) ?? [], messageId: message.id, ts: -1 } satisfies MyChatMessageAnnotation,
     ] : undefined,
   }));
 }

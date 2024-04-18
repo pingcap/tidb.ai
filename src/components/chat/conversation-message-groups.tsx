@@ -1,3 +1,4 @@
+import { useMyChatContext } from '@/components/chat/context';
 import { MessageAnnotation } from '@/components/chat/message-annotation';
 import { MessageContent } from '@/components/chat/message-content';
 import { MessageContextSources } from '@/components/chat/message-content-sources';
@@ -8,11 +9,11 @@ import { type ConversationMessageGroupProps, useGroupedConversationMessages } fr
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import type { ChatMessage } from '@/core/repositories/chat';
 import { getErrorMessage } from '@/lib/errors';
-import { Message } from 'ai';
 import { AlertTriangleIcon } from 'lucide-react';
 
-export function ConversationMessageGroups ({ history, messages, error, isLoading }: { history: ChatMessage[], messages: Message[], error: unknown, isLoading: boolean }) {
-  const groups = useGroupedConversationMessages(history, messages, isLoading, error);
+export function ConversationMessageGroups ({ history }: { history: ChatMessage[] }) {
+  const { error, messages, isLoading, isWaiting } = useMyChatContext();
+  const groups = useGroupedConversationMessages(history, messages, isLoading || isWaiting, error);
 
   return (
     <div className="space-y-8">

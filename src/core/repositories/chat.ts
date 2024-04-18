@@ -57,6 +57,7 @@ export async function listChatMessages (chatId: number) {
     .selectFrom('chat_message')
     .selectAll()
     .where('chat_id', '=', chatId)
+    .where('deleted_at', 'is', null)
     .orderBy('ordinal asc')
     .execute();
 }
@@ -102,5 +103,18 @@ export async function createChatMessageRetrieveRel (create: CreateChatMessageRet
   await getDb()
     .insertInto('chat_message_retrieve_rel')
     .values(create)
+    .execute();
+}
+
+export async function deleteChatMessages (chatId: number, fromOrdinal: number, reason: NonNullable<ChatMessage['delete_reason']>) {
+  await getDb()
+    .updateTable('chat_message')
+    .set({
+      deleted_at: new Date(),
+      delete_reason: reason,
+    })
+    .where('chat_id', '=', chatId)
+    .where('ordinal', '>=', fromOrdinal)
+    .where('deleted_at', 'is', null)
     .execute();
 }

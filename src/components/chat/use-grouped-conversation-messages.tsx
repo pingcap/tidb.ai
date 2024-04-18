@@ -26,10 +26,14 @@ export type PendingConversationMessage = {
 }
 
 export type MyChatMessageAnnotation = {
+  ts: number;
+  messageId: number;
   context?: AppChatStreamSource[],
   state?: AppChatStreamState,
   stateMessage?: string
 };
+
+export const EMPTY_CHAT_MESSAGE_ANNOTATION: MyChatMessageAnnotation = { ts: -1, messageId: -1 }
 
 // TODO: refactor
 export function useGroupedConversationMessages (history: ChatMessage[], messages: Message[], isLoading: boolean, error: unknown) {
@@ -37,7 +41,7 @@ export function useGroupedConversationMessages (history: ChatMessage[], messages
     const groups: ConversationMessageGroupProps[] = [];
     let userMessage: Message | undefined;
     let assistantMessage: Message | undefined;
-    let assistantAnnotation: MyChatMessageAnnotation = {};
+    let assistantAnnotation: MyChatMessageAnnotation = EMPTY_CHAT_MESSAGE_ANNOTATION;
 
     for (let i = 0; i < messages.length; i++) {
       const message = messages[i];
@@ -49,8 +53,6 @@ export function useGroupedConversationMessages (history: ChatMessage[], messages
         assistantAnnotation = getChatMessageAnnotations(assistantMessage);
       }
       if (userMessage && assistantMessage) {
-        const uriSet = new Set<string>();
-
         groups.push({
           id: userMessage.id,
           userMessage,
@@ -61,7 +63,7 @@ export function useGroupedConversationMessages (history: ChatMessage[], messages
         });
         userMessage = undefined;
         assistantMessage = undefined;
-        assistantAnnotation = {};
+        assistantAnnotation = EMPTY_CHAT_MESSAGE_ANNOTATION;
       }
     }
 

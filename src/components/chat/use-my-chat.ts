@@ -1,5 +1,5 @@
 import { __useHandleInitialMessage } from '@/app/(main)/(public)/c/[id]/internal';
-import { createInitialMessages } from '@/components/chat/utils';
+import { createInitialMessages, getChatMessageAnnotations } from '@/components/chat/utils';
 import type { ChatMessage } from '@/core/repositories/chat';
 import type { ChatRequestOptions } from 'ai';
 import { useChat } from 'ai/react';
@@ -54,6 +54,29 @@ export function useMyChat (history: ChatMessage[], context: { ordinal: number, t
     handleSubmit: (e: FormEvent<HTMLFormElement>, chatRequestOptions?: ChatRequestOptions) => {
       setWaiting(true);
       chat.handleSubmit(e, chatRequestOptions);
+    },
+    handleRegenerate: (messageId: string) => {
+      const regeneratingMessageIndex = chat.messages.findIndex(msg => msg.id === messageId);
+      if (regeneratingMessageIndex === -1) {
+        throw new Error('Failed to regenerate');
+      }
+
+      const regeneratingMessage = chat.messages[regeneratingMessageIndex];
+
+      if (chat.messages[regeneratingMessageIndex].role !== 'assistant') {
+        throw new Error('Only support to regenerate assistant message');
+      }
+
+      chat.setMessages(chat.messages.slice(0, regeneratingMessageIndex));
+
+      void chat.reload({
+        options: {
+          body: {
+            regenerate: true,
+            messageId: getChatMessageAnnotations(regeneratingMessage).messageId,
+          },
+        },
+      });
     },
   };
 }
