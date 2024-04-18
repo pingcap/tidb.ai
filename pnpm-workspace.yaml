@@ -1,6 +1,6 @@
 packages:
   - .
   - 'extensions/**/*'
-  - '!embeddable-javascript/**'
+  - 'embeddable-javascript/**'
   - 'www/**'
   - 'packages/**/*'
