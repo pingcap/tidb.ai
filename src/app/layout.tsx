@@ -43,8 +43,9 @@ export default async function RootLayout ({
     <html lang="en" suppressHydrationWarning>
     <head>
       <link rel="icon" href="/tidb-ai-light.svg" sizes="any" />
-      <script
-        async
+      <Script
+        id='tidb-ai-widget'
+        strategy="lazyOnload"
         src="/rag-widget.js"
         data-id="tidb-ai-widget"
         data-name="tidb-ai-widget"

@@ -2,6 +2,7 @@ import * as React from 'react';
 import { useCookies } from 'react-cookie';
 
 import { CREATE_RAG_CHAT_API } from '../constants/API';
+import { authenticate } from './session.ts';
 
 export const useAbortableFetch = () => {
   const [response, setResponse] =
@@ -111,9 +112,6 @@ export const usePostChatMessage = async (
 };
 
 export const useRemoteAuth = async (cfg?: { baseUrl: string, entryButtonLabel: string }) => {
-  // api: https://tidb.ai/api/auth/session
-  // method: GET
-  const url = (cfg?.baseUrl || '') + '/api/auth/session';
   const [data, setData] = React.useState<null | {
     user: {
       id: string;
@@ -121,17 +119,17 @@ export const useRemoteAuth = async (cfg?: { baseUrl: string, entryButtonLabel: s
     };
     expires: string;
   }>(null);
+  const [_, setAuthenticating] = React.useState(false);
 
   React.useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch(url, {
-        method: 'GET',
-        credentials: 'include',
-      });
-      const data = await res.json();
-      setData(data);
+      console.log('authenticate');
+      setData(await authenticate(cfg?.baseUrl || ''));
     };
-    fetchData();
+    setAuthenticating(true);
+    fetchData().finally(() => {
+      setAuthenticating(false);
+    });
   }, []);
 
   return data;
