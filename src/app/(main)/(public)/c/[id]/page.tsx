@@ -1,5 +1,5 @@
 import { auth } from '@/app/api/auth/[...nextauth]/auth';
-import { Conversation } from '@/components/conversation';
+import { Conversation } from '@/components/chat/conversation';
 import { getChat as getChat_, getChatByUrlKey, listChatContexts, listChatMessages } from '@/core/repositories/chat';
 import { notFound, redirect } from 'next/navigation';
 import { cache } from 'react';

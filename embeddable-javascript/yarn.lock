@@ -12,6 +12,32 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@ai-sdk/provider-utils@npm:0.0.0":
+  version: 0.0.0
+  resolution: "@ai-sdk/provider-utils@npm:0.0.0"
+  dependencies:
+    "@ai-sdk/provider": "npm:0.0.0"
+    eventsource-parser: "npm:1.1.2"
+    nanoid: "npm:3.3.6"
+    secure-json-parse: "npm:2.7.0"
+  peerDependencies:
+    zod: ^3.0.0
+  peerDependenciesMeta:
+    zod:
+      optional: true
+  checksum: 10c0/6afccfa38678fcc1a3b94e41cb74c05cf947da252a4a95e23629c6b42ad23cec9ab71d5fe63b1f6ccf508d1d2cff174bf48d96e34aaa2f22f12b8cf4b851d2c4
+  languageName: node
+  linkType: hard
+
+"@ai-sdk/provider@npm:0.0.0":
+  version: 0.0.0
+  resolution: "@ai-sdk/provider@npm:0.0.0"
+  dependencies:
+    json-schema: "npm:0.4.0"
+  checksum: 10c0/39afef2de30d244e6b7244825ef3328857d87738c5623edae003f7f6d350c6f75b2592cd03125471ed730007fc24b226bab94d2b38cc33a01be72219ef063858
+  languageName: node
+  linkType: hard
+
 "@babel/code-frame@npm:^7.0.0":
   version: 7.23.5
   resolution: "@babel/code-frame@npm:7.23.5"
@@ -1421,12 +1447,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ai@npm:^3.0.15":
-  version: 3.0.15
-  resolution: "ai@npm:3.0.15"
+"ai@npm:^3.0.22":
+  version: 3.0.22
+  resolution: "ai@npm:3.0.22"
   dependencies:
+    "@ai-sdk/provider": "npm:0.0.0"
+    "@ai-sdk/provider-utils": "npm:0.0.0"
     eventsource-parser: "npm:1.1.2"
-    jsondiffpatch: "npm:^0.6.0"
+    json-schema: "npm:0.4.0"
+    jsondiffpatch: "npm:0.6.0"
     nanoid: "npm:3.3.6"
     secure-json-parse: "npm:2.7.0"
     solid-swr-store: "npm:0.10.7"
@@ -1434,7 +1463,7 @@ __metadata:
     swr: "npm:2.2.0"
     swr-store: "npm:0.10.6"
     swrv: "npm:1.0.4"
-    zod-to-json-schema: "npm:^3.22.4"
+    zod-to-json-schema: "npm:3.22.5"
   peerDependencies:
     react: ^18.2.0
     solid-js: ^1.7.7
@@ -1452,7 +1481,7 @@ __metadata:
       optional: true
     zod:
       optional: true
-  checksum: 10c0/554f6b9caeca5b96e26733da32146e61a08bb3b1000cf582a8f70f579f82a820855596dd26aa73f3f06f92e8cfc18b1cdac19974f47a3c41380389eabfc5e6d0
+  checksum: 10c0/f223c55d56c3b9a863d27345dd95cb8026a428be6e3b92ca3b5e59cc18d315448ddb56d294a644451a997832050b5d230b7d32c29416724382f29c63db7cf61d
   languageName: node
   linkType: hard
 
@@ -1968,7 +1997,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": "npm:^6.14.0"
     "@typescript-eslint/parser": "npm:^6.14.0"
     "@vitejs/plugin-react-swc": "npm:^3.5.0"
-    ai: "npm:^3.0.15"
+    ai: "npm:^3.0.22"
     autoprefixer: "npm:^10.4.17"
     clsx: "npm:^2.1.0"
     copy-to-clipboard: "npm:^3.3.3"
@@ -2952,6 +2981,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"json-schema@npm:0.4.0":
+  version: 0.4.0
+  resolution: "json-schema@npm:0.4.0"
+  checksum: 10c0/d4a637ec1d83544857c1c163232f3da46912e971d5bf054ba44fdb88f07d8d359a462b4aec46f2745efbc57053365608d88bc1d7b1729f7b4fc3369765639ed3
+  languageName: node
+  linkType: hard
+
 "json-stable-stringify-without-jsonify@npm:^1.0.1":
   version: 1.0.1
   resolution: "json-stable-stringify-without-jsonify@npm:1.0.1"
@@ -2959,7 +2995,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsondiffpatch@npm:^0.6.0":
+"jsondiffpatch@npm:0.6.0":
   version: 0.6.0
   resolution: "jsondiffpatch@npm:0.6.0"
   dependencies:
@@ -5116,7 +5152,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"zod-to-json-schema@npm:^3.22.4":
+"zod-to-json-schema@npm:3.22.5":
   version: 3.22.5
   resolution: "zod-to-json-schema@npm:3.22.5"
   peerDependencies:

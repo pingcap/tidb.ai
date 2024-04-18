@@ -13,12 +13,16 @@ import * as util from "node:util";
 
 const messageAccessor = (data: any): ChatResponseChunk => {
   return {
+    raw: null,
     delta: data.message.content,
   };
 };
 
 const completionAccessor = (data: any): CompletionResponse => {
-  return { text: data.response };
+  return {
+    raw: null,
+    text: data.response
+  };
 };
 
 export type BitdeerModel = "llama2" | "mistral";

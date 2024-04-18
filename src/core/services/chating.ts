@@ -1,6 +1,7 @@
-import { AppIndexBaseService } from '@/core/services/base';
-import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrieveRel, getChatByUrlKey, listChatMessages, updateChatMessage } from '@/core/repositories/chat';
 import { tx } from '@/core/db';
+import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrieveRel, getChatByUrlKey, listChatMessages, updateChatMessage } from '@/core/repositories/chat';
+import { AppIndexBaseService } from '@/core/services/base';
+import { AppChatStream, type AppChatStreamSource, AppChatStreamState } from '@/lib/ai/AppChatStream';
 import { AUTH_FORBIDDEN_ERROR, getErrorMessage } from '@/lib/errors';
 import { notFound } from 'next/navigation';
 
@@ -10,16 +11,47 @@ export type ChatOptions = {
   history: ChatMessage[]
 }
 
-export type ChatResponse = {
-  status: 'retrieving' | 'generating' | 'finished'
-  content: string
-  sources: { title: string, uri: string }[]
-  retrieveId?: number
+// TODO: split into different type of events?
+export type ChatStreamEvent = {
+  status: AppChatStreamState;
+  statusMessage: string;
+  sources: AppChatStreamSource[];
+  content: string;
+  retrieveId?: number;
+  error?: unknown;
 }
 
 export abstract class AppChatService extends AppIndexBaseService {
+
   async chat (sessionId: string, userId: string, userInput: string) {
-    const { chat, history } = await tx(async () => {
+    const { chat, history } = await this.getSessionInfo(sessionId, userId);
+    const message = await this.startChat(chat, history, userInput);
+
+    return new AppChatStream(sessionId, async controller => {
+      try {
+        let content = '';
+        let retrieveIds = new Set<number>();
+        for await (const chunk of this.run(chat, { userInput, history, userId })) {
+          controller.appendText(chunk.content, chunk.status === AppChatStreamState.CREATING /* force send an empty text chunk first, to avoid a dependency BUG */);
+          controller.setChatState(chunk.status, chunk.statusMessage);
+          controller.setSources(chunk.sources);
+          content += chunk.content;
+          if (chunk.retrieveId) {
+            retrieveIds.add(chunk.retrieveId);
+          }
+        }
+        controller.setChatState(AppChatStreamState.FINISHED);
+        await this.finishChat(message, content, retrieveIds);
+      } catch (error) {
+        controller.setChatState(AppChatStreamState.ERROR, getErrorMessage(error));
+        await this.terminateChat(message, error);
+        return Promise.reject(error);
+      }
+    });
+  }
+
+  private async getSessionInfo (sessionId: string, userId: string) {
+    return await tx(async () => {
       const chat = await getChatByUrlKey(sessionId);
 
       if (!chat) {
@@ -31,12 +63,13 @@ export abstract class AppChatService extends AppIndexBaseService {
       }
 
       const history = await listChatMessages(chat.id);
-      return {
-        chat, history,
-      };
-    });
 
-    const message = await tx(async () => {
+      return { chat, history };
+    });
+  }
+
+  private async startChat (chat: Chat, history: ChatMessage[], userInput: string) {
+    return await tx(async () => {
       await createChatMessage({
         role: 'user',
         chat_id: chat.id,
@@ -56,58 +89,31 @@ export abstract class AppChatService extends AppIndexBaseService {
         options: JSON.stringify({}),
       });
     });
-
-    const response = trackAsyncGenerator(
-      () => this.run(chat, { userInput, history, userId }),
-      async results => {
-        await updateChatMessage(message.id, {
-          content: results.map(result => result.content).join(''),
-          finished_at: new Date(),
-          status: 'SUCCEED',
-        });
-        const retrieves = results
-          .map(result => result.retrieveId)
-          .filter((id: number | undefined): id is number => typeof id === 'number')
-          .reduce((set, id) => set.add(id), new Set<number>());
-        for (let retrieve of retrieves) {
-          await createChatMessageRetrieveRel({
-            chat_message_id: message.id,
-            retrieve_id: retrieve,
-            info: JSON.stringify({}), // TODO: what use?
-          });
-        }
-      },
-      async err => {
-        await updateChatMessage(message.id, {
-          finished_at: new Date(),
-          error_message: getErrorMessage(err),
-          status: 'FAILED',
-        });
-      });
-
-    return {
-      session_id: chat.url_key,
-      message_ordinal: history.length + 1,
-      response,
-    };
   }
 
-  protected abstract run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatResponse>;
-
-}
-
-function trackAsyncGenerator<T> (generator: () => AsyncGenerator<T>, onFinish: (results: T[]) => Promise<void>, onFailed: (reason: unknown) => Promise<void>) {
-  return async function* () {
-    try {
-      const results: T[] = [];
-      for await (let item of generator()) {
-        yield item;
-        results.push(item);
-      }
-      await onFinish(results);
-    } catch (e) {
-      await onFailed(e);
-      throw e;
+  private async finishChat (message: ChatMessage, content: string, retrieveIds: Iterable<number>) {
+    await updateChatMessage(message.id, {
+      content,
+      finished_at: new Date(),
+      status: 'SUCCEED',
+    });
+    for (let retrieve of retrieveIds) {
+      await createChatMessageRetrieveRel({
+        chat_message_id: message.id,
+        retrieve_id: retrieve,
+        info: JSON.stringify({}), // TODO: what use?
+      });
     }
-  }();
+  }
+
+  private async terminateChat (message: ChatMessage, error: unknown) {
+    await updateChatMessage(message.id, {
+      finished_at: new Date(),
+      error_message: getErrorMessage(error),
+      status: 'FAILED',
+    });
+  }
+
+  protected abstract run (chat: Chat, options: ChatOptions): AsyncIterable<ChatStreamEvent>;
 }
+

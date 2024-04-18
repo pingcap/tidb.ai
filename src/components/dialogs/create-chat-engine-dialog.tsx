@@ -121,7 +121,7 @@ export function ChatEngineFields () {
         name="engine_options.reranker.config.model"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Reranker Provider</FormLabel>
+            <FormLabel>Reranker Model</FormLabel>
             <FormControl>
               <Input {...field} />
             </FormControl>
@@ -143,7 +143,7 @@ export function ChatEngineFields () {
         name="engine_options.llm.config.model"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>LLM Provider</FormLabel>
+            <FormLabel>LLM Model</FormLabel>
             <FormControl>
               <Input {...field} />
             </FormControl>

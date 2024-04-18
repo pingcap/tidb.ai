@@ -19,6 +19,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
 
     const queryEmbedding = await this.embedQuery(text);
 
+    this.emit('start-search', retrieve.id, text);
     await this.startSearch(retrieve);
 
     console.log(`Start embedding searching for query "${text}".`, { top_k })
@@ -38,6 +39,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
       return chunks.slice(0, top_k);
     }
 
+    this.emit('start-rerank', retrieve.id, chunks);
     await this.startRerank(retrieve);
 
     console.log(`Start reranking for query "${text}".`, { top_k });
@@ -48,36 +50,6 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     console.log(`Finish reranking, take ${rerankDuration} ms.`);
 
     return rerankedResult;
-  }
-
-  asRetriever (options: Omit<RetrieveOptions, 'text'>, serviceContext: ServiceContext, callbacks: RetrieveCallbacks): BaseRetriever {
-    const retrieveService = this;
-
-    return new class implements BaseRetriever {
-      async retrieve (params: RetrieveParams): Promise<NodeWithScore[]> {
-        const chunks = await retrieveService.retrieve({ ...options, text: params.query }, callbacks);
-
-        const detaildChunks = await retrieveService.extendResultDetails(chunks);
-
-        return detaildChunks.map(chunk => {
-          return {
-            node: new TextNode({
-              id_: chunk.document_chunk_node_id,
-              text: chunk.text,
-              metadata: chunk.metadata,
-              relationships: Object.fromEntries(Object.entries(chunk.relationships).map(([k, v]) => {
-                return [k, { nodeId: v.chunk_node_id, metadata: v.metadata } satisfies RelatedNodeInfo];
-              })),
-            }),
-            score: chunk.relevance_score,
-          };
-        });
-      }
-
-      getServiceContext () {
-        return serviceContext;
-      }
-    };
   }
 
   private async search (queryEmbedding: number[], top_k: number) {

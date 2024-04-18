@@ -1,4 +1,4 @@
-import type {ChatResponse} from "@/core/services/chating";
+import type {ChatStreamEvent} from "@/core/services/chating";
 import {getLLM} from "@/lib/llamaindex/converters/llm";
 import {baseRegistry} from "@/rag-spec/base";
 import {getFlow} from "@/rag-spec/createFlow";

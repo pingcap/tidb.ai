@@ -16,7 +16,7 @@
     "@mui/base": "^5.0.0-beta.33",
     "@mui/material": "^5.15.7",
     "@mui/system": "^5.15.6",
-    "ai": "^3.0.15",
+    "ai": "^3.0.22",
     "clsx": "^2.1.0",
     "copy-to-clipboard": "^3.3.3",
     "react": "^18.2.0",
