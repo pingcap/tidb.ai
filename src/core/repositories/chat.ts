@@ -19,12 +19,12 @@ export async function getChatByUrlKey (key: string) {
   return await getDb().selectFrom('chat').selectAll().where('url_key', '=', key).executeTakeFirst();
 }
 
-export async function deleteChat (id: number, by: string) {
+export async function deleteChat (key: string, by: string) {
   await getDb()
     .updateTable('chat')
     .set('deleted_by', by)
     .set('deleted_at', new Date())
-    .where('id', '=', id)
+    .where('url_key', '=', key)
     .execute();
 }
 

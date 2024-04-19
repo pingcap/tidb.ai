@@ -1,25 +1,25 @@
-import { deleteChat, getChat } from '@/core/repositories/chat';
-import {defineHandler} from "@/lib/next/handler";
+import { deleteChat, getChatByUrlKey } from '@/core/repositories/chat';
+import { defineHandler } from '@/lib/next/handler';
 import { NextResponse } from 'next/server';
-import {z} from "zod";
+import { z } from 'zod';
 
 const paramsSchema = z.object({
-  id: z.coerce.number().int(),
+  key: z.string(),
 });
 
 export const GET = defineHandler({
   auth: 'anonymous',
   params: paramsSchema,
-}, async ({ params: { id } }) => {
-  return await getChat(id);
+}, async ({ params: { key } }) => {
+  return await getChatByUrlKey(key);
 });
 
 export const DELETE = defineHandler({
   auth: 'user',
   params: paramsSchema,
-},async ({ auth, params: { id } }) => {
+}, async ({ auth, params: { key } }) => {
   const user = auth.user;
-  const chat = await getChat(id);
+  const chat = await getChatByUrlKey(key);
 
   if (!chat) {
     return NextResponse.json({ message: 'Chat not found' }, { status: 404 });
@@ -32,7 +32,7 @@ export const DELETE = defineHandler({
     }
   }
 
-  await deleteChat(id, user.id || 'unknown');
+  await deleteChat(key, user.id || 'unknown');
 
   return new NextResponse(null, { status: 204 });
 });

@@ -52,7 +52,7 @@ export default function Page () {
               <AlertDialogCancel>Cancel</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
-                  deleteChat(Number(row.original.id))
+                  deleteChat(row.original.url_key)
                     .then(() => {
                       setTs(Date.now());
                     });

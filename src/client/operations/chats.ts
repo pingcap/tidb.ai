@@ -2,9 +2,8 @@ import { getErrorMessage } from '@/lib/errors';
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 
-// TODO: using unique string ID instead of number ID
-export const deleteChat = withToast(async (id: number) => {
-  await fetch(`/api/v1/chats/${id}`, {
+export const deleteChat = withToast(async (key: string) => {
+  await fetch(`/api/v1/chats/${key}`, {
     method: 'DELETE',
   })
     .then(handleErrors);
