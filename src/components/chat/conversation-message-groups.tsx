@@ -12,8 +12,9 @@ import { getErrorMessage } from '@/lib/errors';
 import { AlertTriangleIcon } from 'lucide-react';
 
 export function ConversationMessageGroups ({ history }: { history: ChatMessage[] }) {
-  const { error, messages, isLoading, isWaiting } = useMyChatContext();
+  const { error, messages, isLoading, isWaiting, useSubscribeMessages } = useMyChatContext();
   const groups = useGroupedConversationMessages(history, messages, isLoading || isWaiting, error);
+  useSubscribeMessages();
 
   return (
     <div className="space-y-8">

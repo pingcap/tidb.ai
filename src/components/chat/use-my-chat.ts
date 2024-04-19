@@ -6,12 +6,11 @@ import { useChat } from 'ai/react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 
-export function useMyChat (history: ChatMessage[], context: { ordinal: number, title: string, uri: string }[]) {
-  const params = useParams<{ id: string }>();
+export function useMyChat (history: ChatMessage[], context: { ordinal: number, title: string, uri: string }[], open: boolean) {
+  const { id: session } = useParams<{ id: string }>();
   const pathname = usePathname();
 
   const [isWaiting, setWaiting] = useState(false);
-  const [session, setSession] = useState<string | undefined>(() => params.id && decodeURIComponent(params.id));
   const router = useRouter();
 
   useEffect(() => {
@@ -27,12 +26,9 @@ export function useMyChat (history: ChatMessage[], context: { ordinal: number, t
   }, [history, context]);
 
   const chat = useChat({
-    api: `/api/v1/chats/${params.id}/messages`,
-    body: {
-    },
-    key: session,
+    api: `/api/v1/chats/${session}/messages`,
     initialMessages,
-    onResponse: response => {
+    onResponse: () => {
       setWaiting(false);
     },
     onFinish: (message) => {
@@ -42,13 +38,21 @@ export function useMyChat (history: ChatMessage[], context: { ordinal: number, t
     },
   });
 
+  const useSubscribeMessages = () => {
+    const [_, setVersion] = useState(0);
+    useEffect(() => {
+      setVersion(version => version + 1);
+    }, [chat.messages]);
+  };
+
   __useHandleInitialMessage(chat, setWaiting);
 
   return {
     ...chat,
+    open,
     isWaiting,
+    useSubscribeMessages,
     handleSubmit: (e: FormEvent<HTMLFormElement>, chatRequestOptions?: ChatRequestOptions) => {
-      setWaiting(true);
       chat.handleSubmit(e, chatRequestOptions);
     },
     handleRegenerate: (messageId: string) => {

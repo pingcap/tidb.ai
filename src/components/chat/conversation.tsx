@@ -11,8 +11,8 @@ import { cn } from '@/lib/utils';
 import { type FormEvent, useContext } from 'react';
 
 export function Conversation ({ open, history, context }: { open: boolean, history: ChatMessage[], context: { ordinal: number, title: string, uri: string }[] }) {
-  const myChat = useMyChat(history, context);
-  const { handleInputChange, handleRegenerate, isWaiting, handleSubmit, input, isLoading, error, messages, reload } = myChat;
+  const myChat = useMyChat(history, context, open);
+  const { handleInputChange, handleSubmit, input, isLoading, error, messages, reload } = myChat;
   const { ref, size } = useSize();
 
   const security = useContext(SecuritySettingContext);

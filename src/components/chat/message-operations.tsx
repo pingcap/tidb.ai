@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ClipboardIcon, RefreshCwIcon, ShareIcon, ThumbsDown } from 'lucide-react';
 
 export function MessageOperations ({ group }: { group: ConversationMessageGroupProps }) {
-  const { handleRegenerate } = useMyChatContext();
+  const { handleRegenerate, open } = useMyChatContext();
   if (!group.finished) {
     return;
   }
@@ -14,7 +14,7 @@ export function MessageOperations ({ group }: { group: ConversationMessageGroupP
         <ShareIcon size="1em" />
         Share
       </Button>
-      <Button
+      {open && <Button
         size="sm"
         className="gap-1 text-xs px-2 py-1 h-max"
         variant="ghost"
@@ -22,7 +22,7 @@ export function MessageOperations ({ group }: { group: ConversationMessageGroupP
       >
         <RefreshCwIcon size="1em" />
         Regenerate
-      </Button>
+      </Button>}
       <Button size="icon" variant="ghost" className="ml-auto rounded-full w-7 h-7">
         <ThumbsDown className="w-4 h-4" />
       </Button>

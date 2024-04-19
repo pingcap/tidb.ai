@@ -14,12 +14,11 @@ export function __setMessage (msg: string) {
 export function __useHandleInitialMessage (chat: ReturnType<typeof useChat>, setWaiting: (waiting: boolean) => void) {
   useEffect(() => {
     if (internalState.message) {
-      chat.setMessages([
-        { id: 'good-question', content: internalState.message, role: 'user' },
-      ]);
-      internalState.message = '';
       setWaiting(true);
-      chat.reload().finally(() => setWaiting(false));
+      chat
+        .append({ id: 'good-question', content: internalState.message, role: 'user' })
+        .finally(() => setWaiting(false));
+      internalState.message = '';
     }
   });
 }
