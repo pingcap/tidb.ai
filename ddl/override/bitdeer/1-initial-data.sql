@@ -23,8 +23,7 @@ INSERT INTO `index` (id, name, config) VALUES (1, 'default', '{
     "llm": {
         "provider": "bitdeer",
         "config": {
-            "model": "mistral",
-            "stream": false
+            "model": "mistral"
         }
     },
     "embedding": {
@@ -77,8 +76,7 @@ SET engine_options = JSON_MERGE_PATCH(engine_options, '{
     "llm": {
         "provider": "bitdeer",
         "config": {
-            "model": "mistral",
-            "stream": false
+            "model": "mistral"
         }
     },
     "prompts":{
