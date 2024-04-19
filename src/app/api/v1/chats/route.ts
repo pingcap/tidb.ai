@@ -64,5 +64,4 @@ async function getChatEngineConfig (engineConfigId?: number): Promise<[string, C
   }
 }
 
-export const maxDuration = 60;
 export type { CreateChatRequest };
