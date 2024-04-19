@@ -1,6 +1,6 @@
 import { ChoiceSelectParserFunction, defaultParseChoiceSelectAnswerFn } from '@/lib/llamaindex/indices/utils';
 import { defaultChoiceSelectPrompt, PromptTemplate } from '@/lib/llamaindex/prompts/defaultPrompts';
-import { BaseNodePostprocessor, LLM, NodeWithScore, ServiceContext } from 'llamaindex';
+import { type BaseNode, BaseNodePostprocessor, LLM, MetadataMode, NodeWithScore, ServiceContext } from 'llamaindex';
 import { defaultFormatNodeBatchFn, NodeFormatterFunction } from 'llamaindex/indices/summary/utils';
 import { llmFromSettingsOrContext } from 'llamaindex/Settings';
 
@@ -8,6 +8,10 @@ type LLMRerankOptions = {
   llm?: LLM;
   choiceSelectPrompt?: PromptTemplate;
   choiceBatchSize?: number;
+  includeMetadata?: boolean;
+  /**
+   * @deprecated
+   */
   formatNodeBatchFn?: NodeFormatterFunction;
   parseChoiceSelectAnswerFn?: ChoiceSelectParserFunction;
   serviceContext?: ServiceContext;
@@ -28,7 +32,8 @@ export class LLMRerank implements BaseNodePostprocessor {
    * @param llm LLM model to use.
    * @param choiceSelectPrompt Prompt to use for choice selection.
    * @param choiceBatchSize Number of choices to show at a time.
-   * @param formatNodeBatchFn Function to format a batch of nodes.
+   * @param includeMetadata Include metadata when reranking. Default false.
+   * @param formatNodeBatchFn Function to format a batch of nodes. (Will override `includeMetadata`.)
    * @param parseChoiceSelectAnswerFn Function to parse the choice selection answer.
    * @param serviceContext Service context.
    * @param topN Number of nodes to return.
@@ -37,6 +42,7 @@ export class LLMRerank implements BaseNodePostprocessor {
     llm,
     choiceSelectPrompt,
     choiceBatchSize = 10,
+    includeMetadata = false,
     formatNodeBatchFn,
     parseChoiceSelectAnswerFn,
     serviceContext,
@@ -45,7 +51,7 @@ export class LLMRerank implements BaseNodePostprocessor {
     this.llm = llm ?? llmFromSettingsOrContext(serviceContext);
     this.choiceSelectPrompt = choiceSelectPrompt ?? defaultChoiceSelectPrompt;
     this.choiceBatchSize = choiceBatchSize;
-    this.formatNodeBatchFn = formatNodeBatchFn ?? defaultFormatNodeBatchFn;
+    this.formatNodeBatchFn = formatNodeBatchFn ?? (includeMetadata ? defaultFormatNodeBatchFn : formatNodeBatchFnWithoutMetadata);
     this.parseChoiceSelectAnswerFn = parseChoiceSelectAnswerFn ?? defaultParseChoiceSelectAnswerFn;
     this.topN = topN;
   }
@@ -115,3 +121,12 @@ async function executeInPartition<Job, Result> (jobs: Job[], batchSize: number, 
 
   return await Promise.all(partitions.map(partition => processor(partition)));
 }
+
+const formatNodeBatchFnWithoutMetadata = (summaryNodes: BaseNode[]) => {
+  return summaryNodes.map((node, idx) => {
+    return `
+Document ${idx + 1}:
+${node.getContent(MetadataMode.NONE)}
+        `.trim();
+  }).join('\n\n');
+};
