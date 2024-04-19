@@ -69,6 +69,7 @@
     "next": "14.2.1",
     "next-auth": "5.0.0-beta.5",
     "openai": "^4.25.0",
+    "path-to-regexp": "^6.2.2",
     "pdfjs-dist": "^4.0.379",
     "react": "^18",
     "react-day-picker": "^8.10.0",
