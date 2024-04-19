@@ -1,15 +1,17 @@
-import * as React from 'react';
-import { styled, css } from '@mui/system';
+import { css, styled } from '@mui/system';
+import { type ChatRequestOptions, Message } from 'ai';
 import { useChat } from 'ai/react';
-import { withReCaptcha } from '../../lib/withCaptcha.ts';
-
-import { ChatItem, ChatItemLoading, ExampleQuestions } from './ChatItem';
-import { ChatActionBar, ChatItemActionBar } from './ChatActionBar';
-import ChatInput, { StyledChatMutedText } from './Input';
-import { useLocalCreateRAGSessionId, useRemoteAuth } from '../../lib/hook';
-import { MDLightCss, MDDarkCss } from '../../theme/md';
-import { themeClassPrefix } from '../../theme';
+import * as React from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CfgContext } from '../../context';
+import { useChatSession } from '../../lib/chat.ts';
+import { withReCaptcha } from '../../lib/withCaptcha.ts';
+import { themeClassPrefix } from '../../theme';
+import { MDDarkCss, MDLightCss } from '../../theme/md';
+import { ChatActionBar, ChatItemActionBar } from './ChatActionBar';
+
+import { ChatItem, ChatItemError, ChatItemLoading, ExampleQuestions, getChatMessageAnnotations } from './ChatItem';
+import ChatInput, { StyledChatMutedText } from './Input';
 
 declare module 'ai/react' {
   interface Message {
@@ -17,7 +19,7 @@ declare module 'ai/react' {
   }
 }
 
-export default function ChatContainer(props: {
+export default function ChatContainer (props: {
   exampleQuestions: string[];
   inputPlaceholder?: string;
   siteKey?: string;
@@ -30,69 +32,96 @@ export default function ChatContainer(props: {
     securityMode,
   } = props;
 
-  const { session, setSession } = useLocalCreateRAGSessionId();
+  const { session, create } = useChatSession();
   // const contextRef = React.useRef<string[]>([]);
 
   const cfg = React.useContext(CfgContext);
+  const [submitting, setSubmitting] = useState(false);
 
-  // TODO: useRemoteAuth
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  // const remotaAuthData = useRemoteAuth();
-  useRemoteAuth(cfg);
-
+  const chat = useChat({
+    api: cfg.baseUrl + `/api/v1/chats/${session}/messages`,
+    credentials: 'include',
+  });
   const {
     messages,
     input,
     handleInputChange,
-    handleSubmit,
     isLoading,
     stop,
-    reload,
-    append,
-  } = useChat({
-    api: cfg.baseUrl + '/api/v1/chats',
-    credentials: 'include',
-    body: {
-      ...(session && { sessionID: session }),
-    },
-    onResponse: (response) => {
-      if (session !== response.headers.get('X-CreateRag-Session')) {
-        setSession(response.headers.get('X-CreateRag-Session') ?? undefined);
-      }
-    },
+    error,
+  } = chat;
+
+  const chatRef = useRef(chat);
+  useEffect(() => {
+    chatRef.current = chat;
   });
 
+  const __chat = (text: string, options?: ChatRequestOptions) => {
+    chatRef.current.setInput('');
+    return create(text)
+      .then(() => {
+        setTimeout(() => {
+          void chatRef.current.append({
+            role: 'user',
+            content: text,
+            createdAt: new Date(),
+          }, options);
+        }, 0);
+      });
+  };
+
   const appendText = (text: string) => {
-    append({
-      role: 'user',
-      content: text,
-      createdAt: new Date(),
+    setSubmitting(true);
+    __chat(text).finally(() => {
+      setSubmitting(false);
     });
   };
 
-  const handleSubmitWithReCaptcha = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmitWithReCaptcha = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (!siteKey) {
-      return handleSubmit(e);
-    }
-    withReCaptcha(
-      {
-        action: 'submit',
-        siteKey: siteKey || '',
-        mode: securityMode,
-      },
-      ({ token, action }) => {
-        handleSubmit(e, {
-          options: {
-            headers: {
-              'X-Recaptcha-Token': token,
-              'X-Recaptcha-Action': action,
-            },
+    setSubmitting(true);
+    try {
+      if (!siteKey) {
+        await __chat(chatRef.current.input);
+      } else {
+        await withReCaptcha(
+          {
+            action: 'submit',
+            siteKey: siteKey || '',
+            mode: securityMode,
           },
-        });
+          async ({ token, action }) => {
+            await __chat(chatRef.current.input, {
+              options: {
+                headers: {
+                  'X-Recaptcha-Token': token,
+                  'X-Recaptcha-Action': action,
+                },
+              },
+            });
+          },
+        );
       }
-    );
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const regenerate = (m: Message) => {
+    void chatRef.current.reload({ options: { body: { regenerate: true, messageId: getChatMessageAnnotations(m.annotations ?? [] as any).messageId } } });
+    chatRef.current.setMessages(chatRef.current.messages.slice(0, -1));
+  };
+
+  const [streamError, setStreamError] = useState<string>();
+  const annotation = useMemo(() => {
+    return getChatMessageAnnotations(messages[messages.length - 1]?.annotations ?? [] as any);
+  }, [messages[messages.length - 1]?.annotations]);
+
+  useEffect(() => {
+    if (annotation.state === 'ERROR') {
+      setStreamError(annotation.stateMessage ?? 'Unknown error');
+    }
+  }, [annotation.state, annotation.stateMessage]);
 
   return (
     <>
@@ -103,21 +132,19 @@ export default function ChatContainer(props: {
           sx={{
             flexDirection: 'column-reverse',
           }}
-          className='Conversation-Message-List'
+          className="Conversation-Message-List"
         >
-          {messages.length === 0 && exampleQuestions.length > 0 && (
+          {!session && !submitting && exampleQuestions.length > 0 && (
             <ExampleQuestions
               appendText={appendText}
               items={exampleQuestions}
             />
           )}
-          {isLoading && <ChatItemLoading annotations={messages[messages.length - 1]?.annotations ?? [] as any} />}
-          {messages
-            .sort((a, b) => {
-              const aTime = new Date(a.createdAt || 0).getTime();
-              const bTime = new Date(b.createdAt || 0).getTime();
-              return bTime - aTime;
-            })
+          {(isLoading || submitting) && <ChatItemLoading annotation={annotation} />}
+          {streamError && <ChatItemError error={streamError} />}
+          {error && <ChatItemError error={error.message} />}
+          {[...messages]
+            .reverse()
             .map((m, idx) => {
               const showAction = idx === 0 ? !isLoading : m.role !== 'user';
               return (
@@ -128,7 +155,7 @@ export default function ChatContainer(props: {
                   Action={
                     showAction ? (
                       <ChatItemActionBar
-                        handleReload={idx === 0 ? reload : undefined}
+                        handleReload={idx === 0 ? () => regenerate(m) : undefined}
                         content={m.content}
                         className={
                           themeClassPrefix + 'Conversation-Message-Action'
@@ -148,23 +175,23 @@ export default function ChatContainer(props: {
               );
             })}
           {/* <ChatItem
-            role='bot'
-            className={themeClassPrefix + 'Conversation-Message'}
-            contentSx={{
-              p: '1rem',
-              backgroundColor: (theme) => theme.palette.muted,
-              borderRadius: (theme) => theme.shape.borderRadius,
-              fontSize: '0.875rem',
-            }}
-            wrapperSx={{
-              border: 'none',
-            }}
-          >
-            {WidgetCodeMock}
-          </ChatItem> */}
+           role='bot'
+           className={themeClassPrefix + 'Conversation-Message'}
+           contentSx={{
+           p: '1rem',
+           backgroundColor: (theme) => theme.palette.muted,
+           borderRadius: (theme) => theme.shape.borderRadius,
+           fontSize: '0.875rem',
+           }}
+           wrapperSx={{
+           border: 'none',
+           }}
+           >
+           {WidgetCodeMock}
+           </ChatItem> */}
         </StyledChatWrapper>
         <div>
-          {messages?.length > 0 && isLoading && (
+          {session && isLoading && (
             <ChatActionBar
               className={themeClassPrefix + 'Conversation-Action'}
               handleStop={stop}
@@ -175,14 +202,14 @@ export default function ChatContainer(props: {
               className={themeClassPrefix + 'Conversation-Input'}
               value={input}
               onChange={handleInputChange}
-              isLoading={isLoading}
+              isLoading={submitting || isLoading}
               placeholder={inputPlaceholder}
             />
           </form>
           <StyledChatMutedTextGroup>
             <StyledChatMutedText>
               {`Powered by `}
-              <a href='https://tidb.ai' target='_blank' rel='noreferrer'>
+              <a href="https://tidb.ai" target="_blank" rel="noreferrer">
                 TiDB.ai
               </a>
             </StyledChatMutedText>
@@ -194,17 +221,17 @@ export default function ChatContainer(props: {
             >
               {`protected by reCAPTCHA (`}
               <a
-                href='https://policies.google.com/privacy'
-                target='_blank'
-                rel='noreferrer'
+                href="https://policies.google.com/privacy"
+                target="_blank"
+                rel="noreferrer"
               >
                 {`Privacy`}
               </a>
               {` - `}
               <a
-                href='https://policies.google.com/terms'
-                target='_blank'
-                rel='noreferrer'
+                href="https://policies.google.com/terms"
+                target="_blank"
+                rel="noreferrer"
               >
                 {`Terms`}
               </a>
@@ -241,7 +268,7 @@ const StyledChatContainer = styled('div')(({ theme }) =>
     flexDirection: 'column',
     height: 'calc(100% - 40px)',
     backgroundColor: theme.palette.background,
-  })
+  }),
 );
 
 const StyledChatWrapper = styled('div')(({ theme }) =>
@@ -265,8 +292,8 @@ const StyledChatWrapper = styled('div')(({ theme }) =>
         borderRadius: theme.shape.borderRadius,
       },
     },
-    theme.palette.mode === 'dark' ? MDDarkCss : MDLightCss
-  )
+    theme.palette.mode === 'dark' ? MDDarkCss : MDLightCss,
+  ),
 );
 
 const StyledChatMutedTextGroup = styled('div')(({ theme }) => {

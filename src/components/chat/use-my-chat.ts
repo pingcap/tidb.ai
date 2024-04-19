@@ -27,17 +27,13 @@ export function useMyChat (history: ChatMessage[], context: { ordinal: number, t
   }, [history, context]);
 
   const chat = useChat({
-    api: '/api/v1/chats',
+    api: `/api/v1/chats/${params.id}/messages`,
     body: {
-      sessionId: session,
-      // TODO: Support specifying namespaces manually.
-      namespaces: [],
     },
     key: session,
     initialMessages,
     onResponse: response => {
       setWaiting(false);
-      setSession(response.headers.get('X-CreateRag-Session') ?? undefined);
     },
     onFinish: (message) => {
       if (message.role !== 'assistant') {

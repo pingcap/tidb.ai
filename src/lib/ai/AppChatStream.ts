@@ -37,13 +37,7 @@ export class AppChatStream extends ReadableStream<StreamString> {
   }
 
   toResponse (): Response {
-    return new StreamingTextResponse(
-      this,
-      {
-        headers: {
-          'X-CreateRag-Session': this.sessionId,
-        },
-      });
+    return new StreamingTextResponse(this, {});
   }
 }
 

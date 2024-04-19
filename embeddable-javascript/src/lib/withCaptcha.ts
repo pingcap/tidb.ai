@@ -1,4 +1,3 @@
-
 declare const grecaptcha: {
   ready: (cb: () => void) => void;
   execute: (siteKey: string, options: { action: string }) => Promise<string>;
@@ -8,13 +7,13 @@ declare const grecaptcha: {
   };
 };
 
-export async function withReCaptcha(
+export function withReCaptcha<T> (
   options: {
     action: string;
     siteKey: string;
     mode?: 'v3' | 'enterprise';
   },
-  func: (data: { action: string; siteKey: string; token: string }) => void
+  func: (data: { action: string; siteKey: string; token: string }) => Promise<T>,
 ) {
   const { action, siteKey } = options;
   // skip if no siteKey
@@ -22,14 +21,20 @@ export async function withReCaptcha(
     return func({ action, siteKey, token: '' });
   }
   if (options.mode === 'v3') {
-    grecaptcha.ready(async () => {
-      const token = await grecaptcha.execute(siteKey, { action });
-      func({ action, siteKey, token });
+    return new Promise<T>(resolve => {
+      grecaptcha.ready(async () => {
+        const token = await grecaptcha.execute(siteKey, { action });
+        resolve(func({ action, siteKey, token }));
+      });
     });
   } else if (options.mode === 'enterprise') {
-    grecaptcha.enterprise.ready(async () => {
-      const token = await grecaptcha.enterprise.execute(siteKey, { action });
-      func({ action, siteKey, token });
+    return new Promise<T>(resolve => {
+      grecaptcha.enterprise.ready(async () => {
+        const token = await grecaptcha.enterprise.execute(siteKey, { action });
+        resolve(func({ action, siteKey, token }));
+      });
     });
+  } else {
+    return Promise.reject('Unknown grecaptcha mode');
   }
 }

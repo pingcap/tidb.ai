@@ -1,12 +1,11 @@
 import { __setMessage } from '@/app/(main)/(public)/c/[id]/internal';
-import { handleErrors } from '@/lib/fetch';
+import { createChat } from '@/client/operations/chats';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { useCallback, useState, useTransition } from 'react';
-import { mutate } from 'swr'
+import { mutate } from 'swr';
 
-export function useAsk(onFinish?: () => void) {
-  const session = useSession();
+export function useAsk (onFinish?: () => void) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [transitioning, startTransition] = useTransition();
@@ -17,21 +16,15 @@ export function useAsk(onFinish?: () => void) {
   }) => {
     startTransition(() => {
       setLoading(true);
-      fetch('/api/v1/chats', {
-        method: 'post',
-        body: JSON.stringify({
-          messages: [],
-          name: message,
-          engine: options?.engine,
-        }),
-        headers: {...options?.headers},
-      }).then(handleErrors)
-        .then(res => res.json())
-        .then(res => {
+      createChat({
+        name: message,
+        engine: options?.engine,
+      })
+        .then(chat => {
           __setMessage(message);
           startTransition(() => {
-            onFinish?.()
-            router.push(`/c/${encodeURIComponent(res.url_key)}`);
+            onFinish?.();
+            router.push(`/c/${encodeURIComponent(chat.url_key)}`);
           });
         })
         .finally(() => {

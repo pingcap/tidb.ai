@@ -76,6 +76,13 @@ export async function getIndexByNameOrThrow(name: string): Promise<Index> {
   return index;
 }
 
+export async function getIndexByOptionalId (id: number | undefined) {
+  if (!id) {
+    return await getIndexByName('default');
+  }
+  return await getIndex(id);
+}
+
 export async function createIndex ({ config, ...create }: CreateIndex) {
   await getDb()
     .insertInto('index')

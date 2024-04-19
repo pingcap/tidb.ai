@@ -77,17 +77,19 @@ export function useGroupedConversationMessages (history: ChatMessage[], messages
       });
     }
 
-    if (isLoading) {
-      const group = groups[groups.length - 1];
-      group.finished = false;
+    if (groups.length > 0) {
+      if (isLoading) {
+        const group = groups[groups.length - 1];
+        group.finished = false;
 
-      if (!group.assistantAnnotation.state) {
-        group.assistantAnnotation.state = 'CONNECTING' as AppChatStreamState;
+        if (!group.assistantAnnotation.state) {
+          group.assistantAnnotation.state = 'CONNECTING' as AppChatStreamState;
+        }
       }
-    }
 
-    if (error) {
-      groups[groups.length - 1].finished = true;
+      if (error) {
+        groups[groups.length - 1].finished = true;
+      }
     }
 
     return groups;

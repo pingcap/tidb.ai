@@ -1,3 +1,5 @@
+import { handleErrors } from './fetch.ts';
+
 const AUTH_SESSION_URL = '/api/auth/session';
 const AUTH_CSRF_URL = '/api/auth/csrfToken';
 const AUTH_CREATE_SESSION_URL = '/api/auth/callback/anonymous';
@@ -43,23 +45,4 @@ export async function authenticate (baseURL: string) {
     return session;
   }
   return session;
-}
-
-async function handleErrors (input: Promise<Response> | Response) {
-  const response = await input;
-  if (!response.ok && response.type !== 'opaqueredirect') {
-    const reason = response.clone().json()
-      .then(JSON.stringify)
-      .catch(() => response.clone().text())
-      .catch(() => 'Empty response body]');
-    throw new FetchError(response.status, response.statusText, await reason);
-  }
-
-  return response;
-}
-
-class FetchError extends Error {
-  constructor (public readonly status: number, public readonly statusText: string, public readonly body: string) {
-    super(`${status} ${statusText}: ${body}`);
-  }
 }

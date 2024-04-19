@@ -80,7 +80,7 @@ export function Nav () {
               variant: (active: boolean) => (active ? 'secondary' : 'ghost'),
               className: conversationItemClassName,
               onDelete: isLoggedIn ? () => {
-                deleteChat(chat.id).then(() => mutate(undefined, { revalidate: true }));
+                deleteChat(chat.url_key).then(() => mutate(undefined, { revalidate: true }));
               } : undefined,
             }
           )) ?? []),

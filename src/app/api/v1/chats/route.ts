@@ -1,113 +1,18 @@
-import { type Chat, createChat, getChatByUrlKey, listChats } from '@/core/repositories/chat';
+import { createChat, listChats } from '@/core/repositories/chat';
 import { ChatEngineOptions, getChatEngine, getDefaultChatEngine } from '@/core/repositories/chat_engine';
-import { getIndexByNameOrThrow } from '@/core/repositories/index_';
-import { LlamaindexChatService } from '@/core/services/llamaindex/chating';
 import { toPageRequest } from '@/lib/database';
-import { CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR, CHAT_ENGINE_NOT_FOUND_ERROR } from '@/lib/errors';
+import { CHAT_ENGINE_NOT_FOUND_ERROR } from '@/lib/errors';
 import { defineHandler } from '@/lib/next/handler';
-import { baseRegistry } from '@/rag-spec/base';
-import { getFlow } from '@/rag-spec/createFlow';
-import { notFound } from 'next/navigation';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-const ChatRequest = z.object({
-  messages: z.object({
-    content: z.string(),
-    role: z.string(),
-  }).array(),
-  sessionId: z.string().optional(),
-  name: z.string().optional(),
+const CreateChatRequest = z.object({
+  name: z.string(),
   namespaces: z.string().array().optional(),
-  index: z.string().optional(),
   engine: z.number().int().optional(),
-  regenerate: z.boolean().optional(),
-  messageId: z.coerce.number().int().optional(),
 });
 
 const DEFAULT_CHAT_TITLE = 'Untitled';
-
-export const POST = defineHandler({
-  body: ChatRequest,
-  auth: 'anonymous',
-}, async ({
-  body,
-  auth,
-}) => {
-  const userId = auth.user.id!;
-  let {
-    index: indexName = 'default',
-    messages,
-  } = body;
-
-  const [engine, engineOptions] = await getChatEngineConfig(body.engine);
-
-  // TODO: need refactor, it is too complex now
-  // For chat page, create a chat and return the session ID (url_key) first.
-  const creatingChat = messages.length === 0;
-  if (creatingChat) {
-    if (body.sessionId) {
-      return CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR;
-    }
-
-    return await createChat({
-      engine,
-      engine_options: JSON.stringify(engineOptions),
-      created_at: new Date(),
-      created_by: userId,
-      title: body.name ?? DEFAULT_CHAT_TITLE,
-    });
-  }
-
-  // For Ask Widget.
-  let chat: Chat | undefined;
-  let sessionId = body.sessionId;
-  if (!sessionId) {
-    chat = await createChat({
-      engine,
-      engine_options: JSON.stringify(engineOptions),
-      created_at: new Date(),
-      created_by: userId,
-      title: body.name ?? body.messages.findLast(message => message.role === 'user')?.content ?? DEFAULT_CHAT_TITLE,
-    });
-    sessionId = chat.url_key;
-  } else {
-    chat = await getChatByUrlKey(sessionId);
-    if (!chat) {
-      notFound();
-    }
-  }
-
-  const index = await getIndexByNameOrThrow(indexName);
-  const flow = await getFlow(baseRegistry);
-  const chatService = new LlamaindexChatService({ flow, index });
-
-  if (body.regenerate) {
-    if (!body.messageId) {
-      throw new Error('Regenerate requires messageId');
-    }
-
-    await chatService.deleteHistoryFromMessage(chat, body.messageId);
-  }
-
-  const lastUserMessage = messages.findLast(m => m.role === 'user')?.content ?? '';
-  const chatStream = await chatService.chat(sessionId, userId, lastUserMessage, body.regenerate ?? false);
-
-  return chatStream.toResponse();
-});
-
-async function getChatEngineConfig (engineConfigId?: number): Promise<[string, ChatEngineOptions]> {
-  if (engineConfigId) {
-    const chatEngine = await getChatEngine(engineConfigId);
-    if (!chatEngine) {
-      throw CHAT_ENGINE_NOT_FOUND_ERROR.format(engineConfigId);
-    }
-    return [chatEngine.engine, chatEngine.engine_options];
-  } else {
-    const config = await getDefaultChatEngine();
-    return [config.engine, config.engine_options];
-  }
-}
 
 export const GET = defineHandler({
   auth: 'anonymous',
@@ -127,4 +32,37 @@ export const GET = defineHandler({
   return NextResponse.json(await listChats({ page, pageSize, userId }));
 });
 
+export const POST = defineHandler({
+  body: CreateChatRequest,
+  auth: 'anonymous',
+}, async ({
+  body,
+  auth,
+}) => {
+  const userId = auth.user.id!;
+  const [engine, engineOptions] = await getChatEngineConfig(body.engine);
+
+  return await createChat({
+    engine,
+    engine_options: JSON.stringify(engineOptions),
+    created_at: new Date(),
+    created_by: userId,
+    title: body.name ?? DEFAULT_CHAT_TITLE,
+  });
+});
+
+async function getChatEngineConfig (engineConfigId?: number): Promise<[string, ChatEngineOptions]> {
+  if (engineConfigId) {
+    const chatEngine = await getChatEngine(engineConfigId);
+    if (!chatEngine) {
+      throw CHAT_ENGINE_NOT_FOUND_ERROR.format(engineConfigId);
+    }
+    return [chatEngine.engine, chatEngine.engine_options];
+  } else {
+    const config = await getDefaultChatEngine();
+    return [config.engine, config.engine_options];
+  }
+}
+
 export const maxDuration = 60;
+export type { CreateChatRequest };

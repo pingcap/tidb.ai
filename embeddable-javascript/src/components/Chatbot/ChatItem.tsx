@@ -1,11 +1,11 @@
+import { css, styled, SxProps, Theme } from '@mui/system';
 import { LoaderIcon } from 'lucide-react';
-import { useContext, useMemo } from 'react';
 import * as React from 'react';
-import { styled, css, Theme, SxProps } from '@mui/system';
+import { useContext } from 'react';
 import { CfgContext } from '../../context';
+import { a11yDark, a11yLight } from '../../theme/code';
 
 import { MDMessage } from './Markdown';
-import { a11yDark, a11yLight } from '../../theme/code';
 
 export type AppChatStreamSource = { title: string, uri: string };
 
@@ -23,10 +23,10 @@ export type MyChatMessageAnnotation = {
   context?: AppChatStreamSource[],
   state?: AppChatStreamState,
   stateMessage?: string
+  messageId: number
 };
 
-
-export function ChatItem(props: {
+export function ChatItem (props: {
   role?: 'user' | 'bot';
   children: string;
   Action?: React.ReactNode;
@@ -55,15 +55,15 @@ export function ChatItem(props: {
         }}
       >
         {/* <StyledChatItemSpan
-          role={role}
-          sx={{
-            '&> p': {
-              margin: 0,
-            },
-          }}
-        >
-          <MDMessage>{children}</MDMessage>
-        </StyledChatItemSpan> */}
+         role={role}
+         sx={{
+         '&> p': {
+         margin: 0,
+         },
+         }}
+         >
+         <MDMessage>{children}</MDMessage>
+         </StyledChatItemSpan> */}
         {/* {dataItems && <ChatItemRelatedLinkCardWrapper items={dataItems} />} */}
         <MDMessage>{children}</MDMessage>
         {Action}
@@ -80,11 +80,7 @@ function getHost (baseUrl: string) {
   }
 }
 
-export function ChatItemLoading({ annotations }: { annotations: MyChatMessageAnnotation[] }) {
-  const annotation = useMemo(() => {
-    return getChatMessageAnnotations(annotations);
-  }, [annotations])
-
+export function ChatItemLoading ({ annotation }: { annotation: MyChatMessageAnnotation }) {
   const { baseUrl } = useContext(CfgContext);
   let text: string;
   switch (annotation.state) {
@@ -110,23 +106,23 @@ export function ChatItemLoading({ annotations }: { annotations: MyChatMessageAnn
 
   return (
     <StyledChatItemRow
-      role='bot'
+      role="bot"
       sx={{
         borderBottom: 'none',
       }}
     >
-      <StyledChatItem role='bot'>
+      <StyledChatItem role="bot">
         <StyledChatMutedText>
           <StyledLoaderIcon sx={{
-            animation: "spin 2s linear infinite",
-            "@keyframes spin": {
-              "0%": {
-                transform: "rotate(360deg)",
+            animation: 'spin 2s linear infinite',
+            '@keyframes spin': {
+              '0%': {
+                transform: 'rotate(360deg)',
               },
-              "100%": {
-                transform: "rotate(0deg)",
+              '100%': {
+                transform: 'rotate(0deg)',
               },
-            }
+            },
           }} />
           {text}
         </StyledChatMutedText>
@@ -135,7 +131,17 @@ export function ChatItemLoading({ annotations }: { annotations: MyChatMessageAnn
   );
 }
 
-export function ChatItemRelatedLinkCard(props: { title: string; uri: string }) {
+export function ChatItemError ({ error }: { error: string }) {
+  return (
+    <StyledChatItemRow>
+      <StyledChatItem role="bot" sx={theme => ({ color: theme.palette.destructive })}>
+        {error}
+      </StyledChatItem>
+    </StyledChatItemRow>
+  );
+}
+
+export function ChatItemRelatedLinkCard (props: { title: string; uri: string }) {
   const { title, uri } = props;
 
   const hostnameMemo = React.useMemo(() => {
@@ -147,14 +153,14 @@ export function ChatItemRelatedLinkCard(props: { title: string; uri: string }) {
   }, [uri]);
 
   return (
-    <StyledChatItemLinkCard href={uri} target='_blank'>
+    <StyledChatItemLinkCard href={uri} target="_blank">
       <div>{title}</div>
       <div>{hostnameMemo}</div>
     </StyledChatItemLinkCard>
   );
 }
 
-export function ChatItemRelatedLinkCardWrapper(props: {
+export function ChatItemRelatedLinkCardWrapper (props: {
   items: AppChatStreamSource[];
 }) {
   const { items } = props;
@@ -168,7 +174,7 @@ export function ChatItemRelatedLinkCardWrapper(props: {
   );
 }
 
-export function ExampleQuestions(props: {
+export function ExampleQuestions (props: {
   items: string[];
   appendText: (text: string) => void;
 }) {
@@ -199,7 +205,7 @@ export const StyledChatItemRow = styled('div')(({ theme, role }) =>
     marginBottom: role === 'bot' ? '1rem' : '0.5rem',
     borderBottom: role === 'bot' ? '1px solid' : 'none',
     borderBottomColor: theme.palette.muted,
-  })
+  }),
 );
 
 export const StyledChatItem = styled('div')(({ theme, role }) =>
@@ -222,7 +228,7 @@ export const StyledChatItem = styled('div')(({ theme, role }) =>
     '&> p': {
       margin: 0,
     },
-  })
+  }),
 );
 
 export const StyledChatMutedText = styled('div')(({ theme }) =>
@@ -235,13 +241,13 @@ export const StyledChatMutedText = styled('div')(({ theme }) =>
     '& > a': {
       color: 'inherit',
     },
-  })
+  }),
 );
 
 const StyledLoaderIcon = styled(LoaderIcon)`
   width: 1em;
   height: 1em;
-`
+`;
 
 // export const StyledTextSkeleton = styled('div')(({ theme }) =>
 //   css({
@@ -276,7 +282,7 @@ export const StyledChatItemLinkCard = styled('a')(({ theme }) =>
       backgroundColor: theme.palette.muted,
       color: theme.palette.accentForeground,
     },
-  })
+  }),
 );
 
 export const StyledChatItemLinkCardWrapper = styled('div')(() =>
@@ -284,7 +290,7 @@ export const StyledChatItemLinkCardWrapper = styled('div')(() =>
     display: 'flex',
     gapX: '0.5rem',
     overflowX: 'auto',
-  })
+  }),
 );
 
 export const StyledExampleQuestionItem = styled('div')(({ theme }) =>
@@ -305,7 +311,7 @@ export const StyledExampleQuestionItem = styled('div')(({ theme }) =>
     '&:hover': {
       borderColor: theme.palette.ring,
     },
-  })
+  }),
 );
 
 export const StyledExampleQuestionWrapper = styled('div')(() =>
@@ -321,7 +327,7 @@ export const StyledExampleQuestionWrapper = styled('div')(() =>
       fontWeight: 700,
       margin: 0,
     },
-  })
+  }),
 );
 
 // export const StyledChatItemSpan = styled('span')(({ theme, role }) =>
@@ -347,7 +353,7 @@ export const StyledExampleQuestionWrapper = styled('div')(() =>
 //   })
 // );
 
-function getChatMessageAnnotations (annotations: MyChatMessageAnnotation[] | undefined) {
+export function getChatMessageAnnotations (annotations: MyChatMessageAnnotation[] | undefined) {
   return ((annotations ?? []) as MyChatMessageAnnotation[])
-    .reduce((annotation, next) => Object.assign(annotation, next), {});
+    .reduce((annotation, next) => Object.assign(annotation, next), { messageId: -1 });
 }
