@@ -56,14 +56,9 @@ For deploying the application to production, there are many options available:
 ## Roadmap & Timeline
 
 * [x] Migrate tidb.ai to a TiDB Serverless vector storage instance with indexing capabilities. Estimated completion by March 29th.
-* [x] Revise the table structure to accommodate the requirements of the llamaindex's RAG process and successfully integrate llamaindex. Target date: April 4th.
+* [x] Revise the table structure to accommodate the requirements of the llamaindex's RAG process and successfully integrate llamaindex. Target date: April 30.
 * [x] Multiple LLM support
-* Conduct tests on Jina.AI's embedding and reranker API functionalities. Expected to be done by April 15th.
-* Complete deployment documentation with a target date of April 10th. This includes:
-  * Docker image deployment. [Working in Progress]
-  * Self-hosted solutions.
-  * Deployment on Vercel.
-* Adapt the system for AWS Redrock Claude3, with an anticipated completion date of April 15th.
+* Local quick deployment before April 30th.
 * Finalize the "How It Works" series of documentation by April 30th.
 
 ## License

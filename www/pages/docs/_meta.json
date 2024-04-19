@@ -5,7 +5,6 @@
   },
   "index": "Introduction",
   "how-to-read-these-docs": "How to read these docs",
-  "architecture": "Architecture",
   "changelog": "Changelog",
   "faq": "FAQ",
   "-- Deploy This RAG": {
@@ -18,17 +17,7 @@
     "type": "separator",
     "title": "Usage"
   },
-  "js": "Embed JavaScript Code Snippet",
-  "-- Configuration": {
-    "type": "separator",
-    "title": "Configuration"
-  },
-  "llm": "LLM",
-  "prompt": "RAG Prompt",
-  "document-loader": "Document Loader",
-  "document-spliter": "Document Spliter",
-  "reranker": "(Optional) Reranker",
-  "authentication": "Auth",
+  "javascript": "Embedable JS Code Snippet",
   "README": {
     "display": "hidden"
   }
