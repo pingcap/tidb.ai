@@ -41,7 +41,7 @@ export interface RetrieveCallbacks {
   onRetrieveFailed: (id: number, reason: unknown) => void;
 }
 
-export const retrieveOptionsSchema: ZodType<RetrieveOptions> = z.object({
+export const retrieveOptionsSchema = z.object({
   search_top_k: z.number().int().optional(),
   reranker: z.object({
     provider: z.string(),

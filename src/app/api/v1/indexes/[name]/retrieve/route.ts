@@ -1,15 +1,18 @@
+import { getIndexByName } from '@/core/repositories/index_';
 import { LlamaindexRetrieveService } from '@/core/services/llamaindex/retrieving';
 import { retrieveOptionsSchema } from '@/core/services/retrieving';
-import {getIndexByName} from '@/core/repositories/index_';
+import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
+import { getLLM } from '@/lib/llamaindex/converters/llm';
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
+import { serviceContextFromDefaults } from 'llamaindex';
 import { notFound } from 'next/navigation';
 import z from 'zod';
 
 export const POST = defineHandler({
   params: z.object({
-    name: z.string()
+    name: z.string(),
   }),
   body: retrieveOptionsSchema,
 }, async ({
@@ -24,14 +27,16 @@ export const POST = defineHandler({
   const flow = await getFlow(baseRegistry);
 
   const retrieveService = new LlamaindexRetrieveService({
-    // TODO: support llm reranker
     reranker: {
-      provider: 'cohere',
-      options: {},
+      provider: body.reranker?.provider ?? 'cohere',
+      options: body.reranker?.options,
     },
     flow,
     index,
-    serviceContext: {} as any
+    serviceContext: serviceContextFromDefaults({
+      llm: getLLM(flow, index.config.llm.provider, index.config.llm.config),
+      embedModel: getEmbedding(flow, index.config.embedding.provider, index.config.embedding.config),
+    }),
   });
 
   const result = await retrieveService.retrieve(body);
