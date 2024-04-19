@@ -1,11 +1,8 @@
-import {BaseNodePostprocessor, LLM, NodeWithScore, ServiceContext} from "llamaindex";
-import {llmFromSettingsOrContext} from "llamaindex/Settings";
-import {defaultFormatNodeBatchFn, NodeFormatterFunction} from "llamaindex/indices/summary/utils";
-import {
-  defaultChoiceSelectPrompt,
-  PromptTemplate
-} from "@/lib/llamaindex/prompts/defaultPrompts";
-import {ChoiceSelectParserFunction, defaultParseChoiceSelectAnswerFn} from "@/lib/llamaindex/indices/utils";
+import { ChoiceSelectParserFunction, defaultParseChoiceSelectAnswerFn } from '@/lib/llamaindex/indices/utils';
+import { defaultChoiceSelectPrompt, PromptTemplate } from '@/lib/llamaindex/prompts/defaultPrompts';
+import { BaseNodePostprocessor, LLM, NodeWithScore, ServiceContext } from 'llamaindex';
+import { defaultFormatNodeBatchFn, NodeFormatterFunction } from 'llamaindex/indices/summary/utils';
+import { llmFromSettingsOrContext } from 'llamaindex/Settings';
 
 type LLMRerankOptions = {
   llm?: LLM;
@@ -36,7 +33,7 @@ export class LLMRerank implements BaseNodePostprocessor {
    * @param serviceContext Service context.
    * @param topN Number of nodes to return.
    */
-  constructor({
+  constructor ({
     llm,
     choiceSelectPrompt,
     choiceBatchSize = 10,
@@ -58,23 +55,22 @@ export class LLMRerank implements BaseNodePostprocessor {
    * @param nodes Array of nodes with scores.
    * @param query Query string.
    */
-  async postprocessNodes(
+  async postprocessNodes (
     nodes: NodeWithScore[],
     query: string,
   ): Promise<NodeWithScore[]> {
     if (!query) {
-      throw new Error("Query must be provided.");
+      throw new Error('Query must be provided.');
     }
 
     if (nodes.length === 0) {
       return [];
     }
 
-    const initialResults: NodeWithScore[] = [];
-    for (let idx = 0; idx < nodes.length; idx += this.choiceBatchSize) {
-      const nodesBatch = nodes.slice(idx, idx + this.choiceBatchSize).map(node => node.node);
+    const results = await executeInPartition(nodes, this.choiceBatchSize, async nodesWithScore => {
+      const nodes = nodesWithScore.map(node => node.node);
 
-      const fmtBatchStr = this.formatNodeBatchFn(nodesBatch);
+      const fmtBatchStr = this.formatNodeBatchFn(nodes);
       // call each batch independently
       const choiceSelectPrompt = this.choiceSelectPrompt({
         queryStr: query,
@@ -83,31 +79,39 @@ export class LLMRerank implements BaseNodePostprocessor {
       const rawResponse = await this.llm.chat({
         messages: [
           {
-            role: "system",
-            content: choiceSelectPrompt
+            role: 'system',
+            content: choiceSelectPrompt,
           },
-        ]
+        ],
       });
 
       const [rawChoices, relevances] = this.parseChoiceSelectAnswerFn(
         rawResponse.message.content as string,
-        nodesBatch.length
+        nodes.length,
       );
 
       const choiceIdxs = rawChoices.map(choice => parseInt(choice as any) - 1);
-      const choiceNodes = choiceIdxs.map(idx => nodesBatch[idx]);
+      const choiceNodes = choiceIdxs.map(idx => nodes[idx]);
       const scores = relevances || Array(choiceNodes.length).fill(1.0);
-      initialResults.push(
-        ...choiceNodes.map((node, i) => ({
-          node,
-          score: scores[i]
-        }))
-      );
-    }
 
-    return initialResults
+      return choiceNodes.map((node, i) => ({
+        node,
+        score: scores[i],
+      }));
+    });
+
+    return results
+      .flatMap(nodes => nodes)
       .sort((a, b) => (b.score || 0) - (a.score || 0))
       .slice(0, this.topN);
   }
+}
 
+async function executeInPartition<Job, Result> (jobs: Job[], batchSize: number, processor: (jobs: Job[]) => Promise<Result>) {
+  const partitions: Job[][] = [];
+  for (let i = 0; i < jobs.length; i += batchSize) {
+    partitions.push(jobs.slice(i, i + batchSize));
+  }
+
+  return await Promise.all(partitions.map(partition => processor(partition)));
 }
