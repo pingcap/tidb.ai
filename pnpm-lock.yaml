@@ -188,6 +188,9 @@ importers:
       openai:
         specifier: ^4.25.0
         version: 4.25.0
+      path-to-regexp:
+        specifier: ^6.2.2
+        version: 6.2.2
       pdfjs-dist:
         specifier: ^4.0.379
         version: 4.0.379
@@ -11864,6 +11867,10 @@ packages:
     dependencies:
       lru-cache: 10.1.0
       minipass: 7.0.4
+
+  /path-to-regexp@6.2.2:
+    resolution: {integrity: sha512-GQX3SSMokngb36+whdpRXE+3f9V8UzyAorlYvOGx87ufGHehNTn5lCxrKtLyZ4Yl/wEKnNnr98ZzOwwDZV5ogw==}
+    dev: false
 
   /path-type@4.0.0:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}

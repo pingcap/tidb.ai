@@ -1,7 +1,7 @@
 import { rag } from '@/core/interface';
 import { md5 } from '@/lib/digest';
 import { createUrlMatcher } from '@/lib/url-matcher';
-import { type HtmlSelectorItemType } from '@/lib/zod-extensions/types/html-selector-array';
+import {HtmlSelectorItemType} from "@/lib/zod-extensions/types/html-selector-array";
 import type { Element, Root } from 'hast';
 import { select, selectAll } from 'hast-util-select';
 import { toText } from 'hast-util-to-text';
