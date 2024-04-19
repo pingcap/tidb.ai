@@ -1,6 +1,6 @@
-import { rag } from '@/core/interface';
+import {rag} from '@/core/interface';
 import {htmlSelectorArray, type HtmlSelectorItemType} from '@/lib/zod-extensions/types/html-selector-array';
-import { z } from 'zod';
+import {z} from 'zod';
 import Readme from './readme.mdx';
 import BaseMeta = rag.BaseMeta;
 
@@ -109,11 +109,11 @@ export const htmlLoaderOptionsSchema = z.object({
   /**
    * The configuration for content extraction.
    */
-  contentExtraction: contentExtractionSchema.array(),
+  contentExtraction: contentExtractionSchema.array().optional(),
   /**
    * The configuration for metadata extraction.
    */
-  metadataExtraction: metadataExtractionSchema.array(),
+  metadataExtraction: metadataExtractionSchema.array().optional(),
 });
 
 export type HtmlLoaderOptions = z.infer<typeof htmlLoaderOptionsSchema>;

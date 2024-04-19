@@ -14,7 +14,7 @@
     },
     {
       "schedule": "* * * * *",
-      "path": "/api/v1/tasks/temp_fill_document_name"
+      "path": "/api/v1/tasks/temp_fill_document_metadata"
     }
   ],
   "rewrites": [

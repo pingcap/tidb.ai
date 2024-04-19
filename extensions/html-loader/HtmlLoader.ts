@@ -1,26 +1,32 @@
-import { rag } from '@/core/interface';
-import { md5 } from '@/lib/digest';
-import { createUrlMatcher } from '@/lib/url-matcher';
+import {rag} from '@/core/interface';
+import {md5} from '@/lib/digest';
+import {createUrlMatcher} from '@/lib/url-matcher';
 import {HtmlSelectorItemType} from "@/lib/zod-extensions/types/html-selector-array";
-import type { Element, Root } from 'hast';
-import { select, selectAll } from 'hast-util-select';
-import { toText } from 'hast-util-to-text';
+import type {Element, Root} from 'hast';
+import {select, selectAll} from 'hast-util-select';
+import {toText} from 'hast-util-to-text';
+import {match} from 'path-to-regexp';
 import rehypeParse from 'rehype-parse';
-import { Processor, unified } from 'unified';
-import { remove } from 'unist-util-remove';
-import { match } from 'path-to-regexp';
+import {Processor, unified} from 'unified';
+import {remove} from 'unist-util-remove';
 import htmlLoaderMeta, {
   DEFAULT_EXCLUDE_SELECTORS,
-  DEFAULT_TEXT_SELECTORS, ExtractedMetadata,
+  DEFAULT_TEXT_SELECTORS,
+  ExtractedMetadata,
   HtmlLoaderOptions,
-  MetadataExtractor, MetadataExtractorType, URLMetadataExtractor
+  MetadataExtractor,
+  MetadataExtractorType,
+  URLMetadataExtractor
 } from './meta';
 
 export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
   private readonly unifiedProcessor: Processor<Root>;
 
   constructor(options: HtmlLoaderOptions) {
-    super(options);
+    super({
+      contentExtraction: options.contentExtraction ?? [],
+      metadataExtraction: options.metadataExtraction ?? [],
+    });
     this.unifiedProcessor = unified()
       .use(rehypeParse)
       .freeze();
@@ -81,7 +87,9 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
     }
 
     if (!selectors.length || !this.hasTextSelector(selectors)) {
-      console.warn('No text selector provided, fallback to using default selector `body`, which may contains redundancy content.')
+      console.warn('No text selector provided, fallback to using default selector, which may contains redundancy content.', {
+        defaultSelectors: DEFAULT_TEXT_SELECTORS,
+      });
       selectors.push(...DEFAULT_TEXT_SELECTORS);
     }
 
@@ -92,12 +100,12 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
     return { selectors, excludeSelectors };
   }
 
-  private hasTextSelector(selectors: HtmlSelectorItemType[]) {
+  private hasTextSelector (selectors: HtmlSelectorItemType[]) {
     // TODO: confirm the type.
     return selectors.find(s => s.type == undefined || s.type == 'dom-text')
   }
 
-  private selectElements(root: Root, selectorItems: HtmlSelectorItemType[]){
+  private selectElements (root: Root, selectorItems: HtmlSelectorItemType[]){
     const matchedElements: Element[] = [];
 
     for (let { selector, all } of selectorItems) {
@@ -117,7 +125,7 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
     return matchedElements;
   }
 
-  private selectElementTexts(root: Root, selectorItems: HtmlSelectorItemType[]){
+  private selectElementTexts (root: Root, selectorItems: HtmlSelectorItemType[]){
     const matchedTexts: string[] = [];
 
     for (let { selector, all, type } of selectorItems) {
@@ -141,7 +149,7 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
     return matchedTexts;
   }
 
-  private getElementTextContent(element: Element, type: HtmlSelectorItemType['type']) {
+  private getElementTextContent (element: Element, type: HtmlSelectorItemType['type']) {
     if (type === 'dom-content-attr') {
       return String(element.properties['content'] ?? '');
     } else {
@@ -154,7 +162,7 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
    * @param url The URL of the document.
    * @private
    */
-  private extractMetadataFromURL(url: string): Record<string, any> {
+  private extractMetadataFromURL (url: string): Record<string, any> {
     const extractors = this.getMatchedMetadataExecutors(url);
     const metadata: ExtractedMetadata = {};
 
@@ -165,7 +173,6 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
           decode: decodeURIComponent,
         });
 
-        // TODO: only support pathname extraction for now.
         const urlObj = new URL(url);
         const matchedMetadata = urlMatch(urlObj.pathname);
 
@@ -192,7 +199,7 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
     return rules;
   }
 
-  private excludeNonNamedParams(source: Record<string, any>) {
+  private excludeNonNamedParams (source: Record<string, any>) {
     const target: Record<string, any> = {};
     for (let [key, val] of Object.entries(source)) {
       if (Number.isNaN(Number(key))) {
