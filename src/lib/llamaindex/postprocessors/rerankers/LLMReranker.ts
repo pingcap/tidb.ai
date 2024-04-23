@@ -1,11 +1,8 @@
-import {BaseNodePostprocessor, LLM, NodeWithScore, ServiceContext} from "llamaindex";
-import {llmFromSettingsOrContext} from "llamaindex/Settings";
-import {defaultFormatNodeBatchFn, NodeFormatterFunction} from "llamaindex/indices/summary/utils";
-import {
-  defaultChoiceSelectPrompt,
-  PromptTemplate
-} from "@/lib/llamaindex/prompts/defaultPrompts";
 import {ChoiceSelectParserFunction, defaultParseChoiceSelectAnswerFn} from "@/lib/llamaindex/indices/utils";
+import {defaultChoiceSelectPrompt, PromptTemplate} from "@/lib/llamaindex/prompts/defaultPrompts";
+import {BaseNodePostprocessor, LLM, NodeWithScore, ServiceContext} from "llamaindex";
+import {defaultFormatNodeBatchFn, NodeFormatterFunction} from "llamaindex/indices/summary/utils";
+import {llmFromSettingsOrContext} from "llamaindex/Settings";
 
 type LLMRerankOptions = {
   llm?: LLM;
@@ -89,14 +86,16 @@ export class LLMRerank implements BaseNodePostprocessor {
         ]
       });
 
-      const [rawChoices, relevances] = this.parseChoiceSelectAnswerFn(
+      const selectAnswer = this.parseChoiceSelectAnswerFn(
         rawResponse.message.content as string,
         nodesBatch.length
       );
 
-      const choiceIdxs = rawChoices.map(choice => parseInt(choice as any) - 1);
+      const choiceIdxs = Object.keys(selectAnswer).map((documentNumber) => {
+        return parseInt(documentNumber) - 1;
+      });
       const choiceNodes = choiceIdxs.map(idx => nodesBatch[idx]);
-      const scores = relevances || Array(choiceNodes.length).fill(1.0);
+      const scores = Object.values(selectAnswer) || Array(choiceNodes.length).fill(1.0);
       initialResults.push(
         ...choiceNodes.map((node, i) => ({
           node,

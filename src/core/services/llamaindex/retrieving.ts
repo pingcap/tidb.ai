@@ -27,28 +27,38 @@ import type {UUID} from 'node:crypto';
 
 export class LlamaindexRetrieveService extends AppRetrieveService {
   protected async run (retrieve: Retrieve, {
-    text, top_k = 10, search_top_k = 50, filters = {}, use_cache,
+    query, top_k = 10, search_top_k = 50, filters, use_cache,
   }: RetrieveOptions): Promise<RetrievedChunk[]> {
     if (this.index.config.provider !== 'llamaindex') {
       throw new Error(`${this.index.name} is not a llamaindex index`);
     }
 
-    const queryEmbedding = await this.embedQuery(text);
+    const queryEmbedding = await this.embedQuery(query);
 
-    this.emit('start-search', retrieve.id, text);
+    this.emit('start-search', retrieve.id, query);
     await this.startSearch(retrieve);
 
-    console.log(`Start embedding searching for query "${text}".`, { search_top_k })
+    console.log(`Start embedding searching for query "${query}".`, { search_top_k })
     const searchStart = DateTime.now();
     let chunks = await this.search(queryEmbedding, search_top_k);
     const searchEnd = DateTime.now();
     const searchDuration = searchEnd.diff(searchStart, 'milliseconds').milliseconds;
     console.log(`Finish embedding searching, take ${searchDuration} ms, found ${chunks.length} chunks.`, { search_top_k });
 
-    if (this.metadataFilterOptions) {
+    let metadataFilterOptions = this.metadataFilterOptions;
+    if (filters) {
+      metadataFilterOptions = {
+        provider: 'default',
+        config: {
+          filters,
+        }
+      }
+    }
+
+    if (metadataFilterOptions) {
       console.log('Start post filtering chunks by metadata.');
       const filterStart = DateTime.now();
-      const filteredResult = await this.metadataPostFilter(chunks, text, this.metadataFilterOptions);
+      const filteredResult = await this.metadataPostFilter(chunks, query, metadataFilterOptions);
       chunks = filteredResult.slice(0, top_k);
       const filterEnd = DateTime.now();
       const filterDuration = filterEnd.diff(filterStart, 'milliseconds').milliseconds;
@@ -63,9 +73,9 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     this.emit('start-rerank', retrieve.id, chunks);
     await this.startRerank(retrieve);
 
-    console.log(`Start reranking for query "${text}".`, { top_k });
+    console.log(`Start reranking for query "${query}".`, { top_k });
     const rerankStart = DateTime.now();
-    const rerankedResult = await this.rerank(chunks, text, top_k, this.rerankerOptions);
+    const rerankedResult = await this.rerank(chunks, query, top_k, this.rerankerOptions);
     const rerankEnd = DateTime.now();
     const rerankDuration = rerankEnd.diff(rerankStart, 'milliseconds').milliseconds;
     console.log(`Finish reranking, take ${rerankDuration} ms.`);
@@ -182,7 +192,8 @@ export class LlamaindexRetrieverWrapper implements BaseRetriever {
   ) {}
 
   async retrieve (params: RetrieveParams): Promise<NodeWithScore[]> {
-    const chunks = await this.retrieveService.retrieve({ ...this.options, text: params.query, filters: params.preFilters as Record<string, any> }, this.callbacks);
+    // Notice: Due to the limitations of Llamaindex, some parameters can only be passed in when instantiating the Retriever class
+    const chunks = await this.retrieveService.retrieve({ ...this.options, query: params.query }, this.callbacks);
 
     const detailedChunks = await this.retrieveService.extendResultDetails(chunks);
 

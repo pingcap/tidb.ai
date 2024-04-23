@@ -11,15 +11,16 @@ import {
 import {AppIndexBaseService, type AppIndexBaseServiceOptions} from '@/core/services/base';
 import {getErrorMessage} from '@/lib/errors';
 import {getEmbedding} from '@/lib/llamaindex/converters/embedding';
+import {metadataFilterSchema} from "@/lib/llamaindex/postprocessors/postfilters/MetadataPostFilter";
 import {ServiceContext} from "llamaindex";
 import type {UUID} from 'node:crypto';
 import z from "zod";
 
 export const retrieveOptionsSchema = z.object({
-  text: z.string(),
+  query: z.string(),
   // TODO: using engine name instead.
   engine: z.number().optional(),
-  filters: z.any().optional(),
+  filters: z.array(metadataFilterSchema).optional(),
   search_top_k: z.number().int().optional(),
   top_k:  z.number().int().optional(),
   use_cache: z.boolean().optional(),
@@ -61,7 +62,10 @@ export interface AppRetrieveServiceOptions extends AppIndexBaseServiceOptions {
 export abstract class AppRetrieveService extends AppIndexBaseService {
   protected readonly serviceContext: ServiceContext;
   protected readonly rerankerOptions?: AppRetrieveServiceOptions['reranker'];
-  protected readonly metadataFilterOptions?: AppRetrieveServiceOptions['metadata_filter'];
+  protected readonly metadataFilterOptions: AppRetrieveServiceOptions['metadata_filter'] = {
+    provider: 'default',
+    config: {},
+  };
 
   constructor ({ reranker, metadata_filter, serviceContext, ...options }: AppRetrieveServiceOptions) {
     super(options);
@@ -78,7 +82,7 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
 
     const retrieve = await createRetrieve({
       index_id: this.index.id,
-      text: options.text,
+      text: options.query,
       created_at: new Date(),
       options,
       status: 'CREATED',
