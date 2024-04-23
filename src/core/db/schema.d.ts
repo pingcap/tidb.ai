@@ -1,4 +1,4 @@
-import type { ColumnType } from "kysely";
+import type {ColumnType} from "kysely";
 
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
@@ -165,6 +165,7 @@ export interface RetrieveResult {
   document_chunk_node_id: Buffer;
   document_id: number;
   document_node_id: Buffer;
+  document_metadata: Json;
   id: Generated<number>;
   relevance_score: number;
   retrieve_id: number;

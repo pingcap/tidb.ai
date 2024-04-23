@@ -60,14 +60,16 @@ function InternalSearchBox () {
 
   const disabled = loading || transitioning;
 
-  const search = (text: string) => {
+  const search = (query: string) => {
     setLoading(true);
     startTransition(() => {
+      // TODO: Allow using different indexes.
       fetch('/api/v1/indexes/default/retrieve', {
         method: 'post',
         body: JSON.stringify({
-          text,
+          query,
           top_k: 5,
+          // TODO: Support metadata filters.
         }),
       }).then(handleErrors)
         .then(res => res.json())

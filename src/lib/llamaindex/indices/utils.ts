@@ -1,34 +1,57 @@
-export type ChoiceSelectParseResult = [number[], number[]];
-export type ChoiceSelectParserFunction = (answer: string, numChoices: number, raiseErr?: boolean) => ChoiceSelectParseResult;
+import _ from "lodash";
 
-export function defaultParseChoiceSelectAnswerFn(
+export type ChoiceSelectParseResult = { [docNumber: number]: number };
+export type ChoiceSelectParserFunction = (
   answer: string,
   numChoices: number,
-  raiseError: boolean = false
-): ChoiceSelectParseResult {
-  const answerLines = answer.split("\n");
-  const answerNums: number[] = [];
-  const answerRelevances: number[] = [];
-  for (const answerLine of answerLines) {
-    const lineTokens = answerLine.split(",");
-    if (lineTokens.length !== 2) {
-      if (!raiseError) {
-        continue;
-      } else {
-        throw new Error(
-          `Invalid answer line: ${answerLine}. ` +
-          "Answer line must be of the form: " +
-          "answer_num: <int>, answer_relevance: <float>"
-        );
+  raiseErr?: boolean,
+) => ChoiceSelectParseResult;
+
+export const defaultParseChoiceSelectAnswerFn: ChoiceSelectParserFunction = (
+  answer: string,
+  numChoices: number,
+  raiseErr: boolean = false,
+): ChoiceSelectParseResult => {
+  // split the line into the answer number and relevance score portions
+  const lineTokens: string[][] = answer
+    .split("\n")
+    .map((line: string) => {
+      const lineTokens = line.split(",");
+      if (lineTokens.length !== 2) {
+        if (raiseErr) {
+          throw new Error(
+            `Invalid answer line: ${line}. Answer line must be of the form: answer_num: <int>, answer_relevance: <float>`,
+          );
+        } else {
+          return null;
+        }
       }
-    }
-    const answerNum = parseInt(lineTokens[0].split(":")[1].trim());
-    if (answerNum > numChoices) {
-      continue;
-    }
-    answerNums.push(answerNum);
-    const _answerRelevance = parseInt(lineTokens[1].split(":")[1].trim());
-    answerRelevances.push(_answerRelevance);
-  }
-  return [answerNums, answerRelevances];
-}
+      return lineTokens;
+    })
+    .filter((lineTokens) => !_.isNil(lineTokens)) as string[][];
+
+  // parse the answer number and relevance score
+  return lineTokens.reduce(
+    (parseResult: ChoiceSelectParseResult, lineToken: string[]) => {
+      try {
+        const docNum = parseInt(lineToken[0].split(":")[1].trim());
+        const answerRelevance = parseFloat(lineToken[1].split(":")[1].trim());
+        if (docNum < 1 || docNum > numChoices) {
+          if (raiseErr) {
+            throw new Error(
+              `Invalid answer number: ${docNum}. Answer number must be between 1 and ${numChoices}`,
+            );
+          }
+        } else {
+          parseResult[docNum] = answerRelevance;
+        }
+      } catch (e) {
+        if (raiseErr) {
+          throw e;
+        }
+      }
+      return parseResult;
+    },
+    {},
+  );
+};
