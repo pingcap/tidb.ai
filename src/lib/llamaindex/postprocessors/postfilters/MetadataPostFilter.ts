@@ -114,7 +114,7 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
 
       return filters.every(filter => {
         // If the document metadata field is not set, skip the filter.
-        if (!metadata[filter.name] || filter.value === '') {
+        if (!metadata[filter.name] || !filter.value || filter.value === '') {
           return true;
         }
         return metadata[filter.name] === filter.value;

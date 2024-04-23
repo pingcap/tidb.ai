@@ -27,7 +27,7 @@ import type {UUID} from 'node:crypto';
 
 export class LlamaindexRetrieveService extends AppRetrieveService {
   protected async run (retrieve: Retrieve, {
-    query, top_k = 10, search_top_k = 50, filters, use_cache,
+    query, top_k = 10, search_top_k = 100, filters, use_cache,
   }: RetrieveOptions): Promise<RetrievedChunk[]> {
     if (this.index.config.provider !== 'llamaindex') {
       throw new Error(`${this.index.name} is not a llamaindex index`);
@@ -45,24 +45,19 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     const searchDuration = searchEnd.diff(searchStart, 'milliseconds').milliseconds;
     console.log(`Finish embedding searching, take ${searchDuration} ms, found ${chunks.length} chunks.`, { search_top_k });
 
-    let metadataFilterOptions = this.metadataFilterOptions;
-    if (filters) {
-      metadataFilterOptions = {
-        provider: 'default',
-        config: {
-          filters,
-        }
-      }
-    }
-
+    const metadataFilterOptions = this.metadataFilterOptions;
     if (metadataFilterOptions) {
+      if (filters) {
+        this.metadataFilterOptions.config.filters = filters;
+      }
+
       console.log('Start post filtering chunks by metadata.');
       const filterStart = DateTime.now();
       const filteredResult = await this.metadataPostFilter(chunks, query, metadataFilterOptions);
       chunks = filteredResult.slice(0, top_k);
       const filterEnd = DateTime.now();
       const filterDuration = filterEnd.diff(filterStart, 'milliseconds').milliseconds;
-      console.log(`Finish post  filtering chunks by metadata, take ${filterDuration} ms.`);
+      console.log(`Finish post filtering chunks by metadata, take ${filterDuration} ms.`);
     }
 
     // If no reranker is provided, return the top_k chunks directly.
@@ -186,7 +181,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
 export class LlamaindexRetrieverWrapper implements BaseRetriever {
   constructor (
     private readonly retrieveService: AppRetrieveService,
-    private readonly options: Omit<RetrieveOptions, 'text'>,
+    private readonly options: Omit<RetrieveOptions, 'query'>,
     public readonly serviceContext: ServiceContext,
     private readonly callbacks: RetrieveCallbacks,
   ) {}

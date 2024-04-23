@@ -84,7 +84,6 @@ export class LlamaindexChatService extends AppChatService {
     const retriever = withAsyncIterable<ChatStreamEvent, LlamaindexRetrieverWrapper>((next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
       search_top_k,
       top_k,
-      filters: {},
       use_cache: false,
     }, serviceContext, {
       onStartSearch: (id, text) => {
