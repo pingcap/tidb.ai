@@ -75,12 +75,8 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
     console.log('Nodes after filter:', filteredNodes.length, 'nodes');
 
     if (filteredNodes.length === 0) {
-      const requiredFilters = filters.filter(f => !f.optional);
-      console.info('No nodes left after filtering, fallback to filtering with required filters.', {
-        requiredFilters
-      });
-      filteredNodes = await this.filterNodes(nodes, requiredFilters);
-      console.log('Nodes after filtering with required filters:', filteredNodes.length, 'nodes');
+      console.warn('No nodes left after filtering, fallback to using all nodes.');
+      return nodes;
     }
 
     return filteredNodes;
