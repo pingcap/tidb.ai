@@ -12,14 +12,13 @@ export const GET = defineHandler({ auth: 'cronjob' }, async () => {
   const reader = fromFlowReaders(flow, index.config.reader);
 
   await executeInSafeDuration(async () => {
-    const documentWithoutMeta = await getDb().selectFrom('llamaindex_document_node')
+    const documentWithoutMeta = await getDb()
+      .selectFrom('llamaindex_document_node')
       .selectAll()
       .where((eb) => {
-        return eb(
-          eb.ref('metadata', '->$').key('documentMetadata' as never),
-          'is',
-          eb.val(null),
-        )
+        return eb.and([
+          eb(eb.fn('JSON_UNQUOTE', [eb.ref('metadata')]), '=', eb.val('null')),
+        ])
       })
       .limit(100)
       .execute();
@@ -27,51 +26,44 @@ export const GET = defineHandler({ auth: 'cronjob' }, async () => {
     console.log(`Found ${documentWithoutMeta.length} documents without metadata.`)
 
     const documentIds = Array.from(new Set(documentWithoutMeta.map(doc => doc.document_id)));
+    if (documentIds.length == 0) {
+      return false;
+    }
+
     const documents = await getDb()
       .selectFrom('document')
-      .select('id')
-      .select('content_uri')
-      .select('source_uri')
+      .select([
+        'id', 'source_uri', 'content_uri'
+      ])
       .where('id', 'in', documentIds)
       .where('mime', '=', 'text/html')
       .execute();
 
-    console.log(`Found ${documents.length} documents to process.`)
-
-    if (documents.length == 0) {
-      return false;
-    }
+    console.log(`Found ${documents.length} documents to process.`);
 
     await Promise.all(documents.map(async document => {
-      const docsWithMeta = await reader.loadData({
+      return reader.loadData({
         mime: 'text/html',
         content_uri: document.content_uri,
         source_uri: document.source_uri,
+      }).then((docsWithMeta) => {
+        console.log(`Processing document ${document.id}.`)
+        for (let docWithMeta of docsWithMeta) {
+          getDb()
+            .updateTable('llamaindex_document_node')
+            .where('document_id', '=', document.id)
+            .set(({ eb }) => ({
+              metadata: eb.fn('JSON_MERGE_PATCH', [
+                eb.ref('metadata'),
+                eb.val(JSON.stringify(docWithMeta.metadata)),
+              ]),
+            }))
+            .execute()
+            .then(null)
+        }
+      }).catch((e) => {
+        console.error(`Failed to process document ${document.id}.`, e);
       });
-
-      console.log(`Processing document ${document.id}.`)
-
-      for (let docWithMeta of docsWithMeta) {
-        await getDb().updateTable('llamaindex_document_node')
-          .where('document_id', '=', document.id)
-          .set(({ eb }) => ({
-            metadata: eb.fn('JSON_MERGE_PATCH', [
-              eb.ref('metadata'),
-              eb.val(JSON.stringify(docWithMeta.metadata)),
-            ]),
-          }))
-          .execute();
-
-        await getDb().updateTable('llamaindex_document_chunk_node_default')
-          .where('document_id', '=', document.id)
-          .set(({ eb }) => ({
-            metadata: eb.fn('JSON_MERGE_PATCH', [
-              eb.ref('metadata'),
-              eb.val(JSON.stringify(docWithMeta.metadata)),
-            ]),
-          }))
-          .execute();
-      }
     }));
 
     return true;

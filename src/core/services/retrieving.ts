@@ -1,27 +1,38 @@
-import { AppIndexBaseService, type AppIndexBaseServiceOptions } from '@/core/services/base';
-import { Document, getDocuments } from '@/core/repositories/document';
-import { createRetrieve, finishRetrieve, type Retrieve, type RetrieveResult, startRetrieveRerank, startRetrieveSearch, terminateRetrieve } from '@/core/repositories/retrieve';
-import { getErrorMessage } from '@/lib/errors';
-import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
+import {Document, getDocuments} from '@/core/repositories/document';
+import {
+  createRetrieve,
+  finishRetrieve,
+  type Retrieve,
+  type RetrieveResult,
+  startRetrieveRerank,
+  startRetrieveSearch,
+  terminateRetrieve
+} from '@/core/repositories/retrieve';
+import {AppIndexBaseService, type AppIndexBaseServiceOptions} from '@/core/services/base';
+import {getErrorMessage} from '@/lib/errors';
+import {getEmbedding} from '@/lib/llamaindex/converters/embedding';
 import {ServiceContext} from "llamaindex";
-import type { UUID } from 'node:crypto';
-import z, { ZodType } from 'zod';
+import type {UUID} from 'node:crypto';
+import z from "zod";
 
-export interface RetrieveOptions {
-  search_top_k?: number;
-  top_k?: number;
-  use_cache?: boolean;
-  filters?: {
-    namespaces?: number[];
-  };
-  text: string;
-}
+export const retrieveOptionsSchema = z.object({
+  text: z.string(),
+  // TODO: using engine name instead.
+  engine: z.number().optional(),
+  filters: z.any().optional(),
+  search_top_k: z.number().int().optional(),
+  top_k:  z.number().int().optional(),
+  use_cache: z.boolean().optional(),
+});
+
+export type RetrieveOptions = z.infer<typeof retrieveOptionsSchema>;
 
 export interface RetrievedChunk {
   index_id: number;
   document_id: number;
   document_node_id: UUID;
   document_chunk_node_id: UUID;
+  document_metadata: any;
   relevance_score: number;
   metadata: any;
   text: string;
@@ -41,31 +52,21 @@ export interface RetrieveCallbacks {
   onRetrieveFailed: (id: number, reason: unknown) => void;
 }
 
-export const retrieveOptionsSchema: ZodType<RetrieveOptions> = z.object({
-  search_top_k: z.number().int().optional(),
-  reranker: z.object({
-    provider: z.string(),
-    options: z.any().optional(),
-  }).optional(),
-  use_cache: z.boolean().optional(),
-  filters: z.object({
-    namespaces: z.number().int().array().optional(),
-  }).optional(),
-  text: z.string(),
-});
-
 export interface AppRetrieveServiceOptions extends AppIndexBaseServiceOptions {
   serviceContext: ServiceContext;
-  reranker?: { provider: string, options?: any };
+  reranker?: { provider: string, config?: any };
+  metadata_filter?: { provider: string, config?: any };
 }
 
 export abstract class AppRetrieveService extends AppIndexBaseService {
   protected readonly serviceContext: ServiceContext;
   protected readonly rerankerOptions?: AppRetrieveServiceOptions['reranker'];
+  protected readonly metadataFilterOptions?: AppRetrieveServiceOptions['metadata_filter'];
 
-  constructor ({ reranker, serviceContext, ...options }: AppRetrieveServiceOptions) {
+  constructor ({ reranker, metadata_filter, serviceContext, ...options }: AppRetrieveServiceOptions) {
     super(options);
     this.rerankerOptions = reranker;
+    this.metadataFilterOptions = metadata_filter;
     this.serviceContext = serviceContext;
   }
 
@@ -74,6 +75,7 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
       this.on('start-search', callbacks.onStartSearch);
       this.on('start-rerank', callbacks.onStartRerank);
     }
+
     const retrieve = await createRetrieve({
       index_id: this.index.id,
       text: options.text,
@@ -91,6 +93,7 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
         document_id: result.document_id,
         document_chunk_node_id: result.document_chunk_node_id,
         document_node_id: result.document_node_id,
+        document_metadata: result.document_metadata,
         chunk_metadata: JSON.stringify(result.metadata),
         chunk_text: result.text,
       })));

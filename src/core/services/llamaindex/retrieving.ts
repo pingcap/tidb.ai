@@ -1,17 +1,33 @@
-import { AppRetrieveService, type AppRetrieveServiceOptions, type RetrieveCallbacks, type RetrievedChunk, type RetrievedChunkReference, type RetrieveOptions } from '@/core/services/retrieving';
-import { getDb } from '@/core/db';
-import type { Index } from '@/core/repositories/index_';
-import type { Retrieve, RetrieveResult } from '@/core/repositories/retrieve';
-import { cosineDistance } from '@/lib/kysely';
+import {getDb} from '@/core/db';
+import type {Index} from '@/core/repositories/index_';
+import type {Retrieve, RetrieveResult} from '@/core/repositories/retrieve';
+import {
+  AppRetrieveService,
+  type AppRetrieveServiceOptions,
+  type RetrieveCallbacks,
+  type RetrievedChunk,
+  type RetrievedChunkReference,
+  type RetrieveOptions
+} from '@/core/services/retrieving';
+import {cosineDistance} from '@/lib/kysely';
+import {getMetadataFilter} from "@/lib/llamaindex/converters/metadata-filter";
 import {getReranker} from "@/lib/llamaindex/converters/reranker";
-import { type BaseRetriever, NodeRelationship, type NodeWithScore, ObjectType, type RetrieveParams, type ServiceContext, TextNode } from 'llamaindex';
-import type { RelatedNodeInfo, RelatedNodeType } from 'llamaindex/Node';
+import {
+  type BaseRetriever,
+  NodeRelationship,
+  type NodeWithScore,
+  ObjectType,
+  type RetrieveParams,
+  type ServiceContext,
+  TextNode
+} from 'llamaindex';
+import type {RelatedNodeInfo, RelatedNodeType} from 'llamaindex/Node';
 import {DateTime} from "luxon";
-import type { UUID } from 'node:crypto';
+import type {UUID} from 'node:crypto';
 
 export class LlamaindexRetrieveService extends AppRetrieveService {
   protected async run (retrieve: Retrieve, {
-    text, top_k = 10, search_top_k = 100, filters = {}, use_cache,
+    text, top_k = 10, search_top_k = 50, filters = {}, use_cache,
   }: RetrieveOptions): Promise<RetrievedChunk[]> {
     if (this.index.config.provider !== 'llamaindex') {
       throw new Error(`${this.index.name} is not a llamaindex index`);
@@ -22,19 +38,24 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     this.emit('start-search', retrieve.id, text);
     await this.startSearch(retrieve);
 
-    console.log(`Start embedding searching for query "${text}".`, { top_k })
+    console.log(`Start embedding searching for query "${text}".`, { search_top_k })
     const searchStart = DateTime.now();
     let chunks = await this.search(queryEmbedding, search_top_k);
     const searchEnd = DateTime.now();
     const searchDuration = searchEnd.diff(searchStart, 'milliseconds').milliseconds;
-    console.log(`Finish embedding searching, take ${searchDuration} ms, found ${chunks.length} chunks.`, { top_k });
+    console.log(`Finish embedding searching, take ${searchDuration} ms, found ${chunks.length} chunks.`, { search_top_k });
 
-    // Could support more filters here
-    if (filters.namespaces && filters.namespaces.length > 0) {
-      const set = new Set(filters.namespaces);
-      chunks = chunks.filter(chunk => set.has(chunk.metadata.namespace_id));
+    if (this.metadataFilterOptions) {
+      console.log('Start post filtering chunks by metadata.');
+      const filterStart = DateTime.now();
+      const filteredResult = await this.metadataPostFilter(chunks, text, this.metadataFilterOptions);
+      chunks = filteredResult.slice(0, top_k);
+      const filterEnd = DateTime.now();
+      const filterDuration = filterEnd.diff(filterStart, 'milliseconds').milliseconds;
+      console.log(`Finish post  filtering chunks by metadata, take ${filterDuration} ms.`);
     }
 
+    // If no reranker is provided, return the top_k chunks directly.
     if (!this.rerankerOptions?.provider) {
       return chunks.slice(0, top_k);
     }
@@ -76,13 +97,26 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
         `cte_chunk_node.text as chunk_text`,
         eb => eb(eb.val(1),'-', eb.ref('cte_chunk_node.cosine_distance')).as('relevance_score'),
         eb => eb.ref(`cte_chunk_node.metadata`).$castTo<any>().as('chunk_metadata'),
+        eb => eb.ref(`document_node.metadata`).$castTo<any>().as('document_metadata'),
       ])
+      .orderBy('relevance_score', 'desc')
       .execute();
     return await this.parse(this.index, rawChunks);
   }
 
+  private async metadataPostFilter (chunks: RetrievedChunk[], query: string, metadataFilterOptions: NonNullable<AppRetrieveServiceOptions['metadata_filter']>) {
+    const metadataFilter = getMetadataFilter(this.serviceContext, metadataFilterOptions.provider, metadataFilterOptions.config);
+    const chunksMap = new Map(chunks.map(chunk => [chunk.document_chunk_node_id, chunk]));
+    const nodesWithScore = await metadataFilter.postprocessNodes(chunks.map(chunk => ({ score: chunk.relevance_score, node: transform(chunk) })), query);
+
+    return nodesWithScore.map((nodeWithScore, index, total) => ({
+      ...chunksMap.get(nodeWithScore.node.id_ as UUID)!,
+      relevance_score: nodeWithScore.score ?? 0,
+    }));
+  }
+
   private async rerank (chunks: RetrievedChunk[], text: string, top_k: number, rerankerOptions: NonNullable<AppRetrieveServiceOptions['reranker']>) {
-    const reranker = getReranker(this.serviceContext, rerankerOptions.provider, rerankerOptions, top_k);
+    const reranker = getReranker(this.serviceContext, rerankerOptions.provider, rerankerOptions.config, top_k);
     const chunksMap = new Map(chunks.map(chunk => [chunk.document_chunk_node_id, chunk]));
     const nodesWithScore = await reranker.postprocessNodes(chunks.map(chunk => ({ score: chunk.relevance_score, node: transform(chunk) })), text);
 
@@ -92,7 +126,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     }));
   }
 
-  private async parse (index: Index, results: Pick<RetrieveResult, 'relevance_score' | 'document_node_id' | 'document_chunk_node_id' | 'document_id' | 'chunk_text' | 'chunk_metadata'>[]): Promise<RetrievedChunk[]> {
+  private async parse (index: Index, results: Pick<RetrieveResult, 'relevance_score' | 'document_node_id' | 'document_chunk_node_id' | 'document_id' | 'chunk_text' | 'chunk_metadata' | 'document_metadata'>[]): Promise<RetrievedChunk[]> {
     if (results.length === 0) {
       return [];
     }
@@ -132,6 +166,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
       document_node_id: result.document_node_id,
       document_chunk_node_id: result.document_chunk_node_id,
       document_id: result.document_id,
+      document_metadata: result.document_metadata,
       relevance_score: result.relevance_score,
       relationships: nodeRelsMap.get(result.document_chunk_node_id) ?? {},
     }));
@@ -147,7 +182,7 @@ export class LlamaindexRetrieverWrapper implements BaseRetriever {
   ) {}
 
   async retrieve (params: RetrieveParams): Promise<NodeWithScore[]> {
-    const chunks = await this.retrieveService.retrieve({ ...this.options, text: params.query }, this.callbacks);
+    const chunks = await this.retrieveService.retrieve({ ...this.options, text: params.query, filters: params.preFilters as Record<string, any> }, this.callbacks);
 
     const detailedChunks = await this.retrieveService.extendResultDetails(chunks);
 
@@ -176,7 +211,10 @@ function transform (result: RetrievedChunk): TextNode {
   return new TextNode({
     id_: result.document_chunk_node_id,
     text: result.text,
-    metadata: result.metadata,
+    metadata: {
+      ...result.metadata,
+      ...result.document_metadata
+    },
     excludedLlmMetadataKeys: ['namespace_id'],
     relationships: {
       [NodeRelationship.NEXT]: result.relationships[NodeRelationship.NEXT] ? transformRef(result.relationships[NodeRelationship.NEXT]) : undefined,

@@ -6,14 +6,14 @@ import type {Element, Root} from 'hast';
 import {select, selectAll} from 'hast-util-select';
 import {toText} from 'hast-util-to-text';
 import {match} from 'path-to-regexp';
-import rehypeParse from 'rehype-parse';
 import {Processor, unified} from 'unified';
 import {remove} from 'unist-util-remove';
+import rehypeParse from 'rehype-parse';
 import htmlLoaderMeta, {
   DEFAULT_EXCLUDE_SELECTORS,
   DEFAULT_TEXT_SELECTORS,
   ExtractedMetadata,
-  HtmlLoaderOptions,
+  type HtmlLoaderOptions,
   MetadataExtractor,
   MetadataExtractorType,
   URLMetadataExtractor
@@ -40,10 +40,8 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
       content: matchedTexts,
       hash: this.getTextHash(matchedTexts),
       metadata: {
-        documentUrl: url,
-        documentMetadata: {
-          ...metadataFromURL
-        }
+        url: url,
+        ...metadataFromURL
       },
     } satisfies rag.Content<{}>;
   }

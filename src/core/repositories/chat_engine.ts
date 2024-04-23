@@ -1,11 +1,11 @@
-import type { RetrieveOptions } from '@/core/services/retrieving';
-import { type DBv1, getDb, tx } from '@/core/db';
-import { executePage, type PageRequest } from '@/lib/database';
-import { APIError } from '@/lib/errors';
-import type { Rewrite } from '@/lib/type-utils';
-import type { Insertable, Selectable, Updateable } from 'kysely';
-import { notFound } from 'next/navigation';
-import { z } from 'zod';
+import {type DBv1, getDb, tx} from '@/core/db';
+import type {RetrieveOptions} from '@/core/services/retrieving';
+import {executePage, type PageRequest} from '@/lib/database';
+import {APIError, CHAT_ENGINE_NOT_FOUND_ERROR} from '@/lib/errors';
+import type {Rewrite} from '@/lib/type-utils';
+import type {Insertable, Selectable, Updateable} from 'kysely';
+import {notFound} from 'next/navigation';
+import {z} from 'zod';
 
 export type ChatEngine = Rewrite<Selectable<DBv1['chat_engine']>, { engine_options: ChatEngineOptions }>;
 export type CreateChatEngine = Rewrite<Insertable<DBv1['chat_engine']>, { engine_options: ChatEngineOptions }>;
@@ -16,6 +16,7 @@ export type ChatEngineOptions = CondenseQuestionChatEngineOptions;
 export interface CondenseQuestionChatEngineOptions {
   index_id?: number;
   retriever?: Pick<RetrieveOptions, 'search_top_k' | 'top_k'>;
+  metadata_filter?: { provider: string, config?: any };
   reranker?: { provider: string, config?: any };
   prompts?: {
     textQa?: string
@@ -65,6 +66,19 @@ export async function getDefaultChatEngine () {
     .$castTo<ChatEngine>()
     .where('is_default', '=', 1)
     .executeTakeFirstOrThrow();
+}
+
+export async function getChatEngineConfig (engineConfigId?: number): Promise<[string, ChatEngineOptions]> {
+  if (engineConfigId) {
+    const chatEngine = await getChatEngine(engineConfigId);
+    if (!chatEngine) {
+      throw CHAT_ENGINE_NOT_FOUND_ERROR.format(engineConfigId);
+    }
+    return [chatEngine.engine, chatEngine.engine_options];
+  } else {
+    const config = await getDefaultChatEngine();
+    return [config.engine, config.engine_options];
+  }
 }
 
 export async function listChatEngine (request: PageRequest) {

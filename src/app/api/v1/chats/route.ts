@@ -1,15 +1,15 @@
-import { type Chat, createChat, getChatByUrlKey, listChats } from '@/core/repositories/chat';
-import { ChatEngineOptions, getChatEngine, getDefaultChatEngine } from '@/core/repositories/chat_engine';
-import { getIndexByNameOrThrow } from '@/core/repositories/index_';
-import { LlamaindexChatService } from '@/core/services/llamaindex/chating';
-import { toPageRequest } from '@/lib/database';
-import { CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR, CHAT_ENGINE_NOT_FOUND_ERROR } from '@/lib/errors';
-import { defineHandler } from '@/lib/next/handler';
-import { baseRegistry } from '@/rag-spec/base';
-import { getFlow } from '@/rag-spec/createFlow';
-import { notFound } from 'next/navigation';
-import { NextResponse } from 'next/server';
-import { z } from 'zod';
+import {type Chat, createChat, getChatByUrlKey, listChats} from '@/core/repositories/chat';
+import {getChatEngineConfig} from '@/core/repositories/chat_engine';
+import {getIndexByNameOrThrow} from '@/core/repositories/index_';
+import {LlamaindexChatService} from '@/core/services/llamaindex/chating';
+import {toPageRequest} from '@/lib/database';
+import {CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR} from '@/lib/errors';
+import {defineHandler} from '@/lib/next/handler';
+import {baseRegistry} from '@/rag-spec/base';
+import {getFlow} from '@/rag-spec/createFlow';
+import {notFound} from 'next/navigation';
+import {NextResponse} from 'next/server';
+import {z} from 'zod';
 
 const ChatRequest = z.object({
   messages: z.object({
@@ -50,12 +50,18 @@ export const POST = defineHandler({
       return CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR;
     }
 
+    // TODO: using AI generated title.
+    let title = body.name ?? DEFAULT_CHAT_TITLE;
+    if (title.length > 255) {
+      title = title.substring(0, 255);
+    }
+
     return await createChat({
       engine,
       engine_options: JSON.stringify(engineOptions),
       created_at: new Date(),
       created_by: userId,
-      title: body.name ?? DEFAULT_CHAT_TITLE,
+      title: title,
     });
   }
 
@@ -95,19 +101,6 @@ export const POST = defineHandler({
 
   return chatStream.toResponse();
 });
-
-async function getChatEngineConfig (engineConfigId?: number): Promise<[string, ChatEngineOptions]> {
-  if (engineConfigId) {
-    const chatEngine = await getChatEngine(engineConfigId);
-    if (!chatEngine) {
-      throw CHAT_ENGINE_NOT_FOUND_ERROR.format(engineConfigId);
-    }
-    return [chatEngine.engine, chatEngine.engine_options];
-  } else {
-    const config = await getDefaultChatEngine();
-    return [config.engine, config.engine_options];
-  }
-}
 
 export const GET = defineHandler({
   auth: 'anonymous',

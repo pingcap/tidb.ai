@@ -222,6 +222,7 @@ CREATE TABLE retrieve_result
     document_id            INT        NOT NULL,
     document_chunk_node_id BINARY(16) NOT NULL,
     document_node_id       BINARY(16) NOT NULL,
+    document_metadata      JSON       NOT NULL,
     chunk_text             TEXT       NOT NULL,
     chunk_metadata         JSON       NOT NULL,
     PRIMARY KEY (id),

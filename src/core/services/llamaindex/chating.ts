@@ -1,17 +1,28 @@
-import { getDb } from '@/core/db';
-import { type Chat, listChatMessages } from '@/core/repositories/chat';
-import type { ChatEngineOptions } from '@/core/repositories/chat_engine';
-import { AppChatService, type ChatOptions, type ChatStreamEvent } from '@/core/services/chating';
-import { LlamaindexRetrieverWrapper, LlamaindexRetrieveService } from '@/core/services/llamaindex/retrieving';
-import { type AppChatStreamSource, AppChatStreamState } from '@/lib/ai/AppChatStream';
-import { uuidToBin } from '@/lib/kysely';
-import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
-import { getLLM } from '@/lib/llamaindex/converters/llm';
-import { ManagedAsyncIterable } from '@/lib/ManagedAsyncIterable';
-import { Liquid } from 'liquidjs';
-import { CompactAndRefine, CondenseQuestionChatEngine, defaultCondenseQuestionPrompt, defaultRefinePrompt, defaultTextQaPrompt, MetadataMode, ResponseSynthesizer, RetrieverQueryEngine, serviceContextFromDefaults, SimplePrompt } from 'llamaindex';
-import { DateTime } from 'luxon';
-import type { UUID } from 'node:crypto';
+import {getDb} from '@/core/db';
+import {type Chat, listChatMessages} from '@/core/repositories/chat';
+import type {ChatEngineOptions} from '@/core/repositories/chat_engine';
+import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/services/chating';
+import {LlamaindexRetrieverWrapper, LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
+import {type AppChatStreamSource, AppChatStreamState} from '@/lib/ai/AppChatStream';
+import {uuidToBin} from '@/lib/kysely';
+import {getEmbedding} from '@/lib/llamaindex/converters/embedding';
+import {getLLM} from '@/lib/llamaindex/converters/llm';
+import {ManagedAsyncIterable} from '@/lib/ManagedAsyncIterable';
+import {Liquid} from 'liquidjs';
+import {
+  CompactAndRefine,
+  CondenseQuestionChatEngine,
+  defaultCondenseQuestionPrompt,
+  defaultRefinePrompt,
+  defaultTextQaPrompt,
+  MetadataMode,
+  ResponseSynthesizer,
+  RetrieverQueryEngine,
+  serviceContextFromDefaults,
+  SimplePrompt
+} from 'llamaindex';
+import {DateTime} from 'luxon';
+import type {UUID} from 'node:crypto';
 
 interface SourceWithNodeId extends AppChatStreamSource {
   id: string;
@@ -44,6 +55,7 @@ export class LlamaindexChatService extends AppChatService {
         search_top_k = 100,
         top_k = 5,
       } = {},
+      metadata_filter,
       reranker,
       prompts: {
         textQa,
@@ -62,6 +74,7 @@ export class LlamaindexChatService extends AppChatService {
     // Build Retriever.
     const retrieveService = new LlamaindexRetrieveService({
       reranker,
+      metadata_filter,
       flow: this.flow,
       index: this.index,
       serviceContext,

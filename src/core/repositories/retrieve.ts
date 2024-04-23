@@ -1,17 +1,18 @@
-import type { RetrieveOptions } from '@/core/services/retrieving';
-import { DBv1, getDb, tx } from '@/core/db';
-import { executePage, type PageRequest } from '@/lib/database';
-import { uuidToBin } from '@/lib/kysely';
-import type { Overwrite } from '@tanstack/table-core';
-import type { Insertable, Selectable, Updateable } from 'kysely';
-import type { UUID } from 'node:crypto';
+import {DBv1, getDb, tx} from '@/core/db';
+import {Json} from "@/core/db/schema";
+import type {RetrieveOptions} from '@/core/services/retrieving';
+import {executePage, type PageRequest} from '@/lib/database';
+import {uuidToBin} from '@/lib/kysely';
+import type {Overwrite} from '@tanstack/table-core';
+import type {Insertable, Selectable, Updateable} from 'kysely';
+import type {UUID} from 'node:crypto';
 
 export type Retrieve = Overwrite<Selectable<DBv1['retrieve']>, { options: RetrieveOptions }>
 export type CreateRetrieve = Overwrite<Insertable<DBv1['retrieve']>, { options: RetrieveOptions }>
 export type UpdateRetrieve = Overwrite<Updateable<DBv1['retrieve']>, { options?: RetrieveOptions }>
-export type RetrieveResult = Overwrite<Selectable<DBv1['retrieve_result']>, { document_chunk_node_id: UUID, document_node_id: UUID }>
-export type CreateRetrieveResult = Overwrite<Insertable<DBv1['retrieve_result']>, { document_chunk_node_id: UUID, document_node_id: UUID }>
-export type UpdateRetrieveResult = Overwrite<Updateable<DBv1['retrieve_result']>, { document_chunk_node_id: UUID, document_node_id: UUID }>
+export type RetrieveResult = Overwrite<Selectable<DBv1['retrieve_result']>, { document_chunk_node_id: UUID, document_node_id: UUID, document_metadata: Json }>
+export type CreateRetrieveResult = Overwrite<Insertable<DBv1['retrieve_result']>, { document_chunk_node_id: UUID, document_node_id: UUID, document_metadata: Json }>
+export type UpdateRetrieveResult = Overwrite<Updateable<DBv1['retrieve_result']>, { document_chunk_node_id: UUID, document_node_id: UUID, document_metadata: Json }>
 
 export async function getRetrieve (id: number) {
   return await getDb()
@@ -81,9 +82,10 @@ export async function finishRetrieve (id: number, reranked: boolean, results: Cr
     if (results.length > 0) {
       await getDb()
         .insertInto('retrieve_result')
-        .values(results.map(({ document_node_id, document_chunk_node_id, ...rest }) => ({
+        .values(results.map(({ document_node_id, document_chunk_node_id, document_metadata, ...rest }) => ({
           document_node_id: uuidToBin(document_node_id),
           document_chunk_node_id: uuidToBin(document_chunk_node_id),
+          document_metadata: JSON.stringify(document_metadata),
           ...rest,
         })))
         .execute();
