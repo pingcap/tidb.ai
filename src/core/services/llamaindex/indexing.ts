@@ -53,13 +53,16 @@ export class LlamaindexIndexProvider extends DocumentIndexProvider {
     // Select and config the embedding (important and immutable)
     const embedding = getEmbedding(flow, index.config.embedding.provider, index.config.embedding.config);
 
+    // Select and config the metadata extractors.
+    const metadataExtractor = index.config.metadata_extractors.map(extractor =>
+      getMetadataExtractor(flow, extractor.provider, extractor.config),
+    );
+
     // Create the default llamaindex pipeline
     const pipeline = createIndexIngestionPipeline(
       reader,
-      parser, // Deprecate all rag.splitter.
-      index.config.metadata_extractors.map(extractor =>
-        getMetadataExtractor(flow, extractor.provider, extractor.config),
-      ),
+      parser,
+      metadataExtractor,
       embedding,
     );
 

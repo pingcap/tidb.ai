@@ -1,21 +1,25 @@
 import { addIssueToContext, type ParseInput, type ParseReturnType, z, ZodType, type ZodTypeDef } from 'zod';
 
-// TODO: rename to ContentExtractionRule is better
-export type HtmlSelectorItemType = {
-  type?: 'dom-text' | 'dom-content-attr' | undefined
-  selector: string
-  all?: boolean | undefined
-}
 
-const arrayType = z.object({
-  type: z.enum(['dom-text', 'dom-content-attr']).optional(),
+export const HTMLSelectorSchema = z.object({
+  /**
+   * The HTML selector to extract the metadata.
+   */
   selector: z.string(),
-  all: z.boolean().optional(),
-}).array();
+  /**
+   * Whether to select all elements.
+   */
+  all: z.boolean().default(false).optional(),
+});
 
-export class HtmlSelectorArray extends ZodType<HtmlSelectorItemType[], HtmlSelectorArray.TypeDef> {
-  _parse (input: ParseInput): ParseReturnType<HtmlSelectorItemType[]> {
-    const result = arrayType.safeParse(input.data);
+export type HTMLSelector = z.infer<typeof HTMLSelectorSchema>;
+
+export const HTMLSelectorArraySchema = HTMLSelectorSchema.array();
+
+export class HtmlSelectorArray extends ZodType<HTMLSelector[], HtmlSelectorArray.TypeDef> {
+
+  _parse (input: ParseInput): ParseReturnType<HTMLSelector[]> {
+    const result = HTMLSelectorArraySchema.safeParse(input.data);
 
     if (result.success) {
       return {
@@ -51,3 +55,32 @@ export function htmlSelectorArray (def: ZodTypeDef = {}) {
     typeName: HtmlSelectorArray.typeName,
   });
 }
+
+export enum ExtractValueMethod {
+  TEXT = 'text',
+  ATTR = 'attr',
+  PROP = 'prop',
+}
+
+export const ExtractValueMethodSchema = z.nativeEnum(ExtractValueMethod);
+
+export const HTMLExecutorSchema = HTMLSelectorSchema.extend({
+  /**
+   * The method to extract the value.
+   */
+  extract: ExtractValueMethodSchema.default(ExtractValueMethod.TEXT).optional(),
+  /**
+   * The attribute to extract the value.
+   */
+  attr: z.string().optional(),
+  /**
+   * The property to extract the value.
+   */
+  prop: z.enum(['innerHTML', 'outerHTML', 'innerText', 'textContent']).optional(),
+  /**
+   * The default value to be used if the value is not found.
+   */
+  default: z.string().optional(),
+});
+
+export type HTMLExecutor = z.infer<typeof HTMLExecutorSchema>;

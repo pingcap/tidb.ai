@@ -1,45 +1,59 @@
 import {rag} from '@/core/interface';
-import {htmlSelectorArray, type HtmlSelectorItemType} from '@/lib/zod-extensions/types/html-selector-array';
+import {
+  HTMLExecutor,
+  HTMLExecutorSchema,
+  HTMLSelector,
+  htmlSelectorArray
+} from '@/lib/zod-extensions/types/html-selector-array';
 import {z} from 'zod';
 import Readme from './readme.mdx';
 import BaseMeta = rag.BaseMeta;
 
-export const DEFAULT_TEXT_SELECTORS: HtmlSelectorItemType[] = [
-  { selector: 'body', all: false, type: 'dom-text' }
+/**
+ * The content extraction schema.
+ */
+
+export const DEFAULT_TEXT_SELECTORS: HTMLExecutor[] = [
+  { selector: 'body' }
 ]
 
-export const DEFAULT_EXCLUDE_SELECTORS: HtmlSelectorItemType[] = [
-  { selector: 'script', all: true }
+export const DEFAULT_EXCLUDE_SELECTORS: HTMLSelector[] = [
+  { selector: 'script', all: true },
+  { selector: 'style', all: true }
 ];
 
-/**
- * The rule to extract content from the HTML document.
- */
-export const contentExtractionSchema = z.object({
+export const ContentExtractionSchema = z.object({
   // TODO: rename to urlPattern is better
   url: z.string(),
   excludeSelectors: htmlSelectorArray().default(DEFAULT_EXCLUDE_SELECTORS),
   selectors: htmlSelectorArray(),
 });
 
-export type ContentExtraction = z.infer<typeof contentExtractionSchema>;
+export type ContentExtraction = z.infer<typeof ContentExtractionSchema>;
 
 /**
  * Metadata Extractor Type
  */
+
 export enum MetadataExtractorType {
   URL_METADATA_EXTRACTOR = 'url-metadata-extractor',
   HTML_METADATA_EXTRACTOR = 'html-metadata-extractor',
 }
 
-export const ExtractedMetadataSchema = z.record(z.string(), z.string().or(z.string().array())).default({});
+export const DEFAULT_METADATA_EXTRACTOR: MetadataExtractor[] = [
+  { type: MetadataExtractorType.HTML_METADATA_EXTRACTOR, selector: 'head > title', key: 'title',  }
+]
+
+export const ExtractedValues = z.string().or(z.string().array());
+
+export const ExtractedMetadataSchema = z.record(z.string(), ExtractedValues).default({});
 
 export type ExtractedMetadata = z.infer<typeof ExtractedMetadataSchema>;
 
 /**
- * The base executor to extract metadata from the HTML document.
+ * The Base Metadata Extractor.
  */
-export const metadataExtractorSchema = z.object({
+const baseMetadataExtractorSchema = z.object({
   /**
    * The type of the extractor.
    */
@@ -52,12 +66,10 @@ export const metadataExtractorSchema = z.object({
   defaultMetadata: z.record(z.string(), z.string().or(z.string().array())).default({}).optional(),
 });
 
-export type MetadataExtractor = z.infer<typeof metadataExtractorSchema>;
-
 /**
  * The URL Metadata Extractor.
  */
-export const URLMetadataExtractor = metadataExtractorSchema.extend({
+export const URLMetadataExtractorSchema = baseMetadataExtractorSchema.extend({
   type: z.literal(MetadataExtractorType.URL_METADATA_EXTRACTOR),
   /**
    *
@@ -84,12 +96,35 @@ export const URLMetadataExtractor = metadataExtractorSchema.extend({
   urlMetadataPattern: z.string()
 });
 
-export type URLMetadataExtractor = z.infer<typeof URLMetadataExtractor> & MetadataExtractor;
+export type URLMetadataExtractor = z.infer<typeof URLMetadataExtractorSchema>;
+
+/**
+ * The HTML Metadata Extractor.
+ */
+export const HTMLMetadataExtractorSchema = baseMetadataExtractorSchema.merge(HTMLExecutorSchema).extend({
+  type: z.literal(MetadataExtractorType.HTML_METADATA_EXTRACTOR),
+  /**
+   * The key to store the metadata.
+   */
+  key: z.string(),
+});
+
+export type HTMLMetadataExtractor = z.infer<typeof HTMLMetadataExtractorSchema>;
+
+/**
+ * The base executor to extract metadata from the HTML document.
+ */
+export const metadataExtractorSchema = z.discriminatedUnion('type', [
+  URLMetadataExtractorSchema,
+  HTMLMetadataExtractorSchema
+])
+
+export type MetadataExtractor = z.infer<typeof metadataExtractorSchema>;
 
 /**
  * The extraction to extract metadata from the URL / HTML document.
  */
-export const metadataExtractionSchema = z.object({
+export const MetadataExtractionSchema = z.object({
   /**
    * `urlPattern` is used to match the URL which the rule should be applied to.
    */
@@ -97,10 +132,10 @@ export const metadataExtractionSchema = z.object({
   /**
    * The extractors to be used.
    */
-  extractors: URLMetadataExtractor.array(),
+  extractors: metadataExtractorSchema.array(),
 });
 
-export type MetadataExtraction = z.infer<typeof metadataExtractionSchema>;
+export type MetadataExtraction = z.infer<typeof MetadataExtractionSchema>;
 
 /**
  * The options for the HTML loader.
@@ -109,11 +144,11 @@ export const htmlLoaderOptionsSchema = z.object({
   /**
    * The configuration for content extraction.
    */
-  contentExtraction: contentExtractionSchema.array().optional(),
+  contentExtraction: ContentExtractionSchema.array().optional(),
   /**
    * The configuration for metadata extraction.
    */
-  metadataExtraction: metadataExtractionSchema.array().optional(),
+  metadataExtraction: MetadataExtractionSchema.array().optional(),
 });
 
 export type HtmlLoaderOptions = z.infer<typeof htmlLoaderOptionsSchema>;

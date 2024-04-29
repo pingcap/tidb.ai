@@ -6,12 +6,12 @@ import { FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { HtmlSelectorItemType } from '@/lib/zod-extensions/types/html-selector-array';
+import type { HtmlSelector } from '@/lib/zod-extensions/types/html-selector-array';
 import { useEffect } from 'react';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 type Fake = {
-  fake: HtmlSelectorItemType[]
+  fake: HtmlSelector[]
 }
 
 export function HtmlSelectorArrayInput ({

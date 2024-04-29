@@ -42,6 +42,7 @@ test.http
 
 .store
 .idea
+.fleet
 
 # nextra
 www/public/robots.txt

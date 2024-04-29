@@ -1,17 +1,18 @@
-import { auth as authFn } from '@/app/api/auth/[...nextauth]/auth';
+import {auth as authFn} from '@/app/api/auth/[...nextauth]/auth';
 import {
   APIError,
   AUTH_FORBIDDEN_ERROR,
-  AUTH_REQUIRE_AUTHED_ERROR, CRONJOB_INVALID_AUTH_TOKEN_ERROR,
+  AUTH_REQUIRE_AUTHED_ERROR,
+  CRONJOB_INVALID_AUTH_TOKEN_ERROR,
   CRONJOB_REQUIRE_AUTH_TOKEN_ERROR
 } from '@/lib/errors';
-import { parseBody, parseParams, parseSearchParams } from '@/lib/next/parse';
-import { type RouteProps } from '@/lib/next/types';
-import type { Rewrite } from '@/lib/type-utils';
-import type { Session, User } from 'next-auth';
-import { isNextRouterError } from 'next/dist/client/components/is-next-router-error';
-import { type NextRequest, NextResponse } from 'next/server';
-import { z, ZodError, type ZodObject, type ZodType } from 'zod';
+import {parseBody, parseParams, parseSearchParams} from '@/lib/next/parse';
+import {type RouteProps} from '@/lib/next/types';
+import type {Rewrite} from '@/lib/type-utils';
+import type {Session, User} from 'next-auth';
+import {isNextRouterError} from 'next/dist/client/components/is-next-router-error';
+import {type NextRequest, NextResponse} from 'next/server';
+import {z, ZodError, type ZodObject, type ZodType} from 'zod';
 
 export type AppAuthType = 'anonymous' | 'user' | 'admin' | 'cronjob' | void;
 
@@ -27,6 +28,7 @@ export function defineHandler<
     params?: ZParams | void;
     body?: ZBody | void;
     auth?: Auth | void;
+    testOnly?: boolean;
   },
   handler: (
     ctx: {
@@ -40,6 +42,14 @@ export function defineHandler<
   ) => Promise<Returns> | Returns) {
   return async (request: NextRequest, ctx: RouteProps<any>) => {
     try {
+      if (options.testOnly && (process.env.VERCEL_ENV === 'production' || process.env.NODE_ENV === 'production')) {
+        return NextResponse.json({
+          message: 'This endpoint is for testing only'
+        }, {
+          status: 403
+        });
+      }
+
       let searchParams: any;
       let params: any;
       let body: any;
