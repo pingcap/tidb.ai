@@ -35,7 +35,7 @@ export default function AutoFormArray({
   return (
     <AccordionItem value={name} className="border-none">
       <AccordionTrigger>{title}</AccordionTrigger>
-      <AccordionContent>
+      <AccordionContent className="p-2">
         {fields.map((_field, index) => {
           const key = [...path, index.toString()].join(".");
           return (

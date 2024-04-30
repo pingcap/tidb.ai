@@ -1,5 +1,8 @@
 import { addIssueToContext, type ParseInput, type ParseReturnType, z, ZodType, type ZodTypeDef } from 'zod';
 
+/**
+ * HTML Selector
+ */
 
 export const HTMLSelectorSchema = z.object({
   /**
@@ -16,7 +19,7 @@ export type HTMLSelector = z.infer<typeof HTMLSelectorSchema>;
 
 export const HTMLSelectorArraySchema = HTMLSelectorSchema.array();
 
-export class HtmlSelectorArray extends ZodType<HTMLSelector[], HtmlSelectorArray.TypeDef> {
+export class HTMLSelectorArray extends ZodType<HTMLSelector[], HTMLSelectorArray.TypeDef> {
 
   _parse (input: ParseInput): ParseReturnType<HTMLSelector[]> {
     const result = HTMLSelectorArraySchema.safeParse(input.data);
@@ -41,7 +44,7 @@ export class HtmlSelectorArray extends ZodType<HTMLSelector[], HtmlSelectorArray
 
 }
 
-export namespace HtmlSelectorArray {
+export namespace HTMLSelectorArray {
   export const typeName = 'X-HtmlSelectorArray';
 
   export interface TypeDef extends ZodTypeDef {
@@ -50,37 +53,8 @@ export namespace HtmlSelectorArray {
 }
 
 export function htmlSelectorArray (def: ZodTypeDef = {}) {
-  return new HtmlSelectorArray({
+  return new HTMLSelectorArray({
     ...def,
-    typeName: HtmlSelectorArray.typeName,
+    typeName: HTMLSelectorArray.typeName,
   });
 }
-
-export enum ExtractValueMethod {
-  TEXT = 'text',
-  ATTR = 'attr',
-  PROP = 'prop',
-}
-
-export const ExtractValueMethodSchema = z.nativeEnum(ExtractValueMethod);
-
-export const HTMLExecutorSchema = HTMLSelectorSchema.extend({
-  /**
-   * The method to extract the value.
-   */
-  extract: ExtractValueMethodSchema.default(ExtractValueMethod.TEXT).optional(),
-  /**
-   * The attribute to extract the value.
-   */
-  attr: z.string().optional(),
-  /**
-   * The property to extract the value.
-   */
-  prop: z.enum(['innerHTML', 'outerHTML', 'innerText', 'textContent']).optional(),
-  /**
-   * The default value to be used if the value is not found.
-   */
-  default: z.string().optional(),
-});
-
-export type HTMLExecutor = z.infer<typeof HTMLExecutorSchema>;

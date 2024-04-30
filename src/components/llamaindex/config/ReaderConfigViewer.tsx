@@ -4,6 +4,7 @@ import AutoFormArray from '@/components/ui/auto-form/fields/array';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import type { Index } from '@/core/repositories/index_';
+import {htmlExtractorArray} from "@/lib/zod-extensions/types/html-extractor-array";
 import { htmlSelectorArray } from '@/lib/zod-extensions/types/html-selector-array';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
@@ -15,7 +16,7 @@ const schema = z.object({
     contentExtraction: z.object({
       url: z.string(),
       excludeSelectors: htmlSelectorArray(),
-      selectors: htmlSelectorArray(),
+      selectors: htmlExtractorArray(),
     }).array().describe('HTML Loader Rules')
   }).describe('HTML Loader Configuration'),
 });
@@ -60,7 +61,7 @@ export function ReaderConfigViewer ({ index }: { index: Index }) {
 
   return (
     <form onSubmit={handleSubmit}>
-      <Form {...form}>
+      <Form {...form} >
         <Accordion type="single" defaultValue="rag_$loader_$html.contentExtraction">
           <AutoFormArray name="rag_$loader_$html.contentExtraction" path={['rag_$loader_$html', 'contentExtraction']} item={schema.shape.rag_$loader_$html.shape.contentExtraction} form={form} />
         </Accordion>

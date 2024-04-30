@@ -1,7 +1,9 @@
-import { HtmlSelectorArrayInput } from '@/components/ui/auto-form/zod-extensions/html-selector-array';
+import {HTMLExtractorArrayInput} from "@/components/ui/auto-form/zod-extensions/html-extractor-array";
+import { HTMLSelectorArrayInput } from '@/components/ui/auto-form/zod-extensions/html-selector-array';
 import { PromptTemplateInput } from '@/components/ui/auto-form/zod-extensions/prompt-template';
 import { SeparatorArrayInput } from '@/components/ui/auto-form/zod-extensions/separator-array';
-import { HtmlSelectorArray } from '@/lib/zod-extensions/types/html-selector-array';
+import {HTMLExtractorArray} from "@/lib/zod-extensions/types/html-extractor-array";
+import {HTMLSelectorArray} from '@/lib/zod-extensions/types/html-selector-array';
 import { PromptTemplate } from '@/lib/zod-extensions/types/prompt-template';
 import { SeparatorArray } from '@/lib/zod-extensions/types/separator-array';
 import AutoFormCheckbox from './fields/checkbox';
@@ -25,7 +27,8 @@ export const INPUT_COMPONENTS = {
   file: AutoFormFile,
   fallback: AutoFormInput,
   [SeparatorArray.typeName]: SeparatorArrayInput,
-  [HtmlSelectorArray.typeName]: HtmlSelectorArrayInput,
+  [HTMLSelectorArray.typeName]: HTMLSelectorArrayInput,
+  [HTMLExtractorArray.typeName]: HTMLExtractorArrayInput,
   [PromptTemplate.typeName]: PromptTemplateInput,
 };
 
@@ -42,6 +45,7 @@ export const DEFAULT_ZOD_HANDLERS: {
   ZodNativeEnum: 'select',
   ZodNumber: 'number',
   [SeparatorArray.typeName]: SeparatorArray.typeName,
-  [HtmlSelectorArray.typeName]: HtmlSelectorArray.typeName,
+  [HTMLSelectorArray.typeName]: HTMLSelectorArray.typeName,
+  [HTMLExtractorArray.typeName]: HTMLExtractorArray.typeName,
   [PromptTemplate.typeName]: PromptTemplate.typeName,
 };

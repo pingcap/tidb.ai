@@ -1,10 +1,17 @@
 import {rag} from '@/core/interface';
 import {md5} from '@/lib/digest';
 import {createUrlMatcher} from '@/lib/url-matcher';
-import {HTMLExecutor, HTMLSelector} from "@/lib/zod-extensions/types/html-selector-array";
+import {ExtractValueMethod, HTMLExtractor} from "@/lib/zod-extensions/types/html-extractor-array";
+import {HTMLSelector} from "@/lib/zod-extensions/types/html-selector-array";
 import {CheerioAPI} from "cheerio";
 import * as cheerio from 'cheerio';
+import {Root} from "hast";
 import {match} from 'path-to-regexp';
+import rehypeParse from "rehype-parse";
+import rehypeRemark from "rehype-remark";
+import remarkGfm from "remark-gfm";
+import remarkStringify from 'remark-stringify';
+import {Processor, unified} from "unified";
 import htmlLoaderMeta, {
   DEFAULT_EXCLUDE_SELECTORS, DEFAULT_METADATA_EXTRACTOR,
   DEFAULT_TEXT_SELECTORS,
@@ -15,11 +22,18 @@ import htmlLoaderMeta, {
 } from './meta';
 
 export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
+  private readonly unifiedParser: Processor<Root, Root, any, any, string>;
+
   constructor(options: HtmlLoaderOptions) {
     super({
       contentExtraction: options.contentExtraction ?? [],
       metadataExtraction: options.metadataExtraction ?? [],
     });
+    this.unifiedParser = unified()
+      .use(rehypeParse) // Parse HTML to a syntax tree
+      .use(remarkGfm) // Enable GitHub Flavored Markdown
+      .use(rehypeRemark) // Turn HTML syntax tree to markdown syntax tree
+      .use(remarkStringify) // Serialize HTML syntax tree
   }
 
   load (buffer: Buffer, url: string): rag.Content<{}> {
@@ -72,15 +86,25 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
     return contents;
   }
 
-  private extractValuesFromHTML($: CheerioAPI, extractor: HTMLExecutor): string[] | string {
+  private extractValuesFromHTML($: CheerioAPI, extractor: HTMLExtractor): string[] | string {
     const elements = extractor.all ? $(extractor.selector) : $(extractor.selector).first();
-    const values = elements.map((_, element) => {
+
+    if (extractor.extract === ExtractValueMethod.MARKDOWN) {
+      const markdowns: string[] = [];
+      $(elements).each((_, element) => {
+        markdowns.push(String(this.unifiedParser.processSync($(element).html()!)));
+      });
+      return markdowns;
+    }
+
+    const values = elements.map( (_, element) => {
       switch (extractor.extract) {
-        case 'attr':
-          return $(element).attr(extractor.attr!);
-        case 'prop':
+        case ExtractValueMethod.ATTR:
+          return $(element).prop(extractor.attr!);
+        case ExtractValueMethod.PROP:
           return $(element).prop(extractor.prop!);
         default:
+          // default: ExtractValueMethod.TEXT
           return $(element).text();
       }
     });
@@ -89,7 +113,7 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
   }
 
   private getMatchedContentSelectors (url: string) {
-    const selectors: HTMLExecutor[] = [];
+    const selectors: HTMLExtractor[] = [];
     const excludeSelectors: HTMLSelector[] = [];
     const rules = this.options.contentExtraction ?? [];
 

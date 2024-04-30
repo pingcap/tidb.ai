@@ -5,15 +5,20 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import {HTMLSelector} from "@/lib/zod-extensions/types/html-selector-array";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  ExtractValueMethod,
+  HTMLExtractor
+} from '@/lib/zod-extensions/types/html-extractor-array';
 import { useFieldArray, useFormContext } from 'react-hook-form';
 
 type Fake = {
-  fake: HTMLSelector[]
+  fake: HTMLExtractor[]
 }
 
-export function HTMLSelectorArrayInput ({
+export function HTMLExtractorArrayInput ({
   field,
+  fieldConfigItem,
   fieldProps,
   isRequired,
   label,
@@ -33,6 +38,17 @@ export function HTMLSelectorArrayInput ({
       <ul className="space-y-2">
         {fields.map((field, index) => (
           <li key={index} className="flex items-center gap-2">
+            <Select value={field.extract} onValueChange={value => update(index, { ...field, extract: value as any })}>
+              <SelectTrigger>
+                <SelectValue placeholder="Extract value method" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ExtractValueMethod.TEXT}>Element Text (Default)</SelectItem>
+                <SelectItem value={ExtractValueMethod.MARKDOWN}>Element Markdown</SelectItem>
+                <SelectItem value={ExtractValueMethod.ATTR}>Element Attribute</SelectItem>
+                <SelectItem value={ExtractValueMethod.PROP}>Element Property</SelectItem>
+              </SelectContent>
+            </Select>
             <Input key="css" placeholder="CSS Selector" value={field.selector} onChange={e => update(index, { ...field, selector: e.currentTarget.value })} />
             <div className="flex gap-1 items-center flex-shrink-0">
               <Checkbox checked={field.all ?? false} onCheckedChange={checked => update(index, { ...field, all: !!checked })} />

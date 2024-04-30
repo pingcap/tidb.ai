@@ -1,7 +1,6 @@
 import {rag} from '@/core/interface';
+import {HTMLExtractor, htmlExtractorArray, HTMLExtractorSchema} from "@/lib/zod-extensions/types/html-extractor-array";
 import {
-  HTMLExecutor,
-  HTMLExecutorSchema,
   HTMLSelector,
   htmlSelectorArray
 } from '@/lib/zod-extensions/types/html-selector-array';
@@ -13,7 +12,7 @@ import BaseMeta = rag.BaseMeta;
  * The content extraction schema.
  */
 
-export const DEFAULT_TEXT_SELECTORS: HTMLExecutor[] = [
+export const DEFAULT_TEXT_SELECTORS: HTMLExtractor[] = [
   { selector: 'body' }
 ]
 
@@ -26,7 +25,7 @@ export const ContentExtractionSchema = z.object({
   // TODO: rename to urlPattern is better
   url: z.string(),
   excludeSelectors: htmlSelectorArray().default(DEFAULT_EXCLUDE_SELECTORS),
-  selectors: htmlSelectorArray(),
+  selectors: htmlExtractorArray(),
 });
 
 export type ContentExtraction = z.infer<typeof ContentExtractionSchema>;
@@ -101,7 +100,7 @@ export type URLMetadataExtractor = z.infer<typeof URLMetadataExtractorSchema>;
 /**
  * The HTML Metadata Extractor.
  */
-export const HTMLMetadataExtractorSchema = baseMetadataExtractorSchema.merge(HTMLExecutorSchema).extend({
+export const HTMLMetadataExtractorSchema = baseMetadataExtractorSchema.merge(HTMLExtractorSchema).extend({
   type: z.literal(MetadataExtractorType.HTML_METADATA_EXTRACTOR),
   /**
    * The key to store the metadata.
