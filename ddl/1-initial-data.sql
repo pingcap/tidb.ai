@@ -32,13 +32,11 @@ SET
             {
               "selectors": [
                 {
-                  "selector": "#topic-title > h1",
-                  "type": "dom-text"
+                  "selector": "#topic-title > h1"
                 },
                 {
                   "all": true,
-                  "selector": ".post",
-                  "type": "dom-text"
+                  "selector": ".post"
                 }
               ],
               "url": "ask.pingcap.com/t/**"
@@ -46,8 +44,7 @@ SET
             {
               "selectors": [
                 {
-                  "selector": ".doc-content",
-                  "type": "dom-text"
+                  "selector": ".doc-content"
                 }
               ],
               "url": "docs.pingcap.com/**"
@@ -55,8 +52,7 @@ SET
             {
               "selectors": [
                 {
-                  "selector": ".wysiwyg--post-content",
-                  "type": "dom-text"
+                  "selector": ".wysiwyg--post-content"
                 }
               ],
               "url": "www.pingcap.com/blog/*"
