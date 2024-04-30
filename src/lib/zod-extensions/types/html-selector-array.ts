@@ -1,21 +1,28 @@
 import { addIssueToContext, type ParseInput, type ParseReturnType, z, ZodType, type ZodTypeDef } from 'zod';
 
-// TODO: rename to ContentExtractionRule is better
-export type HtmlSelectorItemType = {
-  type?: 'dom-text' | 'dom-content-attr' | undefined
-  selector: string
-  all?: boolean | undefined
-}
+/**
+ * HTML Selector
+ */
 
-const arrayType = z.object({
-  type: z.enum(['dom-text', 'dom-content-attr']).optional(),
+export const HTMLSelectorSchema = z.object({
+  /**
+   * The HTML selector to extract the metadata.
+   */
   selector: z.string(),
-  all: z.boolean().optional(),
-}).array();
+  /**
+   * Whether to select all elements.
+   */
+  all: z.boolean().default(false).optional(),
+});
 
-export class HtmlSelectorArray extends ZodType<HtmlSelectorItemType[], HtmlSelectorArray.TypeDef> {
-  _parse (input: ParseInput): ParseReturnType<HtmlSelectorItemType[]> {
-    const result = arrayType.safeParse(input.data);
+export type HTMLSelector = z.infer<typeof HTMLSelectorSchema>;
+
+export const HTMLSelectorArraySchema = HTMLSelectorSchema.array();
+
+export class HTMLSelectorArray extends ZodType<HTMLSelector[], HTMLSelectorArray.TypeDef> {
+
+  _parse (input: ParseInput): ParseReturnType<HTMLSelector[]> {
+    const result = HTMLSelectorArraySchema.safeParse(input.data);
 
     if (result.success) {
       return {
@@ -37,7 +44,7 @@ export class HtmlSelectorArray extends ZodType<HtmlSelectorItemType[], HtmlSelec
 
 }
 
-export namespace HtmlSelectorArray {
+export namespace HTMLSelectorArray {
   export const typeName = 'X-HtmlSelectorArray';
 
   export interface TypeDef extends ZodTypeDef {
@@ -46,8 +53,8 @@ export namespace HtmlSelectorArray {
 }
 
 export function htmlSelectorArray (def: ZodTypeDef = {}) {
-  return new HtmlSelectorArray({
+  return new HTMLSelectorArray({
     ...def,
-    typeName: HtmlSelectorArray.typeName,
+    typeName: HTMLSelectorArray.typeName,
   });
 }

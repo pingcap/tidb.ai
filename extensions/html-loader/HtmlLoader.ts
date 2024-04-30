@@ -1,47 +1,51 @@
 import {rag} from '@/core/interface';
 import {md5} from '@/lib/digest';
 import {createUrlMatcher} from '@/lib/url-matcher';
-import {HtmlSelectorItemType} from "@/lib/zod-extensions/types/html-selector-array";
-import type {Element, Root} from 'hast';
-import {select, selectAll} from 'hast-util-select';
-import {toText} from 'hast-util-to-text';
+import {ExtractValueMethod, HTMLExtractor} from "@/lib/zod-extensions/types/html-extractor-array";
+import {HTMLSelector} from "@/lib/zod-extensions/types/html-selector-array";
+import {CheerioAPI} from "cheerio";
+import * as cheerio from 'cheerio';
+import {Root} from "hast";
 import {match} from 'path-to-regexp';
-import {Processor, unified} from 'unified';
-import {remove} from 'unist-util-remove';
-import rehypeParse from 'rehype-parse';
+import rehypeParse from "rehype-parse";
+import rehypeRemark from "rehype-remark";
+import remarkGfm from "remark-gfm";
+import remarkStringify from 'remark-stringify';
+import {Processor, unified} from "unified";
 import htmlLoaderMeta, {
-  DEFAULT_EXCLUDE_SELECTORS,
+  DEFAULT_EXCLUDE_SELECTORS, DEFAULT_METADATA_EXTRACTOR,
   DEFAULT_TEXT_SELECTORS,
   ExtractedMetadata,
-  type HtmlLoaderOptions,
+  type HtmlLoaderOptions, HTMLMetadataExtractor,
   MetadataExtractor,
-  MetadataExtractorType,
-  URLMetadataExtractor
+  MetadataExtractorType, URLMetadataExtractor,
 } from './meta';
 
 export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
-  private readonly unifiedProcessor: Processor<Root>;
+  private readonly unifiedParser: Processor<Root, Root, any, any, string>;
 
   constructor(options: HtmlLoaderOptions) {
     super({
       contentExtraction: options.contentExtraction ?? [],
       metadataExtraction: options.metadataExtraction ?? [],
     });
-    this.unifiedProcessor = unified()
-      .use(rehypeParse)
-      .freeze();
+    this.unifiedParser = unified()
+      .use(rehypeParse) // Parse HTML to a syntax tree
+      .use(remarkGfm) // Enable GitHub Flavored Markdown
+      .use(rehypeRemark) // Turn HTML syntax tree to markdown syntax tree
+      .use(remarkStringify) // Serialize HTML syntax tree
   }
 
   load (buffer: Buffer, url: string): rag.Content<{}> {
-    const matchedTexts = this.extractTextsFromDocument(url, buffer);
-    const metadataFromURL = this.extractMetadataFromURL(url);
+    const content = this.extractContent(url, buffer);
+    const metadata = this.extractMetadata(url, buffer);
 
     return {
-      content: matchedTexts,
-      hash: this.getTextHash(matchedTexts),
+      content: content,
+      hash: this.getTextHash(content),
       metadata: {
-        url: url,
-        ...metadataFromURL
+        url,
+        ...metadata,
       },
     } satisfies rag.Content<{}>;
   }
@@ -60,23 +64,60 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
    * @param buffer The content buffer of the document.
    * @private
    */
-  private extractTextsFromDocument (url: string, buffer: Buffer) {
-    const { selectors, excludeSelectors } = this.getMatchedTextSelectors(url);
-    const documentRoot = this.unifiedProcessor.parse(Uint8Array.from(buffer));
+  private extractContent (url: string, buffer: Buffer) {
+    const { selectors = [], excludeSelectors = [] } = this.getMatchedContentSelectors(url);
+    const $ = cheerio.load(buffer);
 
     // Remove excluded nodes.
-    const excludedNodes = new Set<any>(this.selectElements(documentRoot, excludeSelectors));
-    remove(documentRoot, (node) => excludedNodes.has(node) || node.type === 'comment');
+    for (const excludeSelector of excludeSelectors) {
+      $(excludeSelector.selector).remove();
+    }
 
-    // Select text from matched elements.
-    return this.selectElementTexts(documentRoot, selectors);
+    const contents = [];
+    for (const extractor of selectors) {
+      const texts = this.extractValuesFromHTML($, extractor);
+      if (Array.isArray(texts)) {
+        contents.push(...texts);
+      } else {
+        contents.push(texts);
+      }
+    }
+
+    return contents;
   }
 
-  private getMatchedTextSelectors (url: string) {
-    const excludeSelectors: HtmlSelectorItemType[] = [];
-    const selectors: HtmlSelectorItemType[] = [];
+  private extractValuesFromHTML($: CheerioAPI, extractor: HTMLExtractor): string[] | string {
+    const elements = extractor.all ? $(extractor.selector) : $(extractor.selector).first();
 
-    for (let rule of (this.options.contentExtraction ?? [])) {
+    if (extractor.extract === ExtractValueMethod.MARKDOWN) {
+      const markdowns: string[] = [];
+      $(elements).each((_, element) => {
+        markdowns.push(String(this.unifiedParser.processSync($(element).html()!)));
+      });
+      return markdowns;
+    }
+
+    const values = elements.map( (_, element) => {
+      switch (extractor.extract) {
+        case ExtractValueMethod.ATTR:
+          return $(element).prop(extractor.attr!);
+        case ExtractValueMethod.PROP:
+          return $(element).prop(extractor.prop!);
+        default:
+          // default: ExtractValueMethod.TEXT
+          return $(element).text();
+      }
+    });
+
+    return extractor.all ? values.get() : values.get(0)!;
+  }
+
+  private getMatchedContentSelectors (url: string) {
+    const selectors: HTMLExtractor[] = [];
+    const excludeSelectors: HTMLSelector[] = [];
+    const rules = this.options.contentExtraction ?? [];
+
+    for (let rule of rules) {
       const matcher = createUrlMatcher(rule.url);
       if (matcher(url)) {
         selectors.push(...rule.selectors);
@@ -84,100 +125,36 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
       }
     }
 
-    if (!selectors.length || !this.hasTextSelector(selectors)) {
-      console.warn('No text selector provided, fallback to using default selector, which may contains redundancy content.', {
-        defaultSelectors: DEFAULT_TEXT_SELECTORS,
-      });
+    if (selectors.length === 0) {
       selectors.push(...DEFAULT_TEXT_SELECTORS);
     }
 
-    if (!excludeSelectors.length) {
-      excludeSelectors.push(...DEFAULT_EXCLUDE_SELECTORS);
-    }
+    excludeSelectors.push(...DEFAULT_EXCLUDE_SELECTORS);
 
     return { selectors, excludeSelectors };
   }
 
-  private hasTextSelector (selectors: HtmlSelectorItemType[]) {
-    // TODO: confirm the type.
-    return selectors.find(s => s.type == undefined || s.type == 'dom-text')
-  }
-
-  private selectElements (root: Root, selectorItems: HtmlSelectorItemType[]){
-    const matchedElements: Element[] = [];
-
-    for (let { selector, all } of selectorItems) {
-      if (all) {
-        const elements = selectAll(selector, root);
-        if (elements.length > 0) {
-          matchedElements.push(...elements);
-        }
-      } else {
-        const element = select(selector, root);
-        if (element) {
-          matchedElements.push(element);
-        }
-      }
-    }
-
-    return matchedElements;
-  }
-
-  private selectElementTexts (root: Root, selectorItems: HtmlSelectorItemType[]){
-    const matchedTexts: string[] = [];
-
-    for (let { selector, all, type } of selectorItems) {
-      if (all) {
-        const elements = selectAll(selector, root);
-        if (elements.length > 0) {
-          matchedTexts.push(...elements.map(element => this.getElementTextContent(element, type)));
-        } else {
-          console.warn(`Selector \`${selector}\` matched no elements.`)
-        }
-      } else {
-        const element = select(selector, root);
-        if (element) {
-          matchedTexts.push(this.getElementTextContent(element, type));
-        } else {
-          console.warn(`Selector \`${selector}\` matched no elements.`)
-        }
-      }
-    }
-
-    return matchedTexts;
-  }
-
-  private getElementTextContent (element: Element, type: HtmlSelectorItemType['type']) {
-    if (type === 'dom-content-attr') {
-      return String(element.properties['content'] ?? '');
-    } else {
-      return toText(element);
-    }
-  }
 
   /**
    * Extract metadata from the URL.
    * @param url The URL of the document.
+   * @param buffer The content buffer of the document.
    * @private
    */
-  private extractMetadataFromURL (url: string): Record<string, any> {
-    const extractors = this.getMatchedMetadataExecutors(url);
+  private extractMetadata (url: string, buffer: Buffer): Record<string, any> {
+    const extractors = this.getMatchedMetadataExecutors(url) ?? DEFAULT_METADATA_EXTRACTOR;
+    if (extractors.length === 0) {
+      return {};
+    }
+
+    const $ = cheerio.load(buffer);
     const metadata: ExtractedMetadata = {};
 
     for (let extractor of extractors) {
       if (extractor.type === MetadataExtractorType.URL_METADATA_EXTRACTOR) {
-        const urlMetadataExtractor = extractor as unknown as URLMetadataExtractor;
-        const urlMatch = match(urlMetadataExtractor.urlMetadataPattern, {
-          decode: decodeURIComponent,
-        });
-
-        const urlObj = new URL(url);
-        const matchedMetadata = urlMatch(urlObj.pathname);
-
-        if (matchedMetadata) {
-          const params = this.excludeNonNamedParams(matchedMetadata.params);
-          Object.assign(metadata, urlMetadataExtractor.defaultMetadata, params);
-        }
+        Object.assign(metadata, this.extractMetadataFromURL(url, extractor));
+      } else if (extractor.type === MetadataExtractorType.HTML_METADATA_EXTRACTOR) {
+        Object.assign(metadata, this.extractMetadataFromHTML($, extractor));
       }
     }
 
@@ -197,6 +174,21 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
     return rules;
   }
 
+  private extractMetadataFromURL (url: string, extractor: URLMetadataExtractor) {
+    const urlMatch = match(extractor.urlMetadataPattern, {
+      decode: decodeURIComponent,
+    });
+
+    const urlObj = new URL(url);
+    const matchedMetadata = urlMatch(urlObj.pathname);
+
+    if (matchedMetadata) {
+      return this.excludeNonNamedParams(matchedMetadata.params);
+    } else {
+      return {};
+    }
+  }
+
   private excludeNonNamedParams (source: Record<string, any>) {
     const target: Record<string, any> = {};
     for (let [key, val] of Object.entries(source)) {
@@ -205,6 +197,12 @@ export default class HtmlLoader extends rag.Loader<HtmlLoaderOptions, {}> {
       }
     }
     return target;
+  }
+
+  private extractMetadataFromHTML($: CheerioAPI, extractor: HTMLMetadataExtractor): Record<string, any> {
+    return {
+      [extractor.key]: this.extractValuesFromHTML($, extractor),
+    }
   }
 
 }
