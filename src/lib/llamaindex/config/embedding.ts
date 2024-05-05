@@ -65,13 +65,13 @@ export const JinaAIEmbeddingConfigSchema = z.object({
 });
 
 export enum OllamaEmbeddingModel {
-  LLAMA3 = "llama3",
+  MXBAI_EMBED_LARGE = "mxbai-embed-large",
 }
 
 export const OllamaEmbeddingModelSchema = z.nativeEnum(OllamaEmbeddingModel);
 
 export const OllamaEmbeddingOptionsSchema = BaseEmbeddingOptionsSchema.extend({
-  model: z.nativeEnum(OllamaEmbeddingModel).default(OllamaEmbeddingModel.LLAMA3),
+  model: z.nativeEnum(OllamaEmbeddingModel).default(OllamaEmbeddingModel.MXBAI_EMBED_LARGE),
   dimensions: z.number().int(),
 });
 
@@ -106,7 +106,7 @@ export const EmbeddingModelOptions = {
     },
   },
   [EmbeddingProvider.OLLAMA]: {
-    [OllamaEmbeddingModel.LLAMA3]: {
+    [OllamaEmbeddingModel.MXBAI_EMBED_LARGE]: {
       dimensions: 1024,
     },
   }

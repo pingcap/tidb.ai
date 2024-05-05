@@ -1,12 +1,11 @@
-import { getDb } from '@/core/db';
-import { createIndex, getIndex, type IndexConfig, IndexProviderName, listIndexes } from '@/core/repositories/index_';
-import { toPageRequest } from '@/lib/database';
-
-import {EmbeddingProvider} from "@/lib/llamaindex/config/embedding";
+import {getDb} from '@/core/db';
+import {createIndex, getIndex, type IndexConfig, IndexProviderName, listIndexes} from '@/core/repositories/index_';
+import {toPageRequest} from '@/lib/database';
+import {EmbeddingProvider, OpenAIEmbeddingModel} from "@/lib/llamaindex/config/embedding";
 import {LLMProvider} from "@/lib/llamaindex/config/llm";
-import { defineHandler } from '@/lib/next/handler';
-import { notFound } from 'next/navigation';
-import { z } from 'zod';
+import {defineHandler} from '@/lib/next/handler';
+import {notFound} from 'next/navigation';
+import {z} from 'zod';
 
 export const GET = defineHandler({
   auth: 'admin',
@@ -33,7 +32,7 @@ export const POST = defineHandler({
   } else {
     config = {
       provider: IndexProviderName.LLAMAINDEX,
-      embedding: { provider: EmbeddingProvider.OPENAI, options: { model: 'text-embedding-3-small', vectorColumn: 'embedding', vectorDimensions: 1536 } },
+      embedding: { provider: EmbeddingProvider.OPENAI, options: { model: OpenAIEmbeddingModel.TEXT_EMBEDDING_3_SMALL, vectorColumn: 'embedding', vectorDimensions: 1536 } },
       llm: { provider: LLMProvider.OPENAI, options: { model: 'gpt-3.5-turbo' } },
       metadata_extractors: [],
       parser: {},

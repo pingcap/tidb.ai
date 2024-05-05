@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { createChatEngine } from '@/client/operations/chat_engines';
-import {LLMProvider} from "@/lib/llamaindex/config/llm";
+import {LLMProvider, OpenAIModel} from "@/lib/llamaindex/config/llm";
 import {RerankerProvider} from "@/lib/llamaindex/config/reranker";
 
 export function CreateChatEngineDialog ({
@@ -28,7 +28,7 @@ export function CreateChatEngineDialog ({
         engine: 'condense-question',
         engine_options: {
           reranker: { provider: RerankerProvider.LLM, options: { model: '-' } },
-          llm: { provider: LLMProvider.OPENAI, options: { model: 'gpt-3.5-turbo' } },
+          llm: { provider: LLMProvider.OPENAI, options: { model: OpenAIModel.GPT_3_5_TURBO } },
           prompts: {
             textQa: defaultTextQaPrompt,
             refine: defaultRefinePrompt,

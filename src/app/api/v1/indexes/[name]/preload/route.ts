@@ -36,9 +36,9 @@ export const POST = defineHandler(handlerOptions, async ({ params }) => {
       },
       async () => {
         const { provider, embedding } = index.config;
-        const { vectorColumn = 'embedding', vectorDimensions = 1536 } = embedding.options || {};
         const tableName = DocumentIndexService.getDocumentVectorTableName(provider, index.name);
-        await preloadTiFlashANNIndex(tableName, vectorColumn, vectorDimensions);
+        const { column, dimensions } = await getVectorTableColumnAndDimension(tableName);
+        await preloadTiFlashANNIndex(tableName, column, dimensions);
       },
       true,
     );
@@ -59,6 +59,31 @@ export const POST = defineHandler(handlerOptions, async ({ params }) => {
     });
   }
 });
+
+async function getVectorTableColumnAndDimension (tableName: string) {
+  const stmt = sql<{ COLUMN_NAME: string, COLUMN_TYPE: string }>`
+      SELECT COLUMN_NAME, COLUMN_TYPE
+      FROM INFORMATION_SCHEMA.COLUMNS
+      WHERE TABLE_NAME = ${sql.val(tableName)} AND COLUMN_TYPE LIKE 'vector%'
+      LIMIT 1
+  `;
+
+  const result = await stmt.execute(getDb());
+  const columnDef = result.rows[0];
+  if (!columnDef) {
+    throw new Error(`Vector column not found in table <${tableName}>`);
+  }
+
+  const match = columnDef.COLUMN_TYPE.match(/vector<float>\((\d+)\)/);
+  if (!match) {
+    throw new Error(`Invalid vector column type <${columnDef.COLUMN_TYPE}> in table <${tableName}>`);
+  }
+
+  return {
+    column: columnDef.COLUMN_NAME,
+    dimensions: parseInt(match[1]),
+  };
+}
 
 async function preloadTiFlashANNIndex (tableName: string, vectorColumn: string = 'embedding', vectorDimension: number = 1536) {
   const duration = await measure(async () => {

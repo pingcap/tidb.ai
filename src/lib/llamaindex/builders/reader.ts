@@ -1,7 +1,7 @@
 import { Flow } from '@/core';
 import type { Document as CoreDocument } from '@/core/repositories/document';
 import { rag } from '@/core/interface';
-import { contentToNode } from '@/lib/llamaindex/builders/base';
+import { contentToNode } from '@/lib/llamaindex/converters/base';
 import { type BaseReader, type Document } from 'llamaindex';
 
 export interface AppReader extends BaseReader {

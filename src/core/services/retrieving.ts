@@ -11,8 +11,8 @@ import {
 import {AppIndexBaseService, type AppIndexBaseServiceOptions} from '@/core/services/base';
 import {getErrorMessage} from '@/lib/errors';
 import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
-import {MetadataFilterConfig} from "@/lib/llamaindex/builders/metadata-filter";
-import {RerankerConfig, RerankerProvider, RerankerOptions} from "@/lib/llamaindex/builders/reranker";
+import {MetadataFilterConfig} from "@/lib/llamaindex/config/metadata-filter";
+import {RerankerConfig} from "@/lib/llamaindex/config/reranker";
 import {metadataFilterSchema} from "@/lib/llamaindex/postprocessors/postfilters/MetadataPostFilter";
 import {ServiceContext} from "llamaindex";
 import type {UUID} from 'node:crypto';
