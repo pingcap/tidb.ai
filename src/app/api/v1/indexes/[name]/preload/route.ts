@@ -36,9 +36,9 @@ export const POST = defineHandler(handlerOptions, async ({ params }) => {
       },
       async () => {
         const { provider, embedding } = index.config;
-        const { vectorColumn, vectorDimension } = embedding.config;
+        const { vectorColumn = 'embedding', vectorDimensions = 1536 } = embedding.options || {};
         const tableName = DocumentIndexService.getDocumentVectorTableName(provider, index.name);
-        await preloadTiFlashANNIndex(tableName, vectorColumn, vectorDimension);
+        await preloadTiFlashANNIndex(tableName, vectorColumn, vectorDimensions);
       },
       true,
     );

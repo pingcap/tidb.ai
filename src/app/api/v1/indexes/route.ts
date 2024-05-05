@@ -1,6 +1,9 @@
 import { getDb } from '@/core/db';
 import { createIndex, getIndex, type IndexConfig, IndexProviderName, listIndexes } from '@/core/repositories/index_';
 import { toPageRequest } from '@/lib/database';
+
+import {EmbeddingProvider} from "@/lib/llamaindex/config/embedding";
+import {LLMProvider} from "@/lib/llamaindex/config/llm";
 import { defineHandler } from '@/lib/next/handler';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
@@ -30,8 +33,8 @@ export const POST = defineHandler({
   } else {
     config = {
       provider: IndexProviderName.LLAMAINDEX,
-      embedding: { provider: 'openai', config: { model: 'text-embedding-3-small', vectorColumn: 'embedding', vectorDimension: 1536 } },
-      llm: { provider: 'openai', config: { model: 'gpt-3.5-turbo' } },
+      embedding: { provider: EmbeddingProvider.OPENAI, options: { model: 'text-embedding-3-small', vectorColumn: 'embedding', vectorDimensions: 1536 } },
+      llm: { provider: LLMProvider.OPENAI, options: { model: 'gpt-3.5-turbo' } },
       metadata_extractors: [],
       parser: {},
       reader: {},

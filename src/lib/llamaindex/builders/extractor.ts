@@ -1,6 +1,6 @@
 import { Flow } from '@/core';
 import { rag } from '@/core/interface';
-import { nodeToChunk, nodeToContent } from '@/lib/llamaindex/converters/base';
+import { nodeToChunk, nodeToContent } from '@/lib/llamaindex/builders/base';
 import { BaseExtractor, type BaseNode, KeywordExtractor, QuestionsAnsweredExtractor, SummaryExtractor, TitleExtractor } from 'llamaindex';
 
 export function getMetadataExtractor (flow: Flow, name: string, options: any) {

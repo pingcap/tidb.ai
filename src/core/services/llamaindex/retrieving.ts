@@ -10,8 +10,8 @@ import {
   type RetrieveOptions
 } from '@/core/services/retrieving';
 import {cosineDistance} from '@/lib/kysely';
-import {getMetadataFilter} from "@/lib/llamaindex/converters/metadata-filter";
-import {getReranker} from "@/lib/llamaindex/converters/reranker";
+import {buildMetadataFilter} from "@/lib/llamaindex/builders/metadata-filter";
+import {buildReranker} from "@/lib/llamaindex/builders/reranker";
 import {
   type BaseRetriever,
   NodeRelationship,
@@ -45,15 +45,17 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     const searchDuration = searchEnd.diff(searchStart, 'milliseconds').milliseconds;
     console.log(`Finish embedding searching, take ${searchDuration} ms, found ${chunks.length} chunks.`, { search_top_k });
 
-    const metadataFilterOptions = this.metadataFilterOptions;
-    if (metadataFilterOptions) {
+    const metadataFilterConfig = this.metadataFilterConfig;
+    if (metadataFilterConfig) {
+
+      // If filters are provided, use them directly.
       if (filters) {
-        this.metadataFilterOptions.config.filters = filters;
+        this.metadataFilterConfig.options = Object.assign(this.metadataFilterConfig.options ?? {}, { filters })
       }
 
       console.log('Start post filtering chunks by metadata.');
       const filterStart = DateTime.now();
-      const filteredResult = await this.metadataPostFilter(chunks, query, metadataFilterOptions);
+      const filteredResult = await this.metadataPostFilter(chunks, query, metadataFilterConfig);
       chunks = filteredResult.slice(0, top_k);
       const filterEnd = DateTime.now();
       const filterDuration = filterEnd.diff(filterStart, 'milliseconds').milliseconds;
@@ -61,7 +63,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     }
 
     // If no reranker is provided, return the top_k chunks directly.
-    if (!this.rerankerOptions?.provider) {
+    if (!this.rerankerConfig?.provider) {
       return chunks.slice(0, top_k);
     }
 
@@ -70,7 +72,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
 
     console.log(`Start reranking for query "${query}".`, { top_k });
     const rerankStart = DateTime.now();
-    const rerankedResult = await this.rerank(chunks, query, top_k, this.rerankerOptions);
+    const rerankedResult = await this.rerank(chunks, query, top_k, this.rerankerConfig);
     const rerankEnd = DateTime.now();
     const rerankDuration = rerankEnd.diff(rerankStart, 'milliseconds').milliseconds;
     console.log(`Finish reranking, take ${rerankDuration} ms.`);
@@ -109,8 +111,8 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     return await this.parse(this.index, rawChunks);
   }
 
-  private async metadataPostFilter (chunks: RetrievedChunk[], query: string, metadataFilterOptions: NonNullable<AppRetrieveServiceOptions['metadata_filter']>) {
-    const metadataFilter = getMetadataFilter(this.serviceContext, metadataFilterOptions.provider, metadataFilterOptions.config);
+  private async metadataPostFilter (chunks: RetrievedChunk[], query: string, config: NonNullable<AppRetrieveServiceOptions['metadata_filter']>) {
+    const metadataFilter = buildMetadataFilter(this.serviceContext, config);
     const chunksMap = new Map(chunks.map(chunk => [chunk.document_chunk_node_id, chunk]));
     const nodesWithScore = await metadataFilter.postprocessNodes(chunks.map(chunk => ({ score: chunk.relevance_score, node: transform(chunk) })), query);
 
@@ -120,8 +122,8 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     }));
   }
 
-  private async rerank (chunks: RetrievedChunk[], text: string, top_k: number, rerankerOptions: NonNullable<AppRetrieveServiceOptions['reranker']>) {
-    const reranker = getReranker(this.serviceContext, rerankerOptions.provider, rerankerOptions.config, top_k);
+  private async rerank (chunks: RetrievedChunk[], text: string, top_k: number, config: NonNullable<AppRetrieveServiceOptions['reranker']>) {
+    const reranker = await buildReranker(this.serviceContext, config, top_k);
     const chunksMap = new Map(chunks.map(chunk => [chunk.document_chunk_node_id, chunk]));
     const nodesWithScore = await reranker.postprocessNodes(chunks.map(chunk => ({ score: chunk.relevance_score, node: transform(chunk) })), text);
 

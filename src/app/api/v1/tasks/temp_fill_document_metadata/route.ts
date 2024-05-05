@@ -1,6 +1,6 @@
 import {getDb} from '@/core/db';
 import {getIndexByNameOrThrow} from "@/core/repositories/index_";
-import {fromFlowReaders} from "@/lib/llamaindex/converters/reader";
+import {fromFlowReaders} from "@/lib/llamaindex/builders/reader";
 import {executeInSafeDuration} from "@/lib/next/executeInSafeDuration";
 import {defineHandler} from '@/lib/next/handler';
 import {baseRegistry} from '@/rag-spec/base';

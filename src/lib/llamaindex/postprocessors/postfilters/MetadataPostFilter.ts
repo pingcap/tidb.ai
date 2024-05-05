@@ -11,13 +11,15 @@ export const metadataFilterSchema = z.object({
 
 export type MetadataFieldFilter = z.infer<typeof metadataFilterSchema>;
 
-export interface MetadataField {
-  name: string;
-  type: string;
-  enums?: string[];
-  default: string;
-  choicePrompt?: string;
-}
+export const metadataFieldSchema = z.object({
+  name: z.string(),
+  type: z.string(),
+  enums: z.array(z.string()).optional(),
+  default: z.string(),
+  choicePrompt: z.string().optional(),
+});
+
+export type MetadataField = z.infer<typeof metadataFieldSchema>;
 
 export const defaultMetadataFilterChoicePrompt = ({
   metadataFields,

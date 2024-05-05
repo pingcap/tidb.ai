@@ -80,11 +80,11 @@ export class Bitdeer implements BaseLLM<BitdeerAdditionalChatOptions> {
   protected modelMetadata: Partial<LLMMetadata> = {};
 
   constructor(
-    init: Partial<Bitdeer> & {
+    init?: Partial<Bitdeer> & {
       // model is required
-      model: BitdeerModel;
+      model?: BitdeerModel;
       modelMetadata?: Partial<LLMMetadata>;
-      apiSecretAccessKey: string;
+      apiSecretAccessKey?: string;
     },
   ) {
     Object.assign(this, init);

@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { createChatEngine } from '@/client/operations/chat_engines';
+import {LLMProvider} from "@/lib/llamaindex/config/llm";
+import {RerankerProvider} from "@/lib/llamaindex/config/reranker";
 
 export function CreateChatEngineDialog ({
   defaultIndexId,
@@ -25,8 +27,8 @@ export function CreateChatEngineDialog ({
         name: '',
         engine: 'condense-question',
         engine_options: {
-          reranker: { provider: 'llm', config: { model: '-' } },
-          llm: { provider: 'openai', config: { model: 'gpt-3.5-turbo' } },
+          reranker: { provider: RerankerProvider.LLM, options: { model: '-' } },
+          llm: { provider: LLMProvider.OPENAI, options: { model: 'gpt-3.5-turbo' } },
           prompts: {
             textQa: defaultTextQaPrompt,
             refine: defaultRefinePrompt,
@@ -118,7 +120,7 @@ export function ChatEngineFields () {
         )}
       />
       <FormField
-        name="engine_options.reranker.config.model"
+        name="engine_options.reranker.options.model"
         render={({ field }) => (
           <FormItem>
             <FormLabel>Reranker Model</FormLabel>
@@ -140,7 +142,7 @@ export function ChatEngineFields () {
         )}
       />
       <FormField
-        name="engine_options.llm.config.model"
+        name="engine_options.llm.options.model"
         render={({ field }) => (
           <FormItem>
             <FormLabel>LLM Model</FormLabel>

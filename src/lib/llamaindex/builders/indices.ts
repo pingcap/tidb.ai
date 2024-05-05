@@ -1,7 +1,7 @@
 import { getDb, tx } from '@/core/db';
 import { getIndex } from '@/core/repositories/index_';
-import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
-import { getLLM } from '@/lib/llamaindex/converters/llm';
+import { buildEmbedding } from '@/lib/llamaindex/builders/embedding';
+import { buildLLM } from '@/lib/llamaindex/builders/llm';
 import {
   DEFAULT_TIDB_VECTOR_DIMENSIONS,
   TiDBVectorDB,
@@ -9,7 +9,6 @@ import {
 } from '@/lib/llamaindex/storage/vectorStore/TiDBVectorStore';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
-import {Kysely} from "kysely";
 import { serviceContextFromDefaults, VectorStoreIndex } from 'llamaindex';
 import { notFound } from 'next/navigation';
 
@@ -19,8 +18,6 @@ export async function createVectorStoreIndex (id: number) {
     notFound();
   }
 
-  const flow = await getFlow(baseRegistry);
-
   return await VectorStoreIndex.init({
     vectorStore: new TiDBVectorStore({
       dbClient: getDb<TiDBVectorDB>(),
@@ -29,8 +26,8 @@ export async function createVectorStoreIndex (id: number) {
       dimensions: DEFAULT_TIDB_VECTOR_DIMENSIONS,
     }),
     serviceContext: serviceContextFromDefaults({
-      llm: getLLM(flow, index.config.llm.provider, index.config.llm.config),
-      embedModel: getEmbedding(flow, index.config.embedding.provider, index.config.embedding.config),
+      llm: await buildLLM(index.config.llm),
+      embedModel: await buildEmbedding(index.config.embedding),
     }),
   });
 }

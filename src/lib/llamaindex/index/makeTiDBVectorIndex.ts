@@ -1,7 +1,7 @@
 import { Flow } from '@/core';
 import { rag } from '@/core/interface';
-import { fromAppEmbedding } from '@/lib/llamaindex/converters/embedding';
-import { fromAppChatModel } from '@/lib/llamaindex/converters/llm';
+import { fromAppEmbedding } from '@/lib/llamaindex/builders/embedding';
+import { fromAppChatModel } from '@/lib/llamaindex/builders/llm';
 import { type TiDBIndexStruct } from '@/lib/llamaindex/storage/indexStore/TiDBIndexStore';
 import { type TiDBVectorStore } from '@/lib/llamaindex/storage/vectorStore/TiDBVectorStore';
 import { CallbackManager, PromptHelper, SentenceWindowNodeParser, VectorStoreIndex } from 'llamaindex';

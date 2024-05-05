@@ -5,10 +5,10 @@ import type { DocumentIndexTask, DocumentIndexTaskInfo } from '@/core/repositori
 import type { Index } from '@/core/repositories/index_';
 import { DocumentIndexProvider, type DocumentIndexTaskResult } from '@/core/services/indexing';
 import { uuidToBin, vectorToSql } from '@/lib/kysely';
-import { getEmbedding } from '@/lib/llamaindex/converters/embedding';
-import { getMetadataExtractor } from '@/lib/llamaindex/converters/extractor';
-import { getLLM } from '@/lib/llamaindex/converters/llm';
-import { fromFlowReaders } from '@/lib/llamaindex/converters/reader';
+import { buildEmbedding } from '@/lib/llamaindex/builders/embedding';
+import { getMetadataExtractor } from '@/lib/llamaindex/builders/extractor';
+import { buildLLM } from '@/lib/llamaindex/builders/llm';
+import { fromFlowReaders } from '@/lib/llamaindex/builders/reader';
 import { createIndexIngestionPipeline } from '@/lib/llamaindex/indexDocument';
 import { baseRegistry } from '@/rag-spec/base';
 import { getFlow } from '@/rag-spec/createFlow';
@@ -47,11 +47,11 @@ export class LlamaindexIndexProvider extends DocumentIndexProvider {
     });
 
     // Select and config the llm for indexing (metadata extractor).
-    const llm = getLLM(flow, index.config.llm.provider, index.config.llm.config);
-    llm.metadata.model = index.config.llm.config.model;
+    const llm = await buildLLM(index.config.llm);
+    llm.metadata.model = index.config.llm.options?.model!;
 
     // Select and config the embedding (important and immutable)
-    const embedding = getEmbedding(flow, index.config.embedding.provider, index.config.embedding.config);
+    const embedding = await buildEmbedding(index.config.embedding);
 
     // Select and config the metadata extractors.
     const metadataExtractor = index.config.metadata_extractors.map(extractor =>

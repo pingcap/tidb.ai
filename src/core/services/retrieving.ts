@@ -10,7 +10,9 @@ import {
 } from '@/core/repositories/retrieve';
 import {AppIndexBaseService, type AppIndexBaseServiceOptions} from '@/core/services/base';
 import {getErrorMessage} from '@/lib/errors';
-import {getEmbedding} from '@/lib/llamaindex/converters/embedding';
+import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
+import {MetadataFilterConfig} from "@/lib/llamaindex/builders/metadata-filter";
+import {RerankerConfig, RerankerProvider, RerankerOptions} from "@/lib/llamaindex/builders/reranker";
 import {metadataFilterSchema} from "@/lib/llamaindex/postprocessors/postfilters/MetadataPostFilter";
 import {ServiceContext} from "llamaindex";
 import type {UUID} from 'node:crypto';
@@ -55,22 +57,19 @@ export interface RetrieveCallbacks {
 
 export interface AppRetrieveServiceOptions extends AppIndexBaseServiceOptions {
   serviceContext: ServiceContext;
-  reranker?: { provider: string, config?: any };
-  metadata_filter?: { provider: string, config?: any };
+  reranker?: RerankerConfig;
+  metadata_filter?: MetadataFilterConfig;
 }
 
 export abstract class AppRetrieveService extends AppIndexBaseService {
   protected readonly serviceContext: ServiceContext;
-  protected readonly rerankerOptions?: AppRetrieveServiceOptions['reranker'];
-  protected readonly metadataFilterOptions: AppRetrieveServiceOptions['metadata_filter'] = {
-    provider: 'default',
-    config: {},
-  };
+  protected readonly rerankerConfig?: RerankerConfig;
+  protected readonly metadataFilterConfig?: MetadataFilterConfig;
 
   constructor ({ reranker, metadata_filter, serviceContext, ...options }: AppRetrieveServiceOptions) {
     super(options);
-    this.rerankerOptions = reranker;
-    this.metadataFilterOptions = metadata_filter;
+    this.rerankerConfig = reranker;
+    this.metadataFilterConfig = metadata_filter;
     this.serviceContext = serviceContext;
   }
 
@@ -91,7 +90,7 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
     try {
       const result = await this.run(retrieve, options);
 
-      await finishRetrieve(retrieve.id, !!this.rerankerOptions, result.map(result => ({
+      await finishRetrieve(retrieve.id, !!this.rerankerConfig, result.map(result => ({
         retrieve_id: retrieve.id,
         relevance_score: result.relevance_score,
         document_id: result.document_id,
@@ -113,7 +112,7 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
   }
 
   protected async embedQuery (text: string) {
-    const embeddings = getEmbedding(this.flow, this.index.config.embedding.provider, this.index.config.embedding.config);
+    const embeddings = await buildEmbedding(this.index.config.embedding);
     return await embeddings.getQueryEmbedding(text);
   }
 

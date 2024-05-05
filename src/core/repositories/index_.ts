@@ -1,6 +1,8 @@
 import { DBv1, getDb } from '@/core/db';
 import { executePage, type PageRequest } from '@/lib/database';
 import {INDEX_NOT_FOUND_ERROR} from "@/lib/errors";
+import {LLMConfig} from "@/lib/llamaindex/builders/llm";
+import {EmbeddingConfig} from "@/lib/llamaindex/config/embedding";
 import type { Rewrite } from '@/lib/type-utils';
 import { type Insertable, type Selectable, sql } from 'kysely';
 import { notFound } from 'next/navigation';
@@ -14,6 +16,14 @@ export enum IndexProviderName {
 
 export const DEFAULT_INDEX_PROVIDER_NAME = IndexProviderName.LLAMAINDEX;
 
+/**
+ * The configuration for indexing flow.
+ *
+ * Naming convention:
+ * - config: The configuration for the entire index or the component.
+ * - provider: The provider for the entire index or the component.
+ * - options: The options for the component.
+ */
 export interface IndexConfig {
   provider: IndexProviderName;
   reader: Record<string, any>;
@@ -29,18 +39,8 @@ export interface IndexConfig {
     provider: string
     config: any
   }[];
-  embedding: {
-    provider: string
-    config: {
-      model: string,
-      vectorColumn: string,
-      vectorDimension: number
-    }
-  };
-  llm: {
-    provider: string
-    config: { model: string }
-  };
+  embedding: EmbeddingConfig;
+  llm: LLMConfig;
 }
 
 export async function getIndex (id: number) {
@@ -109,7 +109,7 @@ export async function enableIndex (id: number) {
           hash        VARCHAR(256) NOT NULL,
           text        TEXT         NOT NULL,
           metadata    JSON         NOT NULL,
-          embedding   VECTOR< FLOAT >(${index.config.embedding.config.vectorDimension}) NULL COMMENT 'hnsw(distance=cosine)',
+          embedding   VECTOR< FLOAT > (${index.config.embedding.options?.vectorDimensions}) NULL COMMENT 'hnsw(distance=cosine)',
           -- Extra Document Chunk Node Fields
           index_id    INT          NOT NULL,
           document_id INT          NOT NULL,

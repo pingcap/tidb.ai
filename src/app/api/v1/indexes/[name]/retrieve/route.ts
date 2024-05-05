@@ -2,8 +2,9 @@ import {getChatEngineConfig} from "@/core/repositories/chat_engine";
 import {getIndexByName} from '@/core/repositories/index_';
 import {LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
 import {retrieveOptionsSchema} from '@/core/services/retrieving';
-import {getEmbedding} from "@/lib/llamaindex/converters/embedding";
-import {getLLM} from "@/lib/llamaindex/converters/llm";
+import {buildEmbedding} from "@/lib/llamaindex/builders/embedding";
+import {buildLLM} from "@/lib/llamaindex/builders/llm";
+import {LLMProvider} from "@/lib/llamaindex/config/llm";
 import {defineHandler} from '@/lib/next/handler';
 import {baseRegistry} from '@/rag-spec/base';
 import {getFlow} from '@/rag-spec/createFlow';
@@ -27,16 +28,16 @@ export const POST = defineHandler({
 
   const [engine, engineOptions] = await getChatEngineConfig(body.engine);
   const {
-    llm: {
-      provider: llmProvider = 'openai',
-      config: llmConfig = {}
-    } = {},
+    llm: llmConfig = {
+      provider: LLMProvider.OPENAI,
+      config: {}
+    },
   } = engineOptions;
 
   const flow = await getFlow(baseRegistry);
   const serviceContext = serviceContextFromDefaults({
-    llm: getLLM(flow, llmProvider, llmConfig),
-    embedModel: getEmbedding(flow, index.config.embedding.provider, index.config.embedding.config),
+    llm: await buildLLM(llmConfig),
+    embedModel: await buildEmbedding(index.config.embedding),
   });
 
   const retrieveService = new LlamaindexRetrieveService({

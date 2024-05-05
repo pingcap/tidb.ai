@@ -1,7 +1,7 @@
 import { rag } from '@/core/interface';
 import type { Document as CoreDocument } from '@/core/repositories/document';
-import { nodeToChunk, nodeToContent } from '@/lib/llamaindex/converters/base';
-import type { AppReader } from '@/lib/llamaindex/converters/reader';
+import { nodeToChunk, nodeToContent } from '@/lib/llamaindex/builders/base';
+import type { AppReader } from '@/lib/llamaindex/builders/reader';
 import { BaseEmbedding, BaseExtractor, BaseNode, Document, IngestionPipeline, type NodeParser } from 'llamaindex';
 import type { UUID } from 'node:crypto';
 
