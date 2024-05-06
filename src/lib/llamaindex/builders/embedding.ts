@@ -9,7 +9,9 @@ export async function buildEmbedding ({ provider, options }: EmbeddingConfig) {
     case EmbeddingProvider.BITDEER:
       return new BitdeerEmbedding(options);
     case EmbeddingProvider.JINAAI:
-      return new JinaAIEmbedding(options);
+      return new JinaAIEmbedding({
+        model: options?.model
+      });
     case EmbeddingProvider.OLLAMA:
       return new OllamaEmbedding(options ?? { model: 'llama3' });
     default:
