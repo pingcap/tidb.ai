@@ -15,7 +15,7 @@ UPDATE `index`
 SET config = JSON_MERGE_PATCH(config, '{
   "llm": {
     "provider": "openai",
-    "config": {
+    "options": {
       "model": "gpt-3.5-turbo"
     }
   }
@@ -83,15 +83,15 @@ SET
       "metadata_extractors": [
         {
           "provider": "llamaindex.extractor.summary",
-          "config": {}
+          "options": {}
         },
         {
           "provider": "llamaindex.extractor.keyword",
-          "config": {}
+          "options": {}
         },
         {
           "provider": "llamaindex.extractor.question-answered",
-          "config": {}
+          "options": {}
         }
       ]
     }')
@@ -105,10 +105,10 @@ SET
     config = JSON_MERGE_PATCH(config, '{
       "embedding": {
         "provider": "openai",
-        "config": {
+        "options": {
           "model": "text-embedding-3-small",
           "vectorColumn": "embedding",
-          "vectorDimension": 1536
+          "dimensions": 1536
         }
       }
     }')
@@ -122,7 +122,7 @@ SET
     config = JSON_MERGE_PATCH(config, '{
       "llm": {
         "provider": "openai",
-        "config": {
+        "options": {
           "model": "gpt-3.5-turbo"
         }
       }

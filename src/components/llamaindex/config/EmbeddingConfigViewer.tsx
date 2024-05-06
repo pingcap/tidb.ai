@@ -2,20 +2,13 @@ import { useIndexConfigPart } from '@/components/llamaindex/config/use-index-con
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import type { Index } from '@/core/repositories/index_';
+
+import {EmbeddingConfigSchema, EmbeddingProvider, getEmbeddingModelOptions} from "@/lib/llamaindex/config/embedding";
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useEffect } from 'react';
 import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-
-const schema = z.object({
-  provider: z.string(),
-  config: z.object({
-    model: z.string(),
-    vectorColumn: z.literal('embedding').default('embedding'),
-    vectorDimension: z.coerce.number(),
-  })
-});
 
 export function EmbeddingConfigViewer ({ index }: { index: Index }) {
   const { data: embedding, update: updateEmbedding, isUpdating, isLoading } = useIndexConfigPart(index, 'embedding');
@@ -23,7 +16,7 @@ export function EmbeddingConfigViewer ({ index }: { index: Index }) {
   const form = useForm({
     values: embedding,
     disabled,
-    resolver: zodResolver(schema),
+    resolver: zodResolver(EmbeddingConfigSchema),
   });
 
   const handleSubmit = form.handleSubmit((value) => {
@@ -44,9 +37,20 @@ export function EmbeddingConfigViewer ({ index }: { index: Index }) {
           name="provider"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>EMBEDDING Provider</FormLabel>
+              <FormLabel>Embedding Provider</FormLabel>
               <FormControl>
-                <Input {...field} value={field.value ?? ''} />
+                <Select {...field}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select provider" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {
+                      Object.values(EmbeddingProvider).map(provider => (
+                        <SelectItem key={provider} value={provider}>{provider}</SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -54,12 +58,23 @@ export function EmbeddingConfigViewer ({ index }: { index: Index }) {
         />
         <FormField
           control={form.control}
-          name="config.model"
+          name="options.model"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Model Name</FormLabel>
               <FormControl>
-                <Input {...field} value={field.value ?? ''} />
+                <Select {...field}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {
+                      Object.keys(getEmbeddingModelOptions(form.getValues('provider'))).map(provider => (
+                        <SelectItem key={provider} value={provider}>{provider}</SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -67,12 +82,12 @@ export function EmbeddingConfigViewer ({ index }: { index: Index }) {
         />
         <FormField
           control={form.control}
-          name="config.vectorDimension"
+          name="options.dimensions"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Vector Dimensions</FormLabel>
+              <FormLabel>Dimensions</FormLabel>
               <FormControl>
-                <Input {...field} value={field.value ?? ''} />
+                <Input {...field} value={field.value ?? 1536} />
               </FormControl>
               <FormMessage />
             </FormItem>

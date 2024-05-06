@@ -1,6 +1,8 @@
 import { DBv1, getDb } from '@/core/db';
 import { executePage, type PageRequest } from '@/lib/database';
 import {INDEX_NOT_FOUND_ERROR} from "@/lib/errors";
+import {LLMConfig} from "@/lib/llamaindex/config/llm";
+import {EmbeddingConfig} from "@/lib/llamaindex/config/embedding";
 import type { Rewrite } from '@/lib/type-utils';
 import { type Insertable, type Selectable, sql } from 'kysely';
 import { notFound } from 'next/navigation';
@@ -14,6 +16,14 @@ export enum IndexProviderName {
 
 export const DEFAULT_INDEX_PROVIDER_NAME = IndexProviderName.LLAMAINDEX;
 
+/**
+ * The configuration for indexing flow.
+ *
+ * Naming convention:
+ * - config: The configuration for the entire index or the component.
+ * - provider: The provider for the entire index or the component.
+ * - options: The options for the component.
+ */
 export interface IndexConfig {
   provider: IndexProviderName;
   reader: Record<string, any>;
@@ -29,18 +39,8 @@ export interface IndexConfig {
     provider: string
     config: any
   }[];
-  embedding: {
-    provider: string
-    config: {
-      model: string,
-      vectorColumn: string,
-      vectorDimension: number
-    }
-  };
-  llm: {
-    provider: string
-    config: { model: string }
-  };
+  embedding: EmbeddingConfig;
+  llm: LLMConfig;
 }
 
 export async function getIndex (id: number) {
@@ -96,20 +96,22 @@ export async function enableIndex (id: number) {
   if (index.config.provider !== 'llamaindex') {
     throw new Error(`index type ${index.config.provider} not supported`);
   }
-
   if (index.configured) {
     throw new Error(`index ${index.name} already enabled`);
   }
 
+  const tableName = `llamaindex_document_chunk_node_${index.name}`;
+  const dimensions = index.config.embedding.options?.dimensions ?? 1536;
+
   await sql`
-      CREATE TABLE IF NOT EXISTS ${sql.raw(`${index.config.provider}_document_chunk_node_${index.name}`)}
+      CREATE TABLE IF NOT EXISTS ${sql.raw(`${tableName}`)}
       (
           -- Text Node Common Fields
           id          BINARY(16)   NOT NULL,
           hash        VARCHAR(256) NOT NULL,
           text        TEXT         NOT NULL,
           metadata    JSON         NOT NULL,
-          embedding   VECTOR< FLOAT >(${index.config.embedding.config.vectorDimension}) NULL COMMENT 'hnsw(distance=cosine)',
+          embedding   VECTOR<FLOAT> (${dimensions}) NULL COMMENT 'hnsw(distance=cosine)',
           -- Extra Document Chunk Node Fields
           index_id    INT          NOT NULL,
           document_id INT          NOT NULL,

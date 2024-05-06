@@ -1,14 +1,11 @@
+import {BitdeerEmbeddingModel} from "@/lib/llamaindex/config/embedding";
 import {getEnv} from "@llamaindex/env";
 import {BaseEmbedding} from "llamaindex";
 import util from "node:util";
 
-export enum BitdeerEmbeddingModelType {
-  MISTRAL_EMBED_LARGE = "mxbai-embed-large",
-}
-
 export class BitdeerEmbedding extends BaseEmbedding {
   baseURL: string = "https://www.bitdeer.ai/public/v1";
-  model: BitdeerEmbeddingModelType = BitdeerEmbeddingModelType.MISTRAL_EMBED_LARGE;
+  model: BitdeerEmbeddingModel = BitdeerEmbeddingModel.MISTRAL_EMBED_LARGE;
 
   apiSecretAccessKey?: string = getEnv("BITDEER_API_SECRET_ACCESS_KEY");
   requestTimeout: number = 60 * 1000; // Default is 60 seconds

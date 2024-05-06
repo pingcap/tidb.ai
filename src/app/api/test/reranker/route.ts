@@ -1,6 +1,11 @@
-import {LLMRerank} from "@/lib/llamaindex/postprocessors/rerankers/LLMReranker";
-import {OpenAI, TextNode} from "llamaindex";
-import {NextRequest, NextResponse} from 'next/server';
+import {buildLLM} from "@/lib/llamaindex/builders/llm";
+import {buildReranker} from "@/lib/llamaindex/builders/reranker";
+import {LLMConfigSchema} from "@/lib/llamaindex/config/llm";
+import {RerankerConfigSchema} from "@/lib/llamaindex/config/reranker";
+import {defineHandler} from "@/lib/next/handler";
+import {serviceContextFromDefaults, TextNode} from "llamaindex";
+import {NextResponse} from 'next/server';
+import {z} from "zod";
 
 const testNodes: any[] = [
   {
@@ -59,20 +64,27 @@ const testNodes: any[] = [
   }
 ];
 
-export async function GET (req: NextRequest) {
-  const url = new URL(req.url);
-  const query = url.searchParams.get('query') || 'I want a database to replace MySQL.';
-  const llm = new OpenAI({
-    model: 'gpt-3.5-turbo',
-    apiKey: process.env.OPENAI_API_KEY,
-  });
-  const reranker = new LLMRerank({
-    llm
-  });
+export const POST = defineHandler({
+  testOnly: true,
+  body: z.object({
+    query: z.string().default('I want a database to replace MySQL.'),
+    config: RerankerConfigSchema,
+    llmConfig: LLMConfigSchema.optional(),
+    top_k: z.number().int().default(5)
+  })
+}, async ({
+  body
+}) => {
+  const { query, config, llmConfig, top_k } = body;
+  const llm = llmConfig ? await buildLLM(llmConfig) : undefined;
+  const serviceContext = serviceContextFromDefaults({
+    llm: llm
+  })
+  const reranker = await buildReranker(serviceContext, config, top_k);
 
   const nodesWithScores = await reranker.postprocessNodes(testNodes, query);
 
   return NextResponse.json(nodesWithScores);
-}
+});
 
 export const dynamic = 'force-dynamic';

@@ -5,8 +5,9 @@ import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/ser
 import {LlamaindexRetrieverWrapper, LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
 import {type AppChatStreamSource, AppChatStreamState} from '@/lib/ai/AppChatStream';
 import {uuidToBin} from '@/lib/kysely';
-import {getEmbedding} from '@/lib/llamaindex/converters/embedding';
-import {getLLM} from '@/lib/llamaindex/converters/llm';
+import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
+import {buildLLM} from "@/lib/llamaindex/builders/llm";
+import {LLMProvider} from "@/lib/llamaindex/config/llm";
 import {ManagedAsyncIterable} from '@/lib/ManagedAsyncIterable';
 import {Liquid} from 'liquidjs';
 import {
@@ -47,10 +48,9 @@ export class LlamaindexChatService extends AppChatService {
     };
 
     const {
-      llm: {
-        provider: llmProvider = 'openai',
-        config: llmConfig = {},
-      } = {},
+      llm: llmConfig = {
+        provider: LLMProvider.OPENAI,
+      },
       retriever: {
         search_top_k = 100,
         top_k = 5,
@@ -65,8 +65,8 @@ export class LlamaindexChatService extends AppChatService {
     } = chat.engine_options as ChatEngineOptions;
 
     const serviceContext = serviceContextFromDefaults({
-      llm: getLLM(this.flow, llmProvider, llmConfig),
-      embedModel: getEmbedding(this.flow, this.index.config.embedding.provider, this.index.config.embedding.config),
+      llm: await buildLLM(llmConfig),
+      embedModel: await buildEmbedding(this.index.config.embedding),
     });
 
     const allSources = new Map<string, AppChatStreamSource>();
@@ -104,7 +104,7 @@ export class LlamaindexChatService extends AppChatService {
           value: {
             content: '',
             status: AppChatStreamState.RERANKING,
-            statusMessage: `Reranking ${chunks.length} searched document chunks using ${reranker?.provider}:${reranker?.config?.model ?? 'default'}...`,
+            statusMessage: `Reranking ${chunks.length} searched document chunks using ${reranker?.provider}:${reranker?.options?.model ?? 'default'}...`,
             sources: [],
             retrieveId: id,
           },
@@ -119,7 +119,7 @@ export class LlamaindexChatService extends AppChatService {
             value: {
               content: '',
               status: AppChatStreamState.GENERATING,
-              statusMessage: `Generating using ${llmProvider}:${llmConfig.model ?? 'default'}`,
+              statusMessage: `Generating using ${llmConfig.provider}:${llmConfig.options?.model ?? 'default'}`,
               sources: Array.from(allSources.values()),
               retrieveId: id,
             },
@@ -157,7 +157,7 @@ export class LlamaindexChatService extends AppChatService {
     }));
 
     // Build ChatEngine.
-    const stream = llmConfig?.stream ?? true;
+    const stream = llmConfig?.options?.stream ?? true;
     const condenseMessagePrompt = this.getPrompt(condenseQuestion, defaultCondenseQuestionPrompt);
     const chatEngine = new CondenseQuestionChatEngine({
       queryEngine,
@@ -186,7 +186,7 @@ export class LlamaindexChatService extends AppChatService {
         return {
           content: response.response,
           status: AppChatStreamState.GENERATING,
-          statusMessage: `Generating using ${llmProvider}:${llmConfig.model ?? 'default'}`,
+          statusMessage: `Generating using ${llmConfig.provider}:${llmConfig.options?.model ?? 'default'}`,
           sources: Array.from(allSources.values()),
           retrieveId: undefined,
         };
