@@ -85,9 +85,9 @@ async function getVectorTableColumnAndDimension (tableName: string) {
   };
 }
 
-async function preloadTiFlashANNIndex (tableName: string, vectorColumn: string = 'embedding', vectorDimension: number = 1536) {
+async function preloadTiFlashANNIndex (tableName: string, vectorColumn: string = 'embedding', dimensions: number = 1536) {
   const duration = await measure(async () => {
-    const vector = generateRandomVector(vectorDimension);
+    const vector = generateRandomVector(dimensions);
     const stmt = sql`
         SELECT id
         FROM ${sql.ref(tableName)}

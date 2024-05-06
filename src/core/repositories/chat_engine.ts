@@ -2,7 +2,7 @@ import {type DBv1, getDb, tx} from '@/core/db';
 import type {RetrieveOptions} from '@/core/services/retrieving';
 import {executePage, type PageRequest} from '@/lib/database';
 import {APIError, CHAT_ENGINE_NOT_FOUND_ERROR} from '@/lib/errors';
-import {MetadataFilterConfig} from "@/lib/llamaindex/builders/metadata-filter";
+import {MetadataFilterConfig} from "@/lib/llamaindex/config/metadata-filter";
 import {LLMConfig, LLMConfigSchema} from "@/lib/llamaindex/config/llm";
 import {RerankerConfig, RerankerConfigSchema} from "@/lib/llamaindex/config/reranker";
 import type {Rewrite} from '@/lib/type-utils';

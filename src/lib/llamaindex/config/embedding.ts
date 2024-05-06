@@ -10,7 +10,7 @@ export enum EmbeddingProvider {
 export const BaseEmbeddingOptionsSchema = z.object({
   model: z.string(),
   vectorColumn: z.string().default('embedding'),
-  vectorDimensions: z.number().int(),
+  dimensions: z.number().int(),
 });
 
 export enum OpenAIEmbeddingModel {

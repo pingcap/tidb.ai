@@ -1,15 +1,11 @@
 import {EmbeddingConfig, EmbeddingProvider} from "@/lib/llamaindex/config/embedding";
 import {BitdeerEmbedding} from "@/lib/llamaindex/embeddings/BitdeerEmbedding";
-import {JinaAIEmbedding, OllamaEmbedding} from 'llamaindex';
+import {JinaAIEmbedding, OllamaEmbedding, OpenAIEmbedding} from 'llamaindex';
 
 export async function buildEmbedding ({ provider, options }: EmbeddingConfig) {
   switch (provider) {
     case EmbeddingProvider.OPENAI:
-      const { OpenAIEmbedding } = await import('llamaindex');
-      return new OpenAIEmbedding({
-        ...options,
-        dimensions: options?.vectorDimensions,
-      });
+      return new OpenAIEmbedding(options);
     case EmbeddingProvider.BITDEER:
       return new BitdeerEmbedding(options);
     case EmbeddingProvider.JINAAI:

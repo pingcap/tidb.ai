@@ -22,16 +22,16 @@ INSERT INTO `index` (id, name, config) VALUES (1, 'default', '{
     "provider": "llamaindex",
     "llm": {
         "provider": "bitdeer",
-        "config": {
+        "options": {
             "model": "mistral"
         }
     },
     "embedding": {
         "provider": "bitdeer",
-        "config": {
+        "options": {
             "model": "mxbai-embed-large",
             "vectorColumn": "embedding",
-            "vectorDimension": 1024
+            "dimensions": 1024
         }
     },
     "metadata_extractors": [],
@@ -75,7 +75,7 @@ SET engine_options = JSON_MERGE_PATCH(engine_options, '{
     "index_id": 1,
     "llm": {
         "provider": "bitdeer",
-        "config": {
+        "options": {
             "model": "mistral"
         }
     },

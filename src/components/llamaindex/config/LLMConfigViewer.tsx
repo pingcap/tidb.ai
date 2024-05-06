@@ -53,7 +53,7 @@ export function LlmConfigViewer ({ index }: { index: Index }) {
         />
         <FormField
           control={form.control}
-          name="config.model"
+          name="options.model"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Model Name</FormLabel>
