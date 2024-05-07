@@ -91,10 +91,15 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
         metadataFields: this.metadata_fields,
         query
       });
-      const raw = await llm.complete({
-        prompt
+      const raw = await llm.chat({
+        messages: [
+          {
+            role: 'system',
+            content: prompt
+          }
+        ]
       });
-      return JSON.parse(raw.text);
+      return JSON.parse(raw.message.content as string);
     } catch (e) {
       console.warn('Failed to generate filters, fallback to using empty filters:', e);
       return [];
