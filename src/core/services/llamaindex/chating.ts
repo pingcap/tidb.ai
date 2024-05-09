@@ -142,25 +142,6 @@ export class LlamaindexChatService extends AppChatService {
       },
     }));
 
-    // Build Query Engine.
-    const textQaPrompt = this.getPrompt(textQa, defaultTextQaPrompt);
-    const refinePrompt = this.getPrompt(refine, defaultRefinePrompt);
-    const responseBuilder = new CompactAndRefine(serviceContext, textQaPrompt, refinePrompt);
-    const responseSynthesizer = new ResponseSynthesizer({
-      serviceContext,
-      responseBuilder,
-      metadataMode: MetadataMode.LLM,
-    });
-    const queryEngine = new RetrieverQueryEngine(retriever, responseSynthesizer);
-
-    // Build ChatHistory.
-    const history = await listChatMessages(chat.id);
-    const chatHistory = history.map(message => ({
-      role: message.role as any,
-      content: message.content,
-      additionalKwargs: {},
-    }));
-
     // Build Graph RAG retriever.
     const additionalContext: Record<string, any> = {};
     if (process.env.GRAPH_RAG_API_URL) {
@@ -173,12 +154,12 @@ export class LlamaindexChatService extends AppChatService {
       };
 
       const url = `${process.env.GRAPH_RAG_API_URL}/api/search`;
-      const lastUserMessage = history.findLast(message => message.role === 'user');
-      console.log('The user question:', lastUserMessage?.content);
+      console.log('The user question:', options.userInput);
       const start = DateTime.now();
       const res = await fetch(url, {
+        method: 'POST',
         body: JSON.stringify({
-          query: lastUserMessage?.content,
+          query: options.userInput,
         })
       });
       const data = await res.json();
@@ -204,6 +185,25 @@ export class LlamaindexChatService extends AppChatService {
         content: '',
       };
     }
+
+    // Build Query Engine.
+    const textQaPrompt = this.getPrompt(textQa, defaultTextQaPrompt, additionalContext);
+    const refinePrompt = this.getPrompt(refine, defaultRefinePrompt, additionalContext);
+    const responseBuilder = new CompactAndRefine(serviceContext, textQaPrompt, refinePrompt);
+    const responseSynthesizer = new ResponseSynthesizer({
+      serviceContext,
+      responseBuilder,
+      metadataMode: MetadataMode.LLM,
+    });
+    const queryEngine = new RetrieverQueryEngine(retriever, responseSynthesizer);
+
+    // Build ChatHistory.
+    const history = await listChatMessages(chat.id);
+    const chatHistory = history.map(message => ({
+      role: message.role as any,
+      content: message.content,
+      additionalKwargs: {},
+    }));
 
     // Build ChatEngine.
     const stream = llmConfig?.options?.stream ?? true;
