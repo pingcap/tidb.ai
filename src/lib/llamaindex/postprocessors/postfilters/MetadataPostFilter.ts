@@ -1,4 +1,5 @@
 import {BaseNodePostprocessor, NodeWithScore, ServiceContext, serviceContextFromDefaults} from "llamaindex";
+import {DateTime} from "luxon";
 import z from "zod";
 
 export const metadataFilterSchema = z.object({
@@ -21,15 +22,36 @@ export const metadataFieldSchema = z.object({
 
 export type MetadataField = z.infer<typeof metadataFieldSchema>;
 
-export const defaultMetadataFilterChoicePrompt = ({
-  metadataFields,
-  query
-}: {
+export const defaultMetadataFilterChoicePrompt = ({metadataFields, query}: {
   metadataFields: MetadataField[],
   query: string
 }) => {
-  return `Provide the definition of metadata fields and query, please generate the necessary Filter 
-object array in JSON format, the Filter object has two fields: 'name' (string), 'value' (any), 'optional' (boolean).
+  return `Provide the definition of metadata fields and query, please generate the metadata filters to help exclude irrelevant nodes, and output the result in json format:
+
+For example:
+<Metadata Fields Definition>
+[
+  {
+    "name": "tidb_version",
+    "type": "string",
+    "enums": ["stable", "dev", "v7.5"],
+    "default": "stable",
+    "choicePrompt": "Which version of TiDB are you using?"
+  }
+]
+
+<Query>
+Does TiDB support FK constraints in the stable version?
+
+<Result>
+{
+    "filters": [
+        { "name": "tidb_version", "value": "stable", "optional": false }
+    ]
+}
+
+-------------
+Let's start:
 
 <Metadata Fields Definition>
 ${JSON.stringify(metadataFields, null, 2)}
@@ -37,7 +59,7 @@ ${JSON.stringify(metadataFields, null, 2)}
 <Query>
 ${query}
 
-<Filters>
+<Result>
   `;
 }
 
@@ -68,7 +90,10 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
       filters = this.filters;
       console.info('Apply provided filters:', filters);
     } else {
+      const start = DateTime.now();
       filters = await this.generateFilters(query);
+      const end = DateTime.now();
+      console.info('Generate filters took:', end.diff(start).as('seconds'), 's');
       console.info('Apply generated filters:', filters);
     }
 
@@ -91,15 +116,20 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
         metadataFields: this.metadata_fields,
         query
       });
+      console.info('Generate filters using prompt:', prompt)
       const raw = await llm.chat({
         messages: [
           {
             role: 'system',
             content: prompt
           }
-        ]
+        ],
+        additionalChatOptions: {
+          response_format: { "type": "json_object" },
+        }
       });
-      return JSON.parse(raw.message.content as string);
+      const result = JSON.parse(raw.message.content as string);
+      return result.filters;
     } catch (e) {
       console.warn('Failed to generate filters, fallback to using empty filters:', e);
       return [];
