@@ -15,8 +15,8 @@ importers:
         specifier: ^3.3.4
         version: 3.3.4(react-hook-form@7.49.3)
       '@llamaindex/env':
-        specifier: ^0.0.7
-        version: 0.0.7(@aws-crypto/sha256-js@5.2.0)(pathe@1.1.2)(readable-stream@4.5.2)
+        specifier: ^0.1.2
+        version: 0.1.2(@aws-crypto/sha256-js@5.2.0)(pathe@1.1.2)
       '@mdx-js/loader':
         specifier: ^3.0.0
         version: 3.0.0(webpack@5.91.0)
@@ -162,8 +162,8 @@ importers:
         specifier: ^10.10.0
         version: 10.10.0
       llamaindex:
-        specifier: ^0.2.12
-        version: 0.2.13(@notionhq/client@2.2.15)(readable-stream@4.5.2)(typescript@5.3.3)
+        specifier: ^0.3.8
+        version: 0.3.8(@notionhq/client@2.2.15)(typescript@5.3.3)
       luxon:
         specifier: ^3.4.4
         version: 3.4.4
@@ -2451,6 +2451,11 @@ packages:
       react-hook-form: 7.49.3(react@18.2.0)
     dev: false
 
+  /@huggingface/inference@2.6.7:
+    resolution: {integrity: sha512-vFBqvtU3LhxjufTs0jcRrDSc0nK+lah10bOgvlIn80lAH4JwMzHHPBQ4g4ECEdRD0PIt6EpTiidEZQq2sArb5Q==}
+    engines: {node: '>=18'}
+    dev: false
+
   /@huggingface/jinja@0.2.2:
     resolution: {integrity: sha512-/KPde26khDUIPkTGU82jdtTW9UAuvUTumCAbFs/7giR0SxsvZC4hru51PBvpijH6BVkHcROcvZM/lpy5h1jRRA==}
     engines: {node: '>=18'}
@@ -2558,19 +2563,24 @@ packages:
       qs: 6.12.0
     dev: false
 
-  /@llamaindex/env@0.0.7(@aws-crypto/sha256-js@5.2.0)(pathe@1.1.2)(readable-stream@4.5.2):
-    resolution: {integrity: sha512-6j7eGXhSDspz33FzdWJRTbGlXa3osYP/aP9dm10Z7JCxaxyQZmGIWL149HNkGgV4lxiPmGPx7YWjBBj9nRdo2w==}
+  /@llamaindex/env@0.1.2(@aws-crypto/sha256-js@5.2.0)(pathe@1.1.2):
+    resolution: {integrity: sha512-jtryszxMRV+BC/FdgY2cLVKvbBvlxinfofoVHmWNpa9oaqKIs0ybtUF1XlnRTMgR5H8dAFy6BA2dAUH2fZE+Og==}
     peerDependencies:
       '@aws-crypto/sha256-js': ^5.2.0
       pathe: ^1.1.2
       readable-stream: ^4.5.2
+    peerDependenciesMeta:
+      '@aws-crypto/sha256-js':
+        optional: true
+      pathe:
+        optional: true
+      readable-stream:
+        optional: true
     dependencies:
       '@aws-crypto/sha256-js': 5.2.0
       '@types/lodash': 4.17.0
       '@types/node': 20.12.7
-      lodash: 4.17.21
       pathe: 1.1.2
-      readable-stream: 4.5.2
     dev: false
 
   /@mapbox/node-pre-gyp@1.0.11:
@@ -6427,14 +6437,6 @@ packages:
       ieee754: 1.2.1
     dev: false
 
-  /buffer@6.0.3:
-    resolution: {integrity: sha512-FTiCpNxtwiZZHEZbcbTIcZjERVICn9yq/pDFkTl95/AxzD1naBctN7YO68riM/gLSDY7sdrMby8hofADYuuqOA==}
-    requiresBuild: true
-    dependencies:
-      base64-js: 1.5.1
-      ieee754: 1.2.1
-    dev: false
-
   /busboy@1.6.0:
     resolution: {integrity: sha512-8SFQbg/0hQ9xy3UNTB0YEnsNBbWfhf7RtnzpL7TkBiTBRfrQ9Fxcnz7VJsleJpyp6rVLvXiuORqjlHi5q+PYuA==}
     engines: {node: '>=10.16.0'}
@@ -9739,8 +9741,8 @@ packages:
       commander: 10.0.1
     dev: false
 
-  /llamaindex@0.2.13(@notionhq/client@2.2.15)(readable-stream@4.5.2)(typescript@5.3.3):
-    resolution: {integrity: sha512-su10fCizI5uGjCPAV+J3TwrjuSxUoptmdN/KBv0aQejN/mPY0M4Bmz9Xw4pKRs8hHfwnFLqv6AM8n64H1GqMrg==}
+  /llamaindex@0.3.8(@notionhq/client@2.2.15)(typescript@5.3.3):
+    resolution: {integrity: sha512-HLVFhRUmPHXhQaEaqg71TamsvTWAFJtfdnFq3BScl7VdHR/HENQeN0ZHwzZBgIzc0bQE8uulKGeelaHbX2yqbw==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
       '@notionhq/client': ^2.2.15
@@ -9750,14 +9752,14 @@ packages:
       '@datastax/astra-db-ts': 1.1.0
       '@google/generative-ai': 0.8.0
       '@grpc/grpc-js': 1.10.6
+      '@huggingface/inference': 2.6.7
       '@llamaindex/cloud': 0.0.5
-      '@llamaindex/env': 0.0.7(@aws-crypto/sha256-js@5.2.0)(pathe@1.1.2)(readable-stream@4.5.2)
+      '@llamaindex/env': 0.1.2(@aws-crypto/sha256-js@5.2.0)(pathe@1.1.2)
       '@mistralai/mistralai': 0.1.3
       '@notionhq/client': 2.2.15
       '@pinecone-database/pinecone': 2.2.0
       '@qdrant/js-client-rest': 1.8.2(typescript@5.3.3)
       '@types/lodash': 4.17.0
-      '@types/node': 20.12.7
       '@types/papaparse': 5.3.14
       '@types/pg': 8.11.5
       '@xenova/transformers': 2.17.1
@@ -9773,7 +9775,6 @@ packages:
       md-utils-ts: 2.0.0
       mongodb: 6.5.0
       notion-md-crawler: 1.0.0
-      ollama: 0.5.0
       openai: 4.39.0
       papaparse: 5.4.1
       pathe: 1.1.2
@@ -11783,12 +11784,6 @@ packages:
     resolution: {integrity: sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==}
     dev: false
 
-  /ollama@0.5.0:
-    resolution: {integrity: sha512-CRtRzsho210EGdK52GrUMohA2pU+7NbgEaBG3DcYeRmvQthDO7E2LHOkLlUUeaYUlNmEd8icbjC02ug9meSYnw==}
-    dependencies:
-      whatwg-fetch: 3.6.20
-    dev: false
-
   /once@1.4.0:
     resolution: {integrity: sha512-lNaJgI+2Q5URQBkccEKHTQOPaXdUxnZZElQTZY0MFUAuaEqe1E+Nyvgdz/aIyNi6Z9MzO5dv1H8n58/GELp3+w==}
     dependencies:
@@ -12338,12 +12333,6 @@ packages:
     resolution: {integrity: sha512-3ouUOpQhtgrbOa17J7+uxOTpITYWaGP7/AhoR3+A+/1e9skrzelGi/dXzEYyvbxubEF6Wn2ypscTKiKJFFn1ag==}
     dev: false
 
-  /process@0.11.10:
-    resolution: {integrity: sha512-cdGef/drWFoydD1JsMzuFf8100nZl+GT+yacc2bEced5f9Rjk4z+WtFUTBu9PhOi9j/jfmBPu0mMEY4wIdAF8A==}
-    engines: {node: '>= 0.6.0'}
-    requiresBuild: true
-    dev: false
-
   /prop-types@15.8.1:
     resolution: {integrity: sha512-oj87CgZICdulUohogVAR7AjlC0327U4el4L6eAvOqCeudMDVU0NThNaV+b9Df4dXgSP1gXMTnPdhfe/2qDH5cg==}
     dependencies:
@@ -12795,18 +12784,6 @@ packages:
       inherits: 2.0.4
       string_decoder: 1.3.0
       util-deprecate: 1.0.2
-    dev: false
-
-  /readable-stream@4.5.2:
-    resolution: {integrity: sha512-yjavECdqeZ3GLXNgRXgeQEdz9fvDDkNKyHnbHRFtOr7/LcfgBcmct7t/ET+HaCTqfh06OzoAxrkN/IfjJBVe+g==}
-    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-    requiresBuild: true
-    dependencies:
-      abort-controller: 3.0.0
-      buffer: 6.0.3
-      events: 3.3.0
-      process: 0.11.10
-      string_decoder: 1.3.0
     dev: false
 
   /readdirp@3.6.0:

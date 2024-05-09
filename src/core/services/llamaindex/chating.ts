@@ -1,6 +1,7 @@
 import {getDb} from '@/core/db';
 import {type Chat, listChatMessages} from '@/core/repositories/chat';
 import type {ChatEngineOptions} from '@/core/repositories/chat_engine';
+import {getDocumentsBySourceUris} from "@/core/repositories/document";
 import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/services/chating';
 import {LlamaindexRetrieverWrapper, LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
 import {type AppChatStreamSource, AppChatStreamState} from '@/lib/ai/AppChatStream';
@@ -20,7 +21,8 @@ import {
   ResponseSynthesizer,
   RetrieverQueryEngine,
   serviceContextFromDefaults,
-  SimplePrompt
+  SimplePrompt,
+  PromptHelper
 } from 'llamaindex';
 import {DateTime} from 'luxon';
 import {randomUUID, UUID} from 'node:crypto';
@@ -67,10 +69,16 @@ export class LlamaindexChatService extends AppChatService {
       } = {},
     } = chat.engine_options as ChatEngineOptions;
 
+    const llm = await buildLLM(llmConfig);
+    const { contextWindow  } = llm.metadata;
+    const promptHelper = new PromptHelper(contextWindow);
+    const embedModel = await buildEmbedding(this.index.config.embedding);
     const serviceContext = serviceContextFromDefaults({
-      llm: await buildLLM(llmConfig),
-      embedModel: await buildEmbedding(this.index.config.embedding),
+      llm,
+      promptHelper,
+      embedModel,
     });
+    console.info('llm:', JSON.stringify(llm.metadata), ', embedding: ', embedModel.model);
 
     const allSources = new Map<string, AppChatStreamSource>();
 
@@ -98,7 +106,7 @@ export class LlamaindexChatService extends AppChatService {
             content: '',
             status: AppChatStreamState.SEARCHING,
             statusMessage: `Searching document chunks: ${text}`,
-            sources: [],
+            sources: Array.from(allSources.values()),
             retrieveId: id,
           },
         });
@@ -110,7 +118,7 @@ export class LlamaindexChatService extends AppChatService {
             content: '',
             status: AppChatStreamState.RERANKING,
             statusMessage: `Reranking ${chunks.length} searched document chunks using ${reranker?.provider}:${reranker?.options?.model ?? 'default'}...`,
-            sources: [],
+            sources: Array.from(allSources.values()),
             retrieveId: id,
           },
         });
@@ -148,49 +156,30 @@ export class LlamaindexChatService extends AppChatService {
       yield {
         status: AppChatStreamState.SEARCHING,
         sources: Array.from(allSources.values()),
-        statusMessage: 'Graph RAG searching completed.',
+        statusMessage: 'Start graph RAG searching ...',
         retrieveId: retrieveId,
         content: '',
       };
 
-      try {
-        const url = `${process.env.GRAPH_RAG_API_URL}/api/search`;
-        console.log('The user question:', options.userInput);
-        const start = DateTime.now();
-        const res = await fetch(url, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            query: options.userInput,
-          })
-        });
-        const data = await res.json();
-        const end = DateTime.now();
-        const duration = end.diff(start, 'seconds').seconds;
-        console.log(`Graph RAG searching completed, take ${duration} seconds.`);
-        console.log('The Graph RAG searching result:', data);
+      // Search using Graph RAG.
+      const data = await this.graphRAGRetrieve(options.userInput);
 
-        additionalContext['entities'] = data['entities'];
-        additionalContext['relationships'] = data['relationships'];
-        additionalContext['chunks'] = data['chunks'];
-
-        (data['chunks'] ?? []).map((chunk: any) => {
-          // Notice: using fake document ID and link.
-          allSources.set(randomUUID(), { title: 'Document from Graph RAG', uri: chunk.link });
-        });
-
-        yield {
-          status: AppChatStreamState.SEARCHING,
-          sources: Array.from(allSources.values()),
-          statusMessage: 'Graph RAG searching completed.',
-          retrieveId: retrieveId,
-          content: '',
-        };
-      } catch (err) {
-        console.error('Failed to search using Graph RAG.', err);
+      // Found the document name by link.
+      const sourceLinks = (data['chunks'] ?? []).map((chunk: any) => chunk.link);
+      const documents = await getDocumentsBySourceUris(sourceLinks);
+      const documentMap = new Map(documents.map(document => [document.source_uri, document]));
+      for (let sourceLink of sourceLinks) {
+        const document = documentMap.get(sourceLink);
+        allSources.set(randomUUID(), { title: document?.name || 'Document from Graph RAG', uri: sourceLink });
       }
+
+      yield {
+        status: AppChatStreamState.SEARCHING,
+        sources: Array.from(allSources.values()),
+        statusMessage: 'Graph RAG searching completed.',
+        retrieveId: retrieveId,
+        content: '',
+      };
     }
 
     // Build Query Engine.
@@ -254,6 +243,30 @@ export class LlamaindexChatService extends AppChatService {
     const end = DateTime.now();
     const duration = end.diff(start, 'seconds').seconds;
     console.log(`Finished chatting for chat <${chat.id}>, take ${duration} seconds.`, { stream });
+  }
+
+  async graphRAGRetrieve(question: string) {
+    try {
+      const url = `${process.env.GRAPH_RAG_API_URL}/api/search`;
+      console.log('The user question:', question);
+      const start = DateTime.now();
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query: question,
+        })
+      });
+      const data = await res.json();
+      const end = DateTime.now();
+      const duration = end.diff(start, 'seconds').seconds;
+      console.log(`Graph RAG searching completed, take ${duration} seconds.`);
+      return data;
+    } catch (err) {
+      console.error('Failed to search using Graph RAG.', err);
+    }
   }
 
   async getSourcesByChunkIds (chunkIds: string[]): Promise<SourceWithNodeId[]> {

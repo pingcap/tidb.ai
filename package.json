@@ -11,7 +11,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@hookform/resolvers": "^3.3.4",
-    "@llamaindex/env": "^0.0.7",
+    "@llamaindex/env": "^0.1.2",
     "@mdx-js/loader": "^3.0.0",
     "@mdx-js/react": "^3.0.0",
     "@next/mdx": "^14.1.0",
@@ -60,7 +60,7 @@
     "hast-util-to-text": "^4.0.0",
     "kysely": "^0.27.2",
     "liquidjs": "^10.10.0",
-    "llamaindex": "^0.2.12",
+    "llamaindex": "^0.3.8",
     "luxon": "^3.4.4",
     "match-url-wildcard": "^0.0.5",
     "micromatch": "^4.0.5",
