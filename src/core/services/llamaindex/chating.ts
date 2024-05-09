@@ -151,7 +151,7 @@ export class LlamaindexChatService extends AppChatService {
     }));
 
     // Build Graph RAG retriever.
-    const additionalContext: Record<string, any> = {};
+    let additionalContext: Record<string, any> = {};
     if (process.env.GRAPH_RAG_API_URL) {
       yield {
         status: AppChatStreamState.SEARCHING,
@@ -162,10 +162,10 @@ export class LlamaindexChatService extends AppChatService {
       };
 
       // Search using Graph RAG.
-      const data = await this.graphRAGRetrieve(options.userInput);
+      const additionalContext = await this.graphRAGRetrieve(options.userInput);
 
       // Found the document name by link.
-      const sourceLinks = (data['chunks'] ?? []).map((chunk: any) => chunk.link);
+      const sourceLinks = (additionalContext['chunks'] ?? []).map((chunk: any) => chunk.link);
       const documents = await getDocumentsBySourceUris(sourceLinks);
       const documentMap = new Map(documents.map(document => [document.source_uri, document]));
       for (let sourceLink of sourceLinks) {
