@@ -88,9 +88,9 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
     });
 
     try {
-      const result = await this.run(retrieve, options);
+      const results = await this.run(retrieve, options);
 
-      await finishRetrieve(retrieve.id, !!this.rerankerConfig, result.map(result => ({
+      await finishRetrieve(retrieve.id, !!this.rerankerConfig, results.map(result => ({
         retrieve_id: retrieve.id,
         relevance_score: result.relevance_score,
         document_id: result.document_id,
@@ -101,9 +101,9 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
         chunk_text: result.text,
       })));
 
-      callbacks?.onRetrieved(retrieve.id, result);
+      callbacks?.onRetrieved(retrieve.id, results);
 
-      return result;
+      return results;
     } catch (e) {
       await terminateRetrieve(retrieve.id, getErrorMessage(e));
       callbacks?.onRetrieveFailed(retrieve.id, e);

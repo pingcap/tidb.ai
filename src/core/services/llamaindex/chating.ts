@@ -23,7 +23,7 @@ import {
   SimplePrompt
 } from 'llamaindex';
 import {DateTime} from 'luxon';
-import type {UUID} from 'node:crypto';
+import {randomUUID, UUID} from 'node:crypto';
 
 interface SourceWithNodeId extends AppChatStreamSource {
   id: string;
@@ -32,10 +32,13 @@ interface SourceWithNodeId extends AppChatStreamSource {
 export class LlamaindexChatService extends AppChatService {
   private liquid = new Liquid();
 
-  getPrompt<Tmpl extends SimplePrompt> (template: string | undefined, fallback: Tmpl): (ctx: Parameters<Tmpl>[0]) => string {
+  getPrompt<Tmpl extends SimplePrompt> (template: string | undefined, fallback: Tmpl, partialContext: Record<string, any> = {}): (ctx: Parameters<Tmpl>[0]) => string {
     if (!template) return fallback;
     const tmpl = this.liquid.parse(template);
-    return context => this.liquid.renderSync(tmpl, context);
+    return context => this.liquid.renderSync(tmpl, {
+      ...partialContext,
+      ...context
+    });
   }
 
   protected async* run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatStreamEvent> {
@@ -81,12 +84,14 @@ export class LlamaindexChatService extends AppChatService {
     });
 
     // FIXME: This method only support a single retrieve call currently.
+    let retrieveId: number | undefined;
     const retriever = withAsyncIterable<ChatStreamEvent, LlamaindexRetrieverWrapper>((next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
       search_top_k,
       top_k,
       use_cache: false,
     }, serviceContext, {
       onStartSearch: (id, text) => {
+        retrieveId = id;
         next({
           done: false,
           value: {
@@ -156,9 +161,53 @@ export class LlamaindexChatService extends AppChatService {
       additionalKwargs: {},
     }));
 
+    // Build Graph RAG retriever.
+    const additionalContext: Record<string, any> = {};
+    if (process.env.GRAPH_RAG_API_URL) {
+      yield {
+        status: AppChatStreamState.SEARCHING,
+        sources: Array.from(allSources.values()),
+        statusMessage: 'Graph RAG searching completed.',
+        retrieveId: retrieveId,
+        content: '',
+      };
+
+      const url = `${process.env.GRAPH_RAG_API_URL}/api/search`;
+      const lastUserMessage = history.findLast(message => message.role === 'user');
+      console.log('The user question:', lastUserMessage?.content);
+      const start = DateTime.now();
+      const res = await fetch(url, {
+        body: JSON.stringify({
+          query: lastUserMessage?.content,
+        })
+      });
+      const data = await res.json();
+      const end = DateTime.now();
+      const duration = end.diff(start, 'seconds').seconds;
+      console.log(`Graph RAG searching completed, take ${duration} seconds.`);
+      console.log('The Graph RAG searching result:', data);
+
+      additionalContext['entities'] = data['entities'];
+      additionalContext['relationships'] = data['relationships'];
+      additionalContext['chunks'] = data['chunks'];
+
+      (data['chunks'] ?? []).map((chunk: any) => {
+        // Notice: using fake document ID and link.
+        allSources.set(randomUUID(), { title: 'Document from Graph RAG', uri: chunk.link });
+      });
+
+      yield {
+        status: AppChatStreamState.SEARCHING,
+        sources: Array.from(allSources.values()),
+        statusMessage: 'Graph RAG searching completed.',
+        retrieveId: retrieveId,
+        content: '',
+      };
+    }
+
     // Build ChatEngine.
     const stream = llmConfig?.options?.stream ?? true;
-    const condenseMessagePrompt = this.getPrompt(condenseQuestion, defaultCondenseQuestionPrompt);
+    const condenseMessagePrompt = this.getPrompt(condenseQuestion, defaultCondenseQuestionPrompt, additionalContext);
     const chatEngine = new CondenseQuestionChatEngine({
       queryEngine,
       chatHistory,
