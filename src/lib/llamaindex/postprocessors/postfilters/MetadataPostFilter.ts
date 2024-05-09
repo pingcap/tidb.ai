@@ -1,4 +1,5 @@
 import {BaseNodePostprocessor, NodeWithScore, ServiceContext, serviceContextFromDefaults} from "llamaindex";
+import {DateTime} from "luxon";
 import z from "zod";
 
 export const metadataFilterSchema = z.object({
@@ -92,7 +93,10 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
       filters = this.filters;
       console.info('Apply provided filters:', filters);
     } else {
+      const start = DateTime.now();
       filters = await this.generateFilters(query);
+      const end = DateTime.now();
+      console.info('Generate filters took:', end.diff(start).as('seconds'), 's');
       console.info('Apply generated filters:', filters);
     }
 
@@ -115,6 +119,7 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
         metadataFields: this.metadata_fields,
         query
       });
+      console.info('Generate filters using prompt:', prompt)
       const raw = await llm.chat({
         messages: [
           {

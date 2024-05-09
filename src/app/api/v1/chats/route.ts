@@ -120,4 +120,4 @@ export const GET = defineHandler({
   return NextResponse.json(await listChats({ page, pageSize, userId }));
 });
 
-export const maxDuration = 60;
+export const maxDuration = 150;
