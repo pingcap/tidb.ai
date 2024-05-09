@@ -153,37 +153,44 @@ export class LlamaindexChatService extends AppChatService {
         content: '',
       };
 
-      const url = `${process.env.GRAPH_RAG_API_URL}/api/search`;
-      console.log('The user question:', options.userInput);
-      const start = DateTime.now();
-      const res = await fetch(url, {
-        method: 'POST',
-        body: JSON.stringify({
-          query: options.userInput,
-        })
-      });
-      const data = await res.json();
-      const end = DateTime.now();
-      const duration = end.diff(start, 'seconds').seconds;
-      console.log(`Graph RAG searching completed, take ${duration} seconds.`);
-      console.log('The Graph RAG searching result:', data);
+      try {
+        const url = `${process.env.GRAPH_RAG_API_URL}/api/search`;
+        console.log('The user question:', options.userInput);
+        const start = DateTime.now();
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            query: options.userInput,
+          })
+        });
+        const data = await res.json();
+        const end = DateTime.now();
+        const duration = end.diff(start, 'seconds').seconds;
+        console.log(`Graph RAG searching completed, take ${duration} seconds.`);
+        console.log('The Graph RAG searching result:', data);
 
-      additionalContext['entities'] = data['entities'];
-      additionalContext['relationships'] = data['relationships'];
-      additionalContext['chunks'] = data['chunks'];
+        additionalContext['entities'] = data['entities'];
+        additionalContext['relationships'] = data['relationships'];
+        additionalContext['chunks'] = data['chunks'];
 
-      (data['chunks'] ?? []).map((chunk: any) => {
-        // Notice: using fake document ID and link.
-        allSources.set(randomUUID(), { title: 'Document from Graph RAG', uri: chunk.link });
-      });
+        (data['chunks'] ?? []).map((chunk: any) => {
+          // Notice: using fake document ID and link.
+          allSources.set(randomUUID(), { title: 'Document from Graph RAG', uri: chunk.link });
+        });
 
-      yield {
-        status: AppChatStreamState.SEARCHING,
-        sources: Array.from(allSources.values()),
-        statusMessage: 'Graph RAG searching completed.',
-        retrieveId: retrieveId,
-        content: '',
-      };
+        yield {
+          status: AppChatStreamState.SEARCHING,
+          sources: Array.from(allSources.values()),
+          statusMessage: 'Graph RAG searching completed.',
+          retrieveId: retrieveId,
+          content: '',
+        };
+      } catch (err) {
+        console.error('Failed to search using Graph RAG.', err);
+      }
     }
 
     // Build Query Engine.
