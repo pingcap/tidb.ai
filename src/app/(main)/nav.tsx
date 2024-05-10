@@ -16,7 +16,8 @@ import type { Page } from '@/lib/database';
 import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { ActivitySquareIcon, BinaryIcon, CogIcon, CommandIcon, FileIcon, GlobeIcon, HomeIcon, ImportIcon, ListIcon, MenuIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react';
+import { ActivitySquareIcon, BinaryIcon, CogIcon, CommandIcon, FileIcon, GlobeIcon, HomeIcon, ImportIcon, ListIcon, MenuIcon, MessagesSquareIcon, PlusIcon, BotMessageSquareIcon } from 'lucide-react';
+
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -33,7 +34,7 @@ export function Nav () {
   const session = useSession();
   const user = session.data?.user;
   const isLoggedIn = user && user.role !== 'anonymous';
-  const { data: history, mutate, isLoading } = useSWR(['get', '/api/v1/chats'], fetcher<Page<Chat>>, {
+  const { data: history, mutate, isLoading } = useSWR(['get', '/api/v1/chats?page_size=8'], fetcher<Page<Chat>>, {
     revalidateOnMount: false,
   });
 
@@ -95,9 +96,10 @@ export function Nav () {
           { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon },
           { href: '/explore', title: 'Documents', icon: FileIcon },
           { href: '/sources', title: 'Data Sources', icon: ImportIcon },
-          { href: '/indexes', title: 'Indexes', icon: BinaryIcon },
           { href: '/import-tasks', title: 'Import Tasks', icon: GlobeIcon },
+          { href: '/indexes', title: 'Indexes', icon: BinaryIcon },
           { href: '/index-tasks', title: 'Index Tasks', icon: ListIcon },
+          { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon },
           { href: '/settings', title: 'Settings', icon: CogIcon },
         ],
         sectionProps: { className: 'mt-auto mb-0' },

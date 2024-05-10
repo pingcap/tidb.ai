@@ -45,6 +45,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     const searchDuration = searchEnd.diff(searchStart, 'milliseconds').milliseconds;
     console.log(`Finish embedding searching, take ${searchDuration} ms, found ${chunks.length} chunks.`, { search_top_k });
 
+    const rerankChunksLimit = top_k * 2;
     const metadataFilterConfig = this.metadataFilterConfig;
     if (metadataFilterConfig) {
 
@@ -56,10 +57,12 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
       console.log('Start post filtering chunks by metadata.');
       const filterStart = DateTime.now();
       const filteredResult = await this.metadataPostFilter(chunks, query, metadataFilterConfig);
-      chunks = filteredResult.slice(0, top_k);
+      chunks = filteredResult.slice(0, rerankChunksLimit);
       const filterEnd = DateTime.now();
       const filterDuration = filterEnd.diff(filterStart, 'milliseconds').milliseconds;
       console.log(`Finish post filtering chunks by metadata, take ${filterDuration} ms.`);
+    } else {
+      chunks = chunks.slice(0, rerankChunksLimit);
     }
 
     // If no reranker is provided, return the top_k chunks directly.
@@ -70,7 +73,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     this.emit('start-rerank', retrieve.id, chunks);
     await this.startRerank(retrieve);
 
-    console.log(`Start reranking for query "${query}".`, { top_k });
+    console.log(`Start reranking for query "${query}".`, { chunks: chunks.length, top_k });
     const rerankStart = DateTime.now();
     const rerankedResult = await this.rerank(chunks, query, top_k, this.rerankerConfig);
     const rerankEnd = DateTime.now();
@@ -138,33 +141,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
       return [];
     }
 
-    //// FIXME: Do we need relationships when retrieving?
-
-    // const relationships = await getDb()
-    //   .selectFrom('llamaindex_node_relationship as rel')
-    //   .innerJoin(`llamaindex_document_chunk_node_${index.name} as target_chunk_node`, 'rel.target_node_id', `target_chunk_node.id`)
-    //   .select([
-    //     eb => eb.fn('bin_to_uuid', ['rel.source_node_id']).as('source_node_id'),
-    //     eb => eb.fn('bin_to_uuid', ['rel.target_node_id']).as('target_node_id'),
-    //     'rel.type',
-    //     'target_chunk_node.metadata',
-    //   ])
-    //   .where('rel.source_node_id', 'in', results.map(result => uuidToBin(result.document_chunk_node_id)))
-    //   .execute();
-
     const nodeRelsMap = new Map<UUID, Record<string, RetrievedChunkReference>>;
-
-    // for (let relationship of relationships) {
-    //   let rels = nodeRelsMap.get(relationship.source_node_id);
-    //   if (!rels) {
-    //     nodeRelsMap.set(relationship.source_node_id, rels = {});
-    //   }
-    //   rels[relationship.type] = {
-    //     index_id: index.id,
-    //     metadata: relationship.metadata,
-    //     chunk_node_id: relationship.target_node_id,
-    //   };
-    // }
 
     return results.map(result => ({
       index_id: index.id,

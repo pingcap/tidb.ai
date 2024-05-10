@@ -7,7 +7,6 @@ import { DataTableRemote } from '@/components/data-table-remote';
 import { CreateChatEngineDialog } from '@/components/dialogs/create-chat-engine-dialog';
 import { UpdateChatEngineDialog } from '@/components/dialogs/update-chat-engine-dialog';
 import type { ChatEngine } from '@/core/repositories/chat_engine';
-import type { Document } from '@/core/repositories/document';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import type { ComponentProps } from 'react';
@@ -30,7 +29,7 @@ const columns = [
       </>
     ),
   }),
-] as ColumnDef<Document>[];
+] as ColumnDef<ChatEngine>[];
 
 export default function PageClient ({ ...props }: ComponentProps<typeof CreateChatEngineDialog>) {
   return (

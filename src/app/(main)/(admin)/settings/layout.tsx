@@ -32,12 +32,6 @@ const baseRoute = '/settings';
 
 const tabs = [
   { id: 'customization', name: 'Customization', path: '', exact: true },
-  { id: 'chat-engine', name: 'Chat Engines', path: '/chat-engines' },
-  // { id: 'integrations', name: 'Integrations', path: '/integrations' },
-  // { id: 'sources', name: 'Sources', path: '/sources' },
-  // { id: 'tasks', name: 'Tasks', path: '/tasks' },
-  // { id: 'llm', name: 'LLM', path: '/llm' },
-  // { id: 'prompts', name: 'Prompts', path: '/prompts' },
   { id: 'authentication', name: 'Authentication', path: '/authentication' },
   { id: 'javascript', name: 'JavaScript', path: '/javascript' },
   { id: 'extensions', name: 'Extensions', path: '/extensions' },

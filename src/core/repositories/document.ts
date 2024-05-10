@@ -34,6 +34,14 @@ export async function getDocumentBySourceUri (sourceUri: string) {
     .executeTakeFirst();
 }
 
+export async function getDocumentsBySourceUris (sourceUris: string[]) {
+  return await getDb()
+    .selectFrom('document')
+    .selectAll()
+    .where('source_uri', 'in', sourceUris)
+    .execute();
+}
+
 export async function listDocuments (request: PageRequest) {
   return await executePage(getDb()
       .selectFrom('document')

@@ -1,26 +1,6 @@
+import {MetadataField, MetadataFieldFilter} from "@/lib/llamaindex/config/metadata-filter";
 import {BaseNodePostprocessor, NodeWithScore, ServiceContext, serviceContextFromDefaults} from "llamaindex";
 import {DateTime} from "luxon";
-import z from "zod";
-
-export const metadataFilterSchema = z.object({
-  name: z.string(),
-  // TBD
-  // op: z.string().optional(),
-  value: z.any(),
-  optional: z.boolean().optional()
-});
-
-export type MetadataFieldFilter = z.infer<typeof metadataFilterSchema>;
-
-export const metadataFieldSchema = z.object({
-  name: z.string(),
-  type: z.string(),
-  enums: z.array(z.string()).optional(),
-  default: z.string(),
-  choicePrompt: z.string().optional(),
-});
-
-export type MetadataField = z.infer<typeof metadataFieldSchema>;
 
 export const defaultMetadataFilterChoicePrompt = ({metadataFields, query}: {
   metadataFields: MetadataField[],
@@ -116,7 +96,6 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
         metadataFields: this.metadata_fields,
         query
       });
-      console.info('Generate filters using prompt:', prompt)
       const raw = await llm.chat({
         messages: [
           {

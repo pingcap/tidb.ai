@@ -1,24 +1,26 @@
-import { type CreateChatEngineFormValues, updateChatEngine } from '@/client/operations/chat_engines';
+import { updateChatEngine } from '@/client/operations/chat_engines';
+import {BasicFormDialog} from "@/components/dialogs/basic-form-dialog";
 import { ChatEngineFields } from '@/components/dialogs/create-chat-engine-dialog';
-import { ImportDialog } from '@/components/dialogs/import-dialog';
 import { Button } from '@/components/ui/button';
+import {CreateChatEngineOptions, CreateChatEngineOptionsSchema} from "@/core/config/chat_engines";
 
-export function UpdateChatEngineDialog ({
-  id,
-  defaultValues,
-}: {
+export type UpdateChatEngineDialogProps = {
   id: number,
-  defaultValues: CreateChatEngineFormValues
-}) {
+  defaultValues: CreateChatEngineOptions
+};
+
+export function UpdateChatEngineDialog ({ id, defaultValues }: UpdateChatEngineDialogProps) {
   return (
-    <ImportDialog
-      trigger={<Button className="gap-1" size="sm" variant="secondary">Update</Button>}
+    <BasicFormDialog
       title="Update Chat Engine Options"
-      submitTitle="Update"
-      onSubmit={data => updateChatEngine(id, data)}
+      trigger={<Button className="gap-1" size="sm" variant="secondary">Update Config</Button>}
+      fromId={`update-chat-engine-form-${id}`}
+      schema={CreateChatEngineOptionsSchema}
       defaultValues={defaultValues}
+      submitButtonTitle="Update"
+      onSubmit={data => updateChatEngine(id, data)}
     >
       <ChatEngineFields />
-    </ImportDialog>
+    </BasicFormDialog>
   );
 }

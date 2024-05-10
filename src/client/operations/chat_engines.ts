@@ -1,15 +1,9 @@
-import type { ChatEngineOptions } from '@/core/repositories/chat_engine';
+import {CreateChatEngineOptions} from "@/core/config/chat_engines";
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 
-export interface CreateChatEngineFormValues {
-  name: string;
-  engine: string;
-  engine_options: ChatEngineOptions;
-}
-
 export const createChatEngine = withToast(
-  async (data: CreateChatEngineFormValues) => {
+  async (data: CreateChatEngineOptions) => {
     await fetch('/api/v1/chat_engines', {
       method: 'post',
       body: JSON.stringify(data),
@@ -19,7 +13,7 @@ export const createChatEngine = withToast(
 );
 
 export const updateChatEngine = withToast(
-  async (id: number, data: CreateChatEngineFormValues) => {
+  async (id: number, data: CreateChatEngineOptions) => {
     await fetch(`/api/v1/chat_engines/${id}`, {
       method: 'put',
       body: JSON.stringify(data),

@@ -1,15 +1,20 @@
-import { chatOptionsSchema, deleteChatEngine, getChatEngine, updateChatEngine } from '@/core/repositories/chat_engine';
+import {CreateChatEngineOptionsSchema} from "@/core/config/chat_engines";
+import {
+  deleteChatEngine,
+  getChatEngine,
+  updateChatEngine
+} from '@/core/repositories/chat_engine';
 import { defineHandler } from '@/lib/next/handler';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
 
-const paramsSchema = z.object({
+const SpecifiedChatEngineParamsSchema = z.object({
   id: z.coerce.number().int(),
 });
 
 export const GET = defineHandler({
   auth: 'admin',
-  params: paramsSchema,
+  params: SpecifiedChatEngineParamsSchema,
 }, async ({
   params,
 }) => {
@@ -23,14 +28,8 @@ export const GET = defineHandler({
 
 export const PUT = defineHandler({
   auth: 'admin',
-  params: z.object({
-    id: z.coerce.number().int(),
-  }),
-  body: z.object({
-    name: z.string(),
-    engine: z.string(),
-    engine_options: chatOptionsSchema,
-  }),
+  params: SpecifiedChatEngineParamsSchema,
+  body: CreateChatEngineOptionsSchema,
 }, async ({
   params,
   body,
@@ -40,9 +39,7 @@ export const PUT = defineHandler({
 
 export const DELETE = defineHandler({
   auth: 'admin',
-  params: z.object({
-    id: z.coerce.number().int(),
-  }),
+  params: SpecifiedChatEngineParamsSchema,
 }, async ({ params }) => {
   await deleteChatEngine(params.id);
 });

@@ -1,9 +1,11 @@
-import { ImportDialog } from '@/components/dialogs/import-dialog';
+import {BasicFormDialog} from "@/components/dialogs/basic-form-dialog";
 import { PromptTemplateEditor } from '@/components/ui/auto-form/zod-extensions/prompt-template';
 import { Button } from '@/components/ui/button';
-import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import {FormControl, FormDescription, FormField, FormItem, FormLabel} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { createChatEngine } from '@/client/operations/chat_engines';
+import {Switch} from "@/components/ui/switch";
+import {ChatEngineProvider, CreateChatEngineOptionsSchema} from "@/core/config/chat_engines";
 import {LLMProvider, OpenAIModel} from "@/lib/llamaindex/config/llm";
 import {RerankerProvider} from "@/lib/llamaindex/config/reranker";
 
@@ -19,13 +21,15 @@ export function CreateChatEngineDialog ({
   defaultCondenseQuestionPrompt: string,
 }) {
   return (
-    <ImportDialog
+    <BasicFormDialog
+      fromId="create-chat-engine-form"
       trigger={<Button className="gap-1" size="sm" variant="secondary">New</Button>}
       title="Create Chat Engine"
       onSubmit={createChatEngine}
+      schema={CreateChatEngineOptionsSchema}
       defaultValues={{
         name: '',
-        engine: 'condense-question',
+        engine: ChatEngineProvider.CONDENSE_QUESTION,
         engine_options: {
           reranker: { provider: RerankerProvider.LLM, options: { model: '-' } },
           llm: { provider: LLMProvider.OPENAI, options: { model: OpenAIModel.GPT_3_5_TURBO } },
@@ -43,7 +47,7 @@ export function CreateChatEngineDialog ({
       }}
     >
       <ChatEngineFields />
-    </ImportDialog>
+    </BasicFormDialog>
   );
 }
 
@@ -72,22 +76,20 @@ export function ChatEngineFields () {
           </FormItem>
         )}
       />
-
       <FormField
         name="engine_options.index_id"
         render={({ field: { ...field } }) => (
           <FormItem>
             <FormLabel>Index ID</FormLabel>
             <FormControl>
-              <Input readOnly {...field} />
+              <Input readOnly type="number" {...field} />
             </FormControl>
           </FormItem>
         )}
       />
-
       <FormField
         name="engine_options.retriever.search_top_k"
-        render={({ field }) => (
+        render={({field}) => (
           <FormItem>
             <FormLabel>Search Top K</FormLabel>
             <FormControl>
@@ -96,14 +98,13 @@ export function ChatEngineFields () {
           </FormItem>
         )}
       />
-
       <FormField
         name="engine_options.retriever.top_k"
-        render={({ field }) => (
+        render={({field}) => (
           <FormItem>
             <FormLabel>Top K</FormLabel>
             <FormControl>
-              <Input type="number" {...field} />
+              <Input type="number" {...field}/>
             </FormControl>
           </FormItem>
         )}
@@ -178,9 +179,28 @@ export function ChatEngineFields () {
         name="engine_options.prompts.refine"
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Refine Prompt</FormLabel>
+            <FormLabel>Refine Answer Prompt</FormLabel>
             <FormControl>
               <PromptTemplateEditor {...field} />
+            </FormControl>
+          </FormItem>
+        )}
+      />
+      <FormField
+        name="engine_options.graph_retriever.enable"
+        render={({ field }) => (
+          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+            <div className="space-y-0.5">
+              <FormLabel>Enable Knowledge Graph Retriever</FormLabel>
+              <FormDescription>
+                Using knowledge graph RAG service to retrieve related entities, relationships and related chunks.
+              </FormDescription>
+            </div>
+            <FormControl>
+              <Switch
+                checked={field.value}
+                onCheckedChange={field.onChange}
+              />
             </FormControl>
           </FormItem>
         )}

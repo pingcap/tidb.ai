@@ -1,8 +1,24 @@
-import {
-  metadataFieldSchema,
-  metadataFilterSchema
-} from "@/lib/llamaindex/postprocessors/postfilters/MetadataPostFilter";
 import {z} from "zod";
+
+export const metadataFilterSchema = z.object({
+  name: z.string(),
+  // TBD
+  // op: z.string().optional(),
+  value: z.any(),
+  optional: z.boolean().optional()
+});
+
+export type MetadataFieldFilter = z.infer<typeof metadataFilterSchema>;
+
+export const metadataFieldSchema = z.object({
+  name: z.string(),
+  type: z.string(),
+  enums: z.array(z.string()).optional(),
+  default: z.string(),
+  choicePrompt: z.string().optional(),
+});
+
+export type MetadataField = z.infer<typeof metadataFieldSchema>;
 
 export enum MetadataFilterProvider {
   DEFAULT = 'default',
