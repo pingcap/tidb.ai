@@ -1,5 +1,5 @@
 import { createIndex } from '@/client/operations/index_';
-import { ImportDialog } from '@/components/dialogs/import-dialog';
+import {BasicFormDialog} from "@/components/dialogs/basic-form-dialog";
 import { Button } from '@/components/ui/button';
 import { FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -12,7 +12,7 @@ const schema = z.object({
 
 export function CreateIndexDialog ({}) {
   return (
-    <ImportDialog
+    <BasicFormDialog
       title="Create index"
       onSubmit={createIndex}
       trigger={<Button className="gap-1" size="sm" variant="secondary">New</Button>}
@@ -40,6 +40,6 @@ export function CreateIndexDialog ({}) {
           </FormItem>
         )}
       />
-    </ImportDialog>
+    </BasicFormDialog>
   );
 }

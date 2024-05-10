@@ -26,7 +26,7 @@ export const JinaAIRerankerConfig = z.object({
 });
 
 export const LLMRerankerOptions = z.object({
-  model: z.string(),
+  model: z.string().optional(),
 });
 
 export const LLMRerankerConfig = z.object({

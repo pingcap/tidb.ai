@@ -1,4 +1,5 @@
-import { ImportDialog } from '@/components/dialogs/import-dialog';
+import {BasicFormDialog} from "@/components/dialogs/basic-form-dialog";
+
 import { Button } from '@/components/ui/button';
 import { FormDescription, FormField, FormItem, FormLabel } from '@/components/ui/form';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,7 +8,7 @@ import { ImportIcon } from 'lucide-react';
 
 export function ImportSiteDialog () {
   return (
-    <ImportDialog<ImportWebsiteFormValues>
+    <BasicFormDialog<ImportWebsiteFormValues>
       trigger={(
         <Button size="sm" className="gap-1">
           Import website
@@ -16,6 +17,7 @@ export function ImportSiteDialog () {
       )}
       title="Import website"
       onSubmit={importWebsite}
+      submitButtonTitle={'Import'}
     >
       <FormItem>
         <FormLabel>URL List</FormLabel>
@@ -27,6 +29,6 @@ export function ImportSiteDialog () {
           One line for each url. Make sure your site has <code>robots.txt</code> containing sitemap.
         </FormDescription>
       </FormItem>
-    </ImportDialog>
+    </BasicFormDialog>
   );
 }

@@ -33,7 +33,7 @@ export function Nav () {
   const session = useSession();
   const user = session.data?.user;
   const isLoggedIn = user && user.role !== 'anonymous';
-  const { data: history, mutate, isLoading } = useSWR(['get', '/api/v1/chats'], fetcher<Page<Chat>>, {
+  const { data: history, mutate, isLoading } = useSWR(['get', '/api/v1/chats?page_size=8'], fetcher<Page<Chat>>, {
     revalidateOnMount: false,
   });
 
@@ -95,9 +95,10 @@ export function Nav () {
           { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon },
           { href: '/explore', title: 'Documents', icon: FileIcon },
           { href: '/sources', title: 'Data Sources', icon: ImportIcon },
-          { href: '/indexes', title: 'Indexes', icon: BinaryIcon },
           { href: '/import-tasks', title: 'Import Tasks', icon: GlobeIcon },
+          { href: '/indexes', title: 'Indexes', icon: BinaryIcon },
           { href: '/index-tasks', title: 'Index Tasks', icon: ListIcon },
+          { href: '/chat-engines', title: 'Chat Engines', icon: CogIcon },
           { href: '/settings', title: 'Settings', icon: CogIcon },
         ],
         sectionProps: { className: 'mt-auto mb-0' },
