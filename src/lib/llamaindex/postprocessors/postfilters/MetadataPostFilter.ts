@@ -96,7 +96,6 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
         metadataFields: this.metadata_fields,
         query
       });
-      console.info('Generate filters using prompt:', prompt)
       const raw = await llm.chat({
         messages: [
           {

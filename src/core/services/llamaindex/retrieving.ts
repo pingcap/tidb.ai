@@ -45,6 +45,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     const searchDuration = searchEnd.diff(searchStart, 'milliseconds').milliseconds;
     console.log(`Finish embedding searching, take ${searchDuration} ms, found ${chunks.length} chunks.`, { search_top_k });
 
+    const rerankChunksLimit = top_k * 2;
     const metadataFilterConfig = this.metadataFilterConfig;
     if (metadataFilterConfig) {
 
@@ -56,10 +57,12 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
       console.log('Start post filtering chunks by metadata.');
       const filterStart = DateTime.now();
       const filteredResult = await this.metadataPostFilter(chunks, query, metadataFilterConfig);
-      chunks = filteredResult.slice(0, top_k);
+      chunks = filteredResult.slice(0, rerankChunksLimit);
       const filterEnd = DateTime.now();
       const filterDuration = filterEnd.diff(filterStart, 'milliseconds').milliseconds;
       console.log(`Finish post filtering chunks by metadata, take ${filterDuration} ms.`);
+    } else {
+      chunks = chunks.slice(0, rerankChunksLimit);
     }
 
     // If no reranker is provided, return the top_k chunks directly.
@@ -70,7 +73,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     this.emit('start-rerank', retrieve.id, chunks);
     await this.startRerank(retrieve);
 
-    console.log(`Start reranking for query "${query}".`, { top_k });
+    console.log(`Start reranking for query "${query}".`, { chunks: chunks.length, top_k });
     const rerankStart = DateTime.now();
     const rerankedResult = await this.rerank(chunks, query, top_k, this.rerankerConfig);
     const rerankEnd = DateTime.now();
