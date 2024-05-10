@@ -60,6 +60,9 @@ export class LlamaindexChatService extends AppChatService {
         search_top_k = 100,
         top_k = 5,
       } = {},
+      graph_retriever = {
+        enable: false
+      },
       metadata_filter,
       reranker,
       prompts: {
@@ -152,7 +155,11 @@ export class LlamaindexChatService extends AppChatService {
 
     // Build Graph RAG retriever.
     let additionalContext: Record<string, any> = {};
-    if (process.env.GRAPH_RAG_API_URL) {
+    if (graph_retriever?.enable) {
+      if (!process.env.GRAPH_RAG_API_URL) {
+        throw new Error('GRAPH_RAG_API_URL is required')
+      }
+
       yield {
         status: AppChatStreamState.SEARCHING,
         sources: Array.from(allSources.values()),
