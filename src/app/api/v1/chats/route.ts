@@ -13,7 +13,7 @@ import {z} from 'zod';
 
 const ChatRequest = z.object({
   messages: z.object({
-    content: z.string(),
+    content: z.string().min(1),
     role: z.string(),
   }).array(),
   sessionId: z.string().optional(),
