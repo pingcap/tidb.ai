@@ -138,33 +138,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
       return [];
     }
 
-    //// FIXME: Do we need relationships when retrieving?
-
-    // const relationships = await getDb()
-    //   .selectFrom('llamaindex_node_relationship as rel')
-    //   .innerJoin(`llamaindex_document_chunk_node_${index.name} as target_chunk_node`, 'rel.target_node_id', `target_chunk_node.id`)
-    //   .select([
-    //     eb => eb.fn('bin_to_uuid', ['rel.source_node_id']).as('source_node_id'),
-    //     eb => eb.fn('bin_to_uuid', ['rel.target_node_id']).as('target_node_id'),
-    //     'rel.type',
-    //     'target_chunk_node.metadata',
-    //   ])
-    //   .where('rel.source_node_id', 'in', results.map(result => uuidToBin(result.document_chunk_node_id)))
-    //   .execute();
-
     const nodeRelsMap = new Map<UUID, Record<string, RetrievedChunkReference>>;
-
-    // for (let relationship of relationships) {
-    //   let rels = nodeRelsMap.get(relationship.source_node_id);
-    //   if (!rels) {
-    //     nodeRelsMap.set(relationship.source_node_id, rels = {});
-    //   }
-    //   rels[relationship.type] = {
-    //     index_id: index.id,
-    //     metadata: relationship.metadata,
-    //     chunk_node_id: relationship.target_node_id,
-    //   };
-    // }
 
     return results.map(result => ({
       index_id: index.id,
