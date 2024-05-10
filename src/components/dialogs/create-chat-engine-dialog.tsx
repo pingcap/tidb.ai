@@ -22,6 +22,7 @@ export function CreateChatEngineDialog ({
 }) {
   return (
     <BasicFormDialog
+      fromId="create-chat-engine-form"
       trigger={<Button className="gap-1" size="sm" variant="secondary">New</Button>}
       title="Create Chat Engine"
       onSubmit={createChatEngine}

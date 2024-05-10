@@ -9,6 +9,7 @@ import { uploadFile } from '@/client/operations/documents';
 export function ImportFileDialog () {
   return (
     <BasicFormDialog
+      fromId="import-file-form"
       trigger={<Button className='gap-1' size="sm" variant="secondary">Upload file<UploadIcon size='1em' /></Button>}
       title="Upload file"
       onSubmit={uploadFile}>

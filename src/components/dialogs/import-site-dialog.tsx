@@ -9,6 +9,7 @@ import { ImportIcon } from 'lucide-react';
 export function ImportSiteDialog () {
   return (
     <BasicFormDialog<ImportWebsiteFormValues>
+      fromId="import-site-form"
       trigger={(
         <Button size="sm" className="gap-1">
           Import website

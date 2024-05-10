@@ -14,6 +14,7 @@ export function UpdateChatEngineDialog ({ id, defaultValues }: UpdateChatEngineD
     <BasicFormDialog
       title="Update Chat Engine Options"
       trigger={<Button className="gap-1" size="sm" variant="secondary">Update Config</Button>}
+      fromId={`update-chat-engine-form-${id}`}
       schema={CreateChatEngineOptionsSchema}
       defaultValues={defaultValues}
       submitButtonTitle="Update"

@@ -13,6 +13,7 @@ const schema = z.object({
 export function CreateIndexDialog ({}) {
   return (
     <BasicFormDialog
+      fromId="create-index-form"
       title="Create index"
       onSubmit={createIndex}
       trigger={<Button className="gap-1" size="sm" variant="secondary">New</Button>}

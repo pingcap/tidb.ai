@@ -34,9 +34,9 @@ export function BasicFormDialog<T extends FieldValues>(props: BasicFormDialogPro
     description,
     defaultValues,
     schema,
-    fromId = 'basic-form',
+    fromId = "basic-form",
     onSubmit,
-    submitButtonTitle = 'From',
+    submitButtonTitle = 'Submit',
     trigger,
     children
   } = props;
