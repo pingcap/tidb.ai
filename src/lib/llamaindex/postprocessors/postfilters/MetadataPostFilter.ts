@@ -2,10 +2,7 @@ import {MetadataField, MetadataFieldFilter} from "@/lib/llamaindex/config/metada
 import {BaseNodePostprocessor, NodeWithScore, ServiceContext, serviceContextFromDefaults} from "llamaindex";
 import {DateTime} from "luxon";
 
-export const defaultMetadataFilterChoicePrompt = ({
-  metadataFields,
-  query
-}: {
+export const defaultMetadataFilterChoicePrompt = ({metadataFields, query}: {
   metadataFields: MetadataField[],
   query: string
 }) => {
