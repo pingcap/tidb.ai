@@ -18,7 +18,7 @@ import type {UUID} from 'node:crypto';
 import z from "zod";
 
 export const retrieveOptionsSchema = z.object({
-  query: z.string(),
+  query: z.string().min(1),
   // TODO: using engine name instead.
   engine: z.number().optional(),
   filters: z.array(metadataFilterSchema).optional(),
