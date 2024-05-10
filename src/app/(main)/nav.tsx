@@ -16,7 +16,8 @@ import type { Page } from '@/lib/database';
 import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { ActivitySquareIcon, BinaryIcon, CogIcon, CommandIcon, FileIcon, GlobeIcon, HomeIcon, ImportIcon, ListIcon, MenuIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react';
+import { ActivitySquareIcon, BinaryIcon, CogIcon, CommandIcon, FileIcon, GlobeIcon, HomeIcon, ImportIcon, ListIcon, MenuIcon, MessagesSquareIcon, PlusIcon, BotMessageSquareIcon } from 'lucide-react';
+
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
@@ -98,7 +99,7 @@ export function Nav () {
           { href: '/import-tasks', title: 'Import Tasks', icon: GlobeIcon },
           { href: '/indexes', title: 'Indexes', icon: BinaryIcon },
           { href: '/index-tasks', title: 'Index Tasks', icon: ListIcon },
-          { href: '/chat-engines', title: 'Chat Engines', icon: CogIcon },
+          { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon },
           { href: '/settings', title: 'Settings', icon: CogIcon },
         ],
         sectionProps: { className: 'mt-auto mb-0' },

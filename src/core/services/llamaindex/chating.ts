@@ -81,6 +81,8 @@ export class LlamaindexChatService extends AppChatService {
       promptHelper,
       embedModel,
     });
+
+    console.log('The user input question:', options.userInput);
     console.info('llm:', JSON.stringify(llm.metadata), ', embedding: ', embedModel.model);
 
     const allSources = new Map<string, AppChatStreamSource>();
@@ -96,64 +98,68 @@ export class LlamaindexChatService extends AppChatService {
 
     // FIXME: This method only support a single retrieve call currently.
     let retrieveId: number | undefined;
-    const retriever = withAsyncIterable<ChatStreamEvent, LlamaindexRetrieverWrapper>((next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
-      search_top_k,
-      top_k,
-      use_cache: false,
-    }, serviceContext, {
-      onStartSearch: (id, text) => {
-        retrieveId = id;
-        next({
-          done: false,
-          value: {
-            content: '',
-            status: AppChatStreamState.SEARCHING,
-            statusMessage: `Searching document chunks: ${text}`,
-            sources: Array.from(allSources.values()),
-            retrieveId: id,
-          },
-        });
+    const retriever = withAsyncIterable<ChatStreamEvent, LlamaindexRetrieverWrapper>(
+      (next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
+        search_top_k,
+        top_k,
+        use_cache: false,
       },
-      onStartRerank: (id, chunks) => {
-        next({
-          done: false,
-          value: {
-            content: '',
-            status: AppChatStreamState.RERANKING,
-            statusMessage: `Reranking ${chunks.length} searched document chunks using ${reranker?.provider}:${reranker?.options?.model ?? 'default'}...`,
-            sources: Array.from(allSources.values()),
-            retrieveId: id,
-          },
-        });
-      },
-      onRetrieved: async (id, chunks) => {
-        try {
-          const chunkIds = chunks.map(chunk => chunk.document_chunk_node_id);
-          await this.appendSource(allSources, chunkIds);
+      serviceContext,
+      {
+        onStartSearch: (id, text) => {
+          retrieveId = id;
           next({
             done: false,
             value: {
               content: '',
-              status: AppChatStreamState.GENERATING,
-              statusMessage: `Generating using ${llmConfig.provider}:${llmConfig.options?.model ?? 'default'}`,
+              status: AppChatStreamState.SEARCHING,
+              statusMessage: `Searching document chunks: ${text}`,
               sources: Array.from(allSources.values()),
               retrieveId: id,
             },
           });
+        },
+        onStartRerank: (id, chunks) => {
           next({
-            done: true,
-            value: undefined,
+            done: false,
+            value: {
+              content: '',
+              status: AppChatStreamState.RERANKING,
+              statusMessage: `Reranking ${chunks.length} searched document chunks using ${reranker?.provider}:${reranker?.options?.model ?? 'default'}...`,
+              sources: Array.from(allSources.values()),
+              retrieveId: id,
+            },
           });
-        } catch (error) {
-          fail(error);
-        }
-      },
-      onRetrieveFailed: (id, reason) => {
-        fail(reason);
-      },
-    }));
+        },
+        onRetrieved: async (id, chunks) => {
+          try {
+            const chunkIds = chunks.map(chunk => chunk.document_chunk_node_id);
+            await this.appendSource(allSources, chunkIds);
+            next({
+              done: false,
+              value: {
+                content: '',
+                status: AppChatStreamState.GENERATING,
+                statusMessage: `Generating using ${llmConfig.provider}:${llmConfig.options?.model ?? 'default'}`,
+                sources: Array.from(allSources.values()),
+                retrieveId: id,
+              },
+            });
+            next({
+              done: true,
+              value: undefined,
+            });
+          } catch (error) {
+            fail(error);
+          }
+        },
+        onRetrieveFailed: (id, reason) => {
+          fail(reason);
+        },
+      }
+    ));
 
-    // Build Graph RAG retriever.
+    // Using knowledge graph retriever.
     let additionalContext: Record<string, any> = {};
     if (graph_retriever?.enable) {
       if (!process.env.GRAPH_RAG_API_URL) {
@@ -169,7 +175,7 @@ export class LlamaindexChatService extends AppChatService {
       };
 
       // Search using Graph RAG.
-      const additionalContext = await this.graphRAGRetrieve(options.userInput);
+      additionalContext = await this.graphRAGRetrieve(options.userInput);
 
       // Found the document name by link.
       const sourceLinks = (additionalContext['chunks'] ?? []).map((chunk: any) => chunk.link);
@@ -255,7 +261,6 @@ export class LlamaindexChatService extends AppChatService {
   async graphRAGRetrieve(question: string) {
     try {
       const url = `${process.env.GRAPH_RAG_API_URL}/api/search`;
-      console.log('The user question:', question);
       const start = DateTime.now();
       const res = await fetch(url, {
         method: 'POST',

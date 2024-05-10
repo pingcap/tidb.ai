@@ -127,7 +127,7 @@
     "eslint-config-next": "14.2.1",
     "kysely-codegen": "^0.11.0",
     "lodash": "^4.17.21",
-    "lucide-react": "^0.320.0",
+    "lucide-react": "^0.342.0",
     "next-plugin-svgr": "^1.1.10",
     "next-themes": "^0.2.1",
     "postcss": "^8",
