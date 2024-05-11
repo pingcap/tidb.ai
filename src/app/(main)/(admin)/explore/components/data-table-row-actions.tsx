@@ -32,8 +32,8 @@ export function DataTableRowActions<TData>(props: DataTableRowActionsProps<TData
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-[160px]">
-        <DropdownMenuItem>
-          {/*<BuildDocumentIndexDialog trigger={<span>Build index</span>}  {...props}/>*/}
+        <DropdownMenuItem disabled={true}>
+          Build index (Coming soon)
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem disabled={true}>
