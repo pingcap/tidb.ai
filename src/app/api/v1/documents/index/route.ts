@@ -8,14 +8,15 @@ const IndexDocumentsOptionsSchema = z.object({
     .int()
     .array()
     .min(1, 'Must provide at least one document'),
-  indexName: z.string()
+  indexName: z.string(),
+  runInBackground: z.boolean().default(false)
 });
 
 export const POST = defineHandler({
   auth: 'admin',
   body: IndexDocumentsOptionsSchema
 },  async ({ body}) => {
-  const { documentIds, indexName } = body;
+  const { documentIds, indexName, runInBackground } = body;
 
   const index = await getIndexByNameOrThrow(indexName);
   const documentIdStr = documentIds.map((id) => `#${id}`).join(', ')
@@ -28,6 +29,12 @@ export const POST = defineHandler({
   const taskIds = await DocumentIndexService.createDocumentIndexTasksByDocumentIds(documentIds, index.id);
   const taskIdStr = taskIds.map((id) => `#${id}`).join(', ')
   console.log(`Create document index tasks ${taskIdStr}.`);
+
+  if (runInBackground) {
+    return {
+      taskIds
+    }
+  }
 
   // Execute document index tasks.
   const results = await Promise.allSettled(
@@ -48,6 +55,7 @@ export const POST = defineHandler({
   });
 
   return {
+    taskIds,
     succeed,
     failed
   }

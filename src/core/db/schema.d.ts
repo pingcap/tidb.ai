@@ -97,7 +97,7 @@ export interface DocumentIndexTask {
   info: Json;
   message: string | null;
   started_at: Date | null;
-  status: "CREATED" | "FAILED" | "INDEXING" | "PENDING" | "SUCCEED";
+  status: "CANCELED" | "CREATED" | "FAILED" | "INDEXING" | "PENDING" | "SUCCEED";
   type: "CREATE_INDEX" | "REINDEX";
 }
 

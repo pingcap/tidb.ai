@@ -55,7 +55,7 @@ export class KnowledgeGraphClient {
         },
         body: JSON.stringify(doc)
       });
-      if (res.ok) {
+      if (!res.ok) {
         throw new Error(`Failed to call build knowledge graph index API for doc (url: ${doc.uri}): ${res.statusText}`);
       }
       const data = await res.json();
