@@ -1,3 +1,4 @@
+import {DataTableRowActions} from "@/app/(main)/(admin)/explore/components/data-table-row-actions";
 import {Tooltip, TooltipContent, TooltipTrigger} from "@/components/ui/tooltip";
 import type {Document} from "@/core/repositories/document";
 import type {CellContext, ColumnDef} from "@tanstack/react-table";
@@ -65,4 +66,8 @@ export const columns = [
     enableSorting: true
   }),
   helper.accessor('last_modified_at', {cell: datetime}),
+  {
+    id: "actions",
+    cell: ({ row }) => <DataTableRowActions row={row} />,
+  },
 ] as ColumnDef<Document>[];

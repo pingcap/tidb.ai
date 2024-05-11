@@ -6,6 +6,7 @@ import {KnowledgeGraphClient} from "@/lib/knowledge-graph/client";
 import {fromFlowReaders} from "@/lib/llamaindex/builders/reader";
 import {baseRegistry} from "@/rag-spec/base";
 import {getFlow} from "@/rag-spec/createFlow";
+import {SentenceSplitter, SimpleNodeParser} from "llamaindex";
 
 
 export class KnowledgeGraphIndexProvider extends DocumentIndexProvider {
@@ -23,10 +24,10 @@ export class KnowledgeGraphIndexProvider extends DocumentIndexProvider {
     });
 
     await Promise.all(nodes.map(async (node) => {
-      const url = node.metadata?.url;
+      const uri = node.metadata?.url;
       const text = node.getText();
       await kgClient.buildIndex({
-        url,
+        uri,
         text
       });
     }));

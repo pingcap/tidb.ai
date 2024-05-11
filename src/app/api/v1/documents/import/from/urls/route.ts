@@ -18,7 +18,6 @@ export const POST = defineHandler({
   body: ImportDocumentsFromUrlsOptionsSchema
 },  async ({ body}) => {
   const { urls } = body;
-  console.log(urls)
 
   const encoder = new TextEncoder();
   const readableStream = new ReadableStream({

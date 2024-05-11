@@ -2,7 +2,7 @@ import {getEnv} from "@llamaindex/env";
 import {DateTime} from "luxon";
 
 export interface DocumentInfo {
-  url: string,
+  uri: string,
   text: string
 }
 
@@ -46,7 +46,7 @@ export class KnowledgeGraphClient {
 
   async buildIndex(doc: DocumentInfo) {
     try {
-      const url = `${process.env.GRAPH_RAG_API_URL}/api/build`;
+      const url = `${this.baseURL}/api/build`;
       const start = DateTime.now();
       const res = await fetch(url, {
         method: 'POST',
@@ -61,7 +61,7 @@ export class KnowledgeGraphClient {
       console.log(`Finish knowledge graph building, take ${duration} seconds.`);
       return data;
     } catch (err) {
-      console.error(`Failed to build knowledge graph for doc: ${doc.url}`, err);
+      console.error(`Failed to build knowledge graph for doc: ${doc.uri}`, err);
       throw err;
     }
   }

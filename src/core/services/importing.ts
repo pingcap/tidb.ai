@@ -26,6 +26,7 @@ import { unified } from 'unified';
 export interface RunTaskProcess {
   total: number;
   succeed: number[];
+  succeedDocumentIds: number[];
   failed: number[];
   finished: boolean;
 }
@@ -61,13 +62,13 @@ export abstract class DocumentImportService extends AppFlowBaseService {
 
   static async createTasksByURLs (urls: string[]) {
     return await Promise.all(urls.map(async (url) => {
-      return await createDocumentImportTask(urls.map((url) => ({
+      return await createDocumentImportTask({
         status: 'CREATED',
         type: 'html',
         url: url,
         source_id: null,
         created_at: new Date(),
-      })));
+      });
     }));
   }
 
@@ -97,15 +98,19 @@ export abstract class DocumentImportService extends AppFlowBaseService {
 
   protected abstract process (task: DocumentImportTask): Promise<{ tasks: CreateDocumentImportTask[], document?: CreateDocument }>;
 
-  async runTasks (n: number, specifyTaskIds?: number[], callback?: RunTaskProcessCallback): Promise<{ succeed: number[], failed: number[] }> {
+  async runTasks (n: number, specifyTaskIds?: number[], callback?: RunTaskProcessCallback): Promise<RunTaskProcess> {
     const taskIds = specifyTaskIds ?? await dequeueDocumentImportTasks(n);
     const results = await Promise.allSettled(taskIds.map(id => this.executeTask(id)));
     const succeed: number[] = [];
+    const succeedDocumentIds: number[] = [];
     const failed: number[] = [];
 
     results.forEach((result, i) => {
       if (result.status === 'fulfilled') {
         succeed.push(taskIds[i]);
+        if (result?.value?.document) {
+          succeedDocumentIds.push(result?.value?.document)
+        }
       } else {
         failed.push(taskIds[i]);
       }
@@ -113,13 +118,20 @@ export abstract class DocumentImportService extends AppFlowBaseService {
         callback({
           total: taskIds.length,
           succeed: succeed,
+          succeedDocumentIds: succeedDocumentIds,
           failed: failed,
           finished: (succeed.length + failed.length) >= taskIds.length,
         });
       }
     });
 
-    return { succeed, failed };
+    return {
+      total: taskIds.length,
+      succeed: succeed,
+      succeedDocumentIds: succeedDocumentIds,
+      failed: failed,
+      finished: (succeed.length + failed.length) >= taskIds.length,
+    };
   }
 
   private async executeTask (id: number) {
@@ -164,6 +176,8 @@ export abstract class DocumentImportService extends AppFlowBaseService {
       }
 
       await finishDocumentImportTask(task.id, theResult);
+
+      return theResult;
     } catch (e) {
       console.error(`Failed to execute document import task (task id: ${task.id}):`, e);
       await terminateDocumentImportTask(task.id, getErrorMessage(e));
