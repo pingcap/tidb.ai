@@ -55,10 +55,17 @@ export class KnowledgeGraphClient {
         },
         body: JSON.stringify(doc)
       });
+      if (res.ok) {
+        throw new Error(`Failed to call build knowledge graph index API for doc (url: ${doc.uri}): ${res.statusText}`);
+      }
       const data = await res.json();
       const end = DateTime.now();
       const duration = end.diff(start, 'seconds').seconds;
-      console.log(`Finish knowledge graph building, take ${duration} seconds.`);
+      if (data.status === 'done') {
+        console.log(`Finish knowledge graph building, take ${duration} seconds.`);
+      } else {
+        console.log(`Knowledge graph building not done yet, status: ${data.status}`);
+      }
       return data;
     } catch (err) {
       console.error(`Failed to build knowledge graph for doc: ${doc.uri}`, err);
