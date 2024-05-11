@@ -34,3 +34,23 @@ export const uploadFile = withToast(
     }).then(handleErrors);
   }
 );
+
+export type BuildDocumentIndexOptions = {
+  documentIds: number[];
+  indexName: string;
+};
+
+export const buildDocumentIndex = withToast(
+  async ({ documentIds, indexName }: BuildDocumentIndexOptions) => {
+    await fetch('/api/v1/documents/index', {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        documentIds,
+        indexName,
+      }),
+    }).then(handleErrors);
+  }
+);

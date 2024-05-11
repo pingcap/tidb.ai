@@ -43,7 +43,7 @@ CREATE TABLE document_import_task
     error_message      TEXT                                                             NULL,
     created_at         DATETIME                                                         NOT NULL,
     finished_at        DATETIME                                                         NULL,
-    source_id          INT                                                              NOT NULL,
+    source_id          INT                                                              NULL,
     document_id        INT                                                              NULL,
     document_operation ENUM('CREATE', 'UPDATE')                                         NULL,
     parent_task_id     INT                                                              NULL,

@@ -84,7 +84,7 @@ export const RECAPTCHA_INVALID_MODE_ERROR = APIError.new('ReCaptcha mode invalid
 /**
  * Index related errors
  */
-export const INDEX_NOT_FOUND_ERROR = APIError.new('Index %s not found', 404);
+export const INDEX_NOT_FOUND_ERROR = APIError.new('Index <%s> not found', 404);
 
 /**
  * Chat Engine Related

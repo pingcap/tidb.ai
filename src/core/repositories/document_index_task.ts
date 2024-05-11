@@ -50,17 +50,16 @@ export async function listByNotIndexed (indexId: number) {
 }
 
 export async function createDocumentIndexTask ({ info, ...create }: CreateDocumentIndexTask) {
-  const { insertId } = await getDb()
+  return await getDb()
     .insertInto('document_index_task')
     .values({
       ...create,
       info: JSON.stringify(info),
     })
     .executeTakeFirstOrThrow();
-
-  return (await getDocumentIndexTask(Number(insertId)))!;
 }
 
+// FIXME: doesn't return all the inserted ids.
 export async function createDocumentIndexTasks (list: CreateDocumentIndexTask[]) {
   await getDb()
     .insertInto('document_index_task')
@@ -68,7 +67,7 @@ export async function createDocumentIndexTasks (list: CreateDocumentIndexTask[])
       ...create,
       info: JSON.stringify(info),
     })))
-    .executeTakeFirstOrThrow();
+    .execute();
 }
 
 export async function listDocumentIndexTasks (page: PageRequest<{ status?: string[] }>) {
