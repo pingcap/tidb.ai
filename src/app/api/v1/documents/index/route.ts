@@ -12,7 +12,7 @@ const IndexDocumentsOptionsSchema = z.object({
 });
 
 export const POST = defineHandler({
-  // auth: 'admin',
+  auth: 'admin',
   body: IndexDocumentsOptionsSchema
 },  async ({ body}) => {
   const { documentIds, indexName } = body;

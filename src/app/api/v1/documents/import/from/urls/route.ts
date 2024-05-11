@@ -13,7 +13,7 @@ const ImportDocumentsFromUrlsOptionsSchema = z.object({
 });
 
 export const POST = defineHandler({
-  // auth: 'admin',
+  auth: 'admin',
   body: ImportDocumentsFromUrlsOptionsSchema
 },  async ({ body}) => {
   const { urls } = body;
