@@ -49,7 +49,7 @@ export async function createAndGetDocumentImportTask (create: CreateDocumentImpo
   return (await getDocumentImportTask(Number(insertId)))!;
 }
 
-export async function createDocumentImportTask (create: CreateDocumentImportTask[]) {
+export async function createDocumentImportTask (create: CreateDocumentImportTask) {
   const { insertId } = await getDb().insertInto('document_import_task')
     .values(create)
     .executeTakeFirstOrThrow();
