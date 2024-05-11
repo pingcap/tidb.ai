@@ -1,12 +1,11 @@
 import {DefaultDocumentImportService, DocumentImportService} from "@/core/services/importing";
-import {executeInSafeDuration} from "@/lib/next/executeInSafeDuration";
 import { defineHandler } from '@/lib/next/handler';
 import {baseRegistry} from "@/rag-spec/base";
 import {getFlow} from "@/rag-spec/createFlow";
 import { NextResponse } from "next/server";
 import {z} from "zod";
 
-export const ImportDocumentsFromUrlsOptionsSchema = z.object({
+const ImportDocumentsFromUrlsOptionsSchema = z.object({
   urls: z.string()
     .url('The format of URL is incorrect.')
     .array()
