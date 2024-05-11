@@ -9,9 +9,15 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { DataTableProvider } from '@/components/use-data-table';
 import type { Page } from '@/lib/database';
 import { fetcher } from '@/lib/fetch';
-import { ColumnDef, type ColumnFilter, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
+import {
+  ColumnDef,
+  type ColumnFilter,
+  flexRender,
+  getCoreRowModel,
+  useReactTable
+} from '@tanstack/react-table';
 import type { PaginationState } from '@tanstack/table-core';
-import { type ReactNode, useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
 interface DataTableRemoteProps<TData, TValue> {

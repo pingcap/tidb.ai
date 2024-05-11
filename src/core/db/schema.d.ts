@@ -1,4 +1,4 @@
-import type {ColumnType} from "kysely";
+import type { ColumnType } from "kysely";
 
 export type Generated<T> = T extends ColumnType<infer S, infer I, infer U>
   ? ColumnType<S, I | undefined, U>
@@ -82,7 +82,7 @@ export interface DocumentImportTask {
   finished_at: Date | null;
   id: Generated<number>;
   parent_task_id: number | null;
-  source_id: number;
+  source_id: number | null;
   status: "CREATED" | "FAILED" | "IMPORTING" | "PENDING" | "SUCCEED";
   type: string;
   url: string;
@@ -164,8 +164,8 @@ export interface RetrieveResult {
   chunk_text: string;
   document_chunk_node_id: Buffer;
   document_id: number;
+  document_metadata: Json | null;
   document_node_id: Buffer;
-  document_metadata: Json;
   id: Generated<number>;
   relevance_score: number;
   retrieve_id: number;

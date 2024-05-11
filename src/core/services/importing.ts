@@ -1,6 +1,16 @@
 import { tx } from '@/core/db';
 import { createDocument, type CreateDocument, getDocumentBySourceUri, updateDocument } from '@/core/repositories/document';
-import { type CreateDocumentImportTask, createDocumentImportTask, dequeueDocumentImportTasks, type DocumentImportResult, findUnfinishedDocumentImportTaskBySource, finishDocumentImportTask, getDocumentImportTask, startDocumentImportTask, terminateDocumentImportTask } from '@/core/repositories/document_import_task';
+import {
+  type CreateDocumentImportTask,
+  createAndGetDocumentImportTask,
+  dequeueDocumentImportTasks,
+  type DocumentImportResult,
+  findUnfinishedDocumentImportTaskBySource,
+  finishDocumentImportTask,
+  getDocumentImportTask,
+  startDocumentImportTask,
+  terminateDocumentImportTask, createDocumentImportTask
+} from '@/core/repositories/document_import_task';
 import { type DocumentImportTask, getSource } from '@/core/repositories/source';
 import { AppFlowBaseService } from '@/core/services/base';
 import { md5 } from '@/lib/digest';
@@ -12,6 +22,15 @@ import { notFound } from 'next/navigation';
 import path from 'path';
 import rehypeParse from 'rehype-parse';
 import { unified } from 'unified';
+
+export interface RunTaskProcess {
+  total: number;
+  succeed: number[];
+  failed: number[];
+  finished: boolean;
+}
+
+export type RunTaskProcessCallback = (process: RunTaskProcess) => void;
 
 export abstract class DocumentImportService extends AppFlowBaseService {
 
@@ -28,7 +47,7 @@ export abstract class DocumentImportService extends AppFlowBaseService {
         throw new Error(`Failed to create import task: there are ${unfinishedTasks.length} tasks not finished`);
       }
 
-      const task = await createDocumentImportTask({
+      const task = await createAndGetDocumentImportTask({
         status: 'CREATED',
         type: source.type,
         url: source.url,
@@ -38,6 +57,18 @@ export abstract class DocumentImportService extends AppFlowBaseService {
 
       return { source, task };
     });
+  }
+
+  static async createTasksByURLs (urls: string[]) {
+    return await Promise.all(urls.map(async (url) => {
+      return await createDocumentImportTask(urls.map((url) => ({
+        status: 'CREATED',
+        type: 'html',
+        url: url,
+        source_id: null,
+        created_at: new Date(),
+      })));
+    }));
   }
 
   static async createTaskFromTask (taskId: number) {
@@ -51,7 +82,7 @@ export abstract class DocumentImportService extends AppFlowBaseService {
         throw new Error(`Failed to create import task: previous task(#${taskId}) not finished`);
       }
 
-      const task = await createDocumentImportTask({
+      const task = await createAndGetDocumentImportTask({
         status: 'CREATED',
         type: previousTask.type,
         url: previousTask.url,
@@ -66,17 +97,25 @@ export abstract class DocumentImportService extends AppFlowBaseService {
 
   protected abstract process (task: DocumentImportTask): Promise<{ tasks: CreateDocumentImportTask[], document?: CreateDocument }>;
 
-  async runTasks (n: number): Promise<{ succeed: number[], failed: number[] }> {
-    const tasks = await dequeueDocumentImportTasks(n);
-    const results = await Promise.allSettled(tasks.map(id => this.executeTask(id)));
+  async runTasks (n: number, specifyTaskIds?: number[], callback?: RunTaskProcessCallback): Promise<{ succeed: number[], failed: number[] }> {
+    const taskIds = specifyTaskIds ?? await dequeueDocumentImportTasks(n);
+    const results = await Promise.allSettled(taskIds.map(id => this.executeTask(id)));
     const succeed: number[] = [];
     const failed: number[] = [];
 
     results.forEach((result, i) => {
       if (result.status === 'fulfilled') {
-        succeed.push(tasks[i]);
+        succeed.push(taskIds[i]);
       } else {
-        failed.push(tasks[i]);
+        failed.push(taskIds[i]);
+      }
+      if (callback) {
+        callback({
+          total: taskIds.length,
+          succeed: succeed,
+          failed: failed,
+          finished: (succeed.length + failed.length) >= taskIds.length,
+        });
       }
     });
 
@@ -86,6 +125,7 @@ export abstract class DocumentImportService extends AppFlowBaseService {
   private async executeTask (id: number) {
     const task = await startDocumentImportTask(id);
     if (!task) {
+      console.error(`Failed to start document import task (task id: ${id}).`);
       throw new Error(`failed to run document import task ${id}`);
     }
 

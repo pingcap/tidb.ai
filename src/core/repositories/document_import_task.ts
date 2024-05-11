@@ -41,12 +41,19 @@ export async function listDocumentImportTasks (page: PageRequest<{ status?: stri
   return executePage(builder, page);
 }
 
-export async function createDocumentImportTask (create: CreateDocumentImportTask) {
+export async function createAndGetDocumentImportTask (create: CreateDocumentImportTask) {
   const { insertId } = await getDb().insertInto('document_import_task')
     .values(create)
     .executeTakeFirstOrThrow();
 
   return (await getDocumentImportTask(Number(insertId)))!;
+}
+
+export async function createDocumentImportTask (create: CreateDocumentImportTask[]) {
+  const { insertId } = await getDb().insertInto('document_import_task')
+    .values(create)
+    .executeTakeFirstOrThrow();
+  return Number(insertId);
 }
 
 export async function findUnfinishedDocumentImportTaskBySource (sourceId: number) {
@@ -87,7 +94,7 @@ export async function startDocumentImportTask (id: number) {
       .updateTable('document_import_task')
       .set('status', 'IMPORTING')
       .where('id', '=', id)
-      .where('status', '=', 'PENDING')
+      .where('status', 'in', ['PENDING', 'CREATED'])
       .executeTakeFirst();
 
     if (Number(numUpdatedRows) === 0) {
