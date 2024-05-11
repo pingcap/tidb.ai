@@ -3,7 +3,7 @@ import {DocumentIndexService} from "@/core/services/indexing";
 import { defineHandler } from '@/lib/next/handler';
 import {z} from "zod";
 
-export const IndexDocumentsOptionsSchema = z.object({
+const IndexDocumentsOptionsSchema = z.object({
   documentIds: z.number()
     .int()
     .array()
