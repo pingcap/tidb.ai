@@ -5,6 +5,7 @@ import {getDocumentsBySourceUris} from "@/core/repositories/document";
 import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/services/chating';
 import {LlamaindexRetrieverWrapper, LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
 import {type AppChatStreamSource, AppChatStreamState} from '@/lib/ai/AppChatStream';
+import {KnowledgeGraphClient} from "@/lib/knowledge-graph/client";
 import {uuidToBin} from '@/lib/kysely';
 import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
 import {buildLLM} from "@/lib/llamaindex/builders/llm";
@@ -162,10 +163,6 @@ export class LlamaindexChatService extends AppChatService {
     // Using knowledge graph retriever.
     let additionalContext: Record<string, any> = {};
     if (graph_retriever?.enable) {
-      if (!process.env.GRAPH_RAG_API_URL) {
-        throw new Error('GRAPH_RAG_API_URL is required')
-      }
-
       yield {
         status: AppChatStreamState.SEARCHING,
         sources: Array.from(allSources.values()),
@@ -174,8 +171,10 @@ export class LlamaindexChatService extends AppChatService {
         content: '',
       };
 
-      // Search using Graph RAG.
-      additionalContext = await this.graphRAGRetrieve(options.userInput);
+      const kgClient = new KnowledgeGraphClient();
+
+      console.log('Start knowledge graph searching.');
+      additionalContext = await kgClient.search(options.userInput);
 
       // Found the document name by link.
       const sourceLinks = (additionalContext['chunks'] ?? []).map((chunk: any) => chunk.link);
@@ -256,29 +255,6 @@ export class LlamaindexChatService extends AppChatService {
     const end = DateTime.now();
     const duration = end.diff(start, 'seconds').seconds;
     console.log(`Finished chatting for chat <${chat.id}>, take ${duration} seconds.`, { stream });
-  }
-
-  async graphRAGRetrieve(question: string) {
-    try {
-      const url = `${process.env.GRAPH_RAG_API_URL}/api/search`;
-      const start = DateTime.now();
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: question,
-        })
-      });
-      const data = await res.json();
-      const end = DateTime.now();
-      const duration = end.diff(start, 'seconds').seconds;
-      console.log(`Graph RAG searching completed, take ${duration} seconds.`);
-      return data;
-    } catch (err) {
-      console.error('Failed to search using Graph RAG.', err);
-    }
   }
 
   async getSourcesByChunkIds (chunkIds: string[]): Promise<SourceWithNodeId[]> {

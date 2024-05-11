@@ -71,7 +71,7 @@ export async function getIndexByName (name: string) {
 export async function getIndexByNameOrThrow(name: string): Promise<Index> {
   const index = await getIndexByName(name);
   if (!index) {
-    throw INDEX_NOT_FOUND_ERROR;
+    throw INDEX_NOT_FOUND_ERROR.format(name);
   }
   return index;
 }

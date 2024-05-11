@@ -1,6 +1,18 @@
 import { DBv1, tx } from '@/core/db';
 import { type Document, getDocument } from '@/core/repositories/document';
-import { createDocumentIndexTasks, dequeueDocumentIndexTaskById, dequeueDocumentIndexTasks, type DocumentIndexTask, type DocumentIndexTaskInfo, finishDocumentIndexTask, listByNotIndexed, startDocumentIndexTask, terminateDocumentIndexTask } from '@/core/repositories/document_index_task';
+import {createDocumentImportTask} from "@/core/repositories/document_import_task";
+import {
+  createDocumentIndexTask,
+  createDocumentIndexTasks,
+  dequeueDocumentIndexTaskById,
+  dequeueDocumentIndexTasks,
+  type DocumentIndexTask,
+  type DocumentIndexTaskInfo,
+  finishDocumentIndexTask,
+  listByNotIndexed,
+  startDocumentIndexTask,
+  terminateDocumentIndexTask
+} from '@/core/repositories/document_index_task';
 import { DEFAULT_INDEX_PROVIDER_NAME, getIndex, type Index, IndexProviderName } from '@/core/repositories/index_';
 import { getErrorMessage } from '@/lib/errors';
 
@@ -8,10 +20,11 @@ export const DEFAULT_INDEX_NAME = 'default';
 
 export type DocumentIndexTaskProcessor = (task: DocumentIndexTask, document: Document, index: Index, mutableInfo: DocumentIndexTaskInfo) => Promise<DocumentIndexTaskResult>
 
+// TODO: make the index result type more generic, not all index has same table structure.
 export type DocumentIndexTaskResult = {
-  documentNodeTableName: keyof DBv1
-  documentChunkNodeTableName: keyof DBv1
-  documentNode: string;
+  documentNodeTableName?: keyof DBv1
+  documentChunkNodeTableName?: keyof DBv1
+  documentNode?: string;
   isNewDocumentNode: boolean;
 }
 
@@ -38,6 +51,35 @@ export class DocumentIndexService {
     });
   }
 
+  static async createDocumentIndexTasksByDocumentIds (documentIds: number[], indexId: number) {
+    return await tx(async () => {
+      const results = await Promise.all(documentIds.map(async id => {
+        return await createDocumentIndexTask({
+          document_id: id,
+          type: 'CREATE_INDEX',
+          info: {},
+          index_id: indexId,
+          created_at: new Date(),
+          status: 'CREATED',
+        });
+      }));
+
+      return results.map((r) => Number(r.insertId));
+    });
+  }
+
+  static async createTasksByURLs (urls: string[]) {
+    return await Promise.all(urls.map(async (url) => {
+      return await createDocumentImportTask({
+        status: 'CREATED',
+        type: 'html',
+        url: url,
+        source_id: null,
+        created_at: new Date(),
+      });
+    }));
+  }
+
   static getDocumentVectorTableName (provider: IndexProviderName = DEFAULT_INDEX_PROVIDER_NAME, index: string = DEFAULT_INDEX_NAME) {
     switch (provider) {
       case IndexProviderName.LLAMAINDEX:
@@ -49,7 +91,8 @@ export class DocumentIndexService {
 
   async prepareProviders () {
     // TODO: DI?
-    this.providers.llamaindex = await (() => import('./llamaindex/indexing').then(module => new module.LlamaindexIndexProvider()))();
+    this.providers['llamaindex'] = await (() => import('./llamaindex/indexing').then(module => new module.LlamaindexIndexProvider()))();
+    this.providers['knowledge-graph'] = await (() => import('./knowledge-graph/indexing').then(module => new module.KnowledgeGraphIndexProvider()))();
   }
 
   async runDocumentIndexTask (id: number) {
