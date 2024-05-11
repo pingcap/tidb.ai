@@ -75,7 +75,7 @@ CREATE TABLE `document_index_task` (
     index_id         INT            NOT NULL,
     document_id      INT            NOT NULL,
     type             ENUM('CREATE_INDEX', 'REINDEX') NOT NULL ,
-    status           ENUM('CREATED', 'PENDING', 'INDEXING', 'SUCCEED', 'FAILED') NOT NULL ,
+    status           ENUM('CREATED', 'PENDING', 'INDEXING', 'SUCCEED', 'FAILED', 'CANCELED') NOT NULL ,
     info             JSON           NULL NOT NULL ,
     message          TEXT           NULL,
     created_at       DATETIME       NOT NULL DEFAULT CURRENT_TIMESTAMP,
