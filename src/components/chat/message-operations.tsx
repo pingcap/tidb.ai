@@ -1,6 +1,7 @@
 import { useMyChatContext } from '@/components/chat/context';
 import type { ConversationMessageGroupProps } from '@/components/chat/use-grouped-conversation-messages';
 import { Button } from '@/components/ui/button';
+import copy from 'copy-to-clipboard';
 import { ClipboardIcon, RefreshCwIcon, ShareIcon, ThumbsDown } from 'lucide-react';
 
 export function MessageOperations ({ group }: { group: ConversationMessageGroupProps }) {
@@ -27,7 +28,12 @@ export function MessageOperations ({ group }: { group: ConversationMessageGroupP
         <ThumbsDown className="w-4 h-4" />
       </Button>
       <Button size="icon" variant="ghost" className="rounded-full w-7 h-7">
-        <ClipboardIcon className="w-4 h-4" />
+        <ClipboardIcon
+          className="w-4 h-4"
+          onClick={() => {
+            copy(group.assistantMessage.content);
+          }}
+        />
       </Button>
     </div>
   );
