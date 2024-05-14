@@ -13,6 +13,7 @@ export type Page<T> = {
 export type PageRequest<P extends Record<string, any> = {}> = P & {
   page: number
   pageSize: number
+  sorting?: { field: string, direction?: 'asc' | 'desc' }[]
 }
 
 export async function executePage<DB, TB extends keyof DB, O> (builder: SelectQueryBuilder<DB, TB, O>, request: PageRequest): Promise<Page<O>> {
@@ -21,7 +22,13 @@ export async function executePage<DB, TB extends keyof DB, O> (builder: SelectQu
     .select(eb => eb.fn.countAll<number>().as('total'))
     .executeTakeFirstOrThrow();
 
-  const data = await builder
+  let qb = builder;
+  if (request.sorting) {
+    request.sorting.forEach(s => {
+      qb = qb.orderBy(s.field as any, s.direction || 'asc');
+    });
+  }
+  const data = await qb
     .limit(request.pageSize)
     .offset((request.page - 1) * request.pageSize)
     .execute();
@@ -40,6 +47,17 @@ export function parseFilters<K extends string[]> (req: NextRequest, filters: Rea
     request[filter] = req.nextUrl.searchParams.getAll(filter);
   });
   return request;
+}
+
+export function parseSorting<K extends string[]> (rawSorting: string | null) {
+  if (!rawSorting || rawSorting.length === 0) {
+    return {};
+  }
+
+  return rawSorting.split(',').map(s => {
+    const [field, direction] = s.split(':');
+    return { field, direction };
+  });
 }
 
 export function toPageRequest<K extends string[]> (req: NextRequest, filters?: Readonly<K>): PageRequest<K extends (infer K0 extends string)[] ? { [P in K0]: string[] } : {}> {
@@ -65,6 +83,11 @@ export function toPageRequest<K extends string[]> (req: NextRequest, filters?: R
 
   if (filters) {
     Object.assign(request, parseFilters(req, filters));
+  }
+
+  const rawSorting = req.nextUrl.searchParams.get('sorting');
+  if (rawSorting) {
+    request['sorting'] = parseSorting(rawSorting);
   }
 
   return request;

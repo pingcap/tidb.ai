@@ -1,3 +1,4 @@
+import {DEFAULT_INDEX_PROVIDER_NAME, IndexProviderName} from "@/core/config/indexes";
 import { DBv1, tx } from '@/core/db';
 import { type Document, getDocument } from '@/core/repositories/document';
 import {createDocumentImportTask} from "@/core/repositories/document_import_task";
@@ -13,7 +14,7 @@ import {
   startDocumentIndexTask,
   terminateDocumentIndexTask
 } from '@/core/repositories/document_index_task';
-import { DEFAULT_INDEX_PROVIDER_NAME, getIndex, type Index, IndexProviderName } from '@/core/repositories/index_';
+import { getIndex, type Index } from '@/core/repositories/index_';
 import { getErrorMessage } from '@/lib/errors';
 
 export const DEFAULT_INDEX_NAME = 'default';

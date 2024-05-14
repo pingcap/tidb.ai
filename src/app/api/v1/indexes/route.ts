@@ -1,5 +1,6 @@
+import {IndexConfig, IndexProviderName} from "@/core/config/indexes";
 import {getDb} from '@/core/db';
-import {createIndex, getIndex, type IndexConfig, IndexProviderName, listIndexes} from '@/core/repositories/index_';
+import {createIndex, getIndex, listIndexes} from '@/core/repositories/index_';
 import {toPageRequest} from '@/lib/database';
 import {EmbeddingProvider, OpenAIEmbeddingModel} from "@/lib/llamaindex/config/embedding";
 import {LLMProvider, OpenAIModel} from "@/lib/llamaindex/config/llm";

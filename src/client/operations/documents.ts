@@ -1,3 +1,5 @@
+import {ImportDocumentsFromUrlsOptions} from "@/app/api/v1/documents/import/from/urls/schema";
+import {BuildDocumentIndexOptions} from "@/app/api/v1/documents/index/schema";
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 
@@ -35,11 +37,6 @@ export const uploadFile = withToast(
   }
 );
 
-export type BuildDocumentIndexOptions = {
-  documentIds: number[];
-  indexName: string;
-};
-
 export const buildDocumentIndex = withToast(
   async ({ documentIds, indexName }: BuildDocumentIndexOptions) => {
     await fetch('/api/v1/documents/index', {
@@ -54,3 +51,18 @@ export const buildDocumentIndex = withToast(
     }).then(handleErrors);
   }
 );
+
+export const importDocuments = withToast(
+  async ({ urls }: ImportDocumentsFromUrlsOptions) => {
+    await fetch('/api/v1/documents/import/from/urls', {
+      method: 'post',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        urls
+      }),
+    }).then(handleErrors);
+  }
+);
+

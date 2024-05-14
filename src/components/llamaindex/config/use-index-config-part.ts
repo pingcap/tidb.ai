@@ -1,4 +1,5 @@
-import type { Index, IndexConfig } from '@/core/repositories/index_';
+import {IndexConfig} from "@/core/config/indexes";
+import type { Index } from '@/core/repositories/index_';
 import { fetcher } from '@/lib/fetch';
 import { updateIndexConfigPart } from '@/client/operations/index_';
 import { useCallback, useState } from 'react';

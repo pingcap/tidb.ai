@@ -1,47 +1,13 @@
+import type { IndexConfig } from "@/core/config/indexes";
 import { DBv1, getDb } from '@/core/db';
 import { executePage, type PageRequest } from '@/lib/database';
 import {INDEX_NOT_FOUND_ERROR} from "@/lib/errors";
-import {LLMConfig} from "@/lib/llamaindex/config/llm";
-import {EmbeddingConfig} from "@/lib/llamaindex/config/embedding";
 import type { Rewrite } from '@/lib/type-utils';
 import { type Insertable, type Selectable, sql } from 'kysely';
 import { notFound } from 'next/navigation';
 
 export type Index = Rewrite<Selectable<DBv1['index']>, { config: IndexConfig }>;
 export type CreateIndex = Rewrite<Insertable<DBv1['index']>, { config: IndexConfig }>;
-
-export enum IndexProviderName {
-  LLAMAINDEX = 'llamaindex',
-}
-
-export const DEFAULT_INDEX_PROVIDER_NAME = IndexProviderName.LLAMAINDEX;
-
-/**
- * The configuration for indexing flow.
- *
- * Naming convention:
- * - config: The configuration for the entire index or the component.
- * - provider: The provider for the entire index or the component.
- * - options: The options for the component.
- */
-export interface IndexConfig {
-  provider: IndexProviderName;
-  reader: Record<string, any>;
-  parser: {
-    textSplitter?: {
-      chunkSize?: number;
-      chunkOverlap?: number;
-      paragraphSeparator?: string;
-      splitLongSentences?: boolean;
-    }
-  };
-  metadata_extractors: {
-    provider: string
-    config: any
-  }[];
-  embedding: EmbeddingConfig;
-  llm: LLMConfig;
-}
 
 export async function getIndex (id: number) {
   return await getDb()
