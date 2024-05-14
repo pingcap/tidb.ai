@@ -1,11 +1,12 @@
 'use client';
 
+import {CreateChatEngineDialog} from "@/app/(main)/(admin)/chat-engines/components/create-chat-engine-dialog";
+import {DataTableRowActions} from "@/app/(main)/(admin)/chat-engines/components/data-table-row-actions";
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { metadataCell } from '@/components/cells/metadata';
 import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
-import { CreateChatEngineDialog } from '@/components/dialogs/create-chat-engine-dialog';
-import { UpdateChatEngineDialog } from '@/components/dialogs/update-chat-engine-dialog';
+import {Button} from "@/components/ui/button";
 import type { ChatEngine } from '@/core/repositories/chat_engine';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
@@ -21,17 +22,13 @@ const columns = [
   helper.accessor('engine', { cell: mono }),
   helper.accessor('engine_options', { cell: metadataCell }),
   helper.accessor('is_default', { cell: (ctx) => ctx.getValue() ? 'Yes' : '' }),
-  helper.display({
-    header: 'Operations',
-    cell: (ctx) => (
-      <>
-        <UpdateChatEngineDialog id={ctx.row.original.id} defaultValues={ctx.row.original} />
-      </>
-    ),
-  }),
+  {
+    id: "actions",
+    cell: ({ row }) => <DataTableRowActions row={row} />,
+  },
 ] as ColumnDef<ChatEngine>[];
 
-export default function PageClient ({ ...props }: ComponentProps<typeof CreateChatEngineDialog>) {
+export default function PageClient ({ ...props }: Omit<ComponentProps<typeof CreateChatEngineDialog>, 'trigger'>) {
   return (
     <>
       <AdminPageHeading title="Chat Engines" />
@@ -39,7 +36,7 @@ export default function PageClient ({ ...props }: ComponentProps<typeof CreateCh
         before={(
           <DataTableHeading>
             <span className="ml-auto" />
-            <CreateChatEngineDialog {...props} />
+            <CreateChatEngineDialog {...props} trigger={<Button size="sm">New chat engine</Button>}/>
           </DataTableHeading>
         )}
         columns={columns}

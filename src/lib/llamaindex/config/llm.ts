@@ -26,6 +26,8 @@ export enum OpenAIModel {
   GPT_4_1106_PREVIEW = 'gpt-4-1106-preview',
   GPT_4_0125_PREVIEW = 'gpt-4-0125-preview',
   GPT_4_VISION_PREVIEW = 'gpt-4-vision-preview',
+  gpt_4O = 'gpt-4o',
+  gpt_4O_2024_05_13 = 'gpt-4o-2024-05-13',
 }
 
 export const OpenAIModelSchema = z.nativeEnum(OpenAIModel);
