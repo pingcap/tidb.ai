@@ -28,7 +28,7 @@ const columns = [
   },
 ] as ColumnDef<ChatEngine>[];
 
-export default function PageClient ({ ...props }: ComponentProps<typeof CreateChatEngineDialog>) {
+export default function PageClient ({ ...props }: Omit<ComponentProps<typeof CreateChatEngineDialog>, 'trigger'>) {
   return (
     <>
       <AdminPageHeading title="Chat Engines" />
