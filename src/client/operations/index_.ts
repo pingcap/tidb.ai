@@ -1,4 +1,4 @@
-import type { IndexConfig } from '@/core/repositories/index_';
+import type {IndexConfig} from "@/core/config/indexes";
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 

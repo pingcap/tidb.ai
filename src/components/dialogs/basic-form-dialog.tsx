@@ -1,5 +1,6 @@
 import {Alert, AlertDescription, AlertTitle} from '@/components/ui/alert';
 import {Button} from '@/components/ui/button';
+import {Collapsible, CollapsibleContent, CollapsibleTrigger} from "@/components/ui/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +14,7 @@ import {getErrorMessage} from '@/lib/errors';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {AlertTriangleIcon} from 'lucide-react';
 import {type ReactElement, type ReactNode, useState} from 'react';
-import {type FieldValues, useForm} from 'react-hook-form';
+import {type FieldValues, FormProps, useForm} from 'react-hook-form';
 import {ZodType} from 'zod';
 
 export interface BasicFormDialogProps<T extends FieldValues> {
@@ -24,8 +25,9 @@ export interface BasicFormDialogProps<T extends FieldValues> {
   fromId?: string;
   submitButtonTitle?: string;
   onSubmit: (value: T) => Promise<void>;
-  trigger: ReactElement;
-  children: ReactNode;
+  trigger: ReactNode;
+  fields?: (form: FormProps<T>) => ReactNode;
+  children?: ReactNode;
 }
 
 export function BasicFormDialog<T extends FieldValues>(props: BasicFormDialogProps<any>) {
@@ -38,11 +40,12 @@ export function BasicFormDialog<T extends FieldValues>(props: BasicFormDialogPro
     onSubmit,
     submitButtonTitle = 'Submit',
     trigger,
+    fields,
     children
   } = props;
   const [open, setOpen] = useState(false);
   const form = useForm<T>({
-    values: defaultValues,
+    defaultValues: defaultValues,
     resolver: schema ? zodResolver(schema) : undefined,
   });
   const [loading, setLoading] = useState(false);
@@ -65,28 +68,32 @@ export function BasicFormDialog<T extends FieldValues>(props: BasicFormDialogPro
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="max-h-[70vh] overflow-x-hidden overflow-y-auto">
+      <DialogContent className="max-h-[80vh] overflow-x-hidden overflow-y-auto">
         <DialogHeader>
           {title}
         </DialogHeader>
 
         {description && <DialogDescription>{description}</DialogDescription>}
 
-        {!!error && (<Alert variant="destructive">
-          <AlertTriangleIcon className="h-4 w-4"/>
-          <AlertTitle>
-            Failed to operate
-          </AlertTitle>
-          <AlertDescription>
-            {getErrorMessage(error)}
-          </AlertDescription>
-        </Alert>)}
-
         <Form {...form}>
           <form id={fromId} className="space-y-4" onSubmit={handleSubmit}>
+            { fields ? fields(form) : null}
             {children}
           </form>
         </Form>
+
+        {!!error && (
+          <Alert variant="destructive">
+            <AlertTriangleIcon className="h-4 w-4"/>
+            <AlertTitle>
+              Failed to operate
+            </AlertTitle>
+            <AlertDescription>
+              {getErrorMessage(error)}
+            </AlertDescription>
+          </Alert>
+        )}
+
         <DialogFooter>
           <Button form={fromId} type="submit" disabled={loading}>
             {submitButtonTitle}

@@ -6,6 +6,7 @@ import {type NextRequest, NextResponse} from "next/server";
 
 export const GET = defineHandler({
   auth: 'admin',
+
 }, async ({ request }) => {
   return await listDocuments(toPageRequest(request));
 });

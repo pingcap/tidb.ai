@@ -39,7 +39,7 @@ function IndexStats ({}: {}) {
           <div>
             {data?.chunks ?? '--'} chunks
           </div>
-          <Link href="/explore" className="text-xs flex items-center gap-1 transition-colors text-muted-foreground hover:text-foreground">
+          <Link href="/documents" className="text-xs flex items-center gap-1 transition-colors text-muted-foreground hover:text-foreground">
             Explore <ArrowRightIcon size="1em" />
           </Link>
         </div>

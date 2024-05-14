@@ -1,0 +1,56 @@
+"use client"
+
+import {BuildDocumentIndexDialog} from "@/app/(main)/(admin)/documents/components/dialogs/build-document-index-dialog";
+import type {Document} from "@/core/repositories/document";
+import { DotsHorizontalIcon } from "@radix-ui/react-icons"
+import { Row } from "@tanstack/react-table"
+
+import { Button } from "@/components/ui/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {useState} from "react";
+
+
+interface DataTableRowActionsProps {
+  row: Row<Document>
+}
+
+export function DataTableRowActions<TData>(props: DataTableRowActionsProps) {
+  const [dialogOpen, setDialogOpen] = useState(false);
+
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            className="flex h-8 w-8 p-0 data-[state=open]:bg-muted"
+          >
+            <DotsHorizontalIcon className="h-4 w-4" />
+            <span className="sr-only">Open menu</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-[160px]">
+          <DropdownMenuItem onSelect={() => setDialogOpen(true)}>Build Index</DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem disabled={true}>
+            Delete
+            <DropdownMenuShortcut>⌘⌫</DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <BuildDocumentIndexDialog
+        documentRows={[props.row]}
+        trigger={null}
+        open={dialogOpen}
+        handleOpenChange={setDialogOpen}
+      />
+    </>
+  )
+}

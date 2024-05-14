@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { RowCheckbox } from '@/components/ui/row-checkbox';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {getSortedRowModel, SortingState, Table as ReactTable} from "@tanstack/react-table"
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { DataTableProvider } from '@/components/use-data-table';
 import type { Page } from '@/lib/database';
@@ -29,6 +30,7 @@ interface DataTableRemoteProps<TData, TValue> {
   refreshInterval?: number | ((data: Page<TData> | undefined) => number);
   before?: ReactNode;
   after?: ReactNode;
+  toolbar?: (table: ReactTable<TData>) => ReactNode;
   ts?: number;
 }
 
@@ -41,6 +43,7 @@ export function DataTableRemote<TData, TValue> ({
   refreshInterval,
   before,
   after,
+  toolbar,
   ts,
 }: DataTableRemoteProps<TData, TValue>) {
   const [pagination, setPagination] = useState<PaginationState>(() => {
@@ -49,11 +52,13 @@ export function DataTableRemote<TData, TValue> ({
   const [rowSelection, setRowSelection] = useState({});
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const [globalFilter, setGlobalFilter] = useState('');
+  const [sorting, setSorting] = useState<SortingState>([])
 
   const idSelection = useMemo(() => {
     return Object.keys(rowSelection);
   }, [rowSelection]);
 
+  // Fetch data.
   const { data, mutate, isLoading, isValidating } = useSWR(
     [
       'get',
@@ -68,6 +73,7 @@ export function DataTableRemote<TData, TValue> ({
         ...globalFilter && {
           q: globalFilter,
         },
+        sorting: getSortingSearchString(sorting),
         ts,
       },
     ],
@@ -80,6 +86,7 @@ export function DataTableRemote<TData, TValue> ({
     void mutate();
   }, [pagination.pageSize, pagination.pageIndex]);
 
+  // Column definitions.
   columns = useMemo(() => {
     if (!selectable) {
       return columns;
@@ -114,6 +121,7 @@ export function DataTableRemote<TData, TValue> ({
     data: data?.data ?? [],
     columns,
     state: {
+      sorting,
       pagination,
       rowSelection,
       columnFilters,
@@ -126,10 +134,15 @@ export function DataTableRemote<TData, TValue> ({
     enableMultiRowSelection: selectable,
     enableColumnFilters: true,
     enableGlobalFilter: true,
+    onSortingChange: async (val) => {
+      await mutate();
+      setSorting(val);
+    },
     onPaginationChange: setPagination,
     onRowSelectionChange: setRowSelection,
     onColumnFiltersChange: setColumnFilters,
     onGlobalFilterChange: setGlobalFilter,
+    getSortedRowModel: getSortedRowModel(),
     getCoreRowModel: getCoreRowModel(),
     getRowId: item => String(item[idColumn]),
   });
@@ -137,6 +150,7 @@ export function DataTableRemote<TData, TValue> ({
   return (
     <DataTableProvider value={table}>
       {before}
+      {toolbar ? toolbar(table) : null}
       <TooltipProvider>
         <div className="rounded-md border relative">
           <Table className="text-xs whitespace-nowrap">
@@ -145,15 +159,15 @@ export function DataTableRemote<TData, TValue> ({
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead key={header.id}>
+                      <TableHead key={header.id} colSpan={header.colSpan}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
                             header.column.columnDef.header,
-                            header.getContext(),
+                            header.getContext()
                           )}
                       </TableHead>
-                    );
+                    )
                   })}
                 </TableRow>
               ))}
@@ -214,4 +228,8 @@ export function DataTableRemote<TData, TValue> ({
       {after}
     </DataTableProvider>
   );
+}
+
+function getSortingSearchString(sorting: SortingState) {
+  return sorting.map(({ id, desc }) => `${id}:${desc ? 'desc' : 'asc'}`).join(',');
 }

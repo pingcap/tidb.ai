@@ -1,20 +1,11 @@
+import {BuildDocumentIndexOptionsSchema} from "@/app/api/v1/documents/index/schema";
 import {getIndexByNameOrThrow} from "@/core/repositories/index_";
 import {DocumentIndexService} from "@/core/services/indexing";
 import { defineHandler } from '@/lib/next/handler';
-import {z} from "zod";
-
-const IndexDocumentsOptionsSchema = z.object({
-  documentIds: z.number()
-    .int()
-    .array()
-    .min(1, 'Must provide at least one document'),
-  indexName: z.string(),
-  runInBackground: z.boolean().default(false)
-});
 
 export const POST = defineHandler({
   auth: 'admin',
-  body: IndexDocumentsOptionsSchema
+  body: BuildDocumentIndexOptionsSchema
 },  async ({ body}) => {
   const { documentIds, indexName, runInBackground } = body;
 
