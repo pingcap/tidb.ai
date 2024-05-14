@@ -3,6 +3,7 @@ import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrie
 import { AppIndexBaseService } from '@/core/services/base';
 import { AppChatStream, type AppChatStreamSource, AppChatStreamState } from '@/lib/ai/AppChatStream';
 import { AUTH_FORBIDDEN_ERROR, getErrorMessage } from '@/lib/errors';
+import {LangfuseTraceClient} from "langfuse";
 import { notFound } from 'next/navigation';
 
 export type ChatOptions = {
@@ -133,6 +134,6 @@ export abstract class AppChatService extends AppIndexBaseService {
     });
   }
 
-  protected abstract run (chat: Chat, options: ChatOptions): AsyncIterable<ChatStreamEvent>;
+  protected abstract run (chat: Chat, options: ChatOptions, trace?: LangfuseTraceClient): AsyncIterable<ChatStreamEvent>;
 }
 

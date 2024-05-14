@@ -161,6 +161,9 @@ importers:
       kysely:
         specifier: ^0.27.2
         version: 0.27.2
+      langfuse:
+        specifier: ^3.10.0
+        version: 3.10.0
       liquidjs:
         specifier: ^10.10.0
         version: 10.10.0
@@ -9812,6 +9815,20 @@ packages:
     resolution: {integrity: sha512-DmRvEfiR/NLpgsTbSxma2ldekhsdcd65+MNiKXyd/qj7w7X5e3cLkXxcj+MypsRDjPhHQ/CD5u3Eq1sBYzX0bw==}
     engines: {node: '>=14.0.0'}
 
+  /langfuse-core@3.10.0:
+    resolution: {integrity: sha512-ws0sLM0ua/0pb2DyDBbBIljUxXLiljIdwgdwPW5ewMlJzrFXJa4TdUNiWjoVvQdea2Y8Tf8KRWH2X8gesmkuMQ==}
+    engines: {node: '>=18'}
+    dependencies:
+      mustache: 4.2.0
+    dev: false
+
+  /langfuse@3.10.0:
+    resolution: {integrity: sha512-hDLaIO3OJ8Vg9w0m3g+AdbyguPQeCXxUPsUqdcHet/hUr2hKVT1VjIYklVPlCPUzL5H0FMmTDrhROk94b4bVnQ==}
+    engines: {node: '>=18'}
+    dependencies:
+      langfuse-core: 3.10.0
+    dev: false
+
   /language-subtag-registry@0.3.22:
     resolution: {integrity: sha512-tN0MCzyWnoz/4nHS6uxdlFWoUZT7ABptwKPQ52Ea7URk6vll88bWBVhodtnlfEuCcKWNGoc+uGbw1cwa9IKh/w==}
     dev: true
@@ -11422,6 +11439,11 @@ packages:
 
   /ms@2.1.3:
     resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
+
+  /mustache@4.2.0:
+    resolution: {integrity: sha512-71ippSywq5Yb7/tVYyGbkBggbU8H3u5Rz56fH60jGFgr8uHwxs+aSKeqmluIVzM0m0kB7xQjKS6qPfd0b2ZoqQ==}
+    hasBin: true
+    dev: false
 
   /mysql2@3.7.1:
     resolution: {integrity: sha512-4EEqYu57mnkW5+Bvp5wBebY7PpfyrmvJ3knHcmLkp8FyBu4kqgrF2GxIjsC2tbLNZWqJaL21v/MYH7bU5f03oA==}

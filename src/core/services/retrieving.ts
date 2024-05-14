@@ -13,7 +13,9 @@ import {getErrorMessage} from '@/lib/errors';
 import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
 import {MetadataFilterConfig, metadataFilterSchema} from "@/lib/llamaindex/config/metadata-filter";
 import {RerankerConfig} from "@/lib/llamaindex/config/reranker";
+import {LangfuseTraceClient} from "langfuse";
 import {ServiceContext} from "llamaindex";
+import {DateTime} from "luxon";
 import type {UUID} from 'node:crypto';
 import z from "zod";
 
@@ -25,6 +27,7 @@ export const retrieveOptionsSchema = z.object({
   search_top_k: z.number().int().optional(),
   top_k:  z.number().int().optional(),
   use_cache: z.boolean().optional(),
+  trace: z.any().optional()
 });
 
 export type RetrieveOptions = z.infer<typeof retrieveOptionsSchema>;
@@ -110,9 +113,24 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
     }
   }
 
-  protected async embedQuery (text: string) {
+  protected async embedQuery (query: string, trace?: LangfuseTraceClient) {
+    console.log('[Retrieving] Start generate query embedding for: ', query);
+    const qeSpan = trace?.span({
+      name: 'generate-query-embedding',
+      input: query
+    });
+
     const embeddings = await buildEmbedding(this.index.config.embedding);
-    return await embeddings.getQueryEmbedding(text);
+    const eqStart = DateTime.now();
+    const result = await embeddings.getQueryEmbedding(query);
+    const eqDuration = DateTime.now().diff(eqStart).as('milliseconds');
+
+    qeSpan?.end({
+      output: result
+    });
+    console.log('[Retrieving] Finished generate query embedding, takes: ', eqDuration, 'ms');
+
+    return result;
   }
 
   protected async startSearch (retrieve: Retrieve) {
@@ -123,7 +141,7 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
     await startRetrieveRerank(retrieve.id);
   }
 
-  protected abstract run (retrieve: Retrieve, options: RetrieveOptions): Promise<RetrievedChunk[]>;
+  protected abstract run (retrieve: Retrieve, options: RetrieveOptions, trace?: LangfuseTraceClient): Promise<RetrievedChunk[]>;
 
   async extendResultDetails<T extends RetrieveResult | RetrievedChunk> (results: T[]): Promise<Array<T & { document_name: string, document_uri: string, document_created_at: Date, document_last_modified_at: Date }>> {
     const idSet = results.reduce((ids, result) => ids.add(result.document_id), new Set<number>);
