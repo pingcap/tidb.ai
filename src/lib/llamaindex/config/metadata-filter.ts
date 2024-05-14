@@ -14,7 +14,7 @@ export const metadataFieldSchema = z.object({
   name: z.string(),
   type: z.string(),
   enums: z.array(z.string()).optional(),
-  default: z.string(),
+  default: z.string().optional(),
   choicePrompt: z.string().optional(),
 });
 

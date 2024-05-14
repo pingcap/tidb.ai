@@ -8,7 +8,9 @@ export enum ChatEngineProvider {
 export const ChatEngineProviderSchema = z.nativeEnum(ChatEngineProvider);
 
 export const CreateChatEngineBaseOptionsSchema = z.object({
-  name: z.string(),
+  name: z.string()
+    .min(1, 'Index mame must be at least 1 character')
+    .max(255, 'Index name must be at most 255 characters'),
   engine: ChatEngineProviderSchema
 });
 

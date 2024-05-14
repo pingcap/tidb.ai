@@ -2,7 +2,6 @@ import {
   ImportDocumentsFromUrlsOptions,
   ImportDocumentsFromUrlsOptionsSchema
 } from "@/app/api/v1/documents/import/from/urls/schema";
-import {BuildDocumentIndexOptionsSchema} from "@/app/api/v1/documents/index/schema";
 import {importDocuments} from '@/client/operations/documents';
 import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 import {Button} from "@/components/ui/button";
@@ -14,7 +13,7 @@ import {
   DialogHeader,
   DialogTrigger
 } from "@/components/ui/dialog";
-import {Form, FormDescription, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {Form, FormField, FormItem, FormMessage} from "@/components/ui/form";
 import {Textarea} from "@/components/ui/textarea";
 import {getErrorMessage} from "@/lib/errors";
 import {zodResolver} from "@hookform/resolvers/zod";

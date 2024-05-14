@@ -1,57 +1,122 @@
-import {BasicFormDialog} from "@/components/dialogs/basic-form-dialog";
+import {createChatEngine} from "@/client/operations/chat_engines";
+import {Alert, AlertDescription, AlertTitle} from "@/components/ui/alert";
 import { PromptTemplateEditor } from '@/components/ui/auto-form/zod-extensions/prompt-template';
 import { Button } from '@/components/ui/button';
-import {FormControl, FormDescription, FormField, FormItem, FormLabel} from '@/components/ui/form';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTrigger
+} from "@/components/ui/dialog";
+import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { createChatEngine } from '@/client/operations/chat_engines';
 import {Switch} from "@/components/ui/switch";
-import {ChatEngineProvider, CreateChatEngineOptionsSchema} from "@/core/config/chat_engines";
+import {ChatEngineProvider, CreateChatEngineOptions, CreateChatEngineOptionsSchema} from "@/core/config/chat_engines";
+import {getErrorMessage} from "@/lib/errors";
 import {LLMProvider, OpenAIModel} from "@/lib/llamaindex/config/llm";
 import {RerankerProvider} from "@/lib/llamaindex/config/reranker";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {AlertTriangleIcon} from "lucide-react";
+import {ReactNode, useState} from "react";
+import {useForm} from "react-hook-form";
+
+export interface CreateChatEngineDialogProps {
+  trigger: ReactNode;
+  defaultIndexId: number;
+  defaultTextQaPrompt: string;
+  defaultRefinePrompt: string;
+  defaultCondenseQuestionPrompt: string;
+}
 
 export function CreateChatEngineDialog ({
+  trigger,
   defaultIndexId,
   defaultTextQaPrompt,
   defaultRefinePrompt,
   defaultCondenseQuestionPrompt,
-}: {
-  defaultIndexId: number,
-  defaultTextQaPrompt: string,
-  defaultRefinePrompt: string,
-  defaultCondenseQuestionPrompt: string,
-}) {
-  return (
-    <BasicFormDialog
-      fromId="create-chat-engine-form"
-      trigger={<Button className="gap-1" size="sm" variant="secondary">New</Button>}
-      title="Create Chat Engine"
-      onSubmit={createChatEngine}
-      schema={CreateChatEngineOptionsSchema}
-      defaultValues={{
-        name: '',
-        engine: ChatEngineProvider.CONDENSE_QUESTION,
-        engine_options: {
-          reranker: { provider: RerankerProvider.LLM, options: { model: '-' } },
-          llm: { provider: LLMProvider.OPENAI, options: { model: OpenAIModel.GPT_3_5_TURBO } },
-          prompts: {
-            textQa: defaultTextQaPrompt,
-            refine: defaultRefinePrompt,
-            condenseQuestion: defaultCondenseQuestionPrompt,
-          },
-          index_id: defaultIndexId,
-          retriever: {
-            search_top_k: 100,
-            top_k: 5,
-          },
+}: CreateChatEngineDialogProps) {
+  // Form.
+  const form = useForm<CreateChatEngineOptions>({
+    defaultValues: {
+      name: '',
+      engine: ChatEngineProvider.CONDENSE_QUESTION,
+      engine_options: {
+        reranker: { provider: RerankerProvider.LLM, options: { model: '-' } },
+        llm: { provider: LLMProvider.OPENAI, options: { model: OpenAIModel.GPT_3_5_TURBO } },
+        prompts: {
+          textQa: defaultTextQaPrompt,
+          refine: defaultRefinePrompt,
+          condenseQuestion: defaultCondenseQuestionPrompt,
         },
-      }}
-    >
-      <ChatEngineFields />
-    </BasicFormDialog>
+        index_id: defaultIndexId,
+        retriever: {
+          search_top_k: 100,
+          top_k: 5,
+        },
+      },
+    },
+    resolver: zodResolver(CreateChatEngineOptionsSchema),
+  });
+
+  // UI state.
+  const [open, setOpen] = useState(false);
+  const fromId = "create-chat-engine-from";
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<unknown>();
+
+  // Handlers.
+  const handleSubmit = form.handleSubmit(async (value) => {
+    try {
+      setLoading(true);
+      await createChatEngine(value);
+      setOpen(false);
+    } catch (e) {
+      setError(e);
+    } finally {
+      setLoading(false);
+    }
+  });
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {trigger}
+      </DialogTrigger>
+      <DialogContent className="max-h-[80vh] min-w-[30vw] overflow-x-hidden overflow-y-auto">
+        <DialogHeader>New Chat Engine</DialogHeader>
+        <DialogDescription>Create a new chat engine as you need.</DialogDescription>
+        <Form {...form}>
+          <form id={fromId} className="space-y-4" onSubmit={handleSubmit}>
+            <ChatEngineFields mode="create" />
+          </form>
+        </Form>
+        {!!error && (
+          <Alert variant="destructive">
+            <AlertTriangleIcon className="h-4 w-4"/>
+            <AlertTitle>
+              Failed to operate
+            </AlertTitle>
+            <AlertDescription>
+              {getErrorMessage(error)}
+            </AlertDescription>
+          </Alert>
+        )}
+        <DialogFooter>
+          <Button form={fromId} type="submit" disabled={loading}>Create</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
-export function ChatEngineFields () {
+export interface ChatEngineFieldsProps {
+  mode: 'create' | 'update';
+}
+
+export function ChatEngineFields (props: ChatEngineFieldsProps) {
+  const { mode } = props;
   return (
     <>
       <FormField
@@ -60,8 +125,9 @@ export function ChatEngineFields () {
           <FormItem>
             <FormLabel>Name</FormLabel>
             <FormControl>
-              <Input {...field} />
+              <Input {...field} disabled={mode === 'update'} />
             </FormControl>
+            <FormMessage/>
           </FormItem>
         )}
       />
@@ -71,8 +137,9 @@ export function ChatEngineFields () {
           <FormItem>
             <FormLabel>Engine</FormLabel>
             <FormControl>
-              <Input readOnly {...field} />
+              <Input {...field} disabled={mode === 'update'} />
             </FormControl>
+            <FormMessage/>
           </FormItem>
         )}
       />
@@ -82,8 +149,9 @@ export function ChatEngineFields () {
           <FormItem>
             <FormLabel>Index ID</FormLabel>
             <FormControl>
-              <Input readOnly type="number" {...field} />
+              <Input type="number" {...field} disabled={mode === 'update'} />
             </FormControl>
+            <FormMessage/>
           </FormItem>
         )}
       />
@@ -106,6 +174,7 @@ export function ChatEngineFields () {
             <FormControl>
               <Input type="number" {...field}/>
             </FormControl>
+            <FormMessage/>
           </FormItem>
         )}
       />
@@ -117,6 +186,7 @@ export function ChatEngineFields () {
             <FormControl>
               <Input {...field} />
             </FormControl>
+            <FormMessage/>
           </FormItem>
         )}
       />
@@ -128,6 +198,7 @@ export function ChatEngineFields () {
             <FormControl>
               <Input {...field} />
             </FormControl>
+            <FormMessage/>
           </FormItem>
         )}
       />
@@ -139,6 +210,7 @@ export function ChatEngineFields () {
             <FormControl>
               <Input {...field} />
             </FormControl>
+            <FormMessage/>
           </FormItem>
         )}
       />
@@ -150,6 +222,7 @@ export function ChatEngineFields () {
             <FormControl>
               <Input {...field} />
             </FormControl>
+            <FormMessage/>
           </FormItem>
         )}
       />
@@ -161,6 +234,7 @@ export function ChatEngineFields () {
             <FormControl>
               <PromptTemplateEditor {...field} />
             </FormControl>
+            <FormMessage/>
           </FormItem>
         )}
       />
@@ -172,6 +246,7 @@ export function ChatEngineFields () {
             <FormControl>
               <PromptTemplateEditor {...field} />
             </FormControl>
+            <FormMessage/>
           </FormItem>
         )}
       />
@@ -183,6 +258,7 @@ export function ChatEngineFields () {
             <FormControl>
               <PromptTemplateEditor {...field} />
             </FormControl>
+            <FormMessage/>
           </FormItem>
         )}
       />
@@ -202,6 +278,7 @@ export function ChatEngineFields () {
                 onCheckedChange={field.onChange}
               />
             </FormControl>
+            <FormMessage/>
           </FormItem>
         )}
       />

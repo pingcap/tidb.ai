@@ -4,12 +4,12 @@ import {RerankerConfigSchema} from "@/lib/llamaindex/config/reranker";
 import {z} from "zod";
 
 export const RetrieverOptionsSchema = z.object({
-  search_top_k: z.number().int().optional(),
-  top_k: z.number().int().optional()
+  search_top_k: z.coerce.number().int().optional(),
+  top_k: z.coerce.number().int().optional()
 });
 
 export const GraphRetrieverOptionsSchema = z.object({
-  enable: z.boolean().optional(),
+  enable: z.coerce.boolean().optional(),
 });
 
 export const BaseChatEngineOptionsSchema = z.object({
