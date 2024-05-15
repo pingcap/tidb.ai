@@ -27,7 +27,6 @@ export const retrieveOptionsSchema = z.object({
   search_top_k: z.number().int().optional(),
   top_k:  z.number().int().optional(),
   use_cache: z.boolean().optional(),
-  trace: z.any().optional()
 });
 
 export type RetrieveOptions = z.infer<typeof retrieveOptionsSchema>;
@@ -75,7 +74,7 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
     this.serviceContext = serviceContext;
   }
 
-  async retrieve (options: RetrieveOptions, callbacks?: RetrieveCallbacks): Promise<RetrievedChunk[]> {
+  async retrieve (options: RetrieveOptions, callbacks?: RetrieveCallbacks, trace?: LangfuseTraceClient): Promise<RetrievedChunk[]> {
     if (callbacks) {
       this.on('start-search', callbacks.onStartSearch);
       this.on('start-rerank', callbacks.onStartRerank);
@@ -90,7 +89,7 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
     });
 
     try {
-      const results = await this.run(retrieve, options);
+      const results = await this.run(retrieve, options, trace);
 
       await finishRetrieve(retrieve.id, !!this.rerankerConfig, results.map(result => ({
         retrieve_id: retrieve.id,
@@ -115,7 +114,7 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
 
   protected async embedQuery (query: string, trace?: LangfuseTraceClient) {
     console.log('[Retrieving] Start generate query embedding for: ', query);
-    const qeSpan = trace?.span({
+    const eqSpan = trace?.span({
       name: 'generate-query-embedding',
       input: query
     });
@@ -125,7 +124,7 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
     const result = await embeddings.getQueryEmbedding(query);
     const eqDuration = DateTime.now().diff(eqStart).as('milliseconds');
 
-    qeSpan?.end({
+    eqSpan?.end({
       output: result
     });
     console.log('[Retrieving] Finished generate query embedding, takes: ', eqDuration, 'ms');

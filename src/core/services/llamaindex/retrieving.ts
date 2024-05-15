@@ -37,14 +37,36 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
       throw new Error(`${this.index.name} is not a llamaindex index`);
     }
 
+    // Tracing.
+    const providedTrace = !!trace;
+    if (!providedTrace) {
+      trace = this.langfuse?.trace({
+        name: 'retrieving',
+        input: retrieveOptions.query,
+        metadata: {
+          retrieveId: retrieve.id,
+          ...retrieveOptions
+        },
+      });
+    }
+
+    const retrieveSpan = trace?.span({
+      name: 'retrieving',
+      input: retrieveOptions.query,
+      metadata: {
+        retrieveId: retrieve.id,
+        ...retrieveOptions
+      }
+    });
+
     // Generate query embedding.
-    const queryEmbedding = await this.embedQuery(query);
+    const queryEmbedding = await this.embedQuery(query, retrieveSpan);
 
     // Embedding search.
     this.emit('start-search', retrieve.id, query);
     await this.startSearch(retrieve);
 
-    let chunks = await this.search(query, queryEmbedding, search_top_k);
+    let chunks = await this.search(query, queryEmbedding, search_top_k, retrieveSpan);
 
     // Metadata Filters
     const metadataFilterConfig = this.metadataFilterConfig;
@@ -54,7 +76,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
         this.metadataFilterConfig.options = Object.assign(this.metadataFilterConfig.options ?? {}, { filters })
       }
 
-      chunks = await this.metadataPostFilter(chunks, query, metadataFilterConfig, trace);
+      chunks = await this.metadataPostFilter(chunks, query, metadataFilterConfig, retrieveSpan);
     }
 
     // If no reranker is provided, return the top_k chunks directly.
@@ -69,7 +91,13 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     // Reranking.
     this.emit('start-rerank', retrieve.id, chunks);
     await this.startRerank(retrieve);
-    return await this.rerank(chunks, query, top_k, this.rerankerConfig);
+    const result = await this.rerank(chunks, query, top_k, this.rerankerConfig, retrieveSpan);
+
+    retrieveSpan?.end({
+      output: result
+    });
+
+    return result;
   }
 
   private async search (query: string, queryEmbedding: number[], search_top_k: number, trace?: LangfuseTraceClient) {
@@ -217,11 +245,12 @@ export class LlamaindexRetrieverWrapper implements BaseRetriever {
     private readonly retrieveService: AppRetrieveService,
     private readonly options: Omit<RetrieveOptions, 'query'>,
     private readonly callbacks: RetrieveCallbacks,
+    private readonly trace?: LangfuseTraceClient
   ) {}
 
   async retrieve (params: RetrieveParams): Promise<NodeWithScore[]> {
     // Notice: Due to the limitations of Llamaindex, some parameters can only be passed in when instantiating the Retriever class
-    const chunks = await this.retrieveService.retrieve({ ...this.options, query: params.query }, this.callbacks);
+    const chunks = await this.retrieveService.retrieve({ ...this.options, query: params.query }, this.callbacks, this.trace);
 
     const detailedChunks = await this.retrieveService.extendResultDetails(chunks);
 

@@ -162,8 +162,7 @@ export class LlamaindexChatService extends AppChatService {
       (next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
         search_top_k,
         top_k,
-        use_cache: false,
-        trace
+        use_cache: false
       },
       {
         onStartSearch: (id, text) => {
@@ -215,7 +214,8 @@ export class LlamaindexChatService extends AppChatService {
         onRetrieveFailed: (id, reason) => {
           fail(reason);
         },
-      }
+      },
+      trace,
     ));
 
     // Build Query Engine.
@@ -260,9 +260,11 @@ export class LlamaindexChatService extends AppChatService {
     });
 
     // Poll chat response from iterators and yield them.
+    let finalResponse = '';
     for await (const response of poll(
       retriever,
       mapAsyncIterable(responses, async response => {
+        finalResponse += response.response;
         return {
           content: response.response,
           status: AppChatStreamState.GENERATING,
@@ -279,6 +281,10 @@ export class LlamaindexChatService extends AppChatService {
     const end = DateTime.now();
     const duration = end.diff(start, 'seconds').seconds;
     console.log(`[Chatting] Finished chatting for chat <${chat.id}>, take ${duration} seconds.`);
+
+    trace?.update({
+      output: finalResponse
+    });
 
     await this.langfuse?.flushAsync();
   }
