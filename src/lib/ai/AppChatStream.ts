@@ -94,6 +94,14 @@ export class AppChatStreamController {
     }
   }
 
+  setTraceURL (traceURL: string | undefined) {
+    this.encodeMessageAnnotation({
+      ts: Date.now(),
+      traceURL,
+      messageId: this.messageId,
+    });
+  }
+
   private encodeText (text: string) {
     this.controller.enqueue(formatStreamPart('text', text));
   }

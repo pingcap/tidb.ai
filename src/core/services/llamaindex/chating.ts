@@ -1,15 +1,16 @@
 import {getDb} from '@/core/db';
-import {type Chat, listChatMessages} from '@/core/repositories/chat';
-import type {ChatEngineOptions} from '@/core/repositories/chat_engine';
+import {type Chat, listChatMessages, updateChatMessage} from '@/core/repositories/chat';
+import {ChatEngineRequiredOptions} from '@/core/repositories/chat_engine';
 import {getDocumentsBySourceUris} from "@/core/repositories/document";
 import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/services/chating';
 import {LlamaindexRetrieverWrapper, LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
+import type {RetrieveOptions} from "@/core/services/retrieving";
 import {type AppChatStreamSource, AppChatStreamState} from '@/lib/ai/AppChatStream';
 import {KnowledgeGraphClient} from "@/lib/knowledge-graph/client";
 import {uuidToBin} from '@/lib/kysely';
 import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
 import {buildLLM} from "@/lib/llamaindex/builders/llm";
-import {LLMProvider} from "@/lib/llamaindex/config/llm";
+import {LLMConfig, LLMProvider} from "@/lib/llamaindex/config/llm";
 import {ManagedAsyncIterable} from '@/lib/ManagedAsyncIterable';
 import {Liquid} from 'liquidjs';
 import {
@@ -32,6 +33,22 @@ interface SourceWithNodeId extends AppChatStreamSource {
   id: string;
 }
 
+const DEFAULT_CHAT_ENGINE_OPTIONS = {
+  index_id: 0,
+  llm: {
+    provider: LLMProvider.OPENAI,
+    options: {}
+  } as LLMConfig,
+  retriever: {
+    search_top_k: 100,
+    top_k: 5,
+  } as RetrieveOptions,
+  graph_retriever: {
+    enable: false
+  },
+  prompts: {}
+};
+
 export class LlamaindexChatService extends AppChatService {
   private liquid = new Liquid();
 
@@ -45,37 +62,43 @@ export class LlamaindexChatService extends AppChatService {
   }
 
   protected async* run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatStreamEvent> {
+    // Init chat engine config.
+    const engineOptions = Object.assign(
+      DEFAULT_CHAT_ENGINE_OPTIONS,
+      chat.engine_options
+    ) as ChatEngineRequiredOptions;
+    const {
+      llm: llmConfig,
+      retriever: retrieverConfig,
+      graph_retriever: graphRetrieverConfig,
+      metadata_filter: metadataFilterConfig ,
+      reranker: rerankerConfig,
+      prompts
+    } = engineOptions;
+
+    // Init tracing.
+    const trace = this.langfuse?.trace({
+      name: 'chatting',
+      input: options,
+      metadata: engineOptions,
+    });
+
     yield {
       status: AppChatStreamState.CREATING,
       sources: [],
+      traceURL: trace?.getTraceUrl(),
       statusMessage: '',
       retrieveId: undefined,
       content: '',
     };
 
-    const {
-      llm: llmConfig = {
-        provider: LLMProvider.OPENAI,
-      },
-      retriever: {
-        search_top_k = 100,
-        top_k = 5,
-      } = {},
-      graph_retriever = {
-        enable: false
-      },
-      metadata_filter,
-      reranker,
-      prompts: {
-        textQa,
-        refine,
-        condenseQuestion,
-      } = {},
-    } = chat.engine_options as ChatEngineOptions;
+    await updateChatMessage(options.respondMessage.id, {
+      trace_url: trace?.getTraceUrl(),
+    });
 
-    const llm = await buildLLM(llmConfig);
-    const { contextWindow  } = llm.metadata;
-    const promptHelper = new PromptHelper(contextWindow);
+    // Service context.
+    const llm = await buildLLM(llmConfig!, trace);
+    const promptHelper = new PromptHelper(llm.metadata.contextWindow);
     const embedModel = await buildEmbedding(this.index.config.embedding);
     const serviceContext = serviceContextFromDefaults({
       llm,
@@ -83,32 +106,73 @@ export class LlamaindexChatService extends AppChatService {
       embedModel,
     });
 
-    console.log('The user input question:', options.userInput);
-    console.info('llm:', JSON.stringify(llm.metadata), ', embedding: ', embedModel.model);
+    console.log('[Chatting] Prepare chatting.');
+    console.info('[Chatting] User input question: ', options.userInput);
+    console.info('[Chatting] LLM:', JSON.stringify(llm.metadata), ', Embedding: ', embedModel.model);
 
+    // Document sources.
     const allSources = new Map<string, AppChatStreamSource>();
 
+    // Knowledge graph retriever.
+    let additionalContext: Record<string, any> = {};
+    if (graphRetrieverConfig?.enable) {
+      yield {
+        status: AppChatStreamState.SEARCHING,
+        traceURL: trace?.getTraceUrl(),
+        sources: Array.from(allSources.values()),
+        statusMessage: 'Start graph RAG searching ...',
+        content: '',
+      };
+
+      const kgClient = new KnowledgeGraphClient();
+      const kgSearchSpan = trace?.span({
+        name: "knowledge-graph-retrieval",
+        input: {
+          userInput: options.userInput,
+        },
+      });
+      additionalContext = await kgClient.search(options.userInput);
+      kgSearchSpan?.end({
+        output: additionalContext,
+      });
+
+      // Found the document name by link.
+      const sourceLinks = (additionalContext['chunks'] ?? []).map((chunk: any) => chunk.link);
+      const documents = await getDocumentsBySourceUris(sourceLinks);
+      const documentMap = new Map(documents.map(document => [document.source_uri, document]));
+      for (let sourceLink of sourceLinks) {
+        const document = documentMap.get(sourceLink);
+        allSources.set(randomUUID(), { title: document?.name || 'Document from Graph RAG', uri: sourceLink });
+      }
+
+      yield {
+        status: AppChatStreamState.SEARCHING,
+        traceURL: trace?.getTraceUrl(),
+        sources: Array.from(allSources.values()),
+        statusMessage: 'Graph RAG searching completed.',
+        content: '',
+      };
+    }
+
     // Build Retriever.
+    // FIXME: This method only support a single retrieve call currently.
     const retrieveService = new LlamaindexRetrieveService({
-      reranker,
-      metadata_filter,
       flow: this.flow,
       index: this.index,
       serviceContext,
+      reranker: rerankerConfig,
+      metadata_filter: metadataFilterConfig,
+      langfuse: this.langfuse
     });
-
-    // FIXME: This method only support a single retrieve call currently.
-    let retrieveId: number | undefined;
+    const { search_top_k, top_k } = retrieverConfig;
     const retriever = withAsyncIterable<ChatStreamEvent, LlamaindexRetrieverWrapper>(
       (next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
         search_top_k,
         top_k,
-        use_cache: false,
+        use_cache: false
       },
-      serviceContext,
       {
         onStartSearch: (id, text) => {
-          retrieveId = id;
           next({
             done: false,
             value: {
@@ -126,7 +190,7 @@ export class LlamaindexChatService extends AppChatService {
             value: {
               content: '',
               status: AppChatStreamState.RERANKING,
-              statusMessage: `Reranking ${chunks.length} searched document chunks using ${reranker?.provider}:${reranker?.options?.model ?? 'default'}...`,
+              statusMessage: `Reranking ${chunks.length} searched document chunks using ${rerankerConfig?.provider}:${rerankerConfig?.options?.model ?? 'default'}...`,
               sources: Array.from(allSources.values()),
               retrieveId: id,
             },
@@ -157,44 +221,12 @@ export class LlamaindexChatService extends AppChatService {
         onRetrieveFailed: (id, reason) => {
           fail(reason);
         },
-      }
+      },
+      trace,
     ));
 
-    // Using knowledge graph retriever.
-    let additionalContext: Record<string, any> = {};
-    if (graph_retriever?.enable) {
-      yield {
-        status: AppChatStreamState.SEARCHING,
-        sources: Array.from(allSources.values()),
-        statusMessage: 'Start graph RAG searching ...',
-        retrieveId: retrieveId,
-        content: '',
-      };
-
-      const kgClient = new KnowledgeGraphClient();
-
-      console.log('Start knowledge graph searching.');
-      additionalContext = await kgClient.search(options.userInput);
-
-      // Found the document name by link.
-      const sourceLinks = (additionalContext['chunks'] ?? []).map((chunk: any) => chunk.link);
-      const documents = await getDocumentsBySourceUris(sourceLinks);
-      const documentMap = new Map(documents.map(document => [document.source_uri, document]));
-      for (let sourceLink of sourceLinks) {
-        const document = documentMap.get(sourceLink);
-        allSources.set(randomUUID(), { title: document?.name || 'Document from Graph RAG', uri: sourceLink });
-      }
-
-      yield {
-        status: AppChatStreamState.SEARCHING,
-        sources: Array.from(allSources.values()),
-        statusMessage: 'Graph RAG searching completed.',
-        retrieveId: retrieveId,
-        content: '',
-      };
-    }
-
     // Build Query Engine.
+    const { textQa, refine } = prompts;
     const textQaPrompt = this.getPrompt(textQa, defaultTextQaPrompt, additionalContext);
     const refinePrompt = this.getPrompt(refine, defaultRefinePrompt, additionalContext);
     const responseBuilder = new CompactAndRefine(serviceContext, textQaPrompt, refinePrompt);
@@ -205,29 +237,27 @@ export class LlamaindexChatService extends AppChatService {
     });
     const queryEngine = new RetrieverQueryEngine(retriever, responseSynthesizer);
 
-    // Build ChatHistory.
-    const history = await listChatMessages(chat.id);
-    const chatHistory = history.map(message => ({
+    // Build Chat Engine.
+    const chatHistory = (await listChatMessages(chat.id)).map(message => ({
       role: message.role as any,
       content: message.content,
       additionalKwargs: {},
     }));
-
-    // Build ChatEngine.
-    const stream = llmConfig?.options?.stream ?? true;
-    const condenseMessagePrompt = this.getPrompt(condenseQuestion, defaultCondenseQuestionPrompt, additionalContext);
+    const condenseMessagePrompt = this.getPrompt(prompts?.condenseQuestion, defaultCondenseQuestionPrompt, additionalContext);
     const chatEngine = new CondenseQuestionChatEngine({
+      serviceContext,
       queryEngine,
       chatHistory,
-      serviceContext,
       condenseMessagePrompt,
     });
 
-    // Chatting with LLM via ChatEngine.
-    console.log(`Start chatting for chat <${chat.id}>.`, { stream });
+    // Start the Chat.
+    console.log(`[Chatting] Start chatting for chat <${chat.id}>.`);
     const start = DateTime.now();
+
+    // Chatting via chat engine.
     const responses = chatEngine.chat({
-      stream: stream,
+      stream: true,
       chatHistory: options.history.map(message => ({
         role: message.role as any,
         content: message.content,
@@ -236,15 +266,18 @@ export class LlamaindexChatService extends AppChatService {
       message: options.userInput,
     });
 
-    // poll from chat response iterators and yield
+    // Poll chat response from iterators and yield them.
+    let finalResponse = '';
     for await (const response of poll(
       retriever,
       mapAsyncIterable(responses, async response => {
+        finalResponse += response.response;
         return {
           content: response.response,
           status: AppChatStreamState.GENERATING,
           statusMessage: `Generating using ${llmConfig.provider}:${llmConfig.options?.model ?? 'default'}`,
           sources: Array.from(allSources.values()),
+          traceURL: trace?.getTraceUrl(),
           retrieveId: undefined,
         };
       }),
@@ -252,9 +285,16 @@ export class LlamaindexChatService extends AppChatService {
       yield response;
     }
 
+    // End the chat.
     const end = DateTime.now();
     const duration = end.diff(start, 'seconds').seconds;
-    console.log(`Finished chatting for chat <${chat.id}>, take ${duration} seconds.`, { stream });
+    console.log(`[Chatting] Finished chatting for chat <${chat.id}>, take ${duration} seconds.`);
+
+    trace?.update({
+      output: finalResponse
+    });
+
+    await this.langfuse?.flushAsync();
   }
 
   async getSourcesByChunkIds (chunkIds: string[]): Promise<SourceWithNodeId[]> {
@@ -290,6 +330,7 @@ export class LlamaindexChatService extends AppChatService {
       sources.set(id, { title, uri });
     }
   }
+
 }
 
 function withAsyncIterable<T, R> (run: (next: (result: IteratorResult<T, undefined>) => void, fail: (error: unknown) => void) => R) {
@@ -319,7 +360,7 @@ function withAsyncIterable<T, R> (run: (next: (result: IteratorResult<T, undefin
 }
 
 /**
- * Create a single AsyncIterable from several AsyncIterables with same type.
+ * Create a single AsyncIterable from several AsyncIterables with the same type.
  * @param iterables
  */
 function poll<T> (...iterables: AsyncIterable<T>[]): AsyncIterable<T> {

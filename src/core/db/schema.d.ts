@@ -55,6 +55,7 @@ export interface ChatMessage {
   ordinal: number;
   role: string;
   status: "CREATED" | "FAILED" | "GENERATING" | "SUCCEED";
+  trace_url: string | null;
 }
 
 export interface ChatMessageRetrieveRel {

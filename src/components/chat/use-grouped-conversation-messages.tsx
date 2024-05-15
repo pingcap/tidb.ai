@@ -28,6 +28,7 @@ export type PendingConversationMessage = {
 export type MyChatMessageAnnotation = {
   ts: number;
   messageId: number;
+  traceURL?: string,
   context?: AppChatStreamSource[],
   state?: AppChatStreamState,
   stateMessage?: string

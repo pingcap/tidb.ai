@@ -7,6 +7,7 @@ import {CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR} from '@/lib/errors';
 import {defineHandler} from '@/lib/next/handler';
 import {baseRegistry} from '@/rag-spec/base';
 import {getFlow} from '@/rag-spec/createFlow';
+import {Langfuse} from "langfuse";
 import {notFound} from 'next/navigation';
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
@@ -86,7 +87,8 @@ export const POST = defineHandler({
 
   const index = await getIndexByNameOrThrow(indexName);
   const flow = await getFlow(baseRegistry);
-  const chatService = new LlamaindexChatService({ flow, index });
+  const langfuse = new Langfuse();
+  const chatService = new LlamaindexChatService({ flow, index, langfuse });
 
   if (body.regenerate) {
     if (!body.messageId) {

@@ -9,6 +9,7 @@ import type {Rewrite} from '@/lib/type-utils';
 import type {Insertable, Selectable, Updateable} from 'kysely';
 import {notFound} from 'next/navigation';
 
+export type ChatEngineRequiredOptions = Required<Pick<ChatEngineOptions, 'llm' | 'retriever' | 'graph_retriever' | 'prompts' >> & Omit<ChatEngineOptions, 'llm' | 'retriever' | 'graph_retriever' | 'prompts'>;
 export type ChatEngineOptions = CondenseQuestionChatEngineOptions;
 export type ChatEngine = Rewrite<Selectable<DBv1['chat_engine']>, { engine: ChatEngineProvider, engine_options: ChatEngineOptions }>;
 export type CreateChatEngine = Rewrite<Insertable<DBv1['chat_engine']>, { engine: ChatEngineProvider, engine_options: ChatEngineOptions }>;

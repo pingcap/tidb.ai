@@ -176,6 +176,7 @@ CREATE TABLE chat_message
     finished_at   DATETIME                                           NULL,
     deleted_at    DATETIME                                           NULL,
     delete_reason ENUM('FORCE', 'REGENERATE')                        NULL,
+    trace_url     VARCHAR(255)                                       NULL,
     PRIMARY KEY (id),
     FOREIGN KEY fk_cm_on_chat_id (chat_id) REFERENCES chat (id)
 );
