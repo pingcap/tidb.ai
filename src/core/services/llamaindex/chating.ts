@@ -1,5 +1,5 @@
 import {getDb} from '@/core/db';
-import {type Chat, listChatMessages} from '@/core/repositories/chat';
+import {type Chat, listChatMessages, updateChatMessage} from '@/core/repositories/chat';
 import {ChatEngineRequiredOptions} from '@/core/repositories/chat_engine';
 import {getDocumentsBySourceUris} from "@/core/repositories/document";
 import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/services/chating';
@@ -62,15 +62,7 @@ export class LlamaindexChatService extends AppChatService {
   }
 
   protected async* run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatStreamEvent> {
-    yield {
-      status: AppChatStreamState.CREATING,
-      sources: [],
-      statusMessage: '',
-      retrieveId: undefined,
-      content: '',
-    };
-
-    // Chat engine config.
+    // Init chat engine config.
     const engineOptions = Object.assign(
       DEFAULT_CHAT_ENGINE_OPTIONS,
       chat.engine_options
@@ -84,21 +76,34 @@ export class LlamaindexChatService extends AppChatService {
       prompts
     } = engineOptions;
 
+    // Init tracing.
+    const trace = this.langfuse?.trace({
+      name: 'chatting',
+      input: options,
+      metadata: engineOptions,
+    });
+
+    yield {
+      status: AppChatStreamState.CREATING,
+      sources: [],
+      traceURL: trace?.getTraceUrl(),
+      statusMessage: '',
+      retrieveId: undefined,
+      content: '',
+    };
+
+    await updateChatMessage(options.respondMessage.id, {
+      trace_url: trace?.getTraceUrl(),
+    });
+
     // Service context.
-    const llm = await buildLLM(llmConfig!);
+    const llm = await buildLLM(llmConfig!, trace);
     const promptHelper = new PromptHelper(llm.metadata.contextWindow);
     const embedModel = await buildEmbedding(this.index.config.embedding);
     const serviceContext = serviceContextFromDefaults({
       llm,
       promptHelper,
       embedModel,
-    });
-
-    // Tracing.
-    const trace = this.langfuse?.trace({
-      name: 'chatting',
-      input: options,
-      metadata: engineOptions,
     });
 
     console.log('[Chatting] Prepare chatting.');
@@ -113,6 +118,7 @@ export class LlamaindexChatService extends AppChatService {
     if (graphRetrieverConfig?.enable) {
       yield {
         status: AppChatStreamState.SEARCHING,
+        traceURL: trace?.getTraceUrl(),
         sources: Array.from(allSources.values()),
         statusMessage: 'Start graph RAG searching ...',
         content: '',
@@ -141,6 +147,7 @@ export class LlamaindexChatService extends AppChatService {
 
       yield {
         status: AppChatStreamState.SEARCHING,
+        traceURL: trace?.getTraceUrl(),
         sources: Array.from(allSources.values()),
         statusMessage: 'Graph RAG searching completed.',
         content: '',
@@ -270,6 +277,7 @@ export class LlamaindexChatService extends AppChatService {
           status: AppChatStreamState.GENERATING,
           statusMessage: `Generating using ${llmConfig.provider}:${llmConfig.options?.model ?? 'default'}`,
           sources: Array.from(allSources.values()),
+          traceURL: trace?.getTraceUrl(),
           retrieveId: undefined,
         };
       }),

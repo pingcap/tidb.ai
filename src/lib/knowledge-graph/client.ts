@@ -35,7 +35,7 @@ export class KnowledgeGraphClient {
       const duration = end.diff(start, 'seconds').seconds;
       const { entities = [], relationships = [], chunks = [] } = data;
       console.log(
-        `Finished knowledge graph searching, take ${duration} seconds, got ${entities.length} entities, ${relationships.length} relationships, ${chunks.length} chunks.`
+        `[Chatting] Finished knowledge graph searching, take ${duration} seconds, got ${entities.length} entities, ${relationships.length} relationships, ${chunks.length} chunks.`
       );
       return data;
     } catch (err) {

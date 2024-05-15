@@ -20,6 +20,7 @@ export const enum AppChatStreamState {
 }
 
 export type MyChatMessageAnnotation = {
+  traceURL?: string,
   context?: AppChatStreamSource[],
   state?: AppChatStreamState,
   stateMessage?: string

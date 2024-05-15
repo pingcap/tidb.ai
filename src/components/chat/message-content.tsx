@@ -3,7 +3,7 @@ import { RemarkContent } from '@/components/remark-content';
 
 export function MessageContent ({ group }: { group: ConversationMessageGroupProps }) {
   return (
-    <article className="prose prose-sm prose-neutral dark:prose-invert overflow-x-hidden break-all">
+    <article className="prose prose-sm prose-neutral dark:prose-invert overflow-x-hidden break-keep">
       {group.assistantMessage?.content && <RemarkContent>
         {group.assistantMessage.content}
       </RemarkContent>}

@@ -7,15 +7,17 @@ import {LangfuseTraceClient} from "langfuse";
 import { notFound } from 'next/navigation';
 
 export type ChatOptions = {
-  userInput: string
-  userId: string
-  history: ChatMessage[]
+  userInput: string;
+  userId: string;
+  respondMessage: ChatMessage;
+  history: ChatMessage[];
 }
 
 // TODO: split into different type of events?
 export type ChatStreamEvent = {
   status: AppChatStreamState;
   statusMessage: string;
+  traceURL?: string;
   sources: AppChatStreamSource[];
   content: string;
   retrieveId?: number;
@@ -26,15 +28,16 @@ export abstract class AppChatService extends AppIndexBaseService {
 
   async chat (sessionId: string, userId: string, userInput: string, regenerating: boolean) {
     const { chat, history } = await this.getSessionInfo(sessionId, userId);
-    const message = await this.startChat(chat, history, userInput, regenerating);
+    const respondMessage = await this.startChat(chat, history, userInput, regenerating);
 
-    return new AppChatStream(sessionId, message.id, async controller => {
+    return new AppChatStream(sessionId, respondMessage.id, async controller => {
       try {
         let content = '';
         let retrieveIds = new Set<number>();
-        for await (const chunk of this.run(chat, { userInput, history, userId })) {
-          controller.appendText(chunk.content, chunk.status === AppChatStreamState.CREATING /* force send an empty text chunk first, to avoid a dependency BUG */);
+        for await (const chunk of this.run(chat, { userInput, history, userId, respondMessage })) {
+          controller.appendText(chunk.content, chunk.status === AppChatStreamState.CREATING /* force sends an empty text chunk first, to avoid a dependency BUG */);
           controller.setChatState(chunk.status, chunk.statusMessage);
+          controller.setTraceURL(chunk.traceURL);
           controller.setSources(chunk.sources);
           content += chunk.content;
           if (chunk.retrieveId) {
@@ -42,10 +45,10 @@ export abstract class AppChatService extends AppIndexBaseService {
           }
         }
         controller.setChatState(AppChatStreamState.FINISHED);
-        await this.finishChat(message, content, retrieveIds);
+        await this.finishChat(respondMessage, content, retrieveIds);
       } catch (error) {
         controller.setChatState(AppChatStreamState.ERROR, getErrorMessage(error));
-        await this.terminateChat(message, error);
+        await this.terminateChat(respondMessage, error);
         return Promise.reject(error);
       }
     });

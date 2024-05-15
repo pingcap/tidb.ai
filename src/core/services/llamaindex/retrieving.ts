@@ -101,7 +101,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
   }
 
   private async search (query: string, queryEmbedding: number[], search_top_k: number, trace?: LangfuseTraceClient) {
-    console.log(`Start embedding searching for query "${query}".`, { search_top_k })
+    console.log(`[Retrieving] Start embedding searching for query "${query}".`, { search_top_k })
     const sSpan = trace?.span({
       name: 'embedding-search',
       input: {
@@ -147,7 +147,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     sSpan?.end({
       output: result
     });
-    console.log(`Finish embedding searching, take ${searchDuration} ms, found ${result.length} chunks.`, { search_top_k });
+    console.log(`[Retrieving] Finish embedding searching, take ${searchDuration} ms, found ${result.length} chunks.`, { search_top_k });
 
     return result;
   }
@@ -191,7 +191,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     config: NonNullable<AppRetrieveServiceOptions['reranker']>,
     trace?: LangfuseTraceClient
   ) {
-    console.log(`Start reranking for query "${query}".`, { chunks: chunks.length, top_k });
+    console.log(`[Retrieving] Start reranking for query "${query}".`, { chunks: chunks.length, top_k });
     const rerankSpan = trace?.span({
       name: 'reranking',
       input: {
@@ -215,7 +215,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     rerankSpan?.end({
       output: result
     });
-    console.log(`Finish reranking, take ${rerankDuration} ms.`);
+    console.log(`[Retrieving] Finish reranking, take ${rerankDuration} ms.`);
     return result;
   }
 
