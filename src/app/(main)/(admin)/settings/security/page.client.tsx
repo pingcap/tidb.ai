@@ -1,6 +1,7 @@
 'use client';
 
 import { useSettingGroup } from '@/components/website-setting-provider';
+import {ISecuritySettingResult, SecuritySetting, SecuritySettingUpdatePayload} from "@/core/schema/settings/security";
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
@@ -18,11 +19,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
 import { useSWRConfig } from 'swr';
-import {
-  SecuritySetting,
-  ISecuritySettingResult,
-  SecuritySettingUpdatePayload,
-} from '@/core/schema/setting';
 import { ReCaptchaSelector } from '@/components/reCaptcha-selector';
 import { updateSettingSecurity as updateSetting } from '@/client/operations/settings';
 

@@ -1,3 +1,4 @@
+import {languages} from "@/core/schema/settings/website";
 import * as React from "react"
 import {Check, ChevronsUpDown} from "lucide-react";
 import {Popover, PopoverContent, PopoverTrigger} from "@/components/ui/popover";
@@ -6,7 +7,6 @@ import {cn} from "@/lib/utils";
 import {Command, CommandEmpty, CommandGroup, CommandInput, CommandItem} from "@/components/ui/command";
 import {UseFormReturn} from "react-hook-form";
 import {FormControl} from "@/components/ui/form";
-import {languages} from "@/core/schema/setting";
 
 export interface LanguageSelectorProps
   extends React.InputHTMLAttributes<HTMLInputElement> {

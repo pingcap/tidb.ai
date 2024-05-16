@@ -1,4 +1,3 @@
-import type { LLM } from 'llamaindex';
 import type { FC } from 'react';
 import { z, type ZodObject } from 'zod';
 
@@ -32,9 +31,6 @@ export namespace rag {
   export enum ExtensionType {
     DocumentStorage = 'rag.document-storage',
     Loader = 'rag.loader',
-    Embeddings = 'rag.embeddings',
-    Reranker = 'rag.reranker',
-    ChatModel = 'rag.chat-model',
     ContentMetadataExtractor = 'rag.content-metadata-extractor',
     ContentChunkMetadataExtractor = 'rag.content-chunk-metadata-extractor',
     ImportSourceTaskProcessor = 'rag.import-source-task',
@@ -99,26 +95,6 @@ export namespace rag {
     abstract load (buffer: Buffer, uri: string): Content<ContentMetadata> | Promise<Content<ContentMetadata>>;
   }
 
-  export abstract class Embeddings<Options> extends Base<Options> {
-    static type = ExtensionType.Embeddings;
-
-    abstract embedChunks (chunks: string[]): Promise<Vector[]>;
-
-    abstract embedQuery (query: string): Promise<Vector>;
-  }
-
-  export abstract class Reranker<Options> extends Base<Options> {
-    static type = ExtensionType.Reranker;
-
-    abstract rerank (query: string, content: RetrievedContext[], top_n: number): Promise<{ results: RerankedContext[], metadata: Record<string, any> }>
-  }
-
-  export abstract class ChatModel<Options> extends Base<Options> {
-    static type = ExtensionType.ChatModel;
-
-    abstract get llm (): LLM;
-  }
-
   export abstract class ContentMetadataExtractor<Options, Type = any> extends Base<Options> {
     static type = ExtensionType.ContentMetadataExtractor;
 
@@ -151,17 +127,6 @@ export namespace rag {
     abstract process (task: { url: string }): Promise<ImportSourceTaskResult>
   }
 
-  export interface RetrievedContext {
-    text_content: string,
-    source_uri: string,
-    source_name: string,
-  }
-
-  export interface RerankedContext extends RetrievedContext {
-    semantic_search_index: number;
-    relevance_score: number;
-  }
-
   /**
    * @deprecated
    */
@@ -184,13 +149,10 @@ export namespace rag {
 
   const extensionTypesMap = {
     [rag.ExtensionType.DocumentStorage]: DocumentStorage,
-    [rag.ExtensionType.ChatModel]: ChatModel,
     [rag.ExtensionType.ContentChunkMetadataExtractor]: ContentChunkMetadataExtractor,
     [rag.ExtensionType.ContentMetadataExtractor]: ContentMetadataExtractor,
     [rag.ExtensionType.Loader]: Loader,
     [rag.ExtensionType.ImportSourceTaskProcessor]: ImportSourceTaskProcessor,
-    [rag.ExtensionType.Embeddings]: Embeddings,
-    [rag.ExtensionType.Reranker]: Reranker,
   } as const;
 
   export type ExtensionTypesMap = typeof extensionTypesMap;

@@ -19,13 +19,10 @@ type ExtensionInfo<Options extends any[]> = [Flow.IExtension<Options>, ...Option
 export class Flow implements Flow.ExtensionApi {
   private maps = {
     [rag.ExtensionType.DocumentStorage]: new Map(),
-    [rag.ExtensionType.ChatModel]: new Map(),
     [rag.ExtensionType.ContentChunkMetadataExtractor]: new Map(),
     [rag.ExtensionType.ContentMetadataExtractor]: new Map(),
     [rag.ExtensionType.Loader]: new Map(),
     [rag.ExtensionType.ImportSourceTaskProcessor]: new Map(),
-    [rag.ExtensionType.Embeddings]: new Map(),
-    [rag.ExtensionType.Reranker]: new Map(),
   } satisfies { [Tp in keyof rag.ExtensionTypesMap]: Map<string, InstanceType<rag.ExtensionTypesMap[Tp]>> };
 
   constructor () {
@@ -126,7 +123,4 @@ export class Flow implements Flow.ExtensionApi {
     throw new Error(`No available ImportSourceTaskProcessor for task type ${type}.`);
   }
 
-  getReranker (identifier?: string): rag.Reranker<any> {
-    return this.getRequired(rag.ExtensionType.Reranker, identifier);
-  }
 }

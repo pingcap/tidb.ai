@@ -1,4 +1,4 @@
-import {IndexConfig, IndexProviderName} from "@/core/config/indexes";
+import {IndexConfig, IndexProviderName} from "../../../../core/schema/indexes";
 import {getDb} from '@/core/db';
 import {createIndex, getIndex, listIndexes} from '@/core/repositories/index_';
 import {toPageRequest} from '@/lib/database';

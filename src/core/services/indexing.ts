@@ -1,4 +1,4 @@
-import {DEFAULT_INDEX_PROVIDER_NAME, IndexProviderName} from "@/core/config/indexes";
+import {DEFAULT_INDEX_PROVIDER_NAME, IndexProviderName} from "../schema/indexes";
 import { DBv1, tx } from '@/core/db';
 import { type Document, getDocument } from '@/core/repositories/document';
 import {createDocumentImportTask} from "@/core/repositories/document_import_task";

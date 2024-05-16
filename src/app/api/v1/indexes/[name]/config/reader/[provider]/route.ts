@@ -1,4 +1,4 @@
-import {getIndex, getIndexByName, updateIndexConfig} from '@/core/repositories/index_';
+import {getIndexByName, getIndexByNameOrThrow, updateIndexConfig} from '@/core/repositories/index_';
 import { defineHandler } from '@/lib/next/handler';
 import { baseRegistry } from '@/rag-spec/base';
 import { notFound } from 'next/navigation';
@@ -14,11 +14,7 @@ export const GET = defineHandler({ params }, async ({
     name, provider,
   },
 }) => {
-  const index = await getIndexByName(name);
-  if (!index) {
-    notFound();
-  }
-
+  const index = await getIndexByNameOrThrow(name);
   return index.config.reader[provider] ?? null;
 });
 
@@ -32,10 +28,7 @@ export const PUT = defineHandler({
   params: { name, provider },
   body,
 }) => {
-  const index = await getIndexByName(name);
-  if (!index) {
-    notFound();
-  }
+  const index = await getIndexByNameOrThrow(name);
   const component = await baseRegistry.getComponent(provider);
 
   if (!component) {

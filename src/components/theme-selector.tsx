@@ -1,3 +1,4 @@
+import {themes} from "@/core/schema/settings/website";
 import * as React from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import {
@@ -16,7 +17,6 @@ import {
 } from '@/components/ui/command';
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl } from '@/components/ui/form';
-import { themes } from '@/core/schema/setting';
 
 export interface ThemeSelectorProps
   extends React.InputHTMLAttributes<HTMLInputElement> {

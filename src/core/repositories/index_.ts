@@ -1,4 +1,4 @@
-import type { IndexConfig } from "@/core/config/indexes";
+import type { IndexConfig } from "../schema/indexes";
 import { DBv1, getDb } from '@/core/db';
 import { executePage, type PageRequest } from '@/lib/database';
 import {INDEX_NOT_FOUND_ERROR} from "@/lib/errors";

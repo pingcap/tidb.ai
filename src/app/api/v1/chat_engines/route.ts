@@ -1,4 +1,4 @@
-import {CreateChatEngineOptionsSchema} from "@/core/config/chat_engines";
+import {CreateChatEngineOptionsSchema} from "@/core/schema/chat_engines";
 import {createChatEngine, listChatEngine} from '@/core/repositories/chat_engine';
 import { toPageRequest } from '@/lib/database';
 import { defineHandler } from '@/lib/next/handler';

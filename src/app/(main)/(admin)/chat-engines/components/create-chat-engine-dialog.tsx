@@ -13,7 +13,7 @@ import {
 import {Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import {Switch} from "@/components/ui/switch";
-import {ChatEngineProvider, CreateChatEngineOptions, CreateChatEngineOptionsSchema} from "@/core/config/chat_engines";
+import {ChatEngineProvider, CreateChatEngineOptions, CreateChatEngineOptionsSchema} from "@/core/schema/chat_engines";
 import {getErrorMessage} from "@/lib/errors";
 import {LLMProvider, OpenAIModel} from "@/lib/llamaindex/config/llm";
 import {RerankerProvider} from "@/lib/llamaindex/config/reranker";

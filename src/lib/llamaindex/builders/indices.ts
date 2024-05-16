@@ -7,8 +7,6 @@ import {
   TiDBVectorDB,
   TiDBVectorStore
 } from '@/lib/llamaindex/storage/vectorStore/TiDBVectorStore';
-import { baseRegistry } from '@/rag-spec/base';
-import { getFlow } from '@/rag-spec/createFlow';
 import { serviceContextFromDefaults, VectorStoreIndex } from 'llamaindex';
 import { notFound } from 'next/navigation';
 

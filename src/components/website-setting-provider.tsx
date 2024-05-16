@@ -1,6 +1,6 @@
 'use client';
 
-import { type SettingGroups } from '@/core/schema/setting';
+import { type SettingGroups } from '@/core/schema/settings';
 import { createContext, useContext } from 'react';
 
 export const SettingContext = createContext<SettingGroups>(null as any);

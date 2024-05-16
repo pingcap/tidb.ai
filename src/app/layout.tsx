@@ -1,8 +1,8 @@
 import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import { Providers } from '@/app/providers';
 import { Toaster } from '@/components/ui/toaster';
-import { GroupName } from '@/core/schema/setting';
-import { getSetting } from '@/core/setting';
+import { GroupName } from '@/core/schema/settings';
+import { getSetting } from '@/core/services/setting';
 import type { Metadata } from 'next';
 import { Noto_Sans as Font } from 'next/font/google';
 import './globals.css';

@@ -1,14 +1,10 @@
-import {
-  CustomJsSettingUpdatePayload,
-  GroupName,
-  SecuritySettingUpdatePayload,
-  WebsiteSettingUpdatePayload
-} from '@/core/schema/setting';
-import {getSetting, updateSetting} from '@/core/setting';
+import {updateSettingSchema} from "@/app/api/v1/settings/schema";
+import {GroupName} from '@/core/schema/settings';
+import {getSetting, updateSetting} from '@/core/services/setting';
 import {defineHandler} from "@/lib/next/handler";
 import {notFound} from 'next/navigation';
 import {NextResponse} from 'next/server';
-import { z} from 'zod';
+import {z} from 'zod';
 
 const searchParamsSchema = z.object({
   group: GroupName,
@@ -26,25 +22,6 @@ export const GET = defineHandler({
 
   return NextResponse.json(settings);
 });
-
-const UpdateSettingRequestSchema = z.object({
-  group: z.literal('website'),
-  settings: WebsiteSettingUpdatePayload,
-});
-const UpdateCustomJsSettingRequestSchema = z.object({
-  group: z.literal('custom_js'),
-  settings: CustomJsSettingUpdatePayload,
-});
-const UpdateSecuritySettingRequestSchema = z.object({
-  group: z.literal('security'),
-  settings: SecuritySettingUpdatePayload,
-});
-
-const updateSettingSchema = z.discriminatedUnion("group", [
-  UpdateSettingRequestSchema,
-  UpdateCustomJsSettingRequestSchema,
-  UpdateSecuritySettingRequestSchema
-]);
 
 export const PUT = defineHandler({
   auth: 'admin',

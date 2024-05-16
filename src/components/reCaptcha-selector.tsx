@@ -1,3 +1,4 @@
+import {reCaptcha} from "@/core/schema/settings/security";
 import * as React from 'react';
 import { Check, ChevronsUpDown } from 'lucide-react';
 import {
@@ -16,7 +17,6 @@ import {
 } from '@/components/ui/command';
 import { UseFormReturn } from 'react-hook-form';
 import { FormControl } from '@/components/ui/form';
-import { reCaptcha } from '@/core/schema/setting';
 
 export interface ReCaptchaSelectorProps
   extends React.InputHTMLAttributes<HTMLInputElement> {
