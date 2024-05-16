@@ -1,6 +1,8 @@
 'use client';
 
 import { useSettingGroup } from '@/components/website-setting-provider';
+import {CustomJsSettingUpdatePayload, ICustomJsSettingResult} from "@/core/schema/settings/custom_js";
+import {maxExampleQuestions} from "@/core/schema/settings/website";
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { Button } from '@/components/ui/button';
@@ -19,11 +21,6 @@ import { z } from 'zod';
 import { Loader2 } from 'lucide-react';
 import { useSWRConfig } from 'swr';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
-import {
-  ICustomJsSettingResult,
-  CustomJsSettingUpdatePayload,
-  maxExampleQuestions,
-} from '@/core/schema/setting';
 import { Light as SyntaxHighlighter } from 'react-syntax-highlighter';
 import js from 'react-syntax-highlighter/dist/esm/languages/hljs/javascript';
 import { a11yDark } from 'react-syntax-highlighter/dist/esm/styles/hljs';

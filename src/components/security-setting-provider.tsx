@@ -1,7 +1,7 @@
 'use client';
 
+import {ISecuritySettingResult} from "@/core/schema/settings/security";
 import {createContext} from 'react';
-import { ISecuritySettingResult} from "@/core/schema/setting";
 
 export const SecuritySettingContext = createContext<ISecuritySettingResult>({});
 export const SecuritySettingProvider = SecuritySettingContext.Provider;

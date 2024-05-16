@@ -3,7 +3,7 @@
 import AnonymousSessionProvider from '@/components/anonymous-session-provider';
 import { ThemeProvider } from '@/components/theme-provider';
 import { SettingProvider } from '@/components/website-setting-provider';
-import { type SettingGroups } from '@/core/schema/setting';
+import { type SettingGroups } from '@/core/schema/settings';
 import type { Session } from 'next-auth';
 import { SessionProvider } from 'next-auth/react';
 import type { ReactNode } from 'react';

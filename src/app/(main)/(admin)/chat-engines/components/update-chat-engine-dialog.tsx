@@ -11,7 +11,7 @@ import {
   DialogTrigger
 } from "@/components/ui/dialog";
 import {Form} from '@/components/ui/form';
-import {CreateChatEngineOptions, CreateChatEngineOptionsSchema} from "@/core/config/chat_engines";
+import {CreateChatEngineOptions, CreateChatEngineOptionsSchema} from "../../../../../core/schema/chat_engines";
 import {getErrorMessage} from "@/lib/errors";
 import {zodResolver} from "@hookform/resolvers/zod";
 import {AlertTriangleIcon} from "lucide-react";

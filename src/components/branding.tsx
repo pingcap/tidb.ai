@@ -1,4 +1,4 @@
-import {IWebsiteSettingResult} from "@/core/schema/setting";
+import {IWebsiteSettingResult} from "@/core/schema/settings/website";
 
 export function Branding ({ setting }: { setting: IWebsiteSettingResult }) {
   return (

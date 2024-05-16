@@ -1,4 +1,6 @@
-import { CustomJsSettingUpdatePayload, SecuritySettingUpdatePayload, WebsiteSettingUpdatePayload } from '@/core/schema/setting';
+import {CustomJsSettingUpdatePayload} from "@/core/schema/settings/custom_js";
+import {SecuritySettingUpdatePayload} from "@/core/schema/settings/security";
+import {WebsiteSettingUpdatePayload} from "@/core/schema/settings/website";
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 import z from 'zod';

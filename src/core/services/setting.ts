@@ -1,19 +1,26 @@
 import {getOptionsByGroup, updateOptionsByGroup} from "@/core/repositories/option";
+import {
+    CustomJsSettingResult,
+    CustomJsSettingUpdatePayload,
+    ICustomJsSettingResult
+} from "@/core/schema/settings/custom_js";
+import {
+    ISecuritySettingResult,
+    SecuritySettingResult,
+    SecuritySettingUpdatePayload
+} from "@/core/schema/settings/security";
+import {
+    defaultWebsiteSetting,
+    IWebsiteSettingResult,
+    WebsiteSettingResult,
+    WebsiteSettingUpdatePayload
+} from "@/core/schema/settings/website";
 import {z} from "zod";
 import {cache} from "react";
 import {
     GroupName,
     IGroupName,
-    IWebsiteSettingResult,
-    WebsiteSettingResult,
-    WebsiteSettingUpdatePayload,
-    ICustomJsSettingResult,
-    CustomJsSettingResult,
-    CustomJsSettingUpdatePayload,
-    ISecuritySettingResult,
-    SecuritySettingResult,
-    SecuritySettingUpdatePayload, defaultWebsiteSetting,
-} from '@/core/schema/setting';
+} from '@/core/schema/settings';
 import { flattenSettings, unflattenSettings } from "@/lib/utils";
 
 type ListSettingsReturnType<G extends IGroupName> =

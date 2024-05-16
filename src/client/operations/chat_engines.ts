@@ -1,4 +1,4 @@
-import {CreateChatEngineOptions} from "@/core/config/chat_engines";
+import {CreateChatEngineOptions} from "../../core/schema/chat_engines";
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 

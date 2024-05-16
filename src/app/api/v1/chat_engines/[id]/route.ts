@@ -1,4 +1,4 @@
-import {CreateChatEngineOptionsSchema} from "@/core/config/chat_engines";
+import {CreateChatEngineOptionsSchema} from "@/core/schema/chat_engines";
 import {
   deleteChatEngine,
   getChatEngine,

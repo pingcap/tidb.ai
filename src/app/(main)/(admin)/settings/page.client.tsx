@@ -13,15 +13,11 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
+import {maxExampleQuestions, maxHomepageFooterLinks, WebsiteSettingUpdatePayload} from "@/core/schema/settings/website";
 import { useRouter } from 'next/navigation';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import {
-  WebsiteSettingUpdatePayload,
-  maxExampleQuestions,
-  maxHomepageFooterLinks,
-} from '@/core/schema/setting';
 import { useEffect } from 'react';
 import { ImageUploader } from '@/components/image-uploader';
 import { LanguageSelector } from '@/components/language-selector';

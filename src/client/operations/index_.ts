@@ -1,4 +1,4 @@
-import type {IndexConfig} from "@/core/config/indexes";
+import type {IndexConfig} from "../../core/schema/indexes";
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 

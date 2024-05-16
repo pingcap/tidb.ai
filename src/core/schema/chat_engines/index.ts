@@ -1,4 +1,4 @@
-import {CondenseQuestionChatEngineOptionsSchema} from "@/core/config/chat_engines/condense_question";
+import {CondenseQuestionChatEngineOptionsSchema} from "@/core/schema/chat_engines/condense_question";
 import {z} from "zod";
 
 export enum ChatEngineProvider {

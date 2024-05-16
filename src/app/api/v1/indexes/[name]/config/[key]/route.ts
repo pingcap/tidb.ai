@@ -1,4 +1,4 @@
-import {getIndex, getIndexByName, updateIndexConfig} from '@/core/repositories/index_';
+import {getIndexByName, getIndexByNameOrThrow, updateIndexConfig} from '@/core/repositories/index_';
 import { defineHandler } from '@/lib/next/handler';
 import { notFound } from 'next/navigation';
 import z from 'zod';
@@ -31,12 +31,8 @@ export const PUT = defineHandler({
   params: { name, key },
   body,
 }) => {
-  const index = await getIndexByName(name);
-  if (!index) {
-    notFound();
-  }
+  const index = await getIndexByNameOrThrow(name);
   // TODO: validate config schema
-
   await updateIndexConfig(index.id, `.${key}`, body);
 });
 

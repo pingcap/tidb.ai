@@ -1,7 +1,7 @@
-import {ChatEngineProvider} from "@/core/config/chat_engines";
+import {ChatEngineProvider} from "../schema/chat_engines";
 import {
   CondenseQuestionChatEngineOptions,
-} from "@/core/config/chat_engines/condense_question";
+} from "@/core/schema/chat_engines/condense_question";
 import {type DBv1, getDb, tx} from '@/core/db';
 import {executePage, type PageRequest} from '@/lib/database';
 import {APIError, CHAT_ENGINE_NOT_FOUND_ERROR} from '@/lib/errors';

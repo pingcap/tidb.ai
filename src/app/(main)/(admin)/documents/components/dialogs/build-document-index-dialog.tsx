@@ -17,7 +17,7 @@ import {ScrollArea} from "@/components/ui/scroll-area";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 import {Separator} from "@/components/ui/separator";
 import {Switch} from "@/components/ui/switch";
-import {IndexProviderName} from "@/core/config/indexes";
+import {IndexProviderName} from "../../../../../../core/schema/indexes";
 import type {Document} from "@/core/repositories/document";
 import type {Index} from "@/core/repositories/index_";
 import {getErrorMessage} from "@/lib/errors";

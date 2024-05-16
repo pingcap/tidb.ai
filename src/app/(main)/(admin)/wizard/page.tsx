@@ -1,7 +1,7 @@
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { AdminPageLayout } from '@/components/admin-page-layout';
 import { Badge } from '@/components/ui/badge';
-import { getSetting } from '@/core/setting';
+import { getSetting } from '@/core/services/setting';
 import { getSiteWizardState } from '@/core/wizard';
 
 export default async function Page () {
