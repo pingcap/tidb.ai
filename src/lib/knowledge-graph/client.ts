@@ -1,6 +1,34 @@
 import {getEnv} from "@llamaindex/env";
 import {DateTime} from "luxon";
 
+export interface DocumentChunk {
+  link: string,
+  text: string
+}
+
+export interface Entity {
+  id: number;
+  name: string;
+  description: string;
+  meta: Record<string, any> | null;
+}
+
+export interface Relationship {
+  id: number;
+  source_entity_id: number;
+  source_entity?: Entity;
+  target_entity_id: number;
+  target_entity?: Entity;
+  description: string;
+  meta: Record<string, any> & { "doc_id": string } | null;
+}
+
+export interface SearchResult {
+  entities: Entity[];
+  relationships: Relationship[];
+  chunks: DocumentChunk[];
+}
+
 export interface DocumentInfo {
   uri: string,
   text: string
@@ -17,7 +45,7 @@ export class KnowledgeGraphClient {
     this.baseURL = baseURL;
   }
 
-  async search(query: string) {
+  async search(query: string, embedding?: number[], include_meta: boolean = false): Promise<SearchResult> {
     try {
       const url = `${this.baseURL}/api/search`;
       const start = DateTime.now();
@@ -28,6 +56,8 @@ export class KnowledgeGraphClient {
         },
         body: JSON.stringify({
           query,
+          embedding,
+          include_meta
         })
       });
       const data = await res.json();

@@ -6,12 +6,15 @@ import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/ser
 import {LlamaindexRetrieverWrapper, LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
 import type {RetrieveOptions} from "@/core/services/retrieving";
 import {type AppChatStreamSource, AppChatStreamState} from '@/lib/ai/AppChatStream';
-import {KnowledgeGraphClient} from "@/lib/knowledge-graph/client";
+import {Entity, KnowledgeGraphClient, Relationship} from "@/lib/knowledge-graph/client";
 import {uuidToBin} from '@/lib/kysely';
 import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
 import {buildLLM} from "@/lib/llamaindex/builders/llm";
+import {buildReranker} from "@/lib/llamaindex/builders/reranker";
 import {LLMConfig, LLMProvider} from "@/lib/llamaindex/config/llm";
+import {RerankerProvider} from "@/lib/llamaindex/config/reranker";
 import {ManagedAsyncIterable} from '@/lib/ManagedAsyncIterable';
+import {LangfuseTraceClient} from "langfuse";
 import {Liquid} from 'liquidjs';
 import {
   CompactAndRefine,
@@ -24,13 +27,20 @@ import {
   RetrieverQueryEngine,
   serviceContextFromDefaults,
   SimplePrompt,
-  PromptHelper
+  PromptHelper, ServiceContext, TextNode
 } from 'llamaindex';
 import {DateTime} from 'luxon';
 import {randomUUID, UUID} from 'node:crypto';
 
 interface SourceWithNodeId extends AppChatStreamSource {
   id: string;
+}
+
+interface DocumentKGChunk {
+  docId: string;
+  relationships: Relationship[];
+  entities: Entity[];
+  relevance_score?: number;
 }
 
 const DEFAULT_CHAT_ENGINE_OPTIONS = {
@@ -79,8 +89,17 @@ export class LlamaindexChatService extends AppChatService {
     // Init tracing.
     const trace = this.langfuse?.trace({
       name: 'chatting',
-      input: options,
-      metadata: engineOptions,
+      userId: options.userId,
+      input: {
+        history: options.history,
+        userInput: options.userInput
+      },
+      metadata: {
+        chat_id: chat.id,
+        chat_slug: chat.url_key,
+        chat_engine_id: chat.engine,
+        chat_engine_options: engineOptions,
+      },
     });
 
     yield {
@@ -114,7 +133,7 @@ export class LlamaindexChatService extends AppChatService {
     const allSources = new Map<string, AppChatStreamSource>();
 
     // Knowledge graph retriever.
-    let additionalContext: Record<string, any> = {};
+    let knowledgeGraphContext: Record<string, any> = {};
     if (graphRetrieverConfig?.enable) {
       yield {
         status: AppChatStreamState.SEARCHING,
@@ -127,17 +146,21 @@ export class LlamaindexChatService extends AppChatService {
       const kgClient = new KnowledgeGraphClient();
       const kgSearchSpan = trace?.span({
         name: "knowledge-graph-retrieval",
-        input: {
-          userInput: options.userInput,
-        },
+        input: options.userInput,
       });
-      additionalContext = await kgClient.search(options.userInput);
+      knowledgeGraphContext = await kgClient.search(options.userInput);
+      knowledgeGraphContext['document_relationships'] = await groupDocumentRelationship(
+        knowledgeGraphContext['relationships'] ?? [],
+        knowledgeGraphContext['entities'] ?? []
+      );
       kgSearchSpan?.end({
-        output: additionalContext,
+        output: knowledgeGraphContext,
       });
 
+      knowledgeGraphContext['document_relationships'] = this.rerankDocumentRelationships(knowledgeGraphContext['document_relationships'], options.userInput, 5, serviceContext, trace);
+
       // Found the document name by link.
-      const sourceLinks = (additionalContext['chunks'] ?? []).map((chunk: any) => chunk.link);
+      const sourceLinks = (knowledgeGraphContext['chunks'] ?? []).map((chunk: any) => chunk.link);
       const documents = await getDocumentsBySourceUris(sourceLinks);
       const documentMap = new Map(documents.map(document => [document.source_uri, document]));
       for (let sourceLink of sourceLinks) {
@@ -227,8 +250,8 @@ export class LlamaindexChatService extends AppChatService {
 
     // Build Query Engine.
     const { textQa, refine } = prompts;
-    const textQaPrompt = this.getPrompt(textQa, defaultTextQaPrompt, additionalContext);
-    const refinePrompt = this.getPrompt(refine, defaultRefinePrompt, additionalContext);
+    const textQaPrompt = this.getPrompt(textQa, defaultTextQaPrompt, knowledgeGraphContext);
+    const refinePrompt = this.getPrompt(refine, defaultRefinePrompt, knowledgeGraphContext);
     const responseBuilder = new CompactAndRefine(serviceContext, textQaPrompt, refinePrompt);
     const responseSynthesizer = new ResponseSynthesizer({
       serviceContext,
@@ -243,7 +266,7 @@ export class LlamaindexChatService extends AppChatService {
       content: message.content,
       additionalKwargs: {},
     }));
-    const condenseMessagePrompt = this.getPrompt(prompts?.condenseQuestion, defaultCondenseQuestionPrompt, additionalContext);
+    const condenseMessagePrompt = this.getPrompt(prompts?.condenseQuestion, defaultCondenseQuestionPrompt, knowledgeGraphContext);
     const chatEngine = new CondenseQuestionChatEngine({
       serviceContext,
       queryEngine,
@@ -295,6 +318,48 @@ export class LlamaindexChatService extends AppChatService {
     });
 
     await this.langfuse?.flushAsync();
+  }
+
+  async rerankDocumentRelationships (chunks: DocumentKGChunk[], query: string, top_k: number = 5, serviceContext: ServiceContext, trace?: LangfuseTraceClient): Promise<DocumentKGChunk[]> {
+    console.log(`[Graph-Retrieving] Start knowledge graph reranking for query "${query}".`, { chunks: chunks.length, top_k });
+    const rerankSpan = trace?.span({
+      name: 'knowledge-graph-reranking',
+      input: {
+        query,
+        chunks
+      }
+    });
+
+    const rerankStart = DateTime.now();
+    const reranker = await buildReranker(serviceContext, { provider: RerankerProvider.JINAAI }, top_k);
+    const chunksMap = new Map(chunks.map(chunk => [chunk.docId, chunk]));
+    const nodes = chunks.map(chunk => ({
+      node: new TextNode({
+        id_: chunk.docId,
+        text: `
+Document Id: ${chunk.docId}
+
+Relationships extract from the document: 
+${chunk.relationships.map(rel => rel.description).join('\n')}
+
+Entities extract from the document:
+${chunk.entities.map(ent => `${ent.name}:${ent.description}`).join('\n')}
+          `,
+      })
+    }));
+    const nodesWithScore = await reranker.postprocessNodes(nodes, query);
+    const rerankDuration = DateTime.now().diff(rerankStart, 'milliseconds').milliseconds;
+
+    const result = nodesWithScore.map((nodeWithScore, index, total) => ({
+      ...chunksMap.get(nodeWithScore.node.id_)!,
+      relevance_score: nodeWithScore.score ?? (total.length - index + top_k * 10),
+    }));
+
+    rerankSpan?.end({
+      output: result
+    });
+    console.log(`[Graph-Retrieving] Finish knowledge graph reranking, take ${rerankDuration} ms.`);
+    return result;
   }
 
   async getSourcesByChunkIds (chunkIds: string[]): Promise<SourceWithNodeId[]> {
@@ -395,4 +460,49 @@ async function* mapAsyncIterable<T, R> (iterable: Promise<AsyncIterable<T>> | As
   for await (const value of await iterable) {
     yield map(value);
   }
+}
+
+async function groupDocumentRelationship(relationships: Relationship[], entities: Entity[]) {
+  const entityMap = new Map(entities.map(entity => [entity.id, entity]));
+  const documentRelationshipsMap: Map<string, {
+    docId: string,
+    relationships: Map<number, Relationship>
+    entities: Map<number, Entity>
+  }> = new Map();
+
+  for (let relationship of relationships) {
+    const sourceEntity = entityMap.get(relationship.source_entity_id);
+    const targetEntity = entityMap.get(relationship.target_entity_id);
+    relationship.target_entity = targetEntity;
+    relationship.source_entity = sourceEntity;
+
+    const docId = relationship?.meta?.doc_id || 'default';
+    if (!documentRelationshipsMap.has(docId)) {
+      documentRelationshipsMap.set(docId, {
+        docId,
+        relationships: new Map<number, Relationship>(),
+        entities: new Map<number, Entity>()
+      });
+    }
+
+    const relGroup = documentRelationshipsMap.get(docId)!;
+    relGroup?.relationships.set(relationship.id, relationship);
+
+    if (sourceEntity) {
+      relGroup?.entities.set(relationship.source_entity_id, sourceEntity);
+    }
+
+    if (targetEntity) {
+      relGroup?.entities.set(relationship.target_entity_id, targetEntity);
+    }
+
+    documentRelationshipsMap.set(docId, relGroup);
+  }
+
+  const documentRelationships = Array.from(documentRelationshipsMap.values());
+  return documentRelationships.map(relGroup => ({
+    docId: relGroup.docId,
+    relationships: Array.from(relGroup.relationships.values()),
+    entities: Array.from(relGroup.entities.values())
+  }));
 }
