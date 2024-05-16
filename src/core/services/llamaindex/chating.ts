@@ -93,12 +93,7 @@ export class LlamaindexChatService extends AppChatService {
         history: options.history,
         userInput: options.userInput
       },
-      metadata: {
-        chat_id: chat.id,
-        chat_slug: chat.url_key,
-        chat_engine_id: chat.engine,
-        chat_engine_options: engineOptions,
-      },
+      metadata: engineOptions,
     });
 
     yield {
