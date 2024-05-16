@@ -89,7 +89,6 @@ export class LlamaindexChatService extends AppChatService {
     // Init tracing.
     const trace = this.langfuse?.trace({
       name: 'chatting',
-      userId: options.userId,
       input: {
         history: options.history,
         userInput: options.userInput
@@ -133,7 +132,7 @@ export class LlamaindexChatService extends AppChatService {
     const allSources = new Map<string, AppChatStreamSource>();
 
     // Knowledge graph retriever.
-    let knowledgeGraphContext: Record<string, any> = {};
+    let kgContext: Record<string, any> = {};
     if (graphRetrieverConfig?.enable) {
       yield {
         status: AppChatStreamState.SEARCHING,
@@ -148,19 +147,25 @@ export class LlamaindexChatService extends AppChatService {
         name: "knowledge-graph-retrieval",
         input: options.userInput,
       });
-      knowledgeGraphContext = await kgClient.search(options.userInput, [], true);
-      knowledgeGraphContext['document_relationships'] = await groupDocumentRelationship(
-        knowledgeGraphContext['relationships'] ?? [],
-        knowledgeGraphContext['entities'] ?? []
+      kgContext = await kgClient.search(options.userInput, [], true);
+      kgContext['document_relationships'] = await groupDocumentRelationship(
+        kgContext['relationships'] ?? [],
+        kgContext['entities'] ?? []
       );
       kgSearchSpan?.end({
-        output: knowledgeGraphContext,
+        output: kgContext,
       });
 
-      knowledgeGraphContext['document_relationships'] = this.rerankDocumentRelationships(knowledgeGraphContext['document_relationships'], options.userInput, 5, serviceContext, trace);
+      kgContext['document_relationships'] = this.rerankDocumentRelationships(
+        kgContext['document_relationships'],
+        options.userInput,
+        10,
+        serviceContext,
+        trace
+      );
 
       // Found the document name by link.
-      const sourceLinks = (knowledgeGraphContext['chunks'] ?? []).map((chunk: any) => chunk.link);
+      const sourceLinks = (kgContext['chunks'] ?? []).map((chunk: any) => chunk.link);
       const documents = await getDocumentsBySourceUris(sourceLinks);
       const documentMap = new Map(documents.map(document => [document.source_uri, document]));
       for (let sourceLink of sourceLinks) {
@@ -250,8 +255,8 @@ export class LlamaindexChatService extends AppChatService {
 
     // Build Query Engine.
     const { textQa, refine } = prompts;
-    const textQaPrompt = this.getPrompt(textQa, defaultTextQaPrompt, knowledgeGraphContext);
-    const refinePrompt = this.getPrompt(refine, defaultRefinePrompt, knowledgeGraphContext);
+    const textQaPrompt = this.getPrompt(textQa, defaultTextQaPrompt, kgContext);
+    const refinePrompt = this.getPrompt(refine, defaultRefinePrompt, kgContext);
     const responseBuilder = new CompactAndRefine(serviceContext, textQaPrompt, refinePrompt);
     const responseSynthesizer = new ResponseSynthesizer({
       serviceContext,
@@ -266,7 +271,7 @@ export class LlamaindexChatService extends AppChatService {
       content: message.content,
       additionalKwargs: {},
     }));
-    const condenseMessagePrompt = this.getPrompt(prompts?.condenseQuestion, defaultCondenseQuestionPrompt, knowledgeGraphContext);
+    const condenseMessagePrompt = this.getPrompt(prompts?.condenseQuestion, defaultCondenseQuestionPrompt, kgContext);
     const chatEngine = new CondenseQuestionChatEngine({
       serviceContext,
       queryEngine,
@@ -320,7 +325,13 @@ export class LlamaindexChatService extends AppChatService {
     await this.langfuse?.flushAsync();
   }
 
-  async rerankDocumentRelationships (chunks: DocumentKGChunk[], query: string, top_k: number = 5, serviceContext: ServiceContext, trace?: LangfuseTraceClient): Promise<DocumentKGChunk[]> {
+  async rerankDocumentRelationships (
+    chunks: DocumentKGChunk[],
+    query: string,
+    top_k: number = 10,
+    serviceContext: ServiceContext,
+    trace?: LangfuseTraceClient
+  ): Promise<DocumentKGChunk[]> {
     console.log(`[Graph-Retrieving] Start knowledge graph reranking for query "${query}".`, { chunks: chunks.length, top_k });
     const rerankSpan = trace?.span({
       name: 'knowledge-graph-reranking',
