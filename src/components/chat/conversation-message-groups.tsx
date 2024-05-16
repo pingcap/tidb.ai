@@ -51,17 +51,30 @@ function ConversationMessageGroup ({ group }: { group: ConversationMessageGroupP
             <span className="font-medium">Tracing URL: </span>
             <a target="_blank" href={group.assistantAnnotation.traceURL}>{group.assistantAnnotation.traceURL}</a>
           </div>
+          <div className="line-clamp-1 text-xs p-y-4">
+            <span className="font-medium">Graph URL: </span>
+            <a target="_blank" href={traceUrlToGraphUrl(group.assistantAnnotation.traceURL)}>{traceUrlToGraphUrl(group.assistantAnnotation.traceURL)}</a>
+          </div>
         </CollapsibleContent>
       </Collapsible>
 
-      <MessageContextSources group={group}/>
+      <MessageContextSources group={group} />
       <section className="space-y-2">
-        <MessageHeading/>
-        <MessageError group={group}/>
-          <MessageContent group={group}/>
-          {!group.finished && <MessageAnnotation group={group}/>}
+        <MessageHeading />
+        <MessageError group={group} />
+        <MessageContent group={group} />
+        {!group.finished && <MessageAnnotation group={group}/>}
         </section>
       <MessageOperations group={group}/>
     </section>
 );
+}
+
+function traceUrlToGraphUrl (url: string | undefined) {
+  if (!url) {
+    return undefined;
+  }
+  const tokens = url.split('/');
+  const traceId = tokens[tokens.length - 1];
+  return `https://https://tidb-ai-graph-editor.vercel.app/?langfuse_trace=${traceId}`;
 }
