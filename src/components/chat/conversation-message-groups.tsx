@@ -76,5 +76,5 @@ function traceUrlToGraphUrl (url: string | undefined) {
   }
   const tokens = url.split('/');
   const traceId = tokens[tokens.length - 1];
-  return `https://https://tidb-ai-graph-editor.vercel.app/?langfuse_trace=${traceId}`;
+  return `https://tidb-ai-graph-editor.vercel.app/?langfuse_trace=${traceId}`;
 }
