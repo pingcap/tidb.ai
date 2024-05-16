@@ -4,7 +4,8 @@ import pdfLoaderMeta, { type PdfLoaderOptions } from './meta';
 
 export default class PdfLoader extends rag.Loader<PdfLoaderOptions, {}> {
   async load (buffer: Buffer) {
-    const Pdf = await import('pdfjs-dist');
+    const Pdf = await import('pdfjs-dist/build/pdf.mjs');
+    await import('pdfjs-dist/build/pdf.worker.mjs');
 
     const document = await Pdf.getDocument(buffer.buffer).promise;
     const content: string[] = [];
