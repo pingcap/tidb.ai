@@ -148,7 +148,7 @@ export class LlamaindexChatService extends AppChatService {
         name: "knowledge-graph-retrieval",
         input: options.userInput,
       });
-      knowledgeGraphContext = await kgClient.search(options.userInput);
+      knowledgeGraphContext = await kgClient.search(options.userInput, [], true);
       knowledgeGraphContext['document_relationships'] = await groupDocumentRelationship(
         knowledgeGraphContext['relationships'] ?? [],
         knowledgeGraphContext['entities'] ?? []
