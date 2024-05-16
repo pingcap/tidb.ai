@@ -93,7 +93,12 @@ export class LlamaindexChatService extends AppChatService {
         history: options.history,
         userInput: options.userInput
       },
-      metadata: engineOptions,
+      metadata: {
+        chat_id: chat.id,
+        chat_slug: chat.url_key,
+        chat_engine_id: chat.engine,
+        chat_engine_options: engineOptions,
+      },
     });
 
     yield {
@@ -151,7 +156,7 @@ export class LlamaindexChatService extends AppChatService {
         output: kgContext,
       });
 
-      kgContext['document_relationships'] = this.rerankDocumentRelationships(
+      kgContext['document_relationships'] = await this.rerankDocumentRelationships(
         kgContext['document_relationships'],
         options.userInput,
         10,
@@ -330,10 +335,7 @@ export class LlamaindexChatService extends AppChatService {
     console.log(`[Graph-Retrieving] Start knowledge graph reranking for query "${query}".`, { chunks: chunks.length, top_k });
     const rerankSpan = trace?.span({
       name: 'knowledge-graph-reranking',
-      input: {
-        query,
-        chunks
-      }
+      input: query
     });
 
     const rerankStart = DateTime.now();
@@ -349,7 +351,7 @@ Relationships extract from the document:
 ${chunk.relationships.map(rel => rel.description).join('\n')}
 
 Entities extract from the document:
-${chunk.entities.map(ent => `${ent.name}:${ent.description}`).join('\n')}
+${chunk.entities.map(ent => `${ent.name}: ${ent.description}`).join('\n')}
           `,
       })
     }));
@@ -477,11 +479,6 @@ async function groupDocumentRelationship(relationships: Relationship[], entities
   }> = new Map();
 
   for (let relationship of relationships) {
-    const sourceEntity = entityMap.get(relationship.source_entity_id);
-    const targetEntity = entityMap.get(relationship.target_entity_id);
-    relationship.target_entity = targetEntity;
-    relationship.source_entity = sourceEntity;
-
     const docId = relationship?.meta?.doc_id || 'default';
     if (!documentRelationshipsMap.has(docId)) {
       documentRelationshipsMap.set(docId, {
@@ -494,10 +491,12 @@ async function groupDocumentRelationship(relationships: Relationship[], entities
     const relGroup = documentRelationshipsMap.get(docId)!;
     relGroup?.relationships.set(relationship.id, relationship);
 
+    const sourceEntity = entityMap.get(relationship.source_entity_id);
     if (sourceEntity) {
       relGroup?.entities.set(relationship.source_entity_id, sourceEntity);
     }
 
+    const targetEntity = entityMap.get(relationship.target_entity_id);
     if (targetEntity) {
       relGroup?.entities.set(relationship.target_entity_id, targetEntity);
     }

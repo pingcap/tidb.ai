@@ -16,9 +16,7 @@ export interface Entity {
 export interface Relationship {
   id: number;
   source_entity_id: number;
-  source_entity?: Entity;
   target_entity_id: number;
-  target_entity?: Entity;
   description: string;
   meta: Record<string, any> & { "doc_id": string } | null;
 }
