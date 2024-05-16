@@ -1,4 +1,4 @@
-import {z} from "zod";
+import { z } from 'zod';
 
 export const ImportDocumentsFromUrlsOptionsSchema = z.object({
   urls: z.string()
@@ -6,5 +6,6 @@ export const ImportDocumentsFromUrlsOptionsSchema = z.object({
     .array()
     .min(1, 'Must provide at least one URL for importing.')
 });
+
 
 export type ImportDocumentsFromUrlsOptions = z.infer<typeof ImportDocumentsFromUrlsOptionsSchema>;
