@@ -149,7 +149,7 @@ const importMethods = [
           return <FormItem>
             <Input
               type="file"
-              accept="text/plain, text/html, text/markdown"
+              accept="text/plain, text/html, text/markdown, application/pdf"
               {...field}
               value={undefined}
               onChange={event => {
