@@ -24,7 +24,7 @@ export class KnowledgeGraphIndexProvider extends DocumentIndexProvider {
     });
 
     await Promise.all(nodes.map(async (node) => {
-      const uri = node.metadata?.url;
+      const uri = document.source_uri;
       const text = node.getText();
       await kgClient.buildIndex({
         uri,
