@@ -2,7 +2,7 @@
 
 import { useIndex } from '@/app/(main)/(admin)/indexes/[id]/context';
 import { Button } from '@/components/ui/button';
-import type { IndexConfig } from "../../../../../core/schema/indexes";
+import type { IndexConfig } from "@/core/schema/indexes";
 import { cn } from '@/lib/utils';
 import { useRouter, useSelectedLayoutSegment } from 'next/navigation';
 

@@ -5,7 +5,7 @@ import { EmbeddingConfigViewer } from '@/components/llamaindex/config/EmbeddingC
 import { LlmConfigViewer } from '@/components/llamaindex/config/LLMConfigViewer';
 import { ParserConfigViewer } from '@/components/llamaindex/config/ParserConfigViewer';
 import { ReaderConfigViewer } from '@/components/llamaindex/config/ReaderConfigViewer';
-import type {IndexConfig} from "../../../../../../core/schema/indexes";
+import type {IndexConfig} from "@/core/schema/indexes";
 import type { PageProps } from '@/lib/next/types';
 
 export default function Page ({ params }: PageProps<{ part: string }>) {
