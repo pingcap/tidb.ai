@@ -8,7 +8,7 @@ export const POST = defineHandler({
 }, async ({ request }) => {
   const form = await request.formData();
   const file = form.get('file');
-  if (!file || !(file instanceof File)) {
+  if (!file || typeof file !== 'object') {
     throw new Error('file needed');
   }
 
