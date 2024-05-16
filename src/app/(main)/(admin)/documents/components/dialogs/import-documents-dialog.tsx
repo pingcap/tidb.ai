@@ -73,7 +73,7 @@ export function ImportDocumentsDialog (props: ImportDocumentsDialogProps) {
         <Tabs value={methodType} onValueChange={setMethodType}>
           <TabsList>
             {importMethods.map((method) => (
-              <TabsTrigger value={method.type}>{method.title}</TabsTrigger>
+              <TabsTrigger key={method.type} value={method.type}>{method.title}</TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
