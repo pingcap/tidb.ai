@@ -335,7 +335,10 @@ export class LlamaindexChatService extends AppChatService {
     console.log(`[Graph-Retrieving] Start knowledge graph reranking for query "${query}".`, { chunks: chunks.length, top_k });
     const rerankSpan = trace?.span({
       name: 'knowledge-graph-reranking',
-      input: query
+      input: {
+        query,
+        chunks_length: chunks.length,
+      }
     });
 
     const rerankStart = DateTime.now();
