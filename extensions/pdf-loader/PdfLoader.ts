@@ -8,7 +8,7 @@ export default class PdfLoader extends rag.Loader<PdfLoaderOptions, {}> {
     await import('pdfjs-dist/build/pdf.worker.mjs');
 
     const document = await Pdf.getDocument(buffer.buffer).promise;
-    const content: string[] = [];
+    let content: string = '';
 
     for (let i = 1; i <= document.numPages; i++) {
       const page = await document.getPage(i);
@@ -16,13 +16,16 @@ export default class PdfLoader extends rag.Loader<PdfLoaderOptions, {}> {
 
       for (let item of textContent.items) {
         if ('str' in item) {
-          content.push(item.str);
+          content += item.str;
+          if (item.hasEOL) {
+            content += '\n';
+          }
         }
       }
     }
 
     return {
-      content,
+      content: [content],
       hash: md5(buffer),
       metadata: {},
     };
