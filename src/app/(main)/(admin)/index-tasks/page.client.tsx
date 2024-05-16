@@ -36,6 +36,7 @@ const datetime = (cell: CellContext<any, any>) => <time>{cell.getValue() ? forma
 const helper = createColumnHelper<DocumentIndexTask>();
 const columns = [
   helper.accessor('id', { header: 'Task ID' }),
+  helper.accessor('index_id', { header: 'Index ID' }),
   helper.accessor('status', { cell: taskStatusCell }),
   helper.accessor('type', {}),
   helper.accessor('document_id', {}),

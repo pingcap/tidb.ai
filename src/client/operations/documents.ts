@@ -1,5 +1,5 @@
-import {ImportDocumentsFromUrlsOptions} from "@/app/api/v1/documents/import/from/urls/schema";
-import {BuildDocumentIndexOptions} from "@/app/api/v1/documents/index/schema";
+import { ImportDocumentsFromUrlsOptions } from '@/app/api/v1/documents/import/from/urls/schema';
+import { BuildDocumentIndexOptions } from '@/app/api/v1/documents/index/schema';
 import { handleErrors } from '@/lib/fetch';
 import { withToast } from '@/lib/toast';
 
@@ -16,15 +16,14 @@ export const importWebsite = withToast(
         'Content-Type': 'text/uri-list',
       },
     }).then(handleErrors);
-  }
+  },
 );
 
 export type UploadFileFormValues = {
   file: File;
   sourceUri: string;
 };
-
-export const uploadFile = withToast(
+withToast(
   async ({ file, sourceUri }: UploadFileFormValues) => {
     const formData = new FormData();
     formData.set('file', file);
@@ -34,7 +33,7 @@ export const uploadFile = withToast(
       method: 'put',
       body: formData,
     }).then(handleErrors);
-  }
+  },
 );
 
 export const buildDocumentIndex = withToast(
@@ -49,10 +48,10 @@ export const buildDocumentIndex = withToast(
         indexName,
       }),
     }).then(handleErrors);
-  }
+  },
 );
 
-export const importDocuments = withToast(
+export const importDocumentsFromUrls = withToast(
   async ({ urls }: ImportDocumentsFromUrlsOptions) => {
     await fetch('/api/v1/documents/import/from/urls', {
       method: 'post',
@@ -60,9 +59,21 @@ export const importDocuments = withToast(
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        urls
+        urls,
       }),
     }).then(handleErrors);
-  }
+  },
+);
+
+export const importDocumentFromFile = withToast(
+  async ({ file }: { file: File }) => {
+    const formData = new FormData();
+    formData.set('file', file);
+
+    await fetch('/api/v1/documents/import/from/file', {
+      method: 'post',
+      body: formData,
+    }).then(handleErrors);
+  },
 );
 

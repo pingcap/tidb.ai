@@ -60,16 +60,20 @@ export abstract class DocumentImportService extends AppFlowBaseService {
     });
   }
 
-  static async createTasksByURLs (urls: string[]) {
+  static async createTasksByURLs (urls: string[], type = 'html') {
     return await Promise.all(urls.map(async (url) => {
       return await createDocumentImportTask({
         status: 'CREATED',
-        type: 'html',
+        type,
         url: url,
         source_id: null,
         created_at: new Date(),
       });
     }));
+  }
+
+  static async createTaskFromRaw (content: string, mime: string) {
+
   }
 
   static async createTaskFromTask (taskId: number) {
