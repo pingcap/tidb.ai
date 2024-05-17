@@ -178,8 +178,13 @@ export class LlamaindexChatService extends AppChatService {
       }
 
       kgContext = result;
+      // Notice: Limit to avoid exceeding the maximum size of the trace.
       kgRetrievalSpan?.end({
-        output: result
+        output: {
+          entities: result.entities,
+          relationships: result.relationships,
+          chunks: result.chunks
+        }
       });
 
       yield {
@@ -436,11 +441,7 @@ ${dr.entities.map(ent => `- ${ent.name}: ${ent.description}`).join('\n')}
       name: 'knowledge-graph-rerank',
       input: {
         query,
-        document_relationships_size: documentRelationships.length,
-        nodes: nodes.map(node => ({
-          id: node.node.id_,
-          text: node.node.text,
-        }))
+        document_relationships_size: documentRelationships.length
       }
     });
 
