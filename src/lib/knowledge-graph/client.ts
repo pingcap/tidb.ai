@@ -1,7 +1,7 @@
 import {getEnv} from "@llamaindex/env";
 import {DateTime} from "luxon";
 
-export interface DocumentChunk {
+export interface KGDocumentChunk {
   link: string,
   text: string
 }
@@ -24,7 +24,7 @@ export interface Relationship {
 export interface SearchResult {
   entities: Entity[];
   relationships: Relationship[];
-  chunks: DocumentChunk[];
+  chunks: KGDocumentChunk[];
 }
 
 export interface DocumentInfo {

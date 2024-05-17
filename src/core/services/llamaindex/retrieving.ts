@@ -101,7 +101,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     try {
       result = await this.rerank(chunks, query, top_k, this.rerankerConfig, retrieveSpan);
     } catch (err) {
-      console.warn('[Retrieving] Failed to rerank, fallback to slice top_k chunks directly:', err);
+      console.warn(`[Retrieving] Failed to rerank, fallback to slice ${top_k} chunks directly:`, err);
       return chunks.slice(0, top_k);
     }
 
@@ -203,21 +203,34 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     config: NonNullable<AppRetrieveServiceOptions['reranker']>,
     trace?: LangfuseTraceClient
   ) {
-    console.log(`[Retrieving] Start reranking for query "${query}".`, { chunks: chunks.length, top_k });
+    const externalChunksSize = this.externalChunks?.length ?? 0;
+    console.log(`[Retrieving] Start reranking for query "${query}".`, {
+      chunks: chunks.length,
+      externalChunksSize,
+      top_k
+    });
     const rerankSpan = trace?.span({
       name: 'reranking',
       input: {
         query,
-        chunks
+        chunks,
+        externalChunksSize,
       },
       metadata: config
     });
 
-    const rerankStart = DateTime.now();
     const reranker = await buildReranker(this.serviceContext, config, top_k);
+
+    // Merge external chunks if provided.
+    if (this.externalChunks) {
+      chunks.push(...this.externalChunks);
+    }
+
     const chunksMap = new Map(chunks.map(chunk => [chunk.document_chunk_node_id, chunk]));
-    const nodesWithScore = await reranker.postprocessNodes(chunks.map(chunk => ({ score: chunk.relevance_score, node: transform(chunk) })), query);
-    const rerankDuration = DateTime.now().diff(rerankStart, 'milliseconds').milliseconds;
+    const start = DateTime.now();
+    const nodes = chunks.map(chunk => ({ score: chunk.relevance_score, node: transform(chunk) }));
+    const nodesWithScore = await reranker.postprocessNodes(nodes, query);
+    const duration = DateTime.now().diff(start, 'milliseconds').milliseconds;
 
     const result = nodesWithScore.map((nodeWithScore, index, total) => ({
       ...chunksMap.get(nodeWithScore.node.id_ as UUID)!,
@@ -227,7 +240,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     rerankSpan?.end({
       output: result
     });
-    console.log(`[Retrieving] Finish reranking, take ${rerankDuration} ms.`);
+    console.log(`[Retrieving] Finish reranking, take ${duration} ms.`);
     return result;
   }
 

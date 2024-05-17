@@ -4,9 +4,9 @@ import {ChatEngineRequiredOptions} from '@/core/repositories/chat_engine';
 import {getDocumentsBySourceUris} from "@/core/repositories/document";
 import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/services/chating';
 import {LlamaindexRetrieverWrapper, LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
-import type {RetrieveOptions} from "@/core/services/retrieving";
+import {RetrievedChunk, RetrieveOptions} from "@/core/services/retrieving";
 import {type AppChatStreamSource, AppChatStreamState} from '@/lib/ai/AppChatStream';
-import {DocumentChunk, Entity, KnowledgeGraphClient, Relationship, SearchResult} from "@/lib/knowledge-graph/client";
+import {KGDocumentChunk, Entity, KnowledgeGraphClient, Relationship, SearchResult} from "@/lib/knowledge-graph/client";
 import {uuidToBin} from '@/lib/kysely';
 import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
 import {buildLLM} from "@/lib/llamaindex/builders/llm";
@@ -30,7 +30,7 @@ import {
   PromptHelper, ServiceContext, TextNode
 } from 'llamaindex';
 import {DateTime} from 'luxon';
-import {UUID} from 'node:crypto';
+import {randomUUID, UUID} from 'node:crypto';
 
 interface SourceWithNodeId extends AppChatStreamSource {
   id: string;
@@ -138,6 +138,7 @@ export class LlamaindexChatService extends AppChatService {
     // Build knowledge graph based retriever.
     // TODO: refactor this part to KnowledgeGraphRetrieveService in the services/knowledge-graph/retrieving.ts
     let kgContext: Record<string, any> | undefined;
+    let externalChunks: RetrievedChunk[] = [];
     if (graphRetrieverConfig?.enable) {
       console.log('[KG-Retrieving] Start knowledge graph retrieving ...');
 
@@ -197,9 +198,16 @@ export class LlamaindexChatService extends AppChatService {
 
       console.log('[KG-Retrieving] Finish knowledge graph retrieving.');
 
-      // Append sources from knowledge graph retrieving.
-      const links = result.chunks.map((chunk: DocumentChunk) => chunk.link);
-      await this.appendSourceByLinks(allSources, links);
+      // Reranking later.
+      externalChunks = result.chunks.map((chunk: KGDocumentChunk) => ({
+        document_chunk_node_id: randomUUID(),
+        document_node_id: randomUUID(),
+        document_id: randomUUID(),
+        text: chunk.text,
+        metadata: {},
+        relationships: {},
+        relevance_score: 0,
+      } as unknown as RetrievedChunk));
     }
 
     // Build vector search based retriever.
@@ -210,6 +218,7 @@ export class LlamaindexChatService extends AppChatService {
       serviceContext,
       reranker: rerankerConfig,
       metadata_filter: metadataFilterConfig,
+      externalChunks: externalChunks,
       langfuse: this.langfuse
     });
     const { search_top_k, top_k } = retrieverConfig;

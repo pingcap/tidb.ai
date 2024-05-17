@@ -14,7 +14,7 @@ import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
 import {MetadataFilterConfig, metadataFilterSchema} from "@/lib/llamaindex/config/metadata-filter";
 import {RerankerConfig} from "@/lib/llamaindex/config/reranker";
 import {LangfuseTraceClient} from "langfuse";
-import {ServiceContext} from "llamaindex";
+import {ServiceContext, TextNode} from "llamaindex";
 import {DateTime} from "luxon";
 import type {UUID} from 'node:crypto';
 import z from "zod";
@@ -60,18 +60,21 @@ export interface AppRetrieveServiceOptions extends AppIndexBaseServiceOptions {
   serviceContext: ServiceContext;
   reranker?: RerankerConfig;
   metadata_filter?: MetadataFilterConfig;
+  externalChunks?: RetrievedChunk[]
 }
 
 export abstract class AppRetrieveService extends AppIndexBaseService {
   protected readonly serviceContext: ServiceContext;
   protected readonly rerankerConfig?: RerankerConfig;
   protected readonly metadataFilterConfig?: MetadataFilterConfig;
+  protected readonly externalChunks?: RetrievedChunk[];
 
   constructor ({ reranker, metadata_filter, serviceContext, ...options }: AppRetrieveServiceOptions) {
     super(options);
     this.rerankerConfig = reranker;
     this.metadataFilterConfig = metadata_filter;
     this.serviceContext = serviceContext;
+    this.externalChunks = options.externalChunks ?? [];
   }
 
   async retrieve (options: RetrieveOptions, callbacks?: RetrieveCallbacks, trace?: LangfuseTraceClient): Promise<RetrievedChunk[]> {
