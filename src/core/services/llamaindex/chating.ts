@@ -407,49 +407,59 @@ export class LlamaindexChatService extends AppChatService {
   }
 
   async rerankDocumentRelationships (
-    chunks: DocumentRelationship[],
+    documentRelationships: DocumentRelationship[],
     query: string,
-    top_k: number = 10,
+    topK: number = 10,
     serviceContext: ServiceContext,
     trace?: LangfuseTraceClient
   ): Promise<DocumentRelationship[]> {
-    console.log(`[KG-Retrieving] Start knowledge graph reranking for query "${query}".`, { chunks: chunks.length, top_k });
+    console.log(`[KG-Retrieving] Start knowledge graph reranking for query "${query}".`, { documentRelationship: documentRelationships.length, topK: topK });
+
+    // Build reranker.
+    const reranker = await buildReranker(serviceContext, { provider: RerankerProvider.JINAAI }, topK);
+
+    // Transform document relationships to TextNode.
+    const docIdRelationshipsMap = new Map(documentRelationships.map(dr => [dr.docId, dr]));
+    const nodes = documentRelationships.map(dr => ({
+      node: new TextNode({
+        id_: dr.docId,
+        text: `
+Document URL: ${dr.docId}
+
+Relationships extract from the document: 
+${dr.relationships.map(rel => rel.description).join('\n')}
+
+Entities extract from the document:
+${dr.entities.map(ent => `- ${ent.name}: ${ent.description}`).join('\n')}
+          `,
+      })
+    }));
+
     const rerankSpan = trace?.span({
       name: 'knowledge-graph-reranking',
       input: {
         query,
-        chunks_length: chunks.length,
+        document_relationships_size: documentRelationships.length,
+        nodes: nodes.map(node => ({
+          id: node.node.id_,
+          text: node.node.text,
+        }))
       }
     });
 
+    // Reranking.
     const start = DateTime.now();
-    const reranker = await buildReranker(serviceContext, { provider: RerankerProvider.JINAAI }, top_k);
-    const chunksMap = new Map(chunks.map(chunk => [chunk.docId, chunk]));
-    const nodes = chunks.map(chunk => ({
-      node: new TextNode({
-        id_: chunk.docId,
-        text: `
-Document URL: ${chunk.docId}
-
-Relationships extract from the document: 
-${chunk.relationships.map(rel => rel.description).join('\n')}
-
-Entities extract from the document:
-${chunk.entities.map(ent => `${ent.name}: ${ent.description}`).join('\n')}
-          `,
-      })
-    }));
     const nodesWithScore = await reranker.postprocessNodes(nodes, query);
-    const duration = DateTime.now().diff(start, 'milliseconds').milliseconds;
-
     const result = nodesWithScore.map((nodeWithScore, index, total) => ({
-      ...chunksMap.get(nodeWithScore.node.id_)!,
-      relevance_score: nodeWithScore.score ?? (total.length - index + top_k * 10),
+      ...docIdRelationshipsMap.get(nodeWithScore.node.id_)!,
+      relevance_score: nodeWithScore.score ?? (total.length - index + topK * 10),
     }));
+    const duration = DateTime.now().diff(start, 'milliseconds').milliseconds;
 
     rerankSpan?.end({
       output: result
     });
+
     console.log(`[KG-Retrieving] Finish knowledge graph reranking, take ${duration} ms.`);
     return result;
   }
