@@ -6,8 +6,6 @@ import {KnowledgeGraphClient} from "@/lib/knowledge-graph/client";
 import {fromFlowReaders} from "@/lib/llamaindex/builders/reader";
 import {baseRegistry} from "@/rag-spec/base";
 import {getFlow} from "@/rag-spec/createFlow";
-import {SentenceSplitter, SimpleNodeParser} from "llamaindex";
-
 
 export class KnowledgeGraphIndexProvider extends DocumentIndexProvider {
   async process (task: DocumentIndexTask, document: Document, index: Index, mutableInfo: DocumentIndexTaskInfo): Promise<DocumentIndexTaskResult> {

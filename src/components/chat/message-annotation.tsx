@@ -11,6 +11,9 @@ export function MessageAnnotation ({ group }: { group: ConversationMessageGroupP
     case 'CREATING':
       text = assistantAnnotation.stateMessage || 'Preparing chat...';
       break;
+    case 'KG_RETRIEVING':
+      text = assistantAnnotation.stateMessage || 'Retrieving knowledge...';
+      break;
     case 'SEARCHING':
       text = assistantAnnotation.stateMessage || 'Searching...';
       break;

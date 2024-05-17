@@ -28,10 +28,10 @@ import type {UUID} from 'node:crypto';
 export class LlamaindexRetrieveService extends AppRetrieveService {
   protected async run (
     retrieve: Retrieve,
-    retrieveOptions: RetrieveOptions,
+    options: RetrieveOptions,
     trace?: LangfuseTraceClient
   ): Promise<RetrievedChunk[]> {
-    const { query, top_k = 10, search_top_k = 100, filters} = retrieveOptions;
+    const { query, top_k = 10, search_top_k = 100, filters} = options;
 
     if (this.index.config.provider !== 'llamaindex') {
       throw new Error(`${this.index.name} is not a llamaindex index`);
@@ -42,20 +42,21 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     if (!providedTrace) {
       trace = this.langfuse?.trace({
         name: 'retrieving',
-        input: retrieveOptions.query,
+        input: options.query,
         metadata: {
-          retrieveId: retrieve.id,
-          ...retrieveOptions
+          retrieve_id: retrieve.id,
+          top_k: options.top_k,
+          search_top_k: options.search_top_k,
         },
       });
     }
 
     const retrieveSpan = trace?.span({
       name: 'retrieving',
-      input: retrieveOptions.query,
+      input: options.query,
       metadata: {
         retrieveId: retrieve.id,
-        ...retrieveOptions
+        ...options
       }
     });
 
@@ -76,7 +77,11 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
         this.metadataFilterConfig.options = Object.assign(this.metadataFilterConfig.options ?? {}, { filters })
       }
 
-      chunks = await this.metadataPostFilter(chunks, query, metadataFilterConfig, retrieveSpan);
+      try {
+        chunks = await this.metadataPostFilter(chunks, query, metadataFilterConfig, retrieveSpan);
+      } catch (err) {
+        console.warn('[Retrieving] Failed to finished metadata filter, fallback to use all chunks:', err);
+      }
     }
 
     // If no reranker is provided, return the top_k chunks directly.
@@ -91,7 +96,14 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     // Reranking.
     this.emit('start-rerank', retrieve.id, chunks);
     await this.startRerank(retrieve);
-    const result = await this.rerank(chunks, query, top_k, this.rerankerConfig, retrieveSpan);
+
+    let result;
+    try {
+      result = await this.rerank(chunks, query, top_k, this.rerankerConfig, retrieveSpan);
+    } catch (err) {
+      console.warn('[Retrieving] Failed to rerank, fallback to slice top_k chunks directly:', err);
+      return chunks.slice(0, top_k);
+    }
 
     retrieveSpan?.end({
       output: result
