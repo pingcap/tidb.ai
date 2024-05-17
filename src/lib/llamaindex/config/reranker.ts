@@ -8,7 +8,7 @@ export enum RerankerProvider {
 
 export const CohereRerankerOptions = z.object({
   apiKey: z.string().optional(),
-  model: z.string(),
+  model: z.string().optional()
 });
 
 export const CohereRerankerConfig = z.object({
@@ -17,7 +17,7 @@ export const CohereRerankerConfig = z.object({
 });
 
 export const JinaAIRerankerOptions = z.object({
-  model: z.string(),
+  model: z.string().optional(),
 });
 
 export const JinaAIRerankerConfig = z.object({

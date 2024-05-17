@@ -44,7 +44,7 @@ interface DocumentRelationship {
 }
 
 interface KGRetrievalResult extends SearchResult {
-  document_relationships: DocumentRelationship[];
+  document_relationships?: DocumentRelationship[];
 }
 
 const DEFAULT_CHAT_ENGINE_OPTIONS = {
@@ -139,10 +139,10 @@ export class LlamaindexChatService extends AppChatService {
     // TODO: refactor this part to KnowledgeGraphRetrieveService in the services/knowledge-graph/retrieving.ts
     let kgContext: Record<string, any> | undefined;
     if (graphRetrieverConfig?.enable) {
-      console.log('[KG-Receiving] Start knowledge graph retrieving ...');
+      console.log('[KG-Retrieving] Start knowledge graph retrieving ...');
 
       yield {
-        status: AppChatStreamState.KG_SEARCHING,
+        status: AppChatStreamState.KG_RETRIEVING,
         traceURL: trace?.getTraceUrl(),
         sources: Array.from(allSources.values()),
         statusMessage: 'Start knowledge graph searching ...',
@@ -157,42 +157,44 @@ export class LlamaindexChatService extends AppChatService {
       });
 
       // Knowledge graph searching.
-      kgContext = await this.searchKnowledgeGraph(kgClient, options.userInput, kgRetrievalSpan);
+      const result: KGRetrievalResult = await this.searchKnowledgeGraph(kgClient, options.userInput, kgRetrievalSpan);
 
-      yield {
-        status: AppChatStreamState.KG_RERANKING,
-        traceURL: trace?.getTraceUrl(),
-        sources: Array.from(allSources.values()),
-        statusMessage: 'Start knowledge graph reranking ...',
-        content: '',
-      };
+      // Grouping entities and relationships.
+      result.document_relationships = await this.groupDocumentRelationships(result.relationships, result.entities);
 
-      // Knowledge graph reranking.
-      kgContext.document_relationships = await this.rerankDocumentRelationships(
-        kgContext.document_relationships,
-        options.userInput,
-        retrieverConfig.top_k,
-        serviceContext,
-        kgRetrievalSpan
-      );
+      if (graphRetrieverConfig.reranker?.provider) {
+        // Knowledge graph reranking.
+        result.document_relationships = await this.rerankDocumentRelationships(
+          result.document_relationships,
+          options.userInput,
+          retrieverConfig.top_k,
+          serviceContext,
+          kgRetrievalSpan
+        );
 
-      // Append sources from knowledge graph retrieving.
-      const links = kgContext.chunks.map((chunk: DocumentChunk) => chunk.link);
-      await this.appendSourceByLinks(allSources, links);
+        // Flatten relationships and entities.
+        result.relationships = result.document_relationships.map(dr => dr.relationships).flat();
+        result.entities = result.document_relationships.map(dr => dr.entities).flat();
+      }
 
+      kgContext = result;
       kgRetrievalSpan?.end({
-        output: kgContext
+        output: result
       });
 
       yield {
-        status: AppChatStreamState.KG_RERANKING,
+        status: AppChatStreamState.KG_RETRIEVING,
         traceURL: trace?.getTraceUrl(),
         sources: Array.from(allSources.values()),
         statusMessage: 'Knowledge graph retrieving completed.',
         content: '',
       };
 
-      console.log('[KG-Receiving] Finish knowledge graph retrieving.');
+      console.log('[KG-Retrieving] Finish knowledge graph retrieving.');
+
+      // Append sources from knowledge graph retrieving.
+      const links = result.chunks.map((chunk: DocumentChunk) => chunk.link);
+      await this.appendSourceByLinks(allSources, links);
     }
 
     // Build vector search based retriever.
@@ -338,7 +340,7 @@ export class LlamaindexChatService extends AppChatService {
     await this.langfuse?.flushAsync();
   }
 
-  async searchKnowledgeGraph (kgClient: KnowledgeGraphClient, query: string, trace?: LangfuseTraceClient): Promise<KGRetrievalResult> {
+  async searchKnowledgeGraph (kgClient: KnowledgeGraphClient, query: string, trace?: LangfuseTraceClient): Promise<SearchResult> {
     console.log(`[KG-Retrieving] Start knowledge graph searching for query "${query}".`);
     const kgSearchSpan = trace?.span({
       name: "knowledge-graph-search",
@@ -348,17 +350,12 @@ export class LlamaindexChatService extends AppChatService {
     const start = DateTime.now();
     const searchResult = await kgClient.search(query, [], true);
     const duration = DateTime.now().diff(start, 'milliseconds').milliseconds;
-    const document_relationships = await this.groupDocumentRelationships(searchResult.relationships, searchResult.entities);
-    const kgSearchResult = {
-      ...searchResult,
-      document_relationships,
-    }
 
     kgSearchSpan?.end({
-      output: kgSearchResult,
+      output: searchResult,
     });
     console.log(`[KG-Retrieving] Finish knowledge graph searching, take ${duration} ms.`);
-    return kgSearchResult;
+    return searchResult;
   }
 
   async groupDocumentRelationships (
