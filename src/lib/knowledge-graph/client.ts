@@ -44,32 +44,22 @@ export class KnowledgeGraphClient {
   }
 
   async search(query: string, embedding?: number[], include_meta: boolean = false): Promise<SearchResult> {
-    try {
-      const url = `${this.baseURL}/api/search`;
-      const start = DateTime.now();
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query,
-          embedding,
-          include_meta
-        })
-      });
-      const data = await res.json();
-      const end = DateTime.now();
-      const duration = end.diff(start, 'seconds').seconds;
-      const { entities = [], relationships = [], chunks = [] } = data;
-      console.log(
-        `[Chatting] Finished knowledge graph searching, take ${duration} seconds, got ${entities.length} entities, ${relationships.length} relationships, ${chunks.length} chunks.`
-      );
-      return data;
-    } catch (err) {
-      console.error('Failed to search using Graph RAG.', err);
-      throw err;
+    const url = `${this.baseURL}/api/search`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query,
+        embedding,
+        include_meta
+      })
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to call knowledge graph search API: ${res.statusText}`);
     }
+    return await res.json();
   }
 
   async buildIndex(doc: DocumentInfo) {

@@ -6,6 +6,8 @@ import { formatStreamPart, StreamingTextResponse, type StreamString } from 'ai';
 export const enum AppChatStreamState {
   CONNECTING = 'CONNECTING', // only client side
   CREATING = 'CREATING',
+  KG_SEARCHING = 'KG_SEARCHING',
+  KG_RERANKING = 'KG_RERANKING',
   SEARCHING = 'SEARCHING',
   RERANKING = 'RERANKING',
   GENERATING = 'GENERATING',

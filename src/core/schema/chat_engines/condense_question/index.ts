@@ -10,6 +10,7 @@ export const RetrieverOptionsSchema = z.object({
 
 export const GraphRetrieverOptionsSchema = z.object({
   enable: z.coerce.boolean().optional(),
+  top_k: z.coerce.number().int().optional()
 });
 
 export const BaseChatEngineOptionsSchema = z.object({
