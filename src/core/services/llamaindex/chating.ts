@@ -341,7 +341,7 @@ export class LlamaindexChatService extends AppChatService {
   async searchKnowledgeGraph (kgClient: KnowledgeGraphClient, query: string, trace?: LangfuseTraceClient): Promise<KGRetrievalResult> {
     console.log(`[KG-Retrieving] Start knowledge graph searching for query "${query}".`);
     const kgSearchSpan = trace?.span({
-      name: "knowledge-graph-searching",
+      name: "knowledge-graph-search",
       input: query,
     });
 
@@ -436,7 +436,7 @@ ${dr.entities.map(ent => `- ${ent.name}: ${ent.description}`).join('\n')}
     }));
 
     const rerankSpan = trace?.span({
-      name: 'knowledge-graph-reranking',
+      name: 'knowledge-graph-rerank',
       input: {
         query,
         document_relationships_size: documentRelationships.length,
