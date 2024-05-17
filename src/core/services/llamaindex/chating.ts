@@ -202,7 +202,7 @@ export class LlamaindexChatService extends AppChatService {
       externalChunks = result.chunks.map((chunk: KGDocumentChunk) => ({
         document_chunk_node_id: randomUUID(),
         document_node_id: randomUUID(),
-        document_id: randomUUID(),
+        document_id: 0,
         text: chunk.text,
         metadata: {},
         relationships: {},
