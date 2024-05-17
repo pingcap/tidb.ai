@@ -82,12 +82,15 @@ export async function finishRetrieve (id: number, reranked: boolean, results: Cr
     if (results.length > 0) {
       await getDb()
         .insertInto('retrieve_result')
-        .values(results.map(({ document_node_id, document_chunk_node_id, document_metadata, ...rest }) => ({
-          document_node_id: uuidToBin(document_node_id),
-          document_chunk_node_id: uuidToBin(document_chunk_node_id),
-          document_metadata: JSON.stringify(document_metadata),
-          ...rest,
-        })))
+        .values(results
+          // FIXME
+          .filter((r) => r.document_id !== 0)
+          .map(({ document_node_id, document_chunk_node_id, document_metadata, ...rest }) => ({
+            document_node_id: uuidToBin(document_node_id),
+            document_chunk_node_id: uuidToBin(document_chunk_node_id),
+            document_metadata: JSON.stringify(document_metadata),
+            ...rest,
+          })))
         .execute();
     }
   });
