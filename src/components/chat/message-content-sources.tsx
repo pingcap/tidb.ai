@@ -11,6 +11,17 @@ export function MessageContextSources ({ group }: { group: ConversationMessageGr
     return null;
   }
 
+  const reducedContext = useMemo(() => {
+    const uriSet = new Set<string>();
+    return context.filter(source => {
+      if (uriSet.has(source.uri)) {
+        return false;
+      }
+      uriSet.add(source.uri);
+      return true;
+    });
+  }, [context]);
+
   return (
     <section className="space-y-0">
       <div className="font-normal text-lg flex items-center gap-2">
@@ -19,7 +30,7 @@ export function MessageContextSources ({ group }: { group: ConversationMessageGr
       </div>
       <ScrollArea className="h-max w-full">
         <ul className="flex gap-2 py-4">
-          {context.map(source => (
+          {reducedContext.map(source => (
             <MessageContextSource key={source.uri} context={source} />
           ))}
         </ul>
