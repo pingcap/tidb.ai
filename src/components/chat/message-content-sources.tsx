@@ -11,16 +11,14 @@ export function MessageContextSources ({ group }: { group: ConversationMessageGr
     return null;
   }
 
-  const reducedContext = useMemo(() => {
-    const uriSet = new Set<string>();
-    return context.filter(source => {
-      if (uriSet.has(source.uri)) {
-        return false;
-      }
-      uriSet.add(source.uri);
-      return true;
-    });
-  }, [context]);
+  const uriSet = new Set<string>();
+  const reducedContext = context.filter(source => {
+    if (uriSet.has(source.uri)) {
+      return false;
+    }
+    uriSet.add(source.uri);
+    return true;
+  });
 
   return (
     <section className="space-y-0">
