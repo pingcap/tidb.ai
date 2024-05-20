@@ -12,7 +12,7 @@ import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
 import {buildLLM} from "@/lib/llamaindex/builders/llm";
 import {buildReranker} from "@/lib/llamaindex/builders/reranker";
 import {LLMConfig, LLMProvider} from "@/lib/llamaindex/config/llm";
-import {RerankerProvider} from "@/lib/llamaindex/config/reranker";
+import { type RerankerConfig, RerankerProvider } from '@/lib/llamaindex/config/reranker';
 import {ManagedAsyncIterable} from '@/lib/ManagedAsyncIterable';
 import {LangfuseTraceClient} from "langfuse";
 import {Liquid} from 'liquidjs';
@@ -168,6 +168,7 @@ export class LlamaindexChatService extends AppChatService {
           result.document_relationships,
           options.userInput,
           retrieverConfig.top_k,
+          graphRetrieverConfig.reranker,
           serviceContext,
           kgRetrievalSpan
         );
@@ -412,13 +413,14 @@ export class LlamaindexChatService extends AppChatService {
     documentRelationships: DocumentRelationship[],
     query: string,
     topK: number = 10,
+    rerankerConfig: RerankerConfig,
     serviceContext: ServiceContext,
     trace?: LangfuseTraceClient
   ): Promise<DocumentRelationship[]> {
     console.log(`[KG-Retrieving] Start knowledge graph reranking for query "${query}".`, { documentRelationship: documentRelationships.length, topK: topK });
 
     // Build reranker.
-    const reranker = await buildReranker(serviceContext, { provider: RerankerProvider.JINAAI }, topK);
+    const reranker = await buildReranker(serviceContext, rerankerConfig, topK);
 
     // Transform document relationships to TextNode.
     const docIdRelationshipsMap = new Map(documentRelationships.map(dr => [dr.docId, dr]));
