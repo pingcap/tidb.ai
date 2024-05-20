@@ -49,7 +49,8 @@ export async function getChatEngineConfig (engineConfigId?: number): Promise<[st
 export async function listChatEngine (request: PageRequest) {
   return await executePage(getDb()
       .selectFrom('chat_engine')
-      .selectAll(),
+      .selectAll()
+      .where('deleted_at', 'is', null),
     request);
 }
 
