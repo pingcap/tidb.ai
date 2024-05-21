@@ -59,7 +59,7 @@ export function useGroupedConversationMessages (history: ChatMessage[], messages
           userMessage,
           assistantMessage,
           assistantMessageError: history[i]?.error_message ?? undefined,
-          assistantAnnotation: { ...assistantAnnotation, traceURL: history[i]?.trace_url ?? undefined },
+          assistantAnnotation: { ...assistantAnnotation, traceURL: assistantAnnotation.traceURL ?? history[i]?.trace_url ?? undefined },
           finished: true,
         });
         userMessage = undefined;
