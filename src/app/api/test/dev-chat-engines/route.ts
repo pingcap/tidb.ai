@@ -5,7 +5,7 @@ export const GET = defineHandler({
   auth: 'cronjob',
 }, () => {
   return getDb()
-    .selectFrom('index')
+    .selectFrom('chat_engine')
     .selectAll()
     .execute();
 });
