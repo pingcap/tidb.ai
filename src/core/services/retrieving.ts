@@ -27,6 +27,7 @@ export const retrieveOptionsSchema = z.object({
   search_top_k: z.number().int().optional(),
   top_k:  z.number().int().optional(),
   use_cache: z.boolean().optional(),
+  reversed: z.boolean().optional(),
 });
 
 export type RetrieveOptions = z.infer<typeof retrieveOptionsSchema>;
@@ -104,7 +105,11 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
 
       callbacks?.onRetrieved(retrieve.id, results);
 
-      return results;
+      if (options.reversed) {
+        return results.reverse();
+      } else {
+        return results;
+      }
     } catch (e) {
       await terminateRetrieve(retrieve.id, getErrorMessage(e));
       callbacks?.onRetrieveFailed(retrieve.id, e);

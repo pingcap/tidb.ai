@@ -47,7 +47,7 @@ interface KGRetrievalResult extends SearchResult {
   document_relationships?: DocumentRelationship[];
 }
 
-const DEFAULT_CHAT_ENGINE_OPTIONS = {
+const DEFAULT_CHAT_ENGINE_OPTIONS: ChatEngineRequiredOptions = {
   index_id: 0,
   llm: {
     provider: LLMProvider.OPENAI,
@@ -60,7 +60,8 @@ const DEFAULT_CHAT_ENGINE_OPTIONS = {
   graph_retriever: {
     enable: false
   },
-  prompts: {}
+  prompts: {},
+  reverseContext: true,
 };
 
 export class LlamaindexChatService extends AppChatService {
@@ -78,6 +79,7 @@ export class LlamaindexChatService extends AppChatService {
   protected async* run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatStreamEvent> {
     // Init chat engine config.
     const engineOptions = Object.assign(
+      {},
       DEFAULT_CHAT_ENGINE_OPTIONS,
       chat.engine_options
     ) as ChatEngineRequiredOptions;
@@ -87,6 +89,7 @@ export class LlamaindexChatService extends AppChatService {
       graph_retriever: graphRetrieverConfig,
       metadata_filter: metadataFilterConfig ,
       reranker: rerankerConfig,
+      reverseContext,
       prompts
     } = engineOptions;
 
@@ -211,14 +214,16 @@ export class LlamaindexChatService extends AppChatService {
       serviceContext,
       reranker: rerankerConfig,
       metadata_filter: metadataFilterConfig,
-      langfuse: this.langfuse
+      langfuse: this.langfuse,
+
     });
     const { search_top_k, top_k } = retrieverConfig;
     const retriever = withAsyncIterable<ChatStreamEvent, LlamaindexRetrieverWrapper>(
       (next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
         search_top_k,
         top_k,
-        use_cache: false
+        use_cache: false,
+        reversed: reverseContext,
       },
       {
         onStartSearch: (id, text) => {
