@@ -4,7 +4,7 @@ import './style.css';
 
 export function MessageContent ({ group }: { group: ConversationMessageGroupProps }) {
   return (
-    <article className="prose prose-sm prose-neutral dark:prose-invert overflow-x-hidden break-keep">
+    <article className="prose prose-sm prose-neutral dark:prose-invert overflow-x-hidden break-words max-w-[unset]">
       {group.assistantMessage?.content && <RemarkContent>
         {group.assistantMessage.content}
       </RemarkContent>}
