@@ -3,7 +3,7 @@ import type { ChatMessage } from '@/core/repositories/chat';
 import type { AppChatStreamSource } from '@/lib/ai/AppChatStream';
 import { Message } from 'ai';
 
-export function parseSource (uri: string) {
+export function parseSource (uri?: string) {
   if (!uri) {
     return 'Unknown';
   }
