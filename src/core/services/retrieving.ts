@@ -106,7 +106,8 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
       callbacks?.onRetrieved(retrieve.id, results);
 
       if (options.reversed) {
-        return results.reverse();
+        // use cloned array to avoid affecting langfuse output tracing.
+        return Array.from(results).reverse();
       } else {
         return results;
       }
