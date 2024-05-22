@@ -61,7 +61,7 @@ const DEFAULT_CHAT_ENGINE_OPTIONS: ChatEngineRequiredOptions = {
     enable: false
   },
   prompts: {},
-  reverseContext: true,
+  reverse_context: true,
 };
 
 export class LlamaindexChatService extends AppChatService {
@@ -89,7 +89,7 @@ export class LlamaindexChatService extends AppChatService {
       graph_retriever: graphRetrieverConfig,
       metadata_filter: metadataFilterConfig ,
       reranker: rerankerConfig,
-      reverseContext,
+      reverse_context,
       prompts
     } = engineOptions;
 
@@ -223,7 +223,7 @@ export class LlamaindexChatService extends AppChatService {
         search_top_k,
         top_k,
         use_cache: false,
-        reversed: reverseContext,
+        reversed: reverse_context,
       },
       {
         onStartSearch: (id, text) => {

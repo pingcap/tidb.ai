@@ -30,7 +30,7 @@ export const CondenseQuestionChatEngineOptionsSchema = BaseChatEngineOptionsSche
     condenseQuestion: z.string().optional(),
   }).optional(),
   // reverse the context from the standard rag retriever / reranker (not affect graph retriever)
-  reverseContext: z.boolean().optional(),
+  reverse_context: z.boolean().optional(),
 });
 
 export type CondenseQuestionChatEngineOptions = z.infer<typeof CondenseQuestionChatEngineOptionsSchema>;
