@@ -279,10 +279,19 @@ export class LlamaindexChatService extends AppChatService {
       trace,
     ));
 
+    const promptContext = {
+      ...kgContext,
+      sources: Array.from(allSources.values()).map((source, index) => ({
+        ordinal: index + 1,
+        ...source
+      })),
+      originalQuestion: options.userInput,
+    }
+
     // Build Query Engine.
     const { textQa, refine } = prompts;
-    const textQaPrompt = this.getPrompt(textQa, defaultTextQaPrompt, kgContext);
-    const refinePrompt = this.getPrompt(refine, defaultRefinePrompt, kgContext);
+    const textQaPrompt = this.getPrompt(textQa, defaultTextQaPrompt, promptContext);
+    const refinePrompt = this.getPrompt(refine, defaultRefinePrompt, promptContext);
     const responseBuilder = new CompactAndRefine(serviceContext, textQaPrompt, refinePrompt);
     const responseSynthesizer = new ResponseSynthesizer({
       serviceContext,
@@ -297,7 +306,7 @@ export class LlamaindexChatService extends AppChatService {
       content: message.content,
       additionalKwargs: {},
     }));
-    const condenseMessagePrompt = this.getPrompt(prompts?.condenseQuestion, defaultCondenseQuestionPrompt, kgContext);
+    const condenseMessagePrompt = this.getPrompt(prompts?.condenseQuestion, defaultCondenseQuestionPrompt, promptContext);
     const chatEngine = new CondenseQuestionChatEngine({
       serviceContext,
       queryEngine,

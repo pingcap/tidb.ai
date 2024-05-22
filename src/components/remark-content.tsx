@@ -30,19 +30,33 @@ const production: RehypeReactOptions = {
       return (
         <HoverCard openDelay={0} onOpenChange={open => {
           if (open) {
-            const a = document.querySelector(`${props.href} a:first-child`) as HTMLAnchorElement | null;
-            if (a) {
-              setLink({ title: a.textContent ?? a.href, href: a.href });
-            } else {
-              setLink(undefined);
+            const id = props.href?.replace(/^#/, '');
+            if (id) {
+              const li = document.getElementById(id);
+              if (li) {
+                const a = li.querySelector(`a:first-child`) as HTMLAnchorElement | null;
+                if (a) {
+                  setLink({ title: a.textContent ?? a.href, href: a.href });
+                  return;
+                }
+              }
             }
+            setLink(undefined);
           }
         }}>
           <HoverCardTrigger asChild>
-            <a {...props} />
+            <a
+              {...props}
+              className={cn(props.className, 'cursor-default')}
+              href={undefined}
+              onClick={event => {
+                event.preventDefault();
+                event.stopPropagation();
+              }}
+            />
           </HoverCardTrigger>
           <HoverCardPortal>
-            <HoverCardContent className="p-1 w-[200px] overflow-hidden rounded-lg border text-xs">
+            <HoverCardContent onPointerDownOutside={e => e.preventDefault()} className="p-1 w-[200px] overflow-hidden rounded-lg border text-xs">
               <HoverCardArrow className="fill-border" />
               <MessageContextSourceCard title={link?.title} href={link?.href} />
             </HoverCardContent>
