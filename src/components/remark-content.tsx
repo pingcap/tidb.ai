@@ -22,6 +22,7 @@ const production: RehypeReactOptions = {
       );
     },
     a ({ ...props }) {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
       const [link, setLink] = useState<{ title: string, href: string }>();
 
       if (!(props as any)['data-footnote-ref']) return <a {...props} />;
