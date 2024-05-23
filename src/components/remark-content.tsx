@@ -51,7 +51,7 @@ const production: RehypeReactOptions = {
       const reactId = useContext(RemarkContentContext);
 
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      const [link, setLink] = useState<{ title: string, href: string }>();
+      const [link, setLink] = useState<{ title: string, href: string | false }>();
 
       if (!(props as any)['data-footnote-ref']) return <a {...props} />;
 
@@ -62,10 +62,16 @@ const production: RehypeReactOptions = {
             if (id) {
               const li = document.getElementById(reactId + '--' + id);
               if (li) {
-                const a = li.querySelector(`a:first-child`) as HTMLAnchorElement | null;
+                const a = li.querySelector(`a:first-child:not([data-footnote-backref])`) as HTMLAnchorElement | null;
                 if (a) {
                   setLink({ title: a.textContent ?? a.href, href: a.href });
                   return;
+                } else {
+                  const text = li.querySelector('p')?.childNodes?.item(0)?.textContent;
+                  if (text) {
+                    setLink({ title: text, href: false });
+                    return;
+                  }
                 }
               }
             }
@@ -86,7 +92,11 @@ const production: RehypeReactOptions = {
           <HoverCardPortal>
             <HoverCardContent onPointerDownOutside={e => e.preventDefault()} className="p-1 w-[200px] overflow-hidden rounded-lg border text-xs">
               <HoverCardArrow className="fill-border" />
-              <MessageContextSourceCard title={link?.title} href={link?.href} />
+              {link
+                ? link.href
+                  ? <MessageContextSourceCard title={link?.title} href={link?.href} />
+                  : link.title
+                : null}
             </HoverCardContent>
           </HoverCardPortal>
         </HoverCard>
