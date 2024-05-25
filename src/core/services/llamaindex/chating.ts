@@ -6,6 +6,7 @@ import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/ser
 import {LlamaindexRetrieverWrapper, LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
 import type {RetrieveOptions} from "@/core/services/retrieving";
 import {type AppChatStreamSource, AppChatStreamState} from '@/lib/ai/AppChatStream';
+import { deduplicateItems } from '@/lib/array-filters';
 import {DocumentChunk, Entity, KnowledgeGraphClient, Relationship, SearchResult} from "@/lib/knowledge-graph/client";
 import {uuidToBin} from '@/lib/kysely';
 import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
@@ -177,8 +178,8 @@ export class LlamaindexChatService extends AppChatService {
         );
 
         // Flatten relationships and entities.
-        result.relationships = result.document_relationships.map(dr => dr.relationships).flat();
-        result.entities = result.document_relationships.map(dr => dr.entities).flat();
+        result.relationships = result.document_relationships.map(dr => dr.relationships).flat().filter(deduplicateItems('id'));
+        result.entities = result.document_relationships.map(dr => dr.entities).flat().filter(deduplicateItems('id'));
       }
 
       kgContext = result;
@@ -375,6 +376,7 @@ export class LlamaindexChatService extends AppChatService {
       output: searchResult,
     });
     console.log(`[KG-Retrieving] Finish knowledge graph searching, take ${duration} ms.`);
+    // Fixme: DO NOT MUTATE THE LANGFUSE OUTPUT. Langfuse always delays it's push operation, mutations before pushing will affect langfuse tracking.
     return searchResult;
   }
 
