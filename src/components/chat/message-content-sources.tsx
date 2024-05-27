@@ -11,6 +11,15 @@ export function MessageContextSources ({ group }: { group: ConversationMessageGr
     return null;
   }
 
+  const uriSet = new Set<string>();
+  const reducedContext = context.filter(source => {
+    if (uriSet.has(source.uri)) {
+      return false;
+    }
+    uriSet.add(source.uri);
+    return true;
+  });
+
   return (
     <section className="space-y-0">
       <div className="font-normal text-lg flex items-center gap-2">
@@ -19,7 +28,7 @@ export function MessageContextSources ({ group }: { group: ConversationMessageGr
       </div>
       <ScrollArea className="h-max w-full">
         <ul className="flex gap-2 py-4">
-          {context.map(source => (
+          {reducedContext.map(source => (
             <MessageContextSource key={source.uri} context={source} />
           ))}
         </ul>
@@ -46,5 +55,23 @@ function MessageContextSource ({ context }: { context: AppChatStreamSource }) {
         </div>
       </a>
     </li>
+  );
+}
+
+export function MessageContextSourceCard ({ title, href }: { title?: string, href?: string }) {
+  const source = useMemo(() => {
+    return parseSource(href);
+  }, [href]);
+
+  return (
+    <a className="flex flex-col justify-between space-y-1 p-2 max-w-full h-full" href={href} target="_blank">
+      <div className="font-normal line-clamp-3 opacity-90">
+        {title}
+      </div>
+      <div className="opacity-70 mt-auto mb-0">
+        <LinkIcon size="1em" className="inline-flex mr-1" />
+        {source}
+      </div>
+    </a>
   );
 }

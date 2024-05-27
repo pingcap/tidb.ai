@@ -1,16 +1,24 @@
 'use client';
 
-import { MyChatProvider } from '@/components/chat/context';
+import { ChatEngineProvider, MyChatProvider } from '@/components/chat/context';
 import { ConversationMessageGroups } from '@/components/chat/conversation-message-groups';
 import { useMyChat } from '@/components/chat/use-my-chat';
 import { MessageInput } from '@/components/message-input';
 import { SecuritySettingContext, withReCaptcha } from '@/components/security-setting-provider';
 import { useSize } from '@/components/use-size';
 import type { ChatMessage } from '@/core/repositories/chat';
+import type { ChatEngineOptions } from '@/core/repositories/chat_engine';
 import { cn } from '@/lib/utils';
 import { type FormEvent, useContext } from 'react';
 
-export function Conversation ({ open, history, context }: { open: boolean, history: ChatMessage[], context: { ordinal: number, title: string, uri: string }[] }) {
+export interface ConversationProps {
+  open: boolean;
+  history: ChatMessage[];
+  context: { ordinal: number, title: string, uri: string }[];
+  engineOptions: ChatEngineOptions | null;
+}
+
+export function Conversation ({ open, history, context, engineOptions }: ConversationProps) {
   const myChat = useMyChat(history, context);
   const { handleInputChange, handleRegenerate, isWaiting, handleSubmit, input, isLoading, error, messages, reload } = myChat;
   const { ref, size } = useSize();
@@ -37,15 +45,17 @@ export function Conversation ({ open, history, context }: { open: boolean, histo
 
   return (
     <MyChatProvider value={myChat}>
-      <div ref={ref} className={cn(
-        'md:max-w-screen-md mx-auto space-y-4 transition-all relative md:min-h-screen md:p-body',
-      )}>
-        <ConversationMessageGroups history={history} />
-        <div className="h-24"></div>
-      </div>
-      {size && open && <form className="block h-max p-4 fixed bottom-0" onSubmit={submitWithReCaptcha} style={{ left: size.x, width: size.width }}>
-        <MessageInput className="w-full transition-all" disabled={isLoading} inputProps={{ value: input, onChange: handleInputChange, disabled: isLoading }} />
-      </form>}
+      <ChatEngineProvider value={engineOptions}>
+        <div ref={ref} className={cn(
+          'md:max-w-screen-md mx-auto space-y-4 transition-all relative md:min-h-screen md:p-body',
+        )}>
+          <ConversationMessageGroups history={history} />
+          <div className="h-24"></div>
+        </div>
+        {size && open && <form className="block h-max p-4 fixed bottom-0" onSubmit={submitWithReCaptcha} style={{ left: size.x, width: size.width }}>
+          <MessageInput className="w-full transition-all" disabled={isLoading} inputProps={{ value: input, onChange: handleInputChange, disabled: isLoading }} />
+        </form>}
+      </ChatEngineProvider>
     </MyChatProvider>
   );
 }

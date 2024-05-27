@@ -1,0 +1,7 @@
+.prose sup a[data-footnote-ref=true] {
+  @apply bg-primary text-primary-foreground px-1 rounded-full no-underline;
+}
+
+.prose sup a[data-footnote-ref=true] + a[data-footnote-ref=true] {
+  @apply ml-0.5;
+}

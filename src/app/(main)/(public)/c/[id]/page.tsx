@@ -1,6 +1,7 @@
 import { auth } from '@/app/api/auth/[...nextauth]/auth';
 import { Conversation } from '@/components/chat/conversation';
 import { getChat as getChat_, getChatByUrlKey, listChatContexts, listChatMessages } from '@/core/repositories/chat';
+import type { ChatEngineOptions } from '@/core/repositories/chat_engine';
 import { notFound, redirect } from 'next/navigation';
 import { cache } from 'react';
 
@@ -40,7 +41,7 @@ export default async function Conversations ({ params }: { params: { id: string 
 
   return (
     <div className="xl:pr-side">
-      <Conversation history={history} context={context} open={!!chat && !!user && chat.created_by === user.id} />
+      <Conversation history={history} context={context} open={!!chat && !!user && chat.created_by === user.id} engineOptions={chat.engine_options as ChatEngineOptions | null} />
     </div>
   );
 }

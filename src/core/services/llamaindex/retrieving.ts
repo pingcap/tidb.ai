@@ -90,6 +90,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     }
 
     // Cut up to 2 * top_k chunks for reranking.
+    // FIXME: why not to use the `search_top_k`?
     const rerankChunksLimit = top_k * 2;
     chunks = chunks.slice(0, rerankChunksLimit);
 

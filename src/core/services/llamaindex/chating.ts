@@ -6,13 +6,14 @@ import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/ser
 import {LlamaindexRetrieverWrapper, LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
 import {RetrievedChunk, RetrieveOptions} from "@/core/services/retrieving";
 import {type AppChatStreamSource, AppChatStreamState} from '@/lib/ai/AppChatStream';
+import { deduplicateItems } from '@/lib/array-filters';
 import {KGDocumentChunk, Entity, KnowledgeGraphClient, Relationship, SearchResult} from "@/lib/knowledge-graph/client";
 import {uuidToBin} from '@/lib/kysely';
 import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
 import {buildLLM} from "@/lib/llamaindex/builders/llm";
 import {buildReranker} from "@/lib/llamaindex/builders/reranker";
 import {LLMConfig, LLMProvider} from "@/lib/llamaindex/config/llm";
-import {RerankerProvider} from "@/lib/llamaindex/config/reranker";
+import { type RerankerConfig, RerankerProvider } from '@/lib/llamaindex/config/reranker';
 import {ManagedAsyncIterable} from '@/lib/ManagedAsyncIterable';
 import {LangfuseTraceClient} from "langfuse";
 import {Liquid} from 'liquidjs';
@@ -47,7 +48,7 @@ interface KGRetrievalResult extends SearchResult {
   document_relationships?: DocumentRelationship[];
 }
 
-const DEFAULT_CHAT_ENGINE_OPTIONS = {
+const DEFAULT_CHAT_ENGINE_OPTIONS: ChatEngineRequiredOptions = {
   index_id: 0,
   llm: {
     provider: LLMProvider.OPENAI,
@@ -60,7 +61,8 @@ const DEFAULT_CHAT_ENGINE_OPTIONS = {
   graph_retriever: {
     enable: false
   },
-  prompts: {}
+  prompts: {},
+  reverse_context: true,
 };
 
 export class LlamaindexChatService extends AppChatService {
@@ -78,6 +80,7 @@ export class LlamaindexChatService extends AppChatService {
   protected async* run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatStreamEvent> {
     // Init chat engine config.
     const engineOptions = Object.assign(
+      {},
       DEFAULT_CHAT_ENGINE_OPTIONS,
       chat.engine_options
     ) as ChatEngineRequiredOptions;
@@ -87,6 +90,7 @@ export class LlamaindexChatService extends AppChatService {
       graph_retriever: graphRetrieverConfig,
       metadata_filter: metadataFilterConfig ,
       reranker: rerankerConfig,
+      reverse_context,
       prompts
     } = engineOptions;
 
@@ -144,7 +148,6 @@ export class LlamaindexChatService extends AppChatService {
 
       yield {
         status: AppChatStreamState.KG_RETRIEVING,
-        traceURL: trace?.getTraceUrl(),
         sources: Array.from(allSources.values()),
         statusMessage: 'Start knowledge graph searching ...',
         content: '',
@@ -169,13 +172,14 @@ export class LlamaindexChatService extends AppChatService {
           result.document_relationships,
           options.userInput,
           retrieverConfig.top_k,
+          graphRetrieverConfig.reranker,
           serviceContext,
           kgRetrievalSpan
         );
 
         // Flatten relationships and entities.
-        result.relationships = result.document_relationships.map(dr => dr.relationships).flat();
-        result.entities = result.document_relationships.map(dr => dr.entities).flat();
+        result.relationships = result.document_relationships.map(dr => dr.relationships).flat().filter(deduplicateItems('id'));
+        result.entities = result.document_relationships.map(dr => dr.entities).flat().filter(deduplicateItems('id'));
       }
 
       kgContext = result;
@@ -190,7 +194,6 @@ export class LlamaindexChatService extends AppChatService {
 
       yield {
         status: AppChatStreamState.KG_RETRIEVING,
-        traceURL: trace?.getTraceUrl(),
         sources: Array.from(allSources.values()),
         statusMessage: 'Knowledge graph retrieving completed.',
         content: '',
@@ -218,15 +221,16 @@ export class LlamaindexChatService extends AppChatService {
       serviceContext,
       reranker: rerankerConfig,
       metadata_filter: metadataFilterConfig,
-      externalChunks: externalChunks,
-      langfuse: this.langfuse
+      langfuse: this.langfuse,
+      externalChunks: externalChunks
     });
     const { search_top_k, top_k } = retrieverConfig;
     const retriever = withAsyncIterable<ChatStreamEvent, LlamaindexRetrieverWrapper>(
       (next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
         search_top_k,
         top_k,
-        use_cache: false
+        use_cache: false,
+        reversed: reverse_context,
       },
       {
         onStartSearch: (id, text) => {
@@ -282,10 +286,19 @@ export class LlamaindexChatService extends AppChatService {
       trace,
     ));
 
+    const promptContext = {
+      ...kgContext,
+      sources: Array.from(allSources.values()).map((source, index) => ({
+        ordinal: index + 1,
+        ...source
+      })),
+      originalQuestion: options.userInput,
+    }
+
     // Build Query Engine.
     const { textQa, refine } = prompts;
-    const textQaPrompt = this.getPrompt(textQa, defaultTextQaPrompt, kgContext);
-    const refinePrompt = this.getPrompt(refine, defaultRefinePrompt, kgContext);
+    const textQaPrompt = this.getPrompt(textQa, defaultTextQaPrompt, promptContext);
+    const refinePrompt = this.getPrompt(refine, defaultRefinePrompt, promptContext);
     const responseBuilder = new CompactAndRefine(serviceContext, textQaPrompt, refinePrompt);
     const responseSynthesizer = new ResponseSynthesizer({
       serviceContext,
@@ -300,7 +313,7 @@ export class LlamaindexChatService extends AppChatService {
       content: message.content,
       additionalKwargs: {},
     }));
-    const condenseMessagePrompt = this.getPrompt(prompts?.condenseQuestion, defaultCondenseQuestionPrompt, kgContext);
+    const condenseMessagePrompt = this.getPrompt(prompts?.condenseQuestion, defaultCondenseQuestionPrompt, promptContext);
     const chatEngine = new CondenseQuestionChatEngine({
       serviceContext,
       queryEngine,
@@ -334,7 +347,6 @@ export class LlamaindexChatService extends AppChatService {
           status: AppChatStreamState.GENERATING,
           statusMessage: `Generating using ${llmConfig.provider}:${llmConfig.options?.model ?? 'default'}`,
           sources: Array.from(allSources.values()),
-          traceURL: trace?.getTraceUrl(),
           retrieveId: undefined,
         };
       }),
@@ -369,6 +381,7 @@ export class LlamaindexChatService extends AppChatService {
       output: searchResult,
     });
     console.log(`[KG-Retrieving] Finish knowledge graph searching, take ${duration} ms.`);
+    // Fixme: DO NOT MUTATE THE LANGFUSE OUTPUT. Langfuse always delays it's push operation, mutations before pushing will affect langfuse tracking.
     return searchResult;
   }
 
@@ -421,13 +434,14 @@ export class LlamaindexChatService extends AppChatService {
     documentRelationships: DocumentRelationship[],
     query: string,
     topK: number = 10,
+    rerankerConfig: RerankerConfig,
     serviceContext: ServiceContext,
     trace?: LangfuseTraceClient
   ): Promise<DocumentRelationship[]> {
     console.log(`[KG-Retrieving] Start knowledge graph reranking for query "${query}".`, { documentRelationship: documentRelationships.length, topK: topK });
 
     // Build reranker.
-    const reranker = await buildReranker(serviceContext, { provider: RerankerProvider.JINAAI }, topK);
+    const reranker = await buildReranker(serviceContext, rerankerConfig, topK);
 
     // Transform document relationships to TextNode.
     const docIdRelationshipsMap = new Map(documentRelationships.map(dr => [dr.docId, dr]));

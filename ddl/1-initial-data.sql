@@ -206,3 +206,5 @@ VALUES
 
 INSERT INTO
     chat_engine (name, engine, engine_options, is_default) VALUE ('default', 'condense-question', '{"reranker": {"provider": "llm"}}', true);
+
+ALTER TABLE chat_engine ADD COLUMN deleted_at DATETIME NULL DEFAULT NULL;

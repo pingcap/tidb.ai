@@ -6,6 +6,7 @@ import type { ChatEngine } from '@/core/repositories/chat_engine';
 import type { Page } from '@/lib/database';
 import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
+import isHotkey from 'is-hotkey';
 import { ArrowRightIcon } from 'lucide-react';
 import { useSession } from 'next-auth/react';
 import { type ChangeEvent, type RefObject, useCallback, useRef, useState } from 'react';
@@ -48,7 +49,7 @@ export function MessageInput ({
       <TextareaAutosize
         placeholder="Input your question here..."
         onKeyDown={e => {
-          if (!e.nativeEvent.isComposing && e.key === 'Enter' && !disabled) {
+          if (!e.nativeEvent.isComposing && isHotkey('mod+Enter', e) && !disabled) {
             e.preventDefault();
             buttonRef.current?.click();
           }

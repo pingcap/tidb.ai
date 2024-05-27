@@ -35,6 +35,7 @@ export interface Chat {
 }
 
 export interface ChatEngine {
+  deleted_at: Date | null;
   engine: string;
   engine_options: Json;
   id: Generated<number>;

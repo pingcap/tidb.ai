@@ -3,7 +3,7 @@ import { type Chat, type ChatMessage, createChatMessage, createChatMessageRetrie
 import { AppIndexBaseService } from '@/core/services/base';
 import { AppChatStream, type AppChatStreamSource, AppChatStreamState } from '@/lib/ai/AppChatStream';
 import { AUTH_FORBIDDEN_ERROR, getErrorMessage } from '@/lib/errors';
-import {LangfuseTraceClient} from "langfuse";
+import { LangfuseTraceClient } from 'langfuse';
 import { notFound } from 'next/navigation';
 
 export type ChatOptions = {
@@ -63,11 +63,11 @@ export abstract class AppChatService extends AppIndexBaseService {
       }
 
       if (message.role !== 'assistant') {
-        throw new Error('Can only regenerate assistant messages.')
+        throw new Error('Can only regenerate assistant messages.');
       }
 
       await deleteChatMessages(chat.id, message.ordinal, 'REGENERATE');
-    })
+    });
   }
 
   private async getSessionInfo (sessionId: string, userId: string) {
