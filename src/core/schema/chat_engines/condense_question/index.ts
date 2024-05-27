@@ -8,13 +8,17 @@ export const RetrieverOptionsSchema = z.object({
   top_k: z.coerce.number().int().optional()
 });
 
+export const GraphRetrieverSearchOptionsSchema = z.object({
+  with_degree: z.coerce.boolean().optional(),
+  depth: z.coerce.number().int().optional(),
+  include_meta: z.coerce.boolean().optional(),
+});
+
 export const GraphRetrieverOptionsSchema = z.object({
   enable: z.coerce.boolean().optional(),
   reranker: RerankerConfigSchema.optional(),
   top_k: z.coerce.number().int().optional(),
-  with_degree: z.coerce.boolean().optional(),
-  depth: z.coerce.number().int().optional(),
-  include_meta: z.coerce.boolean().optional(),
+  search: GraphRetrieverSearchOptionsSchema.optional(),
 });
 
 export const BaseChatEngineOptionsSchema = z.object({

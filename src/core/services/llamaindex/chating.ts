@@ -67,8 +67,10 @@ const DEFAULT_CHAT_ENGINE_OPTIONS: ChatEngineRequiredOptions = {
   } as RetrieveOptions,
   graph_retriever: {
     enable: false,
-    with_degree: false,
-    depth: 1,
+    search: {
+      with_degree: false,
+      depth: 1,
+    }
   },
   prompts: {},
   reverse_context: true,
@@ -172,9 +174,7 @@ export class LlamaindexChatService extends AppChatService {
       const result: KGRetrievalResult = await this.searchKnowledgeGraph(kgClient, {
         query: options.userInput,
         embedding: [],
-        depth: graphRetrieverConfig.depth,
-        with_degree: graphRetrieverConfig.with_degree,
-        include_meta: graphRetrieverConfig.include_meta,
+        ...(graphRetrieverConfig.search || {})
       }, kgRetrievalSpan);
 
       // Grouping entities and relationships.
