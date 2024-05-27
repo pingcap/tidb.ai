@@ -2,6 +2,7 @@ import type { ConversationMessageGroupProps } from '@/components/chat/use-groupe
 import { LoaderIcon } from 'lucide-react';
 
 export function MessageAnnotation ({ assistantAnnotation }: { assistantAnnotation: ConversationMessageGroupProps['assistantAnnotation'] }) {
+  console.log(assistantAnnotation);
   let text: string | undefined;
   switch (assistantAnnotation.state) {
     case 'CONNECTING':
