@@ -1,8 +1,7 @@
 import type { ConversationMessageGroupProps } from '@/components/chat/use-grouped-conversation-messages';
 import { LoaderIcon } from 'lucide-react';
 
-export function MessageAnnotation ({ group }: { group: ConversationMessageGroupProps }) {
-  const { assistantAnnotation } = group;
+export function MessageAnnotation ({ assistantAnnotation }: { assistantAnnotation: ConversationMessageGroupProps['assistantAnnotation'] }) {
   let text: string | undefined;
   switch (assistantAnnotation.state) {
     case 'CONNECTING':

@@ -16,7 +16,7 @@ export function parseSource (uri?: string) {
 
 export function getChatMessageAnnotations (message: Message | undefined) {
   return ((message?.annotations ?? []) as MyChatMessageAnnotation[])
-    .reduce((annotation, next) => Object.assign({}, annotation, next), EMPTY_CHAT_MESSAGE_ANNOTATION);
+    .reduce((annotation, next) => Object.assign(annotation, next), { ...EMPTY_CHAT_MESSAGE_ANNOTATION });
 }
 
 export function createInitialMessages (history: ChatMessage[], context: { ordinal: number, title: string, uri: string }[]): Message[] {

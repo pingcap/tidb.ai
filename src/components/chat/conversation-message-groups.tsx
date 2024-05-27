@@ -58,7 +58,7 @@ function ConversationMessageGroup ({ group }: { group: ConversationMessageGroupP
         <MessageHeading />
         <MessageError group={group} />
         <MessageContent group={group} />
-        {!group.finished && <MessageAnnotation group={group} />}
+        {!group.finished && <MessageAnnotation assistantAnnotation={group.assistantAnnotation} />}
       </section>
       <MessageOperations group={group} />
     </section>
