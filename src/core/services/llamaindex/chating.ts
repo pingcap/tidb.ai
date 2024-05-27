@@ -176,7 +176,8 @@ export class LlamaindexChatService extends AppChatService {
         kgClient,
         options.userInput,
         graphRetrieverConfig.search,
-        kgRetrievalSpan);
+        kgRetrievalSpan
+      );
 
       // Grouping entities and relationships.
       result.document_relationships = await this.groupDocumentRelationships(result.relationships, result.entities);
