@@ -14,6 +14,8 @@ export const GraphRetrieverSearchOptionsSchema = z.object({
   include_meta: z.coerce.boolean().optional(),
 });
 
+export type GraphRetrieverSearchOptions = z.infer<typeof GraphRetrieverSearchOptionsSchema>;
+
 export const GraphRetrieverOptionsSchema = z.object({
   enable: z.coerce.boolean().optional(),
   reranker: RerankerConfigSchema.optional(),

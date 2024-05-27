@@ -2,6 +2,7 @@ import {getDb} from '@/core/db';
 import {type Chat, listChatMessages, updateChatMessage} from '@/core/repositories/chat';
 import {ChatEngineRequiredOptions} from '@/core/repositories/chat_engine';
 import {getDocumentsBySourceUris} from "@/core/repositories/document";
+import {GraphRetrieverSearchOptions} from "@/core/schema/chat_engines/condense_question";
 import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/services/chating';
 import {LlamaindexRetrieverWrapper, LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
 import type {RetrieveOptions} from "@/core/services/retrieving";
@@ -171,11 +172,11 @@ export class LlamaindexChatService extends AppChatService {
       });
 
       // Knowledge graph searching.
-      const result: KGRetrievalResult = await this.searchKnowledgeGraph(kgClient, {
-        query: options.userInput,
-        embedding: [],
-        ...(graphRetrieverConfig.search || {})
-      }, kgRetrievalSpan);
+      const result: KGRetrievalResult = await this.searchKnowledgeGraph(
+        kgClient,
+        options.userInput,
+        graphRetrieverConfig.search,
+        kgRetrievalSpan);
 
       // Grouping entities and relationships.
       result.document_relationships = await this.groupDocumentRelationships(result.relationships, result.entities);
@@ -372,16 +373,25 @@ export class LlamaindexChatService extends AppChatService {
     await this.langfuse?.flushAsync();
   }
 
-  async searchKnowledgeGraph (kgClient: KnowledgeGraphClient, searchOptions: SearchOptions, trace?: LangfuseTraceClient): Promise<SearchResult> {
-    console.log(`[KG-Retrieving] Start knowledge graph searching for query "${searchOptions.query}".`);
+  async searchKnowledgeGraph (
+    kgClient: KnowledgeGraphClient,
+    query: string,
+    searchOptions: GraphRetrieverSearchOptions = {},
+    trace?: LangfuseTraceClient
+  ): Promise<SearchResult> {
+    console.log(`[KG-Retrieving] Start knowledge graph searching for query "${query}".`);
     const kgSearchSpan = trace?.span({
       name: "knowledge-graph-search",
-      input: searchOptions.query,
+      input: query,
       metadata: searchOptions
     });
 
     const start = DateTime.now();
-    const searchResult = await kgClient.search(searchOptions);
+    const searchResult = await kgClient.search({
+      query,
+      embedding: [],
+      ...searchOptions
+    });
     const duration = DateTime.now().diff(start, 'milliseconds').milliseconds;
 
     kgSearchSpan?.end({
