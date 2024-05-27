@@ -32,6 +32,14 @@ export interface DocumentInfo {
   text: string
 }
 
+export interface SearchOptions {
+  query: string,
+  embedding?: number[]
+  include_meta?: boolean;
+  depth?: number;
+  with_degree?: boolean;
+}
+
 export class KnowledgeGraphClient {
   baseURL: string;
 
@@ -43,18 +51,14 @@ export class KnowledgeGraphClient {
     this.baseURL = baseURL;
   }
 
-  async search(query: string, embedding?: number[], include_meta: boolean = false): Promise<SearchResult> {
+  async search(options?: SearchOptions): Promise<SearchResult> {
     const url = `${this.baseURL}/api/search`;
     const res = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        query,
-        embedding,
-        include_meta
-      })
+      body: JSON.stringify(options)
     });
     if (!res.ok) {
       throw new Error(`Failed to call knowledge graph search API: ${res.statusText}`);
