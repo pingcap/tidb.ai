@@ -147,7 +147,6 @@ export class LlamaindexChatService extends AppChatService {
 
       yield {
         status: AppChatStreamState.KG_RETRIEVING,
-        traceURL: trace?.getTraceUrl(),
         sources: Array.from(allSources.values()),
         statusMessage: 'Start knowledge graph searching ...',
         content: '',
@@ -194,7 +193,6 @@ export class LlamaindexChatService extends AppChatService {
 
       yield {
         status: AppChatStreamState.KG_RETRIEVING,
-        traceURL: trace?.getTraceUrl(),
         sources: Array.from(allSources.values()),
         statusMessage: 'Knowledge graph retrieving completed.',
         content: '',
@@ -341,7 +339,6 @@ export class LlamaindexChatService extends AppChatService {
           status: AppChatStreamState.GENERATING,
           statusMessage: `Generating using ${llmConfig.provider}:${llmConfig.options?.model ?? 'default'}`,
           sources: Array.from(allSources.values()),
-          traceURL: trace?.getTraceUrl(),
           retrieveId: undefined,
         };
       }),
