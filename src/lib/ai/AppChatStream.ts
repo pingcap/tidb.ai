@@ -43,6 +43,8 @@ export class AppChatStream extends ReadableStream<StreamString> {
       {
         headers: {
           'X-CreateRag-Session': this.sessionId,
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'X-Content-Type-Options': 'nosniff',
         },
       });
   }
