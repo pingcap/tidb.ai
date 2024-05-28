@@ -2,7 +2,6 @@
 
 import { Nav, NavDrawer } from '@/app/(main)/nav';
 import { Branding } from '@/components/branding';
-import { SemanticSearch } from '@/components/semantic-search';
 import { SiteNavActionBar, SiteNavFooter } from '@/components/site-nav-footer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Toaster } from '@/components/ui/sonner';
@@ -35,7 +34,6 @@ export default function Layout ({ children }: {
         </header>
         <div className="fixed top-0 right-2 md:top-4 md:right-4 z-10">
           <div className="flex gap-2 items-center">
-            <SemanticSearch />
             <SiteNavActionBar className="flex h-fit" social={socialMemo} />
           </div>
         </div>
