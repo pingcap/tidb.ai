@@ -1,7 +1,5 @@
 import type { MyChatMessageAnnotation } from '@/components/chat/use-grouped-conversation-messages';
-import type { ChatStreamEvent } from '@/core/services/chating';
-import { getErrorMessage } from '@/lib/errors';
-import { formatStreamPart, StreamingTextResponse, type StreamString } from 'ai';
+import { formatStreamPart, StreamingTextResponse } from 'ai';
 
 export const enum AppChatStreamState {
   CONNECTING = 'CONNECTING', // only client side
@@ -45,6 +43,8 @@ export class AppChatStream extends ReadableStream<Uint8Array> {
       {
         headers: {
           'X-CreateRag-Session': this.sessionId,
+          'Content-Type': 'text/event-stream; charset=utf-8',
+          'X-Content-Type-Options': 'nosniff',
         },
       });
   }
