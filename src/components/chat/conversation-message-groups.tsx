@@ -22,7 +22,7 @@ export function ConversationMessageGroups ({ history, myChat }: { history: ChatM
   const groups = useGroupedConversationMessages(history, messages, isLoading || isWaiting, error);
 
   useEffect(() => {
-    console.log('[*]', Math.round(Date.now() / 1000), groups[groups.length-1]?.assistantAnnotation.state)
+    console.log('[*]', Math.round(Date.now() / 1000), groups[groups.length-1]?.assistantAnnotation.state, groups[groups.length-1]?.assistantAnnotation.stateMessage)
   });
   useEffect(() => {
     console.log('[group effect]', Math.round(Date.now() / 1000), groups[groups.length-1]?.assistantAnnotation.state)

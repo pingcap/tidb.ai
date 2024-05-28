@@ -16,7 +16,7 @@ export const enum AppChatStreamState {
 
 export type AppChatStreamSource = { title: string, uri: string };
 
-export class AppChatStream extends ReadableStream<string> {
+export class AppChatStream extends ReadableStream<Uint8Array> {
 
   constructor (
     public readonly sessionId: string,
@@ -24,6 +24,8 @@ export class AppChatStream extends ReadableStream<string> {
     pull: (controller: AppChatStreamController) => Promise<void>,
   ) {
     super({
+      type: 'bytes',
+      autoAllocateChunkSize: 4096,
       pull: async (controller) => {
         try {
           await pull(new AppChatStreamController(messageId, controller));
@@ -52,8 +54,9 @@ export class AppChatStreamController {
   private state: AppChatStreamState = AppChatStreamState.CONNECTING;
   private stateMessage: string = '';
   private sources: AppChatStreamSource[] = [];
+  private textEncoder = new TextEncoder();
 
-  constructor (private messageId: number, private controller: ReadableStreamDefaultController<string>) {
+  constructor (private messageId: number, private controller: ReadableByteStreamController | ReadableStreamDefaultController<Uint8Array>) {
   }
 
   appendText (text: string, force: boolean = false) {
@@ -106,11 +109,11 @@ export class AppChatStreamController {
   }
 
   private encodeText (text: string) {
-    this.controller.enqueue(formatStreamPart('text', text) + '\n');
+    this.controller.enqueue(this.textEncoder.encode(formatStreamPart('text', text)));
   }
 
   private encodeMessageAnnotation (messageAnnotation: MyChatMessageAnnotation) {
-    this.controller.enqueue(formatStreamPart('message_annotations', [messageAnnotation]) + '\n');
+    this.controller.enqueue(this.textEncoder.encode(formatStreamPart('message_annotations', [messageAnnotation])));
   }
 }
 
