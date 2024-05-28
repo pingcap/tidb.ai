@@ -5,6 +5,7 @@ import type { ChatRequestOptions } from 'ai';
 import { useChat } from 'ai/react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
+import { parseStreamPart } from 'ai'
 
 export type MyChat = ReturnType<typeof useMyChat>;
 
@@ -49,8 +50,9 @@ export function useMyChat (history: ChatMessage[], context: { ordinal: number, t
             if (chunk.done) {
               break;
             }
+
             const textPart = decoder.decode(chunk.value, { stream: true });
-            console.debug('[chunk.raw]', new Date, textPart);
+            console.debug('[chunk.raw]', new Date, parseStreamPart(textPart));
           }
         }
       })();
@@ -61,6 +63,8 @@ export function useMyChat (history: ChatMessage[], context: { ordinal: number, t
       }
     },
   });
+
+  console.log('[chat.update]')
 
   __useHandleInitialMessage(chat, setWaiting);
 
