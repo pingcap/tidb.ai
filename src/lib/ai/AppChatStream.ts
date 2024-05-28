@@ -1,4 +1,6 @@
 import type { MyChatMessageAnnotation } from '@/components/chat/use-grouped-conversation-messages';
+import type { ChatStreamEvent } from '@/core/services/chating';
+import { getErrorMessage } from '@/lib/errors';
 import { formatStreamPart, StreamingTextResponse, type StreamString } from 'ai';
 
 export const enum AppChatStreamState {
