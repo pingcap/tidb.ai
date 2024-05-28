@@ -8,7 +8,7 @@ import { useSettingContext } from '@/components/website-setting-provider';
 import { withReCaptcha } from '@/components/security-setting-provider';
 
 export default function Page() {
-  const { loading, ask } = useAsk();
+  const { loading, setEngine, ask, engine } = useAsk();
   const { website: { homepage }, security } = useSettingContext();
 
   return (
@@ -20,7 +20,7 @@ export default function Page() {
         <p className="font-light dark:text-gray-300 text-gray-500 mb-4 w-4/5 md:w-auto text-center">
           {homepage?.description || ''}
         </p>
-        <Ask className="px-4 w-full lg:w-2/3" loading={loading} ask={ask} />
+        <Ask className="px-4 w-full lg:w-2/3" loading={loading} ask={ask} engine={engine} setEngine={setEngine} />
         {homepage?.example_questions && (<ul className="flex gap-2 flex-wrap px-4 w-full lg:w-2/3">
           {homepage.example_questions.map(item => (
             <li key={item.text}>
