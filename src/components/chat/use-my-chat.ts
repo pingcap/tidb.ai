@@ -6,6 +6,8 @@ import { useChat } from 'ai/react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 
+export type MyChat = ReturnType<typeof useMyChat>;
+
 export function useMyChat (history: ChatMessage[], context: { ordinal: number, title: string, uri: string }[]) {
   const params = useParams<{ id: string }>();
   const pathname = usePathname();

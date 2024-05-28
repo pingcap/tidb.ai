@@ -7,6 +7,7 @@ import { MessageError } from '@/components/chat/message-error';
 import { MessageHeading } from '@/components/chat/message-heading';
 import { MessageOperations } from '@/components/chat/message-operations';
 import { type ConversationMessageGroupProps, useGroupedConversationMessages } from '@/components/chat/use-grouped-conversation-messages';
+import type { MyChat } from '@/components/chat/use-my-chat';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -16,8 +17,8 @@ import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { AlertTriangleIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-export function ConversationMessageGroups ({ history }: { history: ChatMessage[] }) {
-  const { error, messages, isLoading, isWaiting } = useMyChatContext();
+export function ConversationMessageGroups ({ history, myChat }: { history: ChatMessage[], myChat: MyChat }) {
+  const { error, messages, isLoading, isWaiting } = myChat;
   const groups = useGroupedConversationMessages(history, messages, isLoading || isWaiting, error);
 
   useEffect(() => {
