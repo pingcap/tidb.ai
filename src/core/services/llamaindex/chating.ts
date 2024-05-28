@@ -355,7 +355,7 @@ export class LlamaindexChatService extends AppChatService {
           sources: Array.from(allSources.values()),
           retrieveId: undefined,
         };
-      }),
+      }, () => { retriever.__force_terminate__() }),
     )) {
       yield response;
     }
@@ -575,7 +575,16 @@ function withAsyncIterable<T, R> (run: (next: (result: IteratorResult<T, undefin
     enumerable: false,
   });
 
-  return returns as R & AsyncIterable<T>;
+  Object.defineProperty(returns, '__force_terminate__', {
+    value: () => {
+      managed.finish();
+    },
+    writable: false,
+    configurable: false,
+    enumerable: false,
+  })
+
+  return returns as R & AsyncIterable<T> & { __force_terminate__: () => void };
 }
 
 /**
@@ -610,8 +619,10 @@ function poll<T> (...iterables: AsyncIterable<T>[]): AsyncIterable<T> {
   });
 }
 
-async function* mapAsyncIterable<T, R> (iterable: Promise<AsyncIterable<T>> | AsyncIterable<T>, map: (value: T) => R | Promise<R>): AsyncIterable<R> {
+async function* mapAsyncIterable<T, R> (iterable: Promise<AsyncIterable<T>> | AsyncIterable<T>, map: (value: T) => R | Promise<R>, onFinished: () => void = () => {}): AsyncIterable<R> {
   for await (const value of await iterable) {
     yield map(value);
   }
+
+  onFinished();
 }
