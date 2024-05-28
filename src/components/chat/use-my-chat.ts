@@ -52,7 +52,11 @@ export function useMyChat (history: ChatMessage[], context: { ordinal: number, t
             }
 
             const textPart = decoder.decode(chunk.value, { stream: true });
-            console.debug('[chunk.raw]', new Date, parseStreamPart(textPart));
+            try {
+              console.debug('[chunk.raw.json]', new Date, parseStreamPart(textPart));
+            } catch {
+              console.debug('[chunk.raw.text]', new Date, textPart);
+            }
           }
         }
       })();
