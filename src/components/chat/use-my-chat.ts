@@ -2,10 +2,10 @@ import { __useHandleInitialMessage } from '@/app/(main)/(public)/c/[id]/internal
 import { createInitialMessages, getChatMessageAnnotations } from '@/components/chat/utils';
 import type { ChatMessage } from '@/core/repositories/chat';
 import type { ChatRequestOptions } from 'ai';
+import { parseStreamPart } from 'ai';
 import { useChat } from 'ai/react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
-import { parseStreamPart } from 'ai'
 
 export type MyChat = ReturnType<typeof useMyChat>;
 
@@ -53,7 +53,7 @@ export function useMyChat (history: ChatMessage[], context: { ordinal: number, t
 
             const textPart = decoder.decode(chunk.value, { stream: true });
             try {
-              console.debug('[chunk.raw.json]', new Date, parseStreamPart(textPart));
+              console.debug('[chunk.raw.json]', new Date, textPart.split('\n').map(parseStreamPart));
             } catch {
               console.debug('[chunk.raw.text]', new Date, textPart);
             }
@@ -68,7 +68,7 @@ export function useMyChat (history: ChatMessage[], context: { ordinal: number, t
     },
   });
 
-  console.log('[chat.update]')
+  console.log('[chat.update]');
 
   __useHandleInitialMessage(chat, setWaiting);
 
