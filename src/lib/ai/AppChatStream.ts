@@ -110,21 +110,8 @@ export class AppChatStreamController {
   }
 
   private encodeMessageAnnotation (messageAnnotation: MyChatMessageAnnotation) {
-    this.controller.enqueue(formatStreamPart('text', ''));
     this.controller.enqueue(formatStreamPart('message_annotations', [messageAnnotation]));
   }
-}
-
-function createChatResponseTransform () {
-  return new TransformStream<ChatStreamEvent, StreamString>({
-    transform: (chunk, controller) => {
-      if (chunk.status === AppChatStreamState.ERROR) {
-        controller.enqueue(formatStreamPart('error', getErrorMessage(chunk.error)));
-      } else {
-        controller.enqueue(formatStreamPart('text', chunk.content));
-      }
-    },
-  });
 }
 
 function compareSource (a: AppChatStreamSource, b: AppChatStreamSource) {

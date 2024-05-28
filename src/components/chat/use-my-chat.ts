@@ -40,6 +40,20 @@ export function useMyChat (history: ChatMessage[], context: { ordinal: number, t
     onResponse: response => {
       setWaiting(false);
       setSession(response.headers.get('X-CreateRag-Session') ?? undefined);
+      const reader = response.clone().body?.getReader();
+      ;(async () => {
+        const decoder = new TextDecoder();
+        if (reader) {
+          while (true) {
+            const chunk = await reader.read();
+            if (chunk.done) {
+              break;
+            }
+            const textPart = decoder.decode(chunk.value, { stream: true });
+            console.debug('[chunk.raw]', new Date, textPart);
+          }
+        }
+      })();
     },
     onFinish: (message) => {
       if (message.role !== 'assistant') {
