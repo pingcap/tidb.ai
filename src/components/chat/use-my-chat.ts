@@ -53,7 +53,7 @@ export function useMyChat (history: ChatMessage[], context: { ordinal: number, t
 
             const textPart = decoder.decode(chunk.value, { stream: true });
             try {
-              console.debug('[chunk.raw.json]', new Date, textPart.split('\n').map(parseStreamPart));
+              console.debug('[chunk.raw.json]', new Date, textPart.split('\n').filter(Boolean).map(parseStreamPart));
             } catch {
               console.debug('[chunk.raw.text]', new Date, textPart);
             }

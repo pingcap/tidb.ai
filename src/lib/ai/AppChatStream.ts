@@ -106,11 +106,11 @@ export class AppChatStreamController {
   }
 
   private encodeText (text: string) {
-    this.controller.enqueue(formatStreamPart('text', text) + '\n');
+    this.controller.enqueue(formatStreamPart('text', text) + '\0');
   }
 
   private encodeMessageAnnotation (messageAnnotation: MyChatMessageAnnotation) {
-    this.controller.enqueue(formatStreamPart('message_annotations', [messageAnnotation]) + '\n');
+    this.controller.enqueue(formatStreamPart('message_annotations', [messageAnnotation]) + '\0');
   }
 }
 
