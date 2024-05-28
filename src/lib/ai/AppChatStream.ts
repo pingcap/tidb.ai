@@ -1,5 +1,5 @@
 import type { MyChatMessageAnnotation } from '@/components/chat/use-grouped-conversation-messages';
-import { formatStreamPart, StreamingTextResponse } from 'ai';
+import { formatStreamPart, StreamingTextResponse, type StreamString } from 'ai';
 
 export const enum AppChatStreamState {
   CONNECTING = 'CONNECTING', // only client side
