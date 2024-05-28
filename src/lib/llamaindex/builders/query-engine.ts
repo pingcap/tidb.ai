@@ -8,25 +8,33 @@ import {
   RetrieverQueryEngine,
   SubQuestionQueryEngine
 } from "llamaindex";
+import {BaseLLM} from "llamaindex/llm/base";
 
-export interface QueryEngineDependencies {
+export interface QueryEngineContext {
+  llm: BaseLLM,
   retriever: BaseRetriever
   synthesizer: BaseSynthesizer
 }
 
-export function buildQueryEngine(config: QueryEngineConfig, deps: QueryEngineDependencies, trace?: LangfuseTraceClient): QueryEngine {
+export function buildQueryEngine(
+  context: QueryEngineContext,
+  config: QueryEngineConfig,
+  promptContext: Record<string, any>,
+  trace?: LangfuseTraceClient
+): QueryEngine {
   switch (config.provider) {
     case QueryEngineProvider.RETRIEVER:
-      return new RetrieverQueryEngine(deps.retriever, deps.synthesizer);
+      return new RetrieverQueryEngine(context.retriever, context.synthesizer);
     case QueryEngineProvider.SUB_QUESTION:
       // Build subquestion generator.
-      const questionGenerator = buildQuestionGenerator(config.options?.question_generator, trace);
-      const retrieverQueryEngine = new RetrieverQueryEngine(deps.retriever, deps.synthesizer);
+      const questionGeneratorConfig = config.options?.question_generator;
+      const questionGenerator = buildQuestionGenerator(questionGeneratorConfig, promptContext, context.llm, trace);
+      const retrieverQueryEngine = new RetrieverQueryEngine(context.retriever, context.synthesizer);
 
       // Build subquestion query engine.
       return new SubQuestionQueryEngine({
         questionGen: questionGenerator,
-        responseSynthesizer: deps.synthesizer,
+        responseSynthesizer: context.synthesizer,
         queryEngineTools: [
           new QueryEngineTool({
             queryEngine: retrieverQueryEngine,

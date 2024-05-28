@@ -4,15 +4,24 @@ import {promptParser} from "@/lib/llamaindex/prompts/PromptParser";
 import {LangfuseTraceClient} from "langfuse";
 import {defaultSubQuestionPrompt, LLMQuestionGenerator} from "llamaindex";
 import type {BaseQuestionGenerator} from "llamaindex/engines/query/types";
+import {BaseLLM} from "llamaindex/llm/base";
 
-export function buildQuestionGenerator (config: QuestionGeneratorConfig = {
+export const DEFAULT_QUESTION_GENERATOR_CONFIG: QuestionGeneratorConfig = {
   provider: QuestionGeneratorProvider.LLM,
   options: {}
-}, trace?: LangfuseTraceClient): BaseQuestionGenerator {
+};
+
+export function buildQuestionGenerator (
+  config: QuestionGeneratorConfig = DEFAULT_QUESTION_GENERATOR_CONFIG,
+  promptContext: Record<string, any>,
+  llm?: BaseLLM,
+  trace?: LangfuseTraceClient,
+): BaseQuestionGenerator {
   switch (config.provider) {
     case QuestionGeneratorProvider.LLM:
       const generator = new LLMQuestionGenerator({
-        prompt: promptParser.getPrompt(config.options?.prompt, defaultSubQuestionPrompt),
+        prompt: promptParser.getPrompt(config.options?.prompt, defaultSubQuestionPrompt, promptContext),
+        llm
       });
       return observeQuestionGenerator(generator, trace);
     default:

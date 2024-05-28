@@ -2,18 +2,14 @@ import {LangfuseTraceClient} from "langfuse";
 import {BaseQuestionGenerator} from "llamaindex/engines/query/types";
 import type {ToolMetadata} from "llamaindex/types";
 
-export function observeQuestionGenerator<LLM extends BaseQuestionGenerator>(baseLLM: LLM, trace?: LangfuseTraceClient): LLM {
+export function observeQuestionGenerator<G extends BaseQuestionGenerator>(baseLLM: G, trace?: LangfuseTraceClient): G {
   return new Proxy(baseLLM, {
     get(target, prop, receiver) {
       const originalMethod = Reflect.get(target, prop, receiver);
 
       if (typeof originalMethod !== 'function') {
         return originalMethod;
-      } else if (!(['generate'] as any[]).includes(prop)) {
-        return originalMethod;
-      }
-
-      if (prop === 'generate') {
+      } else if (prop === 'generate') {
         return async function (tools: ToolMetadata[], query: string) {
           const span = trace?.span({
             name: 'generate-question',

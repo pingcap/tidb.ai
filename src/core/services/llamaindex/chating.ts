@@ -307,10 +307,11 @@ export class LlamaindexChatService extends AppChatService {
 
     // Build Query Engine.
     const synthesizer = buildSynthesizer(serviceContext, synthesizerConfig, prompts, promptContext);
-    const queryEngine = buildQueryEngine(queryEngineConfig, {
+    const queryEngine = buildQueryEngine({
+      llm,
       retriever,
       synthesizer
-    });
+    }, queryEngineConfig, promptContext, trace);
 
     // Build Chat Engine.
     const chatHistory = (await listChatMessages(chat.id)).map(message => ({
