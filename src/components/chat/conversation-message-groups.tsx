@@ -14,11 +14,21 @@ import type { ChatMessage } from '@/core/repositories/chat';
 import { getErrorMessage } from '@/lib/errors';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { AlertTriangleIcon } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 export function ConversationMessageGroups ({ history }: { history: ChatMessage[] }) {
   const { error, messages, isLoading, isWaiting } = useMyChatContext();
   const groups = useGroupedConversationMessages(history, messages, isLoading || isWaiting, error);
+
+  useEffect(() => {
+    console.log('[*]', Math.round(Date.now() / 1000), groups[groups.length-1]?.assistantAnnotation.state)
+  });
+  useEffect(() => {
+    console.log('[group effect]', Math.round(Date.now() / 1000), groups[groups.length-1]?.assistantAnnotation.state)
+  }, [groups]);
+  useEffect(() => {
+    console.log('[group effect]', Math.round(Date.now() / 1000), groups[groups.length-1]?.assistantAnnotation.state)
+  }, [groups[groups.length - 1]]);
 
   return (
     <div className="space-y-8">
