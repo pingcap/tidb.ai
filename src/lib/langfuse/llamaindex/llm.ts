@@ -8,7 +8,7 @@ import {
   LLMCompletionParamsStreaming
 } from "llamaindex/llm/types";
 
-export function observeLlamaindexLLM<LLM extends BaseLLM>(baseLLM: LLM, trace?: LangfuseTraceClient): LLM {
+export function observeLLM<LLM extends BaseLLM>(baseLLM: LLM, trace?: LangfuseTraceClient): LLM {
   return new Proxy(baseLLM, {
     get(target, prop, receiver) {
       const originalMethod = Reflect.get(target, prop, receiver);

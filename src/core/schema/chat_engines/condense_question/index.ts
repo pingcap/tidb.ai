@@ -1,6 +1,9 @@
 import {LLMConfigSchema} from "@/lib/llamaindex/config/llm";
 import {MetadataFilterConfigSchema} from "@/lib/llamaindex/config/metadata-filter";
+import {QueryEngineConfigSchema} from "@/lib/llamaindex/config/query-engine";
 import {RerankerConfigSchema} from "@/lib/llamaindex/config/reranker";
+import {ResponseBuilderConfigSchema} from "@/lib/llamaindex/config/response-builder";
+import {SynthesizerConfigSchema} from "@/lib/llamaindex/config/synthesizer";
 import {z} from "zod";
 
 export const RetrieverOptionsSchema = z.object({
@@ -40,6 +43,8 @@ export const CondenseQuestionChatEngineOptionsSchema = BaseChatEngineOptionsSche
   }).optional(),
   // reverse the context from the standard rag retriever / reranker (not affect graph retriever)
   reverse_context: z.boolean().optional(),
+  synthesizer: SynthesizerConfigSchema.optional(),
+  query_engine: QueryEngineConfigSchema.optional(),
 });
 
 export type CondenseQuestionChatEngineOptions = z.infer<typeof CondenseQuestionChatEngineOptionsSchema>;

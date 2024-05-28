@@ -13,29 +13,26 @@ import {
   Entity,
   KnowledgeGraphClient,
   Relationship,
-  SearchOptions,
   SearchResult
 } from "@/lib/knowledge-graph/client";
 import {uuidToBin} from '@/lib/kysely';
 import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
 import {buildLLM} from "@/lib/llamaindex/builders/llm";
+import {buildQueryEngine} from "@/lib/llamaindex/builders/query-engine";
 import {buildReranker} from "@/lib/llamaindex/builders/reranker";
+import {buildSynthesizer} from "@/lib/llamaindex/builders/synthesizer";
 import {LLMConfig, LLMProvider} from "@/lib/llamaindex/config/llm";
-import { type RerankerConfig, RerankerProvider } from '@/lib/llamaindex/config/reranker';
+import {QueryEngineProvider} from "@/lib/llamaindex/config/query-engine";
+import { type RerankerConfig } from '@/lib/llamaindex/config/reranker';
+import {ResponseBuilderProvider} from "@/lib/llamaindex/config/response-builder";
+import {SynthesizerProvider} from "@/lib/llamaindex/config/synthesizer";
+import {promptParser} from "@/lib/llamaindex/prompts/PromptParser";
 import {ManagedAsyncIterable} from '@/lib/ManagedAsyncIterable';
 import {LangfuseTraceClient} from "langfuse";
-import {Liquid} from 'liquidjs';
 import {
-  CompactAndRefine,
   CondenseQuestionChatEngine,
   defaultCondenseQuestionPrompt,
-  defaultRefinePrompt,
-  defaultTextQaPrompt,
-  MetadataMode,
-  ResponseSynthesizer,
-  RetrieverQueryEngine,
   serviceContextFromDefaults,
-  SimplePrompt,
   PromptHelper, ServiceContext, TextNode
 } from 'llamaindex';
 import {DateTime} from 'luxon';
@@ -75,19 +72,22 @@ const DEFAULT_CHAT_ENGINE_OPTIONS: ChatEngineRequiredOptions = {
   },
   prompts: {},
   reverse_context: true,
+  synthesizer: {
+    provider: SynthesizerProvider.RESPONSE,
+    options: {
+      response_builder: {
+        provider: ResponseBuilderProvider.COMPACT_AND_REFINE,
+        options: {}
+      }
+    }
+  },
+  query_engine: {
+    provider: QueryEngineProvider.RETRIEVER,
+    options: {}
+  }
 };
 
 export class LlamaindexChatService extends AppChatService {
-  private liquid = new Liquid();
-
-  getPrompt<Tmpl extends SimplePrompt> (template: string | undefined, fallback: Tmpl, partialContext?: Record<string, any>): (ctx: Parameters<Tmpl>[0]) => string {
-    if (!template) return fallback;
-    const tmpl = this.liquid.parse(template);
-    return context => this.liquid.renderSync(tmpl, {
-      ...partialContext ?? {},
-      ...context
-    });
-  }
 
   protected async* run (chat: Chat, options: ChatOptions): AsyncGenerator<ChatStreamEvent> {
     // Init chat engine config.
@@ -102,6 +102,8 @@ export class LlamaindexChatService extends AppChatService {
       graph_retriever: graphRetrieverConfig,
       metadata_filter: metadataFilterConfig ,
       reranker: rerankerConfig,
+      synthesizer: synthesizerConfig,
+      query_engine: queryEngineConfig,
       reverse_context,
       prompts
     } = engineOptions;
@@ -304,16 +306,11 @@ export class LlamaindexChatService extends AppChatService {
     }
 
     // Build Query Engine.
-    const { textQa, refine } = prompts;
-    const textQaPrompt = this.getPrompt(textQa, defaultTextQaPrompt, promptContext);
-    const refinePrompt = this.getPrompt(refine, defaultRefinePrompt, promptContext);
-    const responseBuilder = new CompactAndRefine(serviceContext, textQaPrompt, refinePrompt);
-    const responseSynthesizer = new ResponseSynthesizer({
-      serviceContext,
-      responseBuilder,
-      metadataMode: MetadataMode.LLM,
+    const synthesizer = buildSynthesizer(serviceContext, synthesizerConfig, prompts, promptContext);
+    const queryEngine = buildQueryEngine(queryEngineConfig, {
+      retriever,
+      synthesizer
     });
-    const queryEngine = new RetrieverQueryEngine(retriever, responseSynthesizer);
 
     // Build Chat Engine.
     const chatHistory = (await listChatMessages(chat.id)).map(message => ({
@@ -321,7 +318,7 @@ export class LlamaindexChatService extends AppChatService {
       content: message.content,
       additionalKwargs: {},
     }));
-    const condenseMessagePrompt = this.getPrompt(prompts?.condenseQuestion, defaultCondenseQuestionPrompt, promptContext);
+    const condenseMessagePrompt = promptParser.getPrompt(prompts?.condenseQuestion, defaultCondenseQuestionPrompt, promptContext);
     const chatEngine = new CondenseQuestionChatEngine({
       serviceContext,
       queryEngine,

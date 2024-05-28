@@ -1,4 +1,4 @@
-import {observeLlamaindexLLM} from "@/lib/langfuse/llamaindex/llm";
+import {observeLLM} from "@/lib/langfuse/llamaindex/llm";
 import {LLMConfig, LLMProvider} from "@/lib/llamaindex/config/llm";
 import {LangfuseTraceClient} from "langfuse";
 import {OpenAI, Ollama} from "llamaindex";
@@ -21,5 +21,5 @@ export async function buildLLM ({ provider, options}: LLMConfig, trace?: Langfus
     default:
       throw new Error(`Unknown LLM provider: ${provider}`)
   }
-  return observeLlamaindexLLM(baseLLM, trace);
+  return observeLLM(baseLLM, trace);
 }
