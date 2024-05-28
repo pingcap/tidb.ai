@@ -4,17 +4,12 @@ import {ChatEngineRequiredOptions} from '@/core/repositories/chat_engine';
 import {getDocumentsBySourceUris} from "@/core/repositories/document";
 import {GraphRetrieverSearchOptions} from "@/core/schema/chat_engines/condense_question";
 import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/services/chating';
-import {LlamaindexRetrieverWrapper, LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
 import type {RetrieveOptions} from "@/core/services/retrieving";
+import {LlamaindexRetrieverWrapper, LlamaindexRetrieveService} from '@/core/services/vector-index/retrieving';
 import {type AppChatStreamSource, AppChatStreamState} from '@/lib/ai/AppChatStream';
-import { deduplicateItems } from '@/lib/array-filters';
-import {
-  DocumentChunk,
-  Entity,
-  KnowledgeGraphClient,
-  Relationship,
-  SearchResult
-} from "@/lib/knowledge-graph/client";
+import {deduplicateItems} from '@/lib/array-filters';
+import {mapAsyncIterable, poll, withAsyncIterable} from "@/lib/async";
+import {DocumentChunk, Entity, KnowledgeGraphClient, Relationship, SearchResult} from "@/lib/knowledge-graph/client";
 import {uuidToBin} from '@/lib/kysely';
 import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
 import {buildLLM} from "@/lib/llamaindex/builders/llm";
@@ -23,17 +18,18 @@ import {buildReranker} from "@/lib/llamaindex/builders/reranker";
 import {buildSynthesizer} from "@/lib/llamaindex/builders/synthesizer";
 import {LLMConfig, LLMProvider} from "@/lib/llamaindex/config/llm";
 import {QueryEngineProvider} from "@/lib/llamaindex/config/query-engine";
-import { type RerankerConfig } from '@/lib/llamaindex/config/reranker';
+import {type RerankerConfig} from '@/lib/llamaindex/config/reranker';
 import {ResponseBuilderProvider} from "@/lib/llamaindex/config/response-builder";
 import {SynthesizerProvider} from "@/lib/llamaindex/config/synthesizer";
 import {promptParser} from "@/lib/llamaindex/prompts/PromptParser";
-import {ManagedAsyncIterable} from '@/lib/ManagedAsyncIterable';
 import {LangfuseTraceClient} from "langfuse";
 import {
   CondenseQuestionChatEngine,
   defaultCondenseQuestionPrompt,
+  PromptHelper,
+  ServiceContext,
   serviceContextFromDefaults,
-  PromptHelper, ServiceContext, TextNode
+  TextNode
 } from 'llamaindex';
 import {DateTime} from 'luxon';
 import {UUID} from 'node:crypto';
@@ -550,79 +546,4 @@ ${dr.entities.map(ent => `- ${ent.name}: ${ent.description}`).join('\n')}
     }
   }
 
-}
-
-function withAsyncIterable<T, R> (run: (next: (result: IteratorResult<T, undefined>) => void, fail: (error: unknown) => void) => R) {
-  const managed = new ManagedAsyncIterable<T>();
-
-  let returns: R;
-  returns = run(
-    (result) => {
-      if (result.done) {
-        managed.finish();
-      } else {
-        managed.next(result.value);
-      }
-    },
-    (reason) => {
-      managed.fail(reason);
-    });
-
-  Object.defineProperty(returns, Symbol.asyncIterator, {
-    value: () => managed[Symbol.asyncIterator](),
-    writable: false,
-    configurable: false,
-    enumerable: false,
-  });
-
-  Object.defineProperty(returns, '__force_terminate__', {
-    value: () => {
-      managed.finish();
-    },
-    writable: false,
-    configurable: false,
-    enumerable: false,
-  })
-
-  return returns as R & AsyncIterable<T> & { __force_terminate__: () => void };
-}
-
-/**
- * Create a single AsyncIterable from several AsyncIterables with the same type.
- * @param iterables
- */
-function poll<T> (...iterables: AsyncIterable<T>[]): AsyncIterable<T> {
-  return new ManagedAsyncIterable<T>((managed) => {
-    let finished = 0;
-    for (let iterable of iterables) {
-      const iterator = iterable[Symbol.asyncIterator]();
-      const iterate = () => {
-        iterator.next()
-          .then(
-            result => {
-              if (result.done) {
-                finished += 1;
-                if (finished === iterables.length) {
-                  managed.finish();
-                }
-              } else {
-                managed.next(result.value);
-                iterate();
-              }
-            },
-            error => {
-              managed.fail(error);
-            });
-      };
-      iterate();
-    }
-  });
-}
-
-async function* mapAsyncIterable<T, R> (iterable: Promise<AsyncIterable<T>> | AsyncIterable<T>, map: (value: T) => R | Promise<R>, onFinished: () => void = () => {}): AsyncIterable<R> {
-  for await (const value of await iterable) {
-    yield map(value);
-  }
-
-  onFinished();
 }

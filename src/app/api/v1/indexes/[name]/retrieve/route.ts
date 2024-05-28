@@ -1,6 +1,6 @@
 import {getChatEngineConfig} from "@/core/repositories/chat_engine";
 import {getIndexByName} from '@/core/repositories/index_';
-import {LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
+import {LlamaindexRetrieveService} from '@/core/services/vector-index/retrieving';
 import {retrieveOptionsSchema} from '@/core/services/retrieving';
 import {buildEmbedding} from "@/lib/llamaindex/builders/embedding";
 import {buildLLM} from "@/lib/llamaindex/builders/llm";

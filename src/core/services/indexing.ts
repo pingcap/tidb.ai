@@ -92,7 +92,7 @@ export class DocumentIndexService {
 
   async prepareProviders () {
     // TODO: DI?
-    this.providers['llamaindex'] = await (() => import('./llamaindex/indexing').then(module => new module.LlamaindexIndexProvider()))();
+    this.providers['llamaindex'] = await (() => import('./vector-index/indexing').then(module => new module.LlamaindexIndexProvider()))();
     this.providers['knowledge-graph'] = await (() => import('./knowledge-graph/indexing').then(module => new module.KnowledgeGraphIndexProvider()))();
   }
 
