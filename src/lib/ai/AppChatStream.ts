@@ -16,7 +16,7 @@ export const enum AppChatStreamState {
 
 export type AppChatStreamSource = { title: string, uri: string };
 
-export class AppChatStream extends ReadableStream<StreamString> {
+export class AppChatStream extends ReadableStream<string> {
 
   constructor (
     public readonly sessionId: string,
@@ -53,7 +53,7 @@ export class AppChatStreamController {
   private stateMessage: string = '';
   private sources: AppChatStreamSource[] = [];
 
-  constructor (private messageId: number, private controller: ReadableStreamDefaultController<StreamString>) {
+  constructor (private messageId: number, private controller: ReadableStreamDefaultController<string>) {
   }
 
   appendText (text: string, force: boolean = false) {
@@ -106,11 +106,11 @@ export class AppChatStreamController {
   }
 
   private encodeText (text: string) {
-    this.controller.enqueue(formatStreamPart('text', text));
+    this.controller.enqueue(formatStreamPart('text', text) + '\n');
   }
 
   private encodeMessageAnnotation (messageAnnotation: MyChatMessageAnnotation) {
-    this.controller.enqueue(formatStreamPart('message_annotations', [messageAnnotation]));
+    this.controller.enqueue(formatStreamPart('message_annotations', [messageAnnotation]) + '\n');
   }
 }
 
