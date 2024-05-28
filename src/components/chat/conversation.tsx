@@ -49,7 +49,7 @@ export function Conversation ({ open, history, context, engineOptions }: Convers
         <div ref={ref} className={cn(
           'md:max-w-screen-md mx-auto space-y-4 transition-all relative md:min-h-screen md:p-body',
         )}>
-          <ConversationMessageGroups history={history} myChat={myChat} />
+          <ConversationMessageGroups history={history} />
           <div className="h-24"></div>
         </div>
         {size && open && <form className="block h-max p-4 fixed bottom-0" onSubmit={submitWithReCaptcha} style={{ left: size.x, width: size.width }}>

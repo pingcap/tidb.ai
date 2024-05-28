@@ -14,7 +14,7 @@ export const enum AppChatStreamState {
 
 export type AppChatStreamSource = { title: string, uri: string };
 
-export class AppChatStream extends ReadableStream<Uint8Array> {
+export class AppChatStream extends ReadableStream<StreamString> {
 
   constructor (
     public readonly sessionId: string,
@@ -22,8 +22,6 @@ export class AppChatStream extends ReadableStream<Uint8Array> {
     pull: (controller: AppChatStreamController) => Promise<void>,
   ) {
     super({
-      type: 'bytes',
-      autoAllocateChunkSize: 4096,
       pull: async (controller) => {
         try {
           await pull(new AppChatStreamController(messageId, controller));
@@ -54,9 +52,8 @@ export class AppChatStreamController {
   private state: AppChatStreamState = AppChatStreamState.CONNECTING;
   private stateMessage: string = '';
   private sources: AppChatStreamSource[] = [];
-  private textEncoder = new TextEncoder();
 
-  constructor (private messageId: number, private controller: ReadableByteStreamController | ReadableStreamDefaultController<Uint8Array>) {
+  constructor (private messageId: number, private controller: ReadableStreamDefaultController<StreamString>) {
   }
 
   appendText (text: string, force: boolean = false) {
@@ -109,12 +106,24 @@ export class AppChatStreamController {
   }
 
   private encodeText (text: string) {
-    this.controller.enqueue(this.textEncoder.encode(formatStreamPart('text', text)));
+    this.controller.enqueue(formatStreamPart('text', text));
   }
 
   private encodeMessageAnnotation (messageAnnotation: MyChatMessageAnnotation) {
-    this.controller.enqueue(this.textEncoder.encode(formatStreamPart('message_annotations', [messageAnnotation])));
+    this.controller.enqueue(formatStreamPart('message_annotations', [messageAnnotation]));
   }
+}
+
+function createChatResponseTransform () {
+  return new TransformStream<ChatStreamEvent, StreamString>({
+    transform: (chunk, controller) => {
+      if (chunk.status === AppChatStreamState.ERROR) {
+        controller.enqueue(formatStreamPart('error', getErrorMessage(chunk.error)));
+      } else {
+        controller.enqueue(formatStreamPart('text', chunk.content));
+      }
+    },
+  });
 }
 
 function compareSource (a: AppChatStreamSource, b: AppChatStreamSource) {

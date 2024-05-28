@@ -7,7 +7,6 @@ import { MessageError } from '@/components/chat/message-error';
 import { MessageHeading } from '@/components/chat/message-heading';
 import { MessageOperations } from '@/components/chat/message-operations';
 import { type ConversationMessageGroupProps, useGroupedConversationMessages } from '@/components/chat/use-grouped-conversation-messages';
-import type { MyChat } from '@/components/chat/use-my-chat';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -15,21 +14,11 @@ import type { ChatMessage } from '@/core/repositories/chat';
 import { getErrorMessage } from '@/lib/errors';
 import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { AlertTriangleIcon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
-export function ConversationMessageGroups ({ history, myChat }: { history: ChatMessage[], myChat: MyChat }) {
-  const { error, messages, isLoading, isWaiting } = myChat;
+export function ConversationMessageGroups ({ history }: { history: ChatMessage[] }) {
+  const { error, messages, isLoading, isWaiting } = useMyChatContext();
   const groups = useGroupedConversationMessages(history, messages, isLoading || isWaiting, error);
-
-  useEffect(() => {
-    console.log('[*]', Math.round(Date.now() / 1000), groups[groups.length-1]?.assistantAnnotation.state, groups[groups.length-1]?.assistantAnnotation.stateMessage)
-  });
-  useEffect(() => {
-    console.log('[group effect]', Math.round(Date.now() / 1000), groups[groups.length-1]?.assistantAnnotation.state)
-  }, [groups]);
-  useEffect(() => {
-    console.log('[group effect]', Math.round(Date.now() / 1000), groups[groups.length-1]?.assistantAnnotation.state)
-  }, [groups[groups.length - 1]]);
 
   return (
     <div className="space-y-8">
@@ -69,7 +58,7 @@ function ConversationMessageGroup ({ group }: { group: ConversationMessageGroupP
         <MessageHeading />
         <MessageError group={group} />
         <MessageContent group={group} />
-        {!group.finished && <MessageAnnotation assistantAnnotation={group.assistantAnnotation} />}
+        {!group.finished && <MessageAnnotation group={group} />}
       </section>
       <MessageOperations group={group} />
     </section>
