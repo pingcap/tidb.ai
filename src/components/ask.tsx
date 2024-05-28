@@ -1,12 +1,11 @@
 import { MessageInput } from '@/components/message-input';
 import { SecuritySettingContext, withReCaptcha } from '@/components/security-setting-provider';
 import { type UseAskReturns } from '@/components/use-ask';
-import { useContext, useRef, useState } from 'react';
+import { useContext, useRef } from 'react';
 
-export function Ask ({ className, loading, ask }: { className?: string } & UseAskReturns) {
+export function Ask ({ className, loading, ask, engine, setEngine }: { className?: string } & UseAskReturns) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const security = useContext(SecuritySettingContext);
-  const [engine, setEngine] = useState<number>();
 
   return (
     <form

@@ -2,13 +2,15 @@ import { __setMessage } from '@/app/(main)/(public)/c/[id]/internal';
 import { handleErrors } from '@/lib/fetch';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useState, useTransition } from 'react';
-import { mutate } from 'swr'
+import { useCallback, useRef, useState, useTransition } from 'react';
+import { mutate } from 'swr';
 
-export function useAsk(onFinish?: () => void) {
+export function useAsk (onFinish?: () => void) {
   const session = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [engine, setEngine] = useState<number>();
+  const engineRef = useRef<number>();
   const [transitioning, startTransition] = useTransition();
 
   const ask = useCallback((message: string, options?: {
@@ -22,15 +24,15 @@ export function useAsk(onFinish?: () => void) {
         body: JSON.stringify({
           messages: [],
           name: message,
-          engine: options?.engine,
+          engine: engineRef?.current ?? options?.engine,
         }),
-        headers: {...options?.headers},
+        headers: { ...options?.headers },
       }).then(handleErrors)
         .then(res => res.json())
         .then(res => {
           __setMessage(message);
           startTransition(() => {
-            onFinish?.()
+            onFinish?.();
             router.push(`/c/${encodeURIComponent(res.url_key)}`);
           });
         })
@@ -45,6 +47,11 @@ export function useAsk(onFinish?: () => void) {
 
   return {
     ask,
+    engine,
+    setEngine: (engine: number | undefined) => {
+      engineRef.current = engine;
+      setEngine(engine);
+    },
     loading: disabled,
   };
 }
