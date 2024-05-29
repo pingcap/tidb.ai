@@ -6,39 +6,47 @@ import { useState } from 'react';
 import useSWR, { mutate } from 'swr';
 
 export interface UseMessageFeedbackReturns {
-  state: 'like' | 'dislike' | undefined;
-  feedbackAt: Date | undefined;
+  feedbackData: KnowledgeGraphFeedback | undefined;
   disabled: boolean;
 
-  like (): void;
+  source?: ContentSource;
+  sourceLoading: boolean;
 
-  dislike (): void;
+  feedback (details: Record<string, 'like' | 'dislike'>, comment: string): Promise<void>;
+}
+
+export type ContentSource = {
+  query: string
+  markdownSources: {
+    kgRelationshipUrls: string[]
+    restUrls: string[]
+  }
+  kgSources: Record<string, any>
 }
 
 export function useMessageFeedback (chatId: number, messageId: number, enabled: boolean): UseMessageFeedbackReturns {
-  const { data, isLoading, isValidating } = useSWR(enabled ? ['get', `/api/v1/chats/${chatId}/messages/${messageId}/feedback`] : undefined, fetcher<KnowledgeGraphFeedback[]>);
+  const { data: feedback, isLoading, isValidating } = useSWR(enabled ? ['get', `/api/v1/chats/${chatId}/messages/${messageId}/feedback`] : undefined, fetcher<KnowledgeGraphFeedback>);
   const [acting, setActing] = useState(false);
+  const disabled = isValidating || isLoading || acting || !enabled;
+
+  const contentData = useSWR((enabled && !disabled) ? ['get', `/api/v1/chats/${chatId}/messages/${messageId}/content-sources`] : undefined, fetcher<ContentSource>, { keepPreviousData: true, revalidateIfStale: false, revalidateOnReconnect: false });
 
   return {
-    state: data?.[0]?.action,
-    feedbackAt: data?.[0]?.created_at,
-    disabled: isValidating || isLoading || !!data?.length || acting || !enabled,
-    like () {
+    feedbackData: feedback,
+    disabled,
+    feedback: (detail, comment) => {
       setActing(true);
-      feedback(chatId, messageId, 'like').finally(() => setActing(false));
+      return addFeedback(chatId, messageId, { detail, comment }).finally(() => setActing(false));
     },
-    dislike () {
-      feedback(chatId, messageId, 'dislike').finally(() => setActing(false));
-    },
+    source: contentData.data,
+    sourceLoading: contentData.isLoading || contentData.isValidating,
   };
 }
 
-async function feedback (chatId: number, messageId: number, action: 'like' | 'dislike') {
+async function addFeedback (chatId: number, messageId: number, data: any) {
   await fetch(`/api/v1/chats/${chatId}/messages/${messageId}/feedback`, {
     method: 'post',
-    body: JSON.stringify({
-      action: 'like',
-    }),
+    body: JSON.stringify(data),
   });
   mutate(['get', `/api/v1/chats/${chatId}/messages/${messageId}/feedback`], data => data, true);
 }

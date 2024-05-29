@@ -1,6 +1,6 @@
 import { getChat, getChatMessage } from '@/core/repositories/chat';
 import { createKnowledgeGraphFeedback, findKnowledgeGraphFeedback } from '@/core/repositories/knowledge_graph_feedback';
-import { KnowledgeGraphClient } from '@/lib/knowledge-graph/client';
+import { getTraceId } from '@/core/services/feedback/utils';
 import { defineHandler } from '@/lib/next/handler';
 import { notFound } from 'next/navigation';
 import z from 'zod';
@@ -33,7 +33,7 @@ export const GET = defineHandler(({
   }
 
   const userId = auth.user.id!;
-  return await findKnowledgeGraphFeedback(message.trace_url, userId);
+  return await findKnowledgeGraphFeedback(getTraceId(message.trace_url), userId);
 });
 
 export const POST = defineHandler(({
@@ -42,8 +42,8 @@ export const POST = defineHandler(({
     messageId: z.coerce.number(),
   }),
   body: z.object({
-    action: z.enum(['like', 'dislike']),
-    sources: z.string().array().min(1).optional(),
+    detail: z.record(z.enum(['like', 'dislike'])),
+    comment: z.string(),
   }),
   auth: 'anonymous',
 }), async ({ params, body, auth }) => {
@@ -67,33 +67,25 @@ export const POST = defineHandler(({
     }, { status: 400 });
   }
 
+  const traceId = getTraceId(message.trace_url);
   const userId = auth.user.id!;
-  const feedbacks = await findKnowledgeGraphFeedback(message.trace_url, userId);
+  const feedback = await findKnowledgeGraphFeedback(traceId, userId);
 
-  if (!body.sources) {
-    // like whole answer
+  // like whole answer
 
-    if (feedbacks.length > 0) {
-      return Response.json({
-        message: 'Already submitted feedback',
-      }, { status: 400 });
-    }
-
-    const client = new KnowledgeGraphClient();
-
-
-    await createKnowledgeGraphFeedback({
-      source_url: null,
-      created_by: userId,
-      trace_url: message.trace_url,
-      created_at: new Date(),
-      action: body.action,
-    });
-  } else {
+  if (feedback) {
     return Response.json({
-      message: 'Not supported yet',
+      message: 'Already submitted feedback',
     }, { status: 400 });
   }
+
+  await createKnowledgeGraphFeedback({
+    detail: body.detail,
+    created_by: userId,
+    trace_id: getTraceId(message.trace_url),
+    created_at: new Date(),
+    comment: body.comment,
+  });
 });
 
 export const dynamic = 'force-dynamic';

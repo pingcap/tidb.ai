@@ -113,12 +113,14 @@ export interface Index {
 }
 
 export interface KnowledgeGraphFeedback {
-  action: "dislike" | "like";
+  comment: string;
   created_at: Date;
   created_by: string;
+  detail: Json;
   id: Generated<number>;
-  source_url: string | null;
-  trace_url: string;
+  report_error: string | null;
+  reported_at: Date | null;
+  trace_id: Buffer;
 }
 
 export interface LlamaindexDocumentChunkNodeDefault {
