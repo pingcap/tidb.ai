@@ -6,7 +6,7 @@ import { useChat } from 'ai/react';
 import { useParams, usePathname, useRouter } from 'next/navigation';
 import { type FormEvent, useEffect, useMemo, useState } from 'react';
 
-export function useMyChat (history: ChatMessage[], context: { ordinal: number, title: string, uri: string }[]) {
+export function useMyChat (id: number, history: ChatMessage[], context: { ordinal: number, title: string, uri: string }[]) {
   const params = useParams<{ id: string }>();
   const pathname = usePathname();
 
@@ -49,6 +49,7 @@ export function useMyChat (history: ChatMessage[], context: { ordinal: number, t
   __useHandleInitialMessage(chat, setWaiting);
 
   return {
+    id,
     ...chat,
     isWaiting,
     handleSubmit: (e: FormEvent<HTMLFormElement>, chatRequestOptions?: ChatRequestOptions) => {

@@ -41,7 +41,7 @@ export default async function Conversations ({ params }: { params: { id: string 
 
   return (
     <div className="xl:pr-side">
-      <Conversation history={history} context={context} open={!!chat && !!user && chat.created_by === user.id} engineOptions={chat.engine_options as ChatEngineOptions | null} />
+      <Conversation id={chat.id} history={history} context={context} open={!!chat && !!user && chat.created_by === user.id} engineOptions={chat.engine_options as ChatEngineOptions | null} />
     </div>
   );
 }

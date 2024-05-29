@@ -112,6 +112,17 @@ export interface Index {
   name: string;
 }
 
+export interface KnowledgeGraphFeedback {
+  comment: string;
+  created_at: Date;
+  created_by: string;
+  detail: Json;
+  id: Generated<number>;
+  report_error: string | null;
+  reported_at: Date | null;
+  trace_id: Buffer;
+}
+
 export interface LlamaindexDocumentChunkNodeDefault {
   document_id: number;
   embedding: unknown | null;
@@ -199,6 +210,7 @@ export interface DB {
   document_import_task: DocumentImportTask;
   document_index_task: DocumentIndexTask;
   index: Index;
+  knowledge_graph_feedback: KnowledgeGraphFeedback;
   llamaindex_document_chunk_node_default: LlamaindexDocumentChunkNodeDefault;
   llamaindex_document_node: LlamaindexDocumentNode;
   llamaindex_node_relationship: LlamaindexNodeRelationship;

@@ -1,9 +1,11 @@
 import { type DBv1, getDb } from '@/core/db';
+import type { ChatEngineOptions } from '@/core/repositories/chat_engine';
 import { executePage, type PageRequest } from '@/lib/database';
 import { genId } from '@/lib/id';
+import type { Overwrite } from '@tanstack/table-core';
 import type { Insertable, Selectable, Updateable } from 'kysely';
 
-export type Chat = Selectable<DBv1['chat']>
+export type Chat = Overwrite<Selectable<DBv1['chat']>, { engine_options: ChatEngineOptions }>
 export type CreateChat = Insertable<Omit<DBv1['chat'], 'url_key'>>
 export type ChatMessage = Selectable<DBv1['chat_message']>
 export type CreateChatMessage = Insertable<DBv1['chat_message']>
@@ -12,11 +14,11 @@ export type UpdateChatMessage = Updateable<DBv1['chat_message']>
 export type CreateChatMessageRetrieveRel = Insertable<DBv1['chat_message_retrieve_rel']>
 
 export async function getChat (id: number) {
-  return await getDb().selectFrom('chat').selectAll().where('id', '=', id).executeTakeFirst();
+  return await getDb().selectFrom('chat').selectAll().$castTo<Chat>().where('id', '=', id).executeTakeFirst();
 }
 
 export async function getChatByUrlKey (key: string) {
-  return await getDb().selectFrom('chat').selectAll().where('url_key', '=', key).executeTakeFirst();
+  return await getDb().selectFrom('chat').selectAll().$castTo<Chat>().where('url_key', '=', key).executeTakeFirst();
 }
 
 export async function deleteChat (id: number, by: string) {

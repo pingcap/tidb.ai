@@ -13,13 +13,14 @@ import { type FormEvent, useContext } from 'react';
 
 export interface ConversationProps {
   open: boolean;
+  id: number;
   history: ChatMessage[];
   context: { ordinal: number, title: string, uri: string }[];
   engineOptions: ChatEngineOptions | null;
 }
 
-export function Conversation ({ open, history, context, engineOptions }: ConversationProps) {
-  const myChat = useMyChat(history, context);
+export function Conversation ({ id, open, history, context, engineOptions }: ConversationProps) {
+  const myChat = useMyChat(id, history, context);
   const { handleInputChange, handleRegenerate, isWaiting, handleSubmit, input, isLoading, error, messages, reload } = myChat;
   const { ref, size } = useSize();
 

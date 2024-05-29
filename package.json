@@ -69,7 +69,7 @@
     "mime": "^4.0.1",
     "mysql2": "^3.7.1",
     "nanoid": "^5.0.4",
-    "next": "14.2.1",
+    "next": "14.2.3",
     "next-auth": "5.0.0-beta.5",
     "openai": "^4.25.0",
     "path-to-regexp": "^6.2.2",
@@ -128,7 +128,7 @@
     "autoprefixer": "^10.0.1",
     "client-zip": "^2.4.4",
     "eslint": "^8",
-    "eslint-config-next": "14.2.1",
+    "eslint-config-next": "14.2.3",
     "is-hotkey": "^0.2.0",
     "kysely-codegen": "^0.11.0",
     "lodash": "^4.17.21",
@@ -144,7 +144,9 @@
     "rehype-react": "^8.0.0",
     "swr": "^2.2.4",
     "tailwindcss": "^3.3.0",
-    "typescript": "^5"
+    "typescript": "^5",
+    "unist-util-is": "^6.0.0",
+    "unist-util-visit": "^5.0.0"
   },
   "packageManager": "pnpm@8.15.7",
   "pnpm": {
