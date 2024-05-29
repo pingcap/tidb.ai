@@ -40,6 +40,13 @@ export interface SearchOptions {
   with_degree?: boolean;
 }
 
+export interface FeedbackOptions {
+  feedback_type: 'like' | 'dislike'
+  query: string
+  langfuse_link: string
+  relationships: number[]
+}
+
 export class KnowledgeGraphClient {
   baseURL: string;
 
@@ -53,6 +60,21 @@ export class KnowledgeGraphClient {
 
   async search(options?: SearchOptions): Promise<SearchResult> {
     const url = `${this.baseURL}/api/search`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(options)
+    });
+    if (!res.ok) {
+      throw new Error(`Failed to call knowledge graph search API: ${res.statusText}`);
+    }
+    return await res.json();
+  }
+
+  async feedback (options: FeedbackOptions) {
+    const url = `${this.baseURL}/api/graph/feedback`;
     const res = await fetch(url, {
       method: 'POST',
       headers: {
