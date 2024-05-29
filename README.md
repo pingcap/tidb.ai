@@ -51,16 +51,8 @@ For deploying the application to production, there are many options available:
 - [Kysely](https://kysely.dev/) - SQL query builder
 - [NextAuth.js](https://next-auth.js.org/) – Auth
 - [Vercel](https://vercel.com/) – Deployments
+- [LlamaIndex](https://www.llamaindex.ai/) - RAG framework
 
-
-## Roadmap & Timeline
-
-* [x] Migrate tidb.ai to a TiDB Serverless vector storage instance with indexing capabilities. Estimated completion by March 29th.
-* [x] Revise the table structure to accommodate the requirements of the llamaindex's RAG process and successfully integrate llamaindex. Target date: April 30.
-* [x] Multiple LLM support
-* Local quick deployment before April 30th.
-* Finalize the "How It Works" series of documentation by April 30th.
 
 ## License
-
 TiDB.AI is open-source under the Apache License, Version 2.0. You can [find it here](/LICENSE.txt).
