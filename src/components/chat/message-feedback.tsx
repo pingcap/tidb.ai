@@ -29,7 +29,7 @@ export function MessageFeedback ({ initial, source, sourceLoading, onFeedback, c
         {source && (
           <ul>
             {source.markdownSources.kgRelationshipUrls.map(url => (
-              <li className="flex gap-2 items-start p-2 border-b last-of-type:border-b-0">
+              <li key={url} className="flex gap-2 items-start p-2 border-b last-of-type:border-b-0">
                 <div className="flex-1 overflow-hidden w-0">
                   <a className="block w-full overflow-hidden text-ellipsis whitespace-nowrap text-xs" href={url} target="_blank">
                     <span>
