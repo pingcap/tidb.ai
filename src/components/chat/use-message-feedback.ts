@@ -21,7 +21,7 @@ export function useMessageFeedback (chatId: number, messageId: number, enabled: 
 
   return {
     state: data?.[0]?.action,
-    feedbackAt: data?.[0].created_at,
+    feedbackAt: data?.[0]?.created_at,
     disabled: isValidating || isLoading || !!data?.length || acting || !enabled,
     like () {
       setActing(true);
