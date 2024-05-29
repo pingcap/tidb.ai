@@ -70,7 +70,7 @@
     "mysql2": "^3.7.1",
     "nanoid": "^5.0.4",
     "next": "14.2.3",
-    "next-auth": "5.0.0-beta.18",
+    "next-auth": "5.0.0-beta.5",
     "openai": "^4.25.0",
     "path-to-regexp": "^6.2.2",
     "pdfjs-dist": "^4.0.379",

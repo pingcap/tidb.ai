@@ -192,8 +192,8 @@ importers:
         specifier: 14.2.3
         version: 14.2.3(@babel/core@7.23.9)(react-dom@18.2.0)(react@18.2.0)
       next-auth:
-        specifier: 5.0.0-beta.18
-        version: 5.0.0-beta.18(next@14.2.3)(react@18.2.0)
+        specifier: 5.0.0-beta.5
+        version: 5.0.0-beta.5(next@14.2.3)(react@18.2.0)
       openai:
         specifier: ^4.25.0
         version: 4.25.0
@@ -662,17 +662,11 @@ packages:
       - encoding
     dev: false
 
-  /@auth/core@0.31.0:
-    resolution: {integrity: sha512-UKk3psvA1cRbk4/c9CkpWB8mdWrkKvzw0DmEYRsWolUQytQ2cRqx+hYuV6ZCsngw/xbj9hpmkZmAZEyq2g4fMg==}
+  /@auth/core@0.21.0:
+    resolution: {integrity: sha512-jUWYs8gjy2GvtP9dd/4S9KcwZ660Cm/IkybiAq96/2Ooku9SKk5SUG+UTEwkyLuaQ38ZgfwggfpDOgzsXEcufA==}
     peerDependencies:
-      '@simplewebauthn/browser': ^9.0.1
-      '@simplewebauthn/server': ^9.0.2
       nodemailer: ^6.8.0
     peerDependenciesMeta:
-      '@simplewebauthn/browser':
-        optional: true
-      '@simplewebauthn/server':
-        optional: true
       nodemailer:
         optional: true
     dependencies:
@@ -11410,23 +11404,17 @@ packages:
   /neo-async@2.6.2:
     resolution: {integrity: sha512-Yd3UES5mWCSqR+qNT93S3UoYUkqAZ9lLg8a7g9rimsWmYGK8cVToA4/sF3RrshdyV3sAGMXVUmpMYOw+dLpOuw==}
 
-  /next-auth@5.0.0-beta.18(next@14.2.3)(react@18.2.0):
-    resolution: {integrity: sha512-x55L8wZb8PcPGCYA3e/l9tdpd7YL3FDuhas4W8pxq3PjrWJ9OoDxNN0otK9axJamJBbBgjfzTJjVQB6hXoe0ZQ==}
+  /next-auth@5.0.0-beta.5(next@14.2.3)(react@18.2.0):
+    resolution: {integrity: sha512-tEYIPhm/i0byW4xf9Ldlsnh7ckBQfNvMjOA3B3eXQX9taAQWb8earravSn1fjk4fKfKvaOApFJkks0VeI7Vy/A==}
     peerDependencies:
-      '@simplewebauthn/browser': ^9.0.1
-      '@simplewebauthn/server': ^9.0.2
       next: ^14
       nodemailer: ^6.6.5
       react: ^18.2.0
     peerDependenciesMeta:
-      '@simplewebauthn/browser':
-        optional: true
-      '@simplewebauthn/server':
-        optional: true
       nodemailer:
         optional: true
     dependencies:
-      '@auth/core': 0.31.0
+      '@auth/core': 0.21.0
       next: 14.2.3(@babel/core@7.23.9)(react-dom@18.2.0)(react@18.2.0)
       react: 18.2.0
     dev: false
