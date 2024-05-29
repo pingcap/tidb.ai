@@ -3,13 +3,20 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Loader2Icon, ThumbsDownIcon, ThumbsUpIcon } from 'lucide-react';
-import { type ReactElement, useState } from 'react';
+import { type ReactElement, useEffect, useState } from 'react';
 
 export function MessageFeedback ({ initial, source, sourceLoading, onFeedback, children }: { initial?: { detail: Record<string, 'like' | 'dislike'>, comment: string }, source: ContentSource | undefined, sourceLoading: boolean, onFeedback: (detail: Record<string, 'like' | 'dislike'>, comment: string) => Promise<void>, children: ReactElement }) {
   const [open, setOpen] = useState(false);
   const [detail, setDetail] = useState<Record<string, 'like' | 'dislike'>>(() => (initial ?? {}));
   const [comment, setComment] = useState(initial?.comment ?? '');
   const [running, setRunning] = useState(false);
+
+  useEffect(() => {
+    if (initial) {
+      setDetail(initial.detail);
+      setComment(initial.comment);
+    }
+  }, [initial])
 
   const disabled = running || !!initial;
 
