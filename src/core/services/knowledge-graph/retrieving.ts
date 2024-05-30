@@ -1,313 +1,240 @@
-import {getDb} from "@/core/db";
-import type {Index} from "@/core/repositories/index_";
-import type {Retrieve, RetrieveResult} from "@/core/repositories/retrieve";
-import {
-  AppRetrieveService,
-  type AppRetrieveServiceOptions, type RetrieveCallbacks,
-  type RetrievedChunk, type RetrievedChunkReference,
-  type RetrieveOptions
-} from "@/core/services/retrieving";
-import {cosineDistance} from "@/lib/kysely";
-import {buildMetadataFilter} from "@/lib/llamaindex/builders/metadata-filter";
+import {GraphRetrieverOptions, GraphRetrieverSearchOptions} from "@/core/schema/chat_engines/condense_question";
+import {type RetrieveCallbacks,} from "@/core/services/retrieving";
+import {deduplicateItems} from "@/lib/array-filters";
+import {Entity, KnowledgeGraphClient, Relationship, SearchResult} from "@/lib/knowledge-graph/client";
 import {buildReranker} from "@/lib/llamaindex/builders/reranker";
 import {LangfuseTraceClient} from "langfuse";
-import {BaseRetriever, NodeRelationship, NodeWithScore, ObjectType, RetrieveParams, TextNode} from "llamaindex";
-import type {RelatedNodeInfo, RelatedNodeType} from "llamaindex/Node";
+import {type BaseRetriever, type NodeWithScore, type RetrieveParams, ServiceContext, TextNode} from "llamaindex";
 import {DateTime} from "luxon";
-import type {UUID} from "node:crypto";
+import {randomUUID} from "node:crypto";
 
-export class LlamaindexRetrieveService extends AppRetrieveService {
-  protected async run (
-    retrieve: Retrieve,
-    options: RetrieveOptions,
-    trace?: LangfuseTraceClient
-  ): Promise<RetrievedChunk[]> {
-    const { query, top_k = 10, search_top_k = 100, filters} = options;
+export interface DocumentRelationship {
+  docId: string;
+  relationships: Relationship[];
+  entities: Entity[];
+  relevance_score?: number;
+}
 
-    if (this.index.config.provider !== 'llamaindex') {
-      throw new Error(`${this.index.name} is not a llamaindex index`);
+export interface KGRetrievalResult extends SearchResult {
+  document_relationships: DocumentRelationship[];
+}
+
+export class TiDBAIKnowledgeGraphRetriever implements BaseRetriever {
+  serviceContext: ServiceContext;
+  private kgClient: KnowledgeGraphClient;
+
+  constructor (
+    serviceContext: ServiceContext,
+    private readonly graphRetrieverOptions: GraphRetrieverOptions,
+    private readonly callbacks: RetrieveCallbacks,
+    private readonly trace?: LangfuseTraceClient
+  ) {
+    this.kgClient = new KnowledgeGraphClient();
+    this.serviceContext = serviceContext;
+  }
+
+  async retrieve ({ query }: RetrieveParams): Promise<NodeWithScore[]> {
+    const result = await this.retrieveKnowledgeGraph({ query });
+    const docRelMap = new Map(result.document_relationships.map(dr => [dr.docId, dr]));
+    return result.chunks.map(chunk => {
+      const dr = docRelMap.get(chunk.link);
+      const relationshipsStr = dr?.relationships.map(rel => rel.rag_description).join('\n').padStart(1, '\n');
+      const entitiesStr = dr?.entities.map(ent => `- ${ent.name}: ${ent.description}`).join('\n').padStart(1, '\n');
+      return {
+        node: new TextNode({
+          id_: randomUUID(),
+          text: chunk.text,
+          metadata: {
+            sourceUri: chunk.link,
+            relationships: relationshipsStr,
+            entities: entitiesStr,
+          },
+        })
+      };
+    });
+  }
+
+  async retrieveKnowledgeGraph ({ query }: RetrieveParams): Promise<KGRetrievalResult> {
+    console.log('[KG-Retrieving] Start knowledge graph retrieving ...');
+
+    const {
+      top_k = 5,
+      search: searchOptions,
+      reranker: rerankOptions
+    } = this.graphRetrieverOptions;
+
+    const kgRetrievalSpan = this.trace?.span({
+      name: 'knowledge-graph-retrieval',
+      input: query,
+      metadata: this.graphRetrieverOptions
+    });
+
+    // Knowledge graph searching.
+    const searchResult: SearchResult = await this.searchKnowledgeGraph(
+      query,
+      searchOptions,
+      kgRetrievalSpan
+    );
+
+    // Grouping entities and relationships.
+    const result: KGRetrievalResult = {
+      ...searchResult,
+      document_relationships: this.groupDocumentRelationships(searchResult.relationships, searchResult.entities)
     }
 
-    // Tracing.
-    const providedTrace = !!trace;
-    if (!providedTrace) {
-      trace = this.langfuse?.trace({
-        name: 'retrieving',
-        input: options.query,
-        metadata: {
-          retrieve_id: retrieve.id,
-          top_k: options.top_k,
-          search_top_k: options.search_top_k,
-        },
-      });
+    // Rerank document relationships.
+    if (rerankOptions?.provider) {
+      // Knowledge graph reranking.
+      result.document_relationships = await this.rerankDocumentRelationships(
+        result.document_relationships,
+        query,
+        top_k,
+        kgRetrievalSpan
+      );
+
+      // Flatten relationships and entities.
+      result.relationships = result.document_relationships.map(dr => dr.relationships).flat().filter(deduplicateItems('id'));
+      result.entities = result.document_relationships.map(dr => dr.entities).flat().filter(deduplicateItems('id'));
     }
 
-    const retrieveSpan = trace?.span({
-      name: 'retrieving',
-      input: options.query,
-      metadata: {
-        retrieveId: retrieve.id,
-        ...options
+    // Notice: Limit to avoid exceeding the maximum size of the trace.
+    kgRetrievalSpan?.end({
+      output: {
+        entities: result.entities,
+        relationships: result.relationships,
+        chunks: result.chunks
       }
     });
 
-    // Generate query embedding.
-    const queryEmbedding = await this.embedQuery(query, retrieveSpan);
+    console.log('[KG-Retrieving] Finish knowledge graph retrieving.');
+    return result;
+  }
 
-    // Embedding search.
-    this.emit('start-search', retrieve.id, query);
-    await this.startSearch(retrieve);
+  async searchKnowledgeGraph (
+    query: string,
+    searchOptions: GraphRetrieverSearchOptions = {},
+    trace?: LangfuseTraceClient
+  ): Promise<SearchResult> {
+    console.log(`[KG-Retrieving] Start knowledge graph searching for query "${query}".`);
+    const kgSearchSpan = trace?.span({
+      name: "knowledge-graph-search",
+      input: query,
+      metadata: searchOptions
+    });
 
-    let chunks = await this.search(query, queryEmbedding, search_top_k, retrieveSpan);
+    const start = DateTime.now();
+    const searchResult = await this.kgClient.search({
+      query,
+      embedding: [],
+      ...searchOptions
+    });
+    const duration = DateTime.now().diff(start, 'milliseconds').milliseconds;
 
-    // Metadata Filters
-    const metadataFilterConfig = this.metadataFilterConfig;
-    if (metadataFilterConfig) {
-      // If filters are provided, use them directly.
-      if (filters) {
-        this.metadataFilterConfig.options = Object.assign(this.metadataFilterConfig.options ?? {}, { filters })
+    kgSearchSpan?.end({
+      // Fixme: DO NOT MUTATE THE LANGFUSE OUTPUT.
+      // Langfuse always delays it's push operation, mutations before pushing will affect langfuse tracking.
+      output: JSON.parse(JSON.stringify(searchResult)),
+    });
+    console.log(`[KG-Retrieving] Finish knowledge graph searching, take ${duration} ms.`);
+
+    return searchResult;
+  }
+
+  groupDocumentRelationships (
+    relationships: Relationship[] = [],
+    entities: Entity[] = []
+  ) {
+    const entityMap = new Map(entities.map(entity => [entity.id, entity]));
+      const documentRelationshipsMap: Map<string, {
+      docId: string,
+      relationships: Map<number, Relationship>
+      entities: Map<number, Entity>
+    }> = new Map();
+
+    for (let relationship of relationships) {
+      const docId = relationship?.meta?.doc_id || 'default';
+      if (!documentRelationshipsMap.has(docId)) {
+        documentRelationshipsMap.set(docId, {
+          docId,
+          relationships: new Map<number, Relationship>(),
+          entities: new Map<number, Entity>()
+        });
       }
 
-      try {
-        chunks = await this.metadataPostFilter(chunks, query, metadataFilterConfig, retrieveSpan);
-      } catch (err) {
-        console.warn('[Retrieving] Failed to finished metadata filter, fallback to use all chunks:', err);
+      const relGroup = documentRelationshipsMap.get(docId)!;
+      relGroup?.relationships.set(relationship.id, relationship);
+
+      const sourceEntity = entityMap.get(relationship.source_entity_id);
+      if (sourceEntity) {
+        relGroup?.entities.set(relationship.source_entity_id, sourceEntity);
       }
+
+      const targetEntity = entityMap.get(relationship.target_entity_id);
+      if (targetEntity) {
+        relGroup?.entities.set(relationship.target_entity_id, targetEntity);
+      }
+
+      documentRelationshipsMap.set(docId, relGroup);
     }
 
-    // If no reranker is provided, return the top_k chunks directly.
-    if (!this.rerankerConfig?.provider) {
-      return chunks.slice(0, top_k);
-    }
+    const documentRelationships = Array.from(documentRelationshipsMap.values());
+    return documentRelationships.map(relGroup => ({
+      docId: relGroup.docId,
+      relationships: Array.from(relGroup.relationships.values()),
+      entities: Array.from(relGroup.entities.values())
+    }));
+  }
 
-    // Cut up to 2 * top_k chunks for reranking.
-    // FIXME: why not to use the `search_top_k`?
-    const rerankChunksLimit = top_k * 2;
-    chunks = chunks.slice(0, rerankChunksLimit);
+  async rerankDocumentRelationships (
+    documentRelationships: DocumentRelationship[],
+    query: string,
+    topK: number = 10,
+    trace?: LangfuseTraceClient
+  ): Promise<DocumentRelationship[]> {
+    console.log(`[KG-Retrieving] Start knowledge graph reranking for query "${query}".`, { documentRelationship: documentRelationships.length, topK: topK });
+
+    // Build reranker.
+    const reranker = await buildReranker(this.serviceContext, this.graphRetrieverOptions.reranker!, topK);
+
+    // Transform document relationships to TextNode.
+    const docIdRelationshipsMap = new Map(documentRelationships.map(dr => [dr.docId, dr]));
+    const nodes = documentRelationships.map(dr => ({
+      node: new TextNode({
+        id_: dr.docId,
+        text: `
+Document URL: ${dr.docId}
+
+Relationships extract from the document: 
+${dr.relationships.map(rel => rel.description).join('\n')}
+
+Entities extract from the document:
+${dr.entities.map(ent => `- ${ent.name}: ${ent.description}`).join('\n')}
+          `,
+      })
+    }));
+
+    const rerankSpan = trace?.span({
+      name: 'knowledge-graph-rerank',
+      input: {
+        query,
+        document_relationships_size: documentRelationships.length
+      }
+    });
 
     // Reranking.
-    this.emit('start-rerank', retrieve.id, chunks);
-    await this.startRerank(retrieve);
-
-    let result;
-    try {
-      result = await this.rerank(chunks, query, top_k, this.rerankerConfig, retrieveSpan);
-    } catch (err) {
-      console.warn('[Retrieving] Failed to rerank, fallback to slice top_k chunks directly:', err);
-      return chunks.slice(0, top_k);
-    }
-
-    retrieveSpan?.end({
-      output: result
-    });
-
-    return result;
-  }
-
-  private async search (query: string, queryEmbedding: number[], search_top_k: number, trace?: LangfuseTraceClient) {
-    console.log(`[Retrieving] Start embedding searching for query "${query}".`, { search_top_k })
-    const sSpan = trace?.span({
-      name: 'embedding-search',
-      input: {
-        query,
-        queryEmbedding
-      },
-      metadata: {
-        search_top_k
-      }
-    });
-
-    const searchStart = DateTime.now();
-    const rawChunks = await getDb()
-      .with('cte_chunk_node', qc => qc.selectFrom(`llamaindex_document_chunk_node_${this.index.name}`)
-        .select([
-          'id',
-          'document_id',
-          'text',
-          'metadata',
-          eb => eb.fn('bin_to_uuid', [`llamaindex_document_chunk_node_${this.index.name}.id`]).as('document_chunk_node_id'),
-          `llamaindex_document_chunk_node_${this.index.name}.text as chunk_text`,
-          eb => eb.ref(`llamaindex_document_chunk_node_${this.index.name}.metadata`).$castTo<any>().as('chunk_metadata'),
-          eb => cosineDistance(eb, 'embedding', queryEmbedding).as('cosine_distance'),
-        ])
-        .orderBy(eb => cosineDistance(eb, 'embedding', queryEmbedding), 'asc')
-        .limit(search_top_k))
-      .selectFrom('cte_chunk_node')
-      .innerJoin('llamaindex_document_node as document_node', `cte_chunk_node.document_id`, 'document_node.document_id')
-      .select([
-        eb => eb.fn('bin_to_uuid', [`cte_chunk_node.id`]).as('document_chunk_node_id'),
-        eb => eb.fn('bin_to_uuid', ['document_node.id']).as('document_node_id'),
-        'document_node.document_id',
-        `cte_chunk_node.text as chunk_text`,
-        eb => eb(eb.val(1),'-', eb.ref('cte_chunk_node.cosine_distance')).as('relevance_score'),
-        eb => eb.ref(`cte_chunk_node.metadata`).$castTo<any>().as('chunk_metadata'),
-        eb => eb.ref(`document_node.metadata`).$castTo<any>().as('document_metadata'),
-      ])
-      .orderBy('relevance_score', 'desc')
-      .execute();
-    const searchDuration = DateTime.now().diff(searchStart, 'milliseconds').milliseconds;
-    const result = await this.parse(this.index, rawChunks);
-
-    sSpan?.end({
-      output: result
-    });
-    console.log(`[Retrieving] Finish embedding searching, take ${searchDuration} ms, found ${result.length} chunks.`, { search_top_k });
-
-    return result;
-  }
-
-  private async metadataPostFilter (
-    chunks: RetrievedChunk[],
-    query: string,
-    config: NonNullable<AppRetrieveServiceOptions['metadata_filter']>,
-    trace?: LangfuseTraceClient
-  ) {
-    console.log(`[Retrieving] Start post metadata filtering with ${chunks.length} chunks.`);
-    const mfSpan = trace?.span({
-      name: 'metadata-filters',
-      input: query,
-      metadata: config
-    });
-
-    const mfStart = DateTime.now();
-    const metadataFilter = buildMetadataFilter(this.serviceContext, config);
-    const chunksMap = new Map(chunks.map(chunk => [chunk.document_chunk_node_id, chunk]));
-    const nodesWithScore = await metadataFilter.postprocessNodes(chunks.map(chunk => ({ score: chunk.relevance_score, node: transform(chunk) })), query);
-    const mfDuration = DateTime.now().diff(mfStart, 'milliseconds').milliseconds;
-
+    const start = DateTime.now();
+    const nodesWithScore = await reranker.postprocessNodes(nodes, query);
     const result = nodesWithScore.map((nodeWithScore, index, total) => ({
-      ...chunksMap.get(nodeWithScore.node.id_ as UUID)!,
-      relevance_score: nodeWithScore.score ?? 0,
+      ...docIdRelationshipsMap.get(nodeWithScore.node.id_)!,
+      relevance_score: nodeWithScore.score ?? (total.length - index + topK * 10),
     }));
-
-    mfSpan?.end({
-      output: result
-    });
-    console.log(`[Retrieving] Finish post metadata filtering, take ${mfDuration} ms.`)
-
-    return result;
-  }
-
-  private async rerank (
-    chunks: RetrievedChunk[],
-    query: string,
-    top_k: number,
-    config: NonNullable<AppRetrieveServiceOptions['reranker']>,
-    trace?: LangfuseTraceClient
-  ) {
-    console.log(`[Retrieving] Start reranking for query "${query}".`, { chunks: chunks.length, top_k });
-    const rerankSpan = trace?.span({
-      name: 'reranking',
-      input: {
-        query,
-        chunks
-      },
-      metadata: config
-    });
-
-    const rerankStart = DateTime.now();
-    const reranker = await buildReranker(this.serviceContext, config, top_k);
-    const chunksMap = new Map(chunks.map(chunk => [chunk.document_chunk_node_id, chunk]));
-    const nodesWithScore = await reranker.postprocessNodes(chunks.map(chunk => ({ score: chunk.relevance_score, node: transform(chunk) })), query);
-    const rerankDuration = DateTime.now().diff(rerankStart, 'milliseconds').milliseconds;
-
-    const result = nodesWithScore.map((nodeWithScore, index, total) => ({
-      ...chunksMap.get(nodeWithScore.node.id_ as UUID)!,
-      relevance_score: nodeWithScore.score ?? (total.length - index + top_k * 10),
-    }));
+    const duration = DateTime.now().diff(start, 'milliseconds').milliseconds;
 
     rerankSpan?.end({
       output: result
     });
-    console.log(`[Retrieving] Finish reranking, take ${rerankDuration} ms.`);
+
+    console.log(`[KG-Retrieving] Finish knowledge graph reranking, take ${duration} ms.`);
     return result;
   }
-
-  private async parse (index: Index, results: Pick<RetrieveResult, 'relevance_score' | 'document_node_id' | 'document_chunk_node_id' | 'document_id' | 'chunk_text' | 'chunk_metadata' | 'document_metadata'>[]): Promise<RetrievedChunk[]> {
-    if (results.length === 0) {
-      return [];
-    }
-
-    const nodeRelsMap = new Map<UUID, Record<string, RetrievedChunkReference>>;
-
-    return results.map(result => ({
-      index_id: index.id,
-      metadata: result.chunk_metadata,
-      text: result.chunk_text,
-      document_node_id: result.document_node_id,
-      document_chunk_node_id: result.document_chunk_node_id,
-      document_id: result.document_id,
-      document_metadata: result.document_metadata,
-      relevance_score: result.relevance_score,
-      relationships: nodeRelsMap.get(result.document_chunk_node_id) ?? {},
-    }));
-  }
-}
-
-export class LlamaindexRetrieverWrapper implements BaseRetriever {
-  constructor (
-    private readonly retrieveService: AppRetrieveService,
-    private readonly options: Omit<RetrieveOptions, 'query'>,
-    private readonly callbacks: RetrieveCallbacks,
-    private readonly trace?: LangfuseTraceClient
-  ) {}
-
-  async retrieve (params: RetrieveParams): Promise<NodeWithScore[]> {
-    // Notice: Due to the limitations of Llamaindex, some parameters can only be passed in when instantiating the Retriever class
-    const chunks = await this.retrieveService.retrieve({ ...this.options, query: params.query }, this.callbacks, this.trace);
-
-    const detailedChunks = await this.retrieveService.extendResultDetails(chunks);
-
-    return detailedChunks.map(chunk => {
-      return {
-        node: new TextNode({
-          id_: chunk.document_chunk_node_id,
-          text: chunk.text,
-          metadata: {
-            //// MARK: we don't need the metadata from extractors, they are for embedding.
-            // ...chunk.metadata,
-            sourceUri: chunk.document_uri,
-          },
-          relationships: Object.fromEntries(Object.entries(chunk.relationships).map(([k, v]) => {
-            return [k, { nodeId: v.chunk_node_id, metadata: v.metadata } satisfies RelatedNodeInfo];
-          })),
-        }),
-        score: chunk.relevance_score,
-      };
-    });
-  }
-}
-
-function transform (result: RetrievedChunk): TextNode {
-  result.relationships;
-  return new TextNode({
-    id_: result.document_chunk_node_id,
-    text: result.text,
-    metadata: {
-      ...result.metadata,
-      ...result.document_metadata
-    },
-    excludedLlmMetadataKeys: [
-      // Notice: Exclude several fields generated by the LLM to avoid passing too much text during rerank,
-      // which may lead to exceeding the model's token limit.
-      'sectionSummary',
-      'questionsThisExcerptCanAnswer',
-      'excerptKeywords'
-    ],
-    relationships: {
-      [NodeRelationship.NEXT]: result.relationships[NodeRelationship.NEXT] ? transformRef(result.relationships[NodeRelationship.NEXT]) : undefined,
-      [NodeRelationship.PREVIOUS]: result.relationships[NodeRelationship.PREVIOUS] ? transformRef(result.relationships[NodeRelationship.PREVIOUS]) : undefined,
-      [NodeRelationship.PARENT]: result.relationships[NodeRelationship.PARENT] ? transformRef(result.relationships[NodeRelationship.PARENT]) : undefined,
-      // TODO: support CHILDREN
-      // TODO: support SOURCE
-    },
-  });
-}
-
-function transformRef (rel: RetrievedChunkReference): RelatedNodeType<any> {
-  return {
-    nodeId: rel.chunk_node_id,
-    nodeType: ObjectType.TEXT,
-    metadata: rel.metadata,
-  };
 }

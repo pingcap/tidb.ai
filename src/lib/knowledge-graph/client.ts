@@ -18,6 +18,7 @@ export interface Relationship {
   source_entity_id: number;
   target_entity_id: number;
   description: string;
+  rag_description: string;
   meta: Record<string, any> & { "doc_id": string } | null;
 }
 

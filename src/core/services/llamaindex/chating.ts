@@ -2,51 +2,33 @@ import {getDb} from '@/core/db';
 import {type Chat, listChatMessages, updateChatMessage} from '@/core/repositories/chat';
 import {ChatEngineRequiredOptions} from '@/core/repositories/chat_engine';
 import {getDocumentsBySourceUris} from "@/core/repositories/document";
-import {GraphRetrieverSearchOptions} from "@/core/schema/chat_engines/condense_question";
 import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/services/chating';
-import type {RetrieveOptions} from "@/core/services/retrieving";
-import {LlamaindexRetrieverWrapper, LlamaindexRetrieveService} from '@/core/services/vector-index/retrieving';
+import {TiDBAIKnowledgeGraphRetriever} from "@/core/services/knowledge-graph/retrieving";
+import {RetrieveOptions} from "@/core/services/retrieving";
+import {TiDBAIVectorIndexRetriever, LlamaindexRetrieveService} from '@/core/services/vector-index/retrieving';
 import {type AppChatStreamSource, AppChatStreamState} from '@/lib/ai/AppChatStream';
-import {deduplicateItems} from '@/lib/array-filters';
 import {mapAsyncIterable, poll, withAsyncIterable} from "@/lib/async";
-import {DocumentChunk, Entity, KnowledgeGraphClient, Relationship, SearchResult} from "@/lib/knowledge-graph/client";
 import {uuidToBin} from '@/lib/kysely';
 import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
 import {buildLLM} from "@/lib/llamaindex/builders/llm";
 import {buildQueryEngine} from "@/lib/llamaindex/builders/query-engine";
-import {buildReranker} from "@/lib/llamaindex/builders/reranker";
 import {buildSynthesizer} from "@/lib/llamaindex/builders/synthesizer";
 import {LLMConfig, LLMProvider} from "@/lib/llamaindex/config/llm";
 import {QueryEngineProvider} from "@/lib/llamaindex/config/query-engine";
-import {type RerankerConfig} from '@/lib/llamaindex/config/reranker';
 import {ResponseBuilderProvider} from "@/lib/llamaindex/config/response-builder";
 import {SynthesizerProvider} from "@/lib/llamaindex/config/synthesizer";
 import {promptParser} from "@/lib/llamaindex/prompts/PromptParser";
-import {LangfuseTraceClient} from "langfuse";
 import {
   CondenseQuestionChatEngine,
   defaultCondenseQuestionPrompt,
   PromptHelper,
-  ServiceContext,
   serviceContextFromDefaults,
-  TextNode
 } from 'llamaindex';
 import {DateTime} from 'luxon';
 import {UUID} from 'node:crypto';
 
 interface SourceWithNodeId extends AppChatStreamSource {
   id: string;
-}
-
-interface DocumentRelationship {
-  docId: string;
-  relationships: Relationship[];
-  entities: Entity[];
-  relevance_score?: number;
-}
-
-interface KGRetrievalResult extends SearchResult {
-  document_relationships?: DocumentRelationship[];
 }
 
 const DEFAULT_CHAT_ENGINE_OPTIONS: ChatEngineRequiredOptions = {
@@ -94,13 +76,12 @@ export class LlamaindexChatService extends AppChatService {
     ) as ChatEngineRequiredOptions;
     const {
       llm: llmConfig,
-      retriever: retrieverConfig,
-      graph_retriever: graphRetrieverConfig,
+      retriever: retrieverOptions,
+      graph_retriever: graphRetrieverOptions,
       metadata_filter: metadataFilterConfig ,
       reranker: rerankerConfig,
       synthesizer: synthesizerConfig,
       query_engine: queryEngineConfig,
-      reverse_context,
       prompts
     } = engineOptions;
 
@@ -149,95 +130,20 @@ export class LlamaindexChatService extends AppChatService {
     // Document sources.
     const allSources = new Map<string, AppChatStreamSource>();
 
-    // Build knowledge graph based retriever.
-    // TODO: refactor this part to KnowledgeGraphRetrieveService in the services/knowledge-graph/retrieving.ts
-    let kgContext: Record<string, any> | undefined;
-    if (graphRetrieverConfig?.enable) {
-      console.log('[KG-Retrieving] Start knowledge graph retrieving ...');
+    // Fill in entities and relationships to rewrite query prompt.
 
-      yield {
-        status: AppChatStreamState.KG_RETRIEVING,
-        sources: Array.from(allSources.values()),
-        statusMessage: 'Start knowledge graph searching ...',
-        content: '',
-      };
-
-      const kgClient = new KnowledgeGraphClient();
-      const kgRetrievalSpan = trace?.span({
-        name: 'knowledge-graph-retrieval',
-        input: options.userInput,
-        metadata: graphRetrieverConfig
-      });
-
-      // Knowledge graph searching.
-      const result: KGRetrievalResult = await this.searchKnowledgeGraph(
-        kgClient,
-        options.userInput,
-        graphRetrieverConfig.search,
-        kgRetrievalSpan
-      );
-
-      // Grouping entities and relationships.
-      result.document_relationships = await this.groupDocumentRelationships(result.relationships, result.entities);
-      if (graphRetrieverConfig.reranker?.provider) {
-        // Knowledge graph reranking.
-        result.document_relationships = await this.rerankDocumentRelationships(
-          result.document_relationships,
-          options.userInput,
-          retrieverConfig.top_k,
-          graphRetrieverConfig.reranker,
-          serviceContext,
-          kgRetrievalSpan
-        );
-
-        // Flatten relationships and entities.
-        result.relationships = result.document_relationships.map(dr => dr.relationships).flat().filter(deduplicateItems('id'));
-        result.entities = result.document_relationships.map(dr => dr.entities).flat().filter(deduplicateItems('id'));
-      }
-
-      kgContext = result;
-      // Notice: Limit to avoid exceeding the maximum size of the trace.
-      kgRetrievalSpan?.end({
-        output: {
-          entities: result.entities,
-          relationships: result.relationships,
-          chunks: result.chunks
-        }
-      });
-
-      yield {
-        status: AppChatStreamState.KG_RETRIEVING,
-        sources: Array.from(allSources.values()),
-        statusMessage: 'Knowledge graph retrieving completed.',
-        content: '',
-      };
-
-      console.log('[KG-Retrieving] Finish knowledge graph retrieving.');
-
-      // Append sources from knowledge graph retrieving.
-      const links = result.chunks.map((chunk: DocumentChunk) => chunk.link);
-      await this.appendSourceByLinks(allSources, links);
-    }
-
-    // Build vector search based retriever.
-    // FIXME: This method only support a single retrieve call currently.
-    const retrieveService = new LlamaindexRetrieveService({
+    // Build vector index based retriever.
+    const vectorIndexRetrieveService = new LlamaindexRetrieveService({
+      serviceContext,
       flow: this.flow,
       index: this.index,
-      serviceContext,
       reranker: rerankerConfig,
       metadata_filter: metadataFilterConfig,
       langfuse: this.langfuse,
-
     });
-    const { search_top_k, top_k } = retrieverConfig;
-    const retriever = withAsyncIterable<ChatStreamEvent, LlamaindexRetrieverWrapper>(
-      (next, fail) => new LlamaindexRetrieverWrapper(retrieveService, {
-        search_top_k,
-        top_k,
-        use_cache: false,
-        reversed: reverse_context,
-      },
+    const vectorIndexRetriever = withAsyncIterable<ChatStreamEvent, TiDBAIVectorIndexRetriever>((next, fail) => new TiDBAIVectorIndexRetriever(
+      vectorIndexRetrieveService,
+      retrieverOptions,
       {
         onStartSearch: (id, text) => {
           next({
@@ -292,8 +198,66 @@ export class LlamaindexChatService extends AppChatService {
       trace,
     ));
 
+    // Build knowledge-graph-based retriever.
+    const knowledgeGraphRetriever = withAsyncIterable<ChatStreamEvent, TiDBAIKnowledgeGraphRetriever>((next, fail) => new TiDBAIKnowledgeGraphRetriever(
+      serviceContext,
+      graphRetrieverOptions,
+      {
+        onStartSearch: (id, text) => {
+          next({
+            done: false,
+            value: {
+              content: '',
+              status: AppChatStreamState.SEARCHING,
+              statusMessage: `Searching document chunks: ${text}`,
+              sources: Array.from(allSources.values()),
+              retrieveId: id,
+            },
+          });
+        },
+        onStartRerank: (id, chunks) => {
+          next({
+            done: false,
+            value: {
+              content: '',
+              status: AppChatStreamState.RERANKING,
+              statusMessage: `Reranking ${chunks.length} searched document chunks using ${rerankerConfig?.provider}:${rerankerConfig?.options?.model ?? 'default'}...`,
+              sources: Array.from(allSources.values()),
+              retrieveId: id,
+            },
+          });
+        },
+        onRetrieved: async (id, chunks) => {
+          try {
+            const links = chunks.map(chunk => chunk.metadata.source_uri);
+            await this.appendSourceByLinks(allSources, links);
+            next({
+              done: false,
+              value: {
+                content: '',
+                status: AppChatStreamState.GENERATING,
+                statusMessage: `Generating using ${llmConfig.provider}:${llmConfig.options?.model ?? 'default'}`,
+                sources: Array.from(allSources.values()),
+                retrieveId: id,
+              },
+            });
+            next({
+              done: true,
+              value: undefined,
+            });
+          } catch (error) {
+            fail(error);
+          }
+        },
+        onRetrieveFailed: (id, reason) => {
+          fail(reason);
+        },
+      },
+      trace,
+    ));
+
+    // Prompt context.
     const promptContext = {
-      ...kgContext,
       sources: Array.from(allSources.values()).map((source, index) => ({
         ordinal: index + 1,
         ...source
@@ -303,11 +267,8 @@ export class LlamaindexChatService extends AppChatService {
 
     // Build Query Engine.
     const synthesizer = buildSynthesizer(serviceContext, synthesizerConfig, prompts, promptContext);
-    const queryEngine = buildQueryEngine({
-      llm,
-      retriever,
-      synthesizer
-    }, queryEngineConfig, promptContext, trace);
+    const queryEngineContext = { llm, retriever: vectorIndexRetriever, graphRetriever: knowledgeGraphRetriever, synthesizer };
+    const queryEngine = await buildQueryEngine(queryEngineContext, queryEngineConfig, options.userInput, promptContext, trace);
 
     // Build Chat Engine.
     const chatHistory = (await listChatMessages(chat.id)).map(message => ({
@@ -341,7 +302,7 @@ export class LlamaindexChatService extends AppChatService {
     // Poll chat response from iterators and yield them.
     let finalResponse = '';
     for await (const response of poll(
-      retriever,
+      vectorIndexRetriever,
       mapAsyncIterable(responses, async response => {
         finalResponse += response.response;
         return {
@@ -351,7 +312,7 @@ export class LlamaindexChatService extends AppChatService {
           sources: Array.from(allSources.values()),
           retrieveId: undefined,
         };
-      }, () => { retriever.__force_terminate__() }),
+      }, () => { vectorIndexRetriever.__force_terminate__() }),
     )) {
       yield response;
     }
@@ -366,135 +327,6 @@ export class LlamaindexChatService extends AppChatService {
     });
 
     await this.langfuse?.flushAsync();
-  }
-
-  async searchKnowledgeGraph (
-    kgClient: KnowledgeGraphClient,
-    query: string,
-    searchOptions: GraphRetrieverSearchOptions = {},
-    trace?: LangfuseTraceClient
-  ): Promise<SearchResult> {
-    console.log(`[KG-Retrieving] Start knowledge graph searching for query "${query}".`);
-    const kgSearchSpan = trace?.span({
-      name: "knowledge-graph-search",
-      input: query,
-      metadata: searchOptions
-    });
-
-    const start = DateTime.now();
-    const searchResult = await kgClient.search({
-      query,
-      embedding: [],
-      ...searchOptions
-    });
-    const duration = DateTime.now().diff(start, 'milliseconds').milliseconds;
-
-    kgSearchSpan?.end({
-      output: searchResult,
-    });
-    console.log(`[KG-Retrieving] Finish knowledge graph searching, take ${duration} ms.`);
-    // Fixme: DO NOT MUTATE THE LANGFUSE OUTPUT. Langfuse always delays it's push operation, mutations before pushing will affect langfuse tracking.
-    return searchResult;
-  }
-
-  async groupDocumentRelationships (
-    relationships: Relationship[] = [],
-    entities: Entity[] = []
-  ) {
-    const entityMap = new Map(entities.map(entity => [entity.id, entity]));
-    const documentRelationshipsMap: Map<string, {
-      docId: string,
-      relationships: Map<number, Relationship>
-      entities: Map<number, Entity>
-    }> = new Map();
-
-    for (let relationship of relationships) {
-      const docId = relationship?.meta?.doc_id || 'default';
-      if (!documentRelationshipsMap.has(docId)) {
-        documentRelationshipsMap.set(docId, {
-          docId,
-          relationships: new Map<number, Relationship>(),
-          entities: new Map<number, Entity>()
-        });
-      }
-
-      const relGroup = documentRelationshipsMap.get(docId)!;
-      relGroup?.relationships.set(relationship.id, relationship);
-
-      const sourceEntity = entityMap.get(relationship.source_entity_id);
-      if (sourceEntity) {
-        relGroup?.entities.set(relationship.source_entity_id, sourceEntity);
-      }
-
-      const targetEntity = entityMap.get(relationship.target_entity_id);
-      if (targetEntity) {
-        relGroup?.entities.set(relationship.target_entity_id, targetEntity);
-      }
-
-      documentRelationshipsMap.set(docId, relGroup);
-    }
-
-    const documentRelationships = Array.from(documentRelationshipsMap.values());
-    return documentRelationships.map(relGroup => ({
-      docId: relGroup.docId,
-      relationships: Array.from(relGroup.relationships.values()),
-      entities: Array.from(relGroup.entities.values())
-    }));
-  }
-
-  async rerankDocumentRelationships (
-    documentRelationships: DocumentRelationship[],
-    query: string,
-    topK: number = 10,
-    rerankerConfig: RerankerConfig,
-    serviceContext: ServiceContext,
-    trace?: LangfuseTraceClient
-  ): Promise<DocumentRelationship[]> {
-    console.log(`[KG-Retrieving] Start knowledge graph reranking for query "${query}".`, { documentRelationship: documentRelationships.length, topK: topK });
-
-    // Build reranker.
-    const reranker = await buildReranker(serviceContext, rerankerConfig, topK);
-
-    // Transform document relationships to TextNode.
-    const docIdRelationshipsMap = new Map(documentRelationships.map(dr => [dr.docId, dr]));
-    const nodes = documentRelationships.map(dr => ({
-      node: new TextNode({
-        id_: dr.docId,
-        text: `
-Document URL: ${dr.docId}
-
-Relationships extract from the document: 
-${dr.relationships.map(rel => rel.description).join('\n')}
-
-Entities extract from the document:
-${dr.entities.map(ent => `- ${ent.name}: ${ent.description}`).join('\n')}
-          `,
-      })
-    }));
-
-    const rerankSpan = trace?.span({
-      name: 'knowledge-graph-rerank',
-      input: {
-        query,
-        document_relationships_size: documentRelationships.length
-      }
-    });
-
-    // Reranking.
-    const start = DateTime.now();
-    const nodesWithScore = await reranker.postprocessNodes(nodes, query);
-    const result = nodesWithScore.map((nodeWithScore, index, total) => ({
-      ...docIdRelationshipsMap.get(nodeWithScore.node.id_)!,
-      relevance_score: nodeWithScore.score ?? (total.length - index + topK * 10),
-    }));
-    const duration = DateTime.now().diff(start, 'milliseconds').milliseconds;
-
-    rerankSpan?.end({
-      output: result
-    });
-
-    console.log(`[KG-Retrieving] Finish knowledge graph reranking, take ${duration} ms.`);
-    return result;
   }
 
   async getSourcesByChunkIds (chunkIds: string[]): Promise<SourceWithNodeId[]> {

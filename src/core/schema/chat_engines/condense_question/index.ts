@@ -26,6 +26,8 @@ export const GraphRetrieverOptionsSchema = z.object({
   search: GraphRetrieverSearchOptionsSchema.optional(),
 });
 
+export type GraphRetrieverOptions = z.infer<typeof GraphRetrieverOptionsSchema>;
+
 export const BaseChatEngineOptionsSchema = z.object({
   index_id: z.coerce.number().int(),
   llm: LLMConfigSchema.optional(),

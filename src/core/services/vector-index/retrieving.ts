@@ -3,7 +3,6 @@ import type {Index} from '@/core/repositories/index_';
 import type {Retrieve, RetrieveResult} from '@/core/repositories/retrieve';
 import {
   AppRetrieveService,
-  type AppRetrieveServiceOptions,
   type RetrieveCallbacks,
   type RetrievedChunk,
   type RetrievedChunkReference,
@@ -12,8 +11,10 @@ import {
 import {cosineDistance} from '@/lib/kysely';
 import {buildMetadataFilter} from "@/lib/llamaindex/builders/metadata-filter";
 import {buildReranker} from "@/lib/llamaindex/builders/reranker";
+import {MetadataFieldFilter} from "@/lib/llamaindex/config/metadata-filter";
 import {LangfuseTraceClient} from "langfuse";
 import {
+  BaseNodePostprocessor,
   type BaseRetriever,
   NodeRelationship,
   type NodeWithScore,
@@ -26,6 +27,7 @@ import {DateTime} from "luxon";
 import type {UUID} from 'node:crypto';
 
 export class LlamaindexRetrieveService extends AppRetrieveService {
+
   protected async run (
     retrieve: Retrieve,
     options: RetrieveOptions,
@@ -37,7 +39,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
       throw new Error(`${this.index.name} is not a llamaindex index`);
     }
 
-    // Tracing.
+    // Init Tracing.
     const providedTrace = !!trace;
     if (!providedTrace) {
       trace = this.langfuse?.trace({
@@ -70,50 +72,27 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
     let chunks = await this.search(query, queryEmbedding, search_top_k, retrieveSpan);
 
     // Metadata Filters
-    const metadataFilterConfig = this.metadataFilterConfig;
-    if (metadataFilterConfig) {
-      // If filters are provided, use them directly.
-      if (filters) {
-        this.metadataFilterConfig.options = Object.assign(this.metadataFilterConfig.options ?? {}, { filters })
-      }
-
-      try {
-        chunks = await this.metadataPostFilter(chunks, query, metadataFilterConfig, retrieveSpan);
-      } catch (err) {
-        console.warn('[Retrieving] Failed to finished metadata filter, fallback to use all chunks:', err);
-      }
-    }
-
-    // If no reranker is provided, return the top_k chunks directly.
-    if (!this.rerankerConfig?.provider) {
-      return chunks.slice(0, top_k);
-    }
-
-    // Cut up to 2 * top_k chunks for reranking.
-    // FIXME: why not to use the `search_top_k`?
-    const rerankChunksLimit = top_k * 2;
-    chunks = chunks.slice(0, rerankChunksLimit);
+    chunks = await this.metadataPostFilter(query, chunks, filters, retrieveSpan);
 
     // Reranking.
     this.emit('start-rerank', retrieve.id, chunks);
     await this.startRerank(retrieve);
 
-    let result;
-    try {
-      result = await this.rerank(chunks, query, top_k, this.rerankerConfig, retrieveSpan);
-    } catch (err) {
-      console.warn('[Retrieving] Failed to rerank, fallback to slice top_k chunks directly:', err);
-      return chunks.slice(0, top_k);
-    }
+    chunks = await this.rerank(chunks, query, top_k, retrieveSpan);
 
     retrieveSpan?.end({
-      output: result
+      output: chunks
     });
 
-    return result;
+    return chunks;
   }
 
-  private async search (query: string, queryEmbedding: number[], search_top_k: number, trace?: LangfuseTraceClient) {
+  private async search (
+    query: string,
+    queryEmbedding: number[],
+    search_top_k: number,
+    trace?: LangfuseTraceClient
+  ) {
     console.log(`[Retrieving] Start embedding searching for query "${query}".`, { search_top_k })
     const sSpan = trace?.span({
       name: 'embedding-search',
@@ -166,73 +145,122 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
   }
 
   private async metadataPostFilter (
-    chunks: RetrievedChunk[],
     query: string,
-    config: NonNullable<AppRetrieveServiceOptions['metadata_filter']>,
+    chunks: RetrievedChunk[],
+    filters: MetadataFieldFilter[] | undefined,
     trace?: LangfuseTraceClient
-  ) {
-    console.log(`[Retrieving] Start post metadata filtering with ${chunks.length} chunks.`);
-    const mfSpan = trace?.span({
+  ): Promise<RetrievedChunk[]> {
+    // If no metadata filter config is provided, return the chunks directly.
+    if (!this.metadataFilterConfig) {
+      return chunks;
+    }
+
+    // If filters are provided, use them directly.
+    if (filters) {
+      if (!this.metadataFilterConfig.options) {
+        this.metadataFilterConfig.options = { filters };
+      } else {
+        this.metadataFilterConfig.options.filters = filters;
+      }
+    }
+
+    const metadataFilter = buildMetadataFilter(this.serviceContext, this.metadataFilterConfig);
+    const span = trace?.span({
       name: 'metadata-filters',
       input: query,
-      metadata: config
+      metadata: this.metadataFilterConfig
     });
-
-    const mfStart = DateTime.now();
-    const metadataFilter = buildMetadataFilter(this.serviceContext, config);
-    const chunksMap = new Map(chunks.map(chunk => [chunk.document_chunk_node_id, chunk]));
-    const nodesWithScore = await metadataFilter.postprocessNodes(chunks.map(chunk => ({ score: chunk.relevance_score, node: transform(chunk) })), query);
-    const mfDuration = DateTime.now().diff(mfStart, 'milliseconds').milliseconds;
-
-    const result = nodesWithScore.map((nodeWithScore, index, total) => ({
-      ...chunksMap.get(nodeWithScore.node.id_ as UUID)!,
-      relevance_score: nodeWithScore.score ?? 0,
-    }));
-
-    mfSpan?.end({
-      output: result
+    const processedChunks = await this.processRetrievedChunks('metadata-filtering', metadataFilter, query, chunks);
+    span?.end({
+      output: processedChunks
     });
-    console.log(`[Retrieving] Finish post metadata filtering, take ${mfDuration} ms.`)
-
-    return result;
+    return processedChunks;
   }
 
   private async rerank (
     chunks: RetrievedChunk[],
     query: string,
     top_k: number,
-    config: NonNullable<AppRetrieveServiceOptions['reranker']>,
     trace?: LangfuseTraceClient
-  ) {
-    console.log(`[Retrieving] Start reranking for query "${query}".`, { chunks: chunks.length, top_k });
-    const rerankSpan = trace?.span({
+  ): Promise<RetrievedChunk[]> {
+    if (!this.rerankerConfig?.provider) {
+      return chunks.slice(0, top_k);
+    }
+
+    // Notice: cut up to 2 * top_k chunks for reranking to avoid passing too much text to the reranker.
+    // FIXME: why not to use the `search_top_k`?
+    chunks = chunks.slice(0, top_k * 2);
+
+    const span = trace?.span({
       name: 'reranking',
-      input: {
-        query,
-        chunks
-      },
-      metadata: config
+      input: { query, chunks },
+      metadata: this.rerankerConfig
     });
-
-    const rerankStart = DateTime.now();
-    const reranker = await buildReranker(this.serviceContext, config, top_k);
-    const chunksMap = new Map(chunks.map(chunk => [chunk.document_chunk_node_id, chunk]));
-    const nodesWithScore = await reranker.postprocessNodes(chunks.map(chunk => ({ score: chunk.relevance_score, node: transform(chunk) })), query);
-    const rerankDuration = DateTime.now().diff(rerankStart, 'milliseconds').milliseconds;
-
-    const result = nodesWithScore.map((nodeWithScore, index, total) => ({
-      ...chunksMap.get(nodeWithScore.node.id_ as UUID)!,
-      relevance_score: nodeWithScore.score ?? (total.length - index + top_k * 10),
-    }));
-
-    rerankSpan?.end({
-      output: result
-    });
-    console.log(`[Retrieving] Finish reranking, take ${rerankDuration} ms.`);
-    return result;
+    let processedChunks;
+    try {
+      const reranker = await buildReranker(this.serviceContext, this.rerankerConfig, top_k);
+      processedChunks = await this.processRetrievedChunks('reranking', reranker, query, chunks);
+    } catch(err) {
+      console.warn('[Retrieving] Failed to rerank, fallback to slice top_k chunks directly:', err);
+      processedChunks = chunks.slice(0, top_k);
+    } finally {
+      span?.end({
+        output: processedChunks
+      });
+    }
+    return processedChunks;
   }
 
-  private async parse (index: Index, results: Pick<RetrieveResult, 'relevance_score' | 'document_node_id' | 'document_chunk_node_id' | 'document_id' | 'chunk_text' | 'chunk_metadata' | 'document_metadata'>[]): Promise<RetrievedChunk[]> {
+  private async processRetrievedChunks(processName: string, postNodeProcessor: BaseNodePostprocessor, query: string, chunks: RetrievedChunk[]) {
+    const chunksMap = new Map(chunks.map(chunk => [chunk.document_chunk_node_id, chunk]));
+    const nodes = chunks.map(chunk => this.transformChunkToNode(chunk));
+
+    console.log(`[Retrieving] Start post processing (${processName}) with ${nodes.length} nodes.`);
+    const start = DateTime.now();
+    const nodesWithScore = await postNodeProcessor.postprocessNodes(nodes, query);
+    const duration = DateTime.now().diff(start, 'milliseconds').milliseconds;
+    console.log(`[Retrieving] Finish post processing (${processName}) with ${nodesWithScore.length} nodes, take ${duration} ms.`)
+
+    return nodesWithScore.map((nodeWithScore, index, total) => ({
+      ...chunksMap.get(nodeWithScore.node.id_ as UUID)!,
+      relevance_score: nodeWithScore.score ?? 0,
+    }));
+  }
+
+  private transformChunkToNode(chunk: RetrievedChunk): NodeWithScore {
+    const node = new TextNode({
+      id_: chunk.document_chunk_node_id,
+      text: chunk.text,
+      metadata: {
+        ...chunk.metadata,
+        ...chunk.document_metadata
+      },
+      excludedLlmMetadataKeys: [
+        // Notice: Exclude several fields generated by the LLM to avoid passing too much text during rerank,
+        // which may lead to exceeding the model's token limit.
+        'sectionSummary',
+        'questionsThisExcerptCanAnswer',
+        'excerptKeywords'
+      ],
+      relationships: {
+        [NodeRelationship.NEXT]: chunk.relationships[NodeRelationship.NEXT] ? this.transformChunkRefToRel(chunk.relationships[NodeRelationship.NEXT]) : undefined,
+        [NodeRelationship.PREVIOUS]: chunk.relationships[NodeRelationship.PREVIOUS] ? this.transformChunkRefToRel(chunk.relationships[NodeRelationship.PREVIOUS]) : undefined,
+        [NodeRelationship.PARENT]: chunk.relationships[NodeRelationship.PARENT] ? this.transformChunkRefToRel(chunk.relationships[NodeRelationship.PARENT]) : undefined,
+      },
+    });
+
+    return { node, score: chunk.relevance_score };
+  }
+
+  private transformChunkRefToRel(rel: RetrievedChunkReference): RelatedNodeType<any> {
+    return {
+      nodeId: rel.chunk_node_id,
+      nodeType: ObjectType.TEXT,
+      metadata: rel.metadata,
+    };
+  }
+
+  private async parse(index: Index, results: Pick<RetrieveResult, 'relevance_score' | 'document_node_id' | 'document_chunk_node_id' | 'document_id' | 'chunk_text' | 'chunk_metadata' | 'document_metadata'>[]): Promise<RetrievedChunk[]> {
     if (results.length === 0) {
       return [];
     }
@@ -253,7 +281,7 @@ export class LlamaindexRetrieveService extends AppRetrieveService {
   }
 }
 
-export class LlamaindexRetrieverWrapper implements BaseRetriever {
+export class TiDBAIVectorIndexRetriever implements BaseRetriever {
   constructor (
     private readonly retrieveService: AppRetrieveService,
     private readonly options: Omit<RetrieveOptions, 'query'>,
@@ -287,36 +315,3 @@ export class LlamaindexRetrieverWrapper implements BaseRetriever {
   }
 }
 
-function transform (result: RetrievedChunk): TextNode {
-  result.relationships;
-  return new TextNode({
-    id_: result.document_chunk_node_id,
-    text: result.text,
-    metadata: {
-      ...result.metadata,
-      ...result.document_metadata
-    },
-    excludedLlmMetadataKeys: [
-      // Notice: Exclude several fields generated by the LLM to avoid passing too much text during rerank,
-      // which may lead to exceeding the model's token limit.
-      'sectionSummary',
-      'questionsThisExcerptCanAnswer',
-      'excerptKeywords'
-    ],
-    relationships: {
-      [NodeRelationship.NEXT]: result.relationships[NodeRelationship.NEXT] ? transformRef(result.relationships[NodeRelationship.NEXT]) : undefined,
-      [NodeRelationship.PREVIOUS]: result.relationships[NodeRelationship.PREVIOUS] ? transformRef(result.relationships[NodeRelationship.PREVIOUS]) : undefined,
-      [NodeRelationship.PARENT]: result.relationships[NodeRelationship.PARENT] ? transformRef(result.relationships[NodeRelationship.PARENT]) : undefined,
-      // TODO: support CHILDREN
-      // TODO: support SOURCE
-    },
-  });
-}
-
-function transformRef (rel: RetrievedChunkReference): RelatedNodeType<any> {
-  return {
-    nodeId: rel.chunk_node_id,
-    nodeType: ObjectType.TEXT,
-    metadata: rel.metadata,
-  };
-}

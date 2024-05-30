@@ -1,35 +1,43 @@
+import {TiDBAIKnowledgeGraphRetriever} from "@/core/services/knowledge-graph/retrieving";
 import {buildQuestionGenerator} from "@/lib/llamaindex/builders/question-generator";
 import {QueryEngineConfig, QueryEngineProvider} from "@/lib/llamaindex/config/query-engine";
+import {HybridRetrieverQueryEngine} from "@/lib/llamaindex/query-engine/HybridRetrieverQueryEngine";
+import {SubQuestionQueryEngine} from "@/lib/llamaindex/query-engine/SubQuestionQueryEngine";
 import {LangfuseTraceClient} from "langfuse";
 import {
   BaseRetriever, BaseSynthesizer,
   QueryEngine,
   QueryEngineTool,
   RetrieverQueryEngine,
-  SubQuestionQueryEngine
 } from "llamaindex";
 import {BaseLLM} from "llamaindex/llm/base";
 
 export interface QueryEngineContext {
-  llm: BaseLLM,
-  retriever: BaseRetriever
-  synthesizer: BaseSynthesizer
+  llm: BaseLLM;
+  retriever: BaseRetriever;
+  graphRetriever: TiDBAIKnowledgeGraphRetriever;
+  synthesizer: BaseSynthesizer;
 }
 
-export function buildQueryEngine(
+export async function buildQueryEngine(
   context: QueryEngineContext,
   config: QueryEngineConfig,
+  query: string,
   promptContext: Record<string, any>,
   trace?: LangfuseTraceClient
-): QueryEngine {
+): Promise<QueryEngine> {
   switch (config.provider) {
     case QueryEngineProvider.RETRIEVER:
       return new RetrieverQueryEngine(context.retriever, context.synthesizer);
     case QueryEngineProvider.SUB_QUESTION:
       // Build subquestion generator.
       const questionGeneratorConfig = config.options?.question_generator;
-      const questionGenerator = buildQuestionGenerator(questionGeneratorConfig, promptContext, context.llm, trace);
-      const retrieverQueryEngine = new RetrieverQueryEngine(context.retriever, context.synthesizer);
+      const questionGenerator = await buildQuestionGenerator(questionGeneratorConfig, query, promptContext, context, trace);
+      const retrieverQueryEngine = new HybridRetrieverQueryEngine(
+        context.retriever,
+        context.graphRetriever,
+        context.synthesizer,
+      );
 
       // Build subquestion query engine.
       return new SubQuestionQueryEngine({
@@ -39,10 +47,10 @@ export function buildQueryEngine(
           new QueryEngineTool({
             queryEngine: retrieverQueryEngine,
             metadata: {
-              name: 'retriever',
-              description: 'Retriever based query engine',
+              name: 'hybrid_retriever',
+              description: 'Find relevant documents by combining vector index retriever and knowledge graph retriever.',
             }
-          })
+          }),
         ],
       });
     default:
