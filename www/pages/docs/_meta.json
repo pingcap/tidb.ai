@@ -4,20 +4,34 @@
     "title": "Getting Started"
   },
   "index": "Introduction",
-  "how-to-read-these-docs": "How to read these docs",
+  "how-to-read-these-docs": {
+    "title": "How to read these docs",
+    "display": "hidden"
+  },
   "changelog": "Changelog",
   "faq": "FAQ",
   "-- Deploy This RAG": {
     "type": "separator",
-    "title": "Deploy this RAG"
+    "title": "Deploy this RAG",
+    "display": "hidden"
   },
-  "deploy-with-docker": "Deploy with Docker",
-  "deploy-to-vercel": "Deploy to Vercel",
+  "deploy-with-docker": {
+    "title": "Deploy with Docker",
+    "display": "hidden"
+  },
+  "deploy-to-vercel": {
+    "title": "Deploy to Vercel",
+    "display": "hidden"
+  },
   "-- Usage": {
     "type": "separator",
-    "title": "Usage"
+    "title": "Usage",
+    "display": "hidden"
   },
-  "javascript": "Embedable JS Code Snippet",
+  "javascript": {
+    "title": "Embedable JS Code Snippet",
+    "display": "hidden"
+  },
   "README": {
     "display": "hidden"
   }

@@ -12,7 +12,8 @@
     "title": "Blog",
     "theme": {
       "typesetting": "article"
-    }
+    },
+    "display": "hidden"
   },
   "demo": {
     "type": "page",
