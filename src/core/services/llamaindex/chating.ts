@@ -1,6 +1,6 @@
 import {getDb} from '@/core/db';
 import {type Chat, listChatMessages, updateChatMessage} from '@/core/repositories/chat';
-import {ChatEngineRequiredOptions} from '@/core/repositories/chat_engine';
+import {ChatEngineRequiredOptions, getChatEngineNameByID} from '@/core/repositories/chat_engine';
 import {getDocumentsBySourceUris} from "@/core/repositories/document";
 import {GraphRetrieverSearchOptions} from "@/core/schema/chat_engines/condense_question";
 import {AppChatService, type ChatOptions, type ChatStreamEvent} from '@/core/services/chating';
@@ -13,7 +13,6 @@ import {
   Entity,
   KnowledgeGraphClient,
   Relationship,
-  SearchOptions,
   SearchResult
 } from "@/lib/knowledge-graph/client";
 import {uuidToBin} from '@/lib/kysely';
@@ -21,7 +20,7 @@ import {buildEmbedding} from '@/lib/llamaindex/builders/embedding';
 import {buildLLM} from "@/lib/llamaindex/builders/llm";
 import {buildReranker} from "@/lib/llamaindex/builders/reranker";
 import {LLMConfig, LLMProvider} from "@/lib/llamaindex/config/llm";
-import { type RerankerConfig, RerankerProvider } from '@/lib/llamaindex/config/reranker';
+import { type RerankerConfig } from '@/lib/llamaindex/config/reranker';
 import {ManagedAsyncIterable} from '@/lib/ManagedAsyncIterable';
 import {LangfuseTraceClient} from "langfuse";
 import {Liquid} from 'liquidjs';
@@ -106,6 +105,8 @@ export class LlamaindexChatService extends AppChatService {
       prompts
     } = engineOptions;
 
+    const chatEngineName = await getChatEngineNameByID(chat.engine_id);
+
     // Init tracing.
     const trace = this.langfuse?.trace({
       name: 'chatting',
@@ -113,6 +114,10 @@ export class LlamaindexChatService extends AppChatService {
         history: options.history,
         userInput: options.userInput
       },
+      userId: chat.created_by,
+      tags: [
+        `chat_engine:${chatEngineName}`
+      ],
       metadata: {
         chat_id: chat.id,
         chat_slug: chat.url_key,

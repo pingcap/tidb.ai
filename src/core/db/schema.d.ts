@@ -16,6 +16,11 @@ export type JsonPrimitive = boolean | number | string | null;
 
 export type JsonValue = JsonArray | JsonObject | JsonPrimitive;
 
+export interface App {
+  app_id: string | null;
+  name: string | null;
+}
+
 export interface AppAccessToken {
   app_id: string;
   token: string;
@@ -33,6 +38,7 @@ export interface Chat {
   deleted_at: Date | null;
   deleted_by: string | null;
   engine: string;
+  engine_id: number | null;
   engine_options: Json;
   id: Generated<number>;
   title: string;
@@ -206,6 +212,7 @@ export interface Status {
 }
 
 export interface DB {
+  app: App;
   app_access_token: AppAccessToken;
   authentication_provider: AuthenticationProvider;
   chat: Chat;

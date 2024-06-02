@@ -26,7 +26,7 @@ export const POST = defineHandler({
     notFound();
   }
 
-  const [engine, engineOptions] = await getChatEngineConfig(body.engine);
+  const [engineId, engine, engineOptions] = await getChatEngineConfig(body.engine);
   const {
     llm: llmConfig = {
       provider: LLMProvider.OPENAI,
