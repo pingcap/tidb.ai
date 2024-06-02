@@ -60,6 +60,13 @@ export const AUTH_REQUIRE_AUTHED_ERROR = APIError.new('Require authentication', 
 
 export const AUTH_FORBIDDEN_ERROR = APIError.new('Forbidden', 403);
 
+/**
+ * The third-party application related errors
+ */
+
+export const APP_AUTH_REQUIRE_AUTH_TOKEN_ERROR = APIError.new('Require Access Token for the third-party application', 401);
+
+export const APP_AUTH_INVALID_AUTH_TOKEN_ERROR = APIError.new('Invalid Access Token for the third-party application', 401);
 
 /**
  * CronJob related errors

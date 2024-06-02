@@ -9,7 +9,7 @@ import { type NextRequest, NextResponse } from 'next/server';
 
 declare module 'next-auth' {
   interface User {
-    role?: 'anonymous' | 'admin';
+    role?: 'anonymous' | 'user' | 'admin' | 'app' | 'cronjob';
   }
 }
 
