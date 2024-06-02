@@ -24,7 +24,7 @@ export async function createVectorStoreIndex (id: number) {
       dimensions: DEFAULT_TIDB_VECTOR_DIMENSIONS,
     }),
     serviceContext: serviceContextFromDefaults({
-      llm: await buildLLM(index.config.llm),
+      llm: buildLLM(index.config.llm),
       embedModel: await buildEmbedding(index.config.embedding),
     }),
   });

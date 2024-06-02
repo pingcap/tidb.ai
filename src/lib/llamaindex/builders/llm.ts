@@ -4,7 +4,7 @@ import {LangfuseTraceClient} from "langfuse";
 import {OpenAI, Ollama} from "llamaindex";
 import {Bitdeer} from "@/lib/llamaindex/llm/bitdeer";
 
-export async function buildLLM ({ provider, options}: LLMConfig, trace?: LangfuseTraceClient) {
+export function buildLLM ({ provider, options}: LLMConfig, trace?: LangfuseTraceClient) {
   let baseLLM;
   switch (provider) {
     case LLMProvider.OPENAI:

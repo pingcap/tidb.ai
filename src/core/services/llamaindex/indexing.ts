@@ -47,7 +47,7 @@ export class LlamaindexIndexProvider extends DocumentIndexProvider {
     });
 
     // Select and config the llm for indexing (metadata extractor).
-    const llm = await buildLLM(index.config.llm);
+    const llm = buildLLM(index.config.llm);
     llm.metadata.model = index.config.llm.options?.model!;
 
     // Select and config the embedding (important and immutable)

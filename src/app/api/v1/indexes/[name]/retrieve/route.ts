@@ -36,7 +36,7 @@ export const POST = defineHandler({
 
   const flow = await getFlow(baseRegistry);
   const serviceContext = serviceContextFromDefaults({
-    llm: await buildLLM(llmConfig),
+    llm: buildLLM(llmConfig),
     embedModel: await buildEmbedding(index.config.embedding),
   });
 

@@ -76,7 +76,7 @@ export const POST = defineHandler({
   body
 }) => {
   const { query, config, llmConfig, top_k } = body;
-  const llm = llmConfig ? await buildLLM(llmConfig) : undefined;
+  const llm = llmConfig ? buildLLM(llmConfig) : undefined;
   const serviceContext = serviceContextFromDefaults({
     llm: llm
   })
