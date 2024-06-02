@@ -268,6 +268,7 @@ export class LlamaindexRetrieverWrapper implements BaseRetriever {
     const detailedChunks = await this.retrieveService.extendResultDetails(chunks);
 
     return detailedChunks.map(chunk => {
+      const { url, ...restMetadata } = chunk.document_metadata;
       return {
         node: new TextNode({
           id_: chunk.document_chunk_node_id,
@@ -275,7 +276,8 @@ export class LlamaindexRetrieverWrapper implements BaseRetriever {
           metadata: {
             //// MARK: we don't need the metadata from extractors, they are for embedding.
             // ...chunk.metadata,
-            sourceUri: chunk.document_uri,
+            sourceUri: chunk.document_uri || url,
+            ...restMetadata,
           },
           relationships: Object.fromEntries(Object.entries(chunk.relationships).map(([k, v]) => {
             return [k, { nodeId: v.chunk_node_id, metadata: v.metadata } satisfies RelatedNodeInfo];

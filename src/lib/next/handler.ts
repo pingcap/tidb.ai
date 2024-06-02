@@ -1,6 +1,8 @@
 import {auth as authFn} from '@/app/api/auth/[...nextauth]/auth';
+import {getAppAccessToken} from "@/core/repositories/app_access_token";
+import {generateSHA256Hash} from "@/lib/encrypt";
 import {
-  APIError,
+  APIError, APP_AUTH_INVALID_AUTH_TOKEN_ERROR, APP_AUTH_REQUIRE_AUTH_TOKEN_ERROR,
   AUTH_FORBIDDEN_ERROR,
   AUTH_REQUIRE_AUTHED_ERROR,
   CRONJOB_INVALID_AUTH_TOKEN_ERROR,
@@ -9,12 +11,13 @@ import {
 import {parseBody, parseParams, parseSearchParams} from '@/lib/next/parse';
 import {type RouteProps} from '@/lib/next/types';
 import type {Rewrite} from '@/lib/type-utils';
+import {DateTime} from "luxon";
 import type {Session, User} from 'next-auth';
 import {isNextRouterError} from 'next/dist/client/components/is-next-router-error';
 import {type NextRequest, NextResponse} from 'next/server';
 import {z, ZodError, type ZodObject, type ZodType} from 'zod';
 
-export type AppAuthType = 'anonymous' | 'user' | 'admin' | 'cronjob' | void;
+export type AppAuthType = 'anonymous' | 'user' | 'admin' | 'cronjob' | 'app' | void;
 
 export function defineHandler<
   ZSearchParams extends ZodObject<any> | void = void,
@@ -27,7 +30,7 @@ export function defineHandler<
     searchParams?: ZSearchParams | void;
     params?: ZParams | void;
     body?: ZBody | void;
-    auth?: Auth | void;
+    auth?: Auth | Auth[] | void;
     testOnly?: boolean;
   },
   handler: (
@@ -53,38 +56,10 @@ export function defineHandler<
       let searchParams: any;
       let params: any;
       let body: any;
+      let session: Session | undefined;
 
-      let auth: Session | null = null;
       if (options.auth) {
-        auth = await authFn();
-        if (options.auth === 'cronjob') {
-          const authHeader = request.headers.get('authorization');
-          if (!authHeader) {
-            return CRONJOB_REQUIRE_AUTH_TOKEN_ERROR.toResponse();
-          }
-          if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-            return CRONJOB_INVALID_AUTH_TOKEN_ERROR.toResponse();
-          }
-        } else if (options.auth) {
-          if (!auth?.user) {
-            return AUTH_REQUIRE_AUTHED_ERROR.toResponse();
-          }
-          switch (options.auth) {
-            case 'anonymous':
-              // PASS
-              break
-            case 'user':
-              if (auth.user.role === 'anonymous') {
-                return AUTH_REQUIRE_AUTHED_ERROR.toResponse();
-              }
-              break
-            case 'admin':
-              if ( auth.user.role !== 'admin') {
-                return AUTH_FORBIDDEN_ERROR.toResponse();
-              }
-              break
-          }
-        }
+          session = await loadSession(request, options.auth);
       }
 
       if (options.params) {
@@ -101,7 +76,7 @@ export function defineHandler<
         params,
         searchParams,
         body,
-        auth: auth as any,
+        auth: session as any,
         request,
         ctx,
       });
@@ -119,7 +94,9 @@ export function defineHandler<
         throw e;
       }
 
-      if (e instanceof ZodError) {
+      if (e instanceof APIError) {
+        return e.toResponse();
+      } else if (e instanceof ZodError) {
         return NextResponse.json({
           name: 'ZodError',
           message: e.message,
@@ -134,4 +111,93 @@ export function defineHandler<
       return APIError.fromError(e).toResponse();
     }
   };
+}
+
+async function loadSession<Auth extends AppAuthType>(request: NextRequest, auth: Auth | Auth[]): Promise<Session | undefined> {
+  if (!auth) {
+    return;
+  }
+  if (Array.isArray(auth)) {
+    for (let i = 0; i < auth.length; i++) {
+      try {
+        return await verifyAuth(auth[i], request);
+      } catch (e) {
+        if (i !== auth.length - 1) {
+          continue;
+        }
+        if (e instanceof APIError) {
+          continue;
+        }
+        throw e;
+      }
+    }
+    throw AUTH_REQUIRE_AUTHED_ERROR;
+  } else {
+    return await verifyAuth(auth, request);
+  }
+}
+
+async function verifyAuth(authType: AppAuthType, request: NextRequest): Promise<Session> {
+  const session = await authFn();
+  switch (authType) {
+    case 'cronjob':
+      return verifyCronJobAuth(request);
+    case 'app':
+      return verifyAppAuth(request);
+    case 'anonymous':
+    case 'user':
+    case 'admin':
+      return verifyUserAuth(session, authType);
+    default:
+      throw new Error('Invalid auth type');
+  }
+}
+
+async function verifyCronJobAuth(request: NextRequest): Promise<Session> {
+  const accessToken = request.headers.get('authorization')?.replace('Bearer ', '')?.trim();
+  if (!accessToken) {
+    throw CRONJOB_REQUIRE_AUTH_TOKEN_ERROR;
+  }
+  if (accessToken !== process.env.CRON_SECRET) {
+    throw CRONJOB_INVALID_AUTH_TOKEN_ERROR;
+  }
+  return {
+    user: {
+      id: `cronjob-${DateTime.now().toISO()}`,
+      role: 'cronjob',
+    },
+    expires: DateTime.now().plus({ day: 1 }).toISO(),
+  };
+}
+
+async function verifyAppAuth(request: NextRequest): Promise<Session> {
+  const accessToken = request.headers.get('authorization')?.replace('Bearer ', '')?.trim();
+  if (!accessToken) {
+    throw APP_AUTH_REQUIRE_AUTH_TOKEN_ERROR;
+  }
+  const aat = await getAppAccessToken(accessToken);
+  if (!aat || generateSHA256Hash(accessToken) !== aat?.token) {
+    throw APP_AUTH_INVALID_AUTH_TOKEN_ERROR;
+  }
+  return {
+    user: {
+      id: aat.app_id,
+      role: 'app',
+    },
+    expires: DateTime.now().plus({ month: 12 }).toISO(),
+  }
+}
+
+async function verifyUserAuth(session: Session | undefined, requiredRole: AppAuthType) {
+  session = await authFn();
+  if (!session?.user) {
+    throw AUTH_REQUIRE_AUTHED_ERROR;
+  }
+  if (requiredRole === 'user' && session.user.role === 'anonymous') {
+    throw AUTH_REQUIRE_AUTHED_ERROR;
+  }
+  if (requiredRole === 'admin' && session.user.role !== 'admin') {
+    throw AUTH_FORBIDDEN_ERROR;
+  }
+  return session;
 }

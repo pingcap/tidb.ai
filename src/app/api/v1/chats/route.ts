@@ -19,8 +19,8 @@ const ChatRequest = z.object({
   }).array(),
   sessionId: z.string().optional(),
   name: z.string().optional(),
-  namespaces: z.string().array().optional(),
   index: z.string().optional(),
+  // TODO: using engine name instead.
   engine: z.number().int().optional(),
   regenerate: z.boolean().optional(),
   messageId: z.coerce.number().int().optional(),
@@ -30,12 +30,12 @@ const DEFAULT_CHAT_TITLE = 'Untitled';
 
 export const POST = defineHandler({
   body: ChatRequest,
-  auth: 'anonymous',
+  auth: ['anonymous', 'app'],
 }, async ({
   body,
   auth,
 }) => {
-  const userId = auth.user.id!;
+  const userId = auth?.user?.id!;
   let {
     index: indexName = 'default',
     messages,
