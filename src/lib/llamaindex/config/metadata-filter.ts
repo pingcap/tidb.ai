@@ -26,7 +26,7 @@ export enum MetadataFilterProvider {
 }
 
 export const DefaultMetadataFilterOptions = z.object({
-  llm: LLMConfigSchema,
+  llm: LLMConfigSchema.optional(),
   metadata_fields: z.array(metadataFieldSchema).optional(),
   filters: z.array(metadataFilterSchema).optional()
 });
