@@ -115,6 +115,7 @@ export class LlamaindexChatService extends AppChatService {
         userInput: options.userInput
       },
       userId: chat.created_by,
+      sessionId: chat.url_key,
       tags: [
         `chat_engine:${chatEngineName}`
       ],
