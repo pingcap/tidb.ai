@@ -1,3 +1,4 @@
+import {LLMConfigSchema} from "@/lib/llamaindex/config/llm";
 import {z} from "zod";
 
 export const metadataFilterSchema = z.object({
@@ -25,6 +26,7 @@ export enum MetadataFilterProvider {
 }
 
 export const DefaultMetadataFilterOptions = z.object({
+  llm: LLMConfigSchema,
   metadata_fields: z.array(metadataFieldSchema).optional(),
   filters: z.array(metadataFilterSchema).optional()
 });

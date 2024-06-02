@@ -1,5 +1,6 @@
 import {MetadataField, MetadataFieldFilter} from "@/lib/llamaindex/config/metadata-filter";
 import {BaseNodePostprocessor, NodeWithScore, ServiceContext, serviceContextFromDefaults} from "llamaindex";
+import {BaseLLM} from "llamaindex/llm/base";
 import {DateTime} from "luxon";
 
 export const defaultMetadataFilterChoicePrompt = ({metadataFields, query}: {
@@ -48,41 +49,49 @@ export type MetadataFilterChoicePrompt = typeof defaultMetadataFilterChoicePromp
 export type MetadataPostFilterOptions = Partial<MetadataPostFilter>;
 
 export class MetadataPostFilter implements BaseNodePostprocessor {
-  serviceContext: ServiceContext = serviceContextFromDefaults();
-  metadataFilterChoicePrompt: MetadataFilterChoicePrompt = defaultMetadataFilterChoicePrompt;
-
+  serviceContext: ServiceContext;
+  /**
+   * The llm model used for filters generating.
+   */
+  llm: BaseLLM;
+  /**
+   * The prompt for metadata filter choice.
+   */
+  metadataFilterChoicePrompt: MetadataFilterChoicePrompt;
   /**
    * The definition of metadata fields.
    */
-  metadata_fields: MetadataField[] = [];
+  metadata_fields: MetadataField[];
   /**
    * Provide the filters to apply to the search.
    */
-  filters: MetadataFieldFilter[] | null = null;
+  filters: MetadataFieldFilter[] | null;
 
   constructor(init?: MetadataPostFilterOptions) {
-    Object.assign(this, init);
+    this.serviceContext = init?.serviceContext ?? serviceContextFromDefaults();
+    this.llm = init?.llm ?? this.serviceContext.llm;
+    this.metadata_fields = init?.metadata_fields ?? [];
+    this.filters = init?.filters ?? null;
+    this.metadataFilterChoicePrompt = init?.metadataFilterChoicePrompt || defaultMetadataFilterChoicePrompt;
   }
 
   async postprocessNodes(nodes: NodeWithScore[], query: string): Promise<NodeWithScore[]> {
     let filters;
     if (this.filters) {
       filters = this.filters;
-      console.info('Apply provided filters:', filters);
+      console.info('[Metadata Filter] Provided filters: ', filters);
     } else {
       const start = DateTime.now();
       filters = await this.generateFilters(query);
-      const end = DateTime.now();
-      console.info('Generate filters took:', end.diff(start).as('seconds'), 's');
-      console.info('Apply generated filters:', filters);
+      const duration = DateTime.now().diff(start).as('milliseconds')
+      console.info(`[Metadata Filter] Generate filters (took: ${duration} ms): `, filters);
     }
 
-    console.log('Nodes before filter:', nodes.length, 'nodes');
-    let filteredNodes = await this.filterNodes(nodes, filters);
-    console.log('Nodes after filter:', filteredNodes.length, 'nodes');
+    const filteredNodes = await this.filterNodes(nodes, filters);
+    console.log(`[Metadata Filter] Applied provided/generated filter (before: ${nodes.length} nodes, after: ${filteredNodes.length} nodes).`);
 
     if (filteredNodes.length === 0) {
-      console.warn('No nodes left after filtering, fallback to using all nodes.');
+      console.warn('[Metadata Filter] No nodes left after filtering, fallback to using all nodes.');
       return nodes;
     }
 
@@ -91,12 +100,11 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
 
   async generateFilters(query: string): Promise<MetadataFieldFilter[]> {
     try {
-      const llm = this.serviceContext.llm;
       const prompt = this.metadataFilterChoicePrompt({
         metadataFields: this.metadata_fields,
         query
       });
-      const raw = await llm.chat({
+      const raw = await this.llm.chat({
         messages: [
           {
             role: 'system',
