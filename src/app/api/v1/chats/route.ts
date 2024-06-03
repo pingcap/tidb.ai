@@ -1,6 +1,7 @@
 import {type Chat, createChat, getChatByUrlKey, listChats} from '@/core/repositories/chat';
 import {getChatEngineByIdOrName} from '@/core/repositories/chat_engine';
 import {getIndexByNameOrThrow} from '@/core/repositories/index_';
+import {ChatNonStreamingResult} from "@/core/services/chating";
 import {LlamaindexChatService} from '@/core/services/llamaindex/chating';
 import {toPageRequest} from '@/lib/database';
 import {CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR} from '@/lib/errors';
@@ -107,12 +108,13 @@ export const POST = defineHandler({
   }
 
   const lastUserMessage = messages.findLast(m => m.role === 'user')?.content ?? '';
-  const chatResult = await chatService.chat(sessionId, userId, lastUserMessage, body.regenerate ?? false, body.stream);
+  const chatResult = await chatService.chat(sessionId, userId, lastUserMessage, body.regenerate ?? false, body.stream as any);
 
   if (body.stream) {
     return chatResult.toResponse();
   } else {
-    return chatResult;
+    const { trace, ...result} = chatResult as unknown as ChatNonStreamingResult;
+    return result;
   }
 });
 
