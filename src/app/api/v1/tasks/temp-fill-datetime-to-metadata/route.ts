@@ -2,7 +2,7 @@ import {getDb} from '@/core/db';
 import {executeInSafeDuration} from "@/lib/next/executeInSafeDuration";
 import {defineHandler} from '@/lib/next/handler';
 
-export const POST = defineHandler({ auth: 'cronjob' }, async () => {
+export const GET = defineHandler({ auth: 'cronjob' }, async () => {
   const urlPattern = 'https://docs.pingcap.com/%';
 
   await executeInSafeDuration(async () => {
