@@ -1,3 +1,4 @@
+import {typeOf} from "react-is";
 import {ChatEngineProvider} from "../schema/chat_engines";
 import {
   CondenseQuestionChatEngineOptions,
@@ -52,23 +53,17 @@ export async function getDefaultChatEngine () {
     .executeTakeFirstOrThrow();
 }
 
-export async function getChatEngineByIdOrDefault (engineId?: number): Promise<ChatEngine> {
-  if (engineId) {
-    const engine = await getChatEngineById(engineId);
+export async function getChatEngineByIdOrName (engineIdOrName?: number | string): Promise<ChatEngine> {
+  if (typeof engineIdOrName === 'number') {
+    const engine = await getChatEngineById(engineIdOrName);
     if (!engine) {
-      throw CHAT_ENGINE_NOT_FOUND_ERROR.format(engineId);
+      throw CHAT_ENGINE_NOT_FOUND_ERROR.format(engineIdOrName);
     }
     return engine;
-  } else {
-    return await getDefaultChatEngine();
-  }
-}
-
-export async function getChatEngineByNameOrDefault (engineName?: string): Promise<ChatEngine> {
-  if (engineName) {
-    const engine = await getChatEngineByName(engineName);
+  } else if (typeof engineIdOrName === 'string') {
+    const engine = await getChatEngineByName(engineIdOrName);
     if (!engine) {
-      throw CHAT_ENGINE_NOT_FOUND_ERROR.format(engineName);
+      throw CHAT_ENGINE_NOT_FOUND_ERROR.format(engineIdOrName);
     }
     return engine;
   } else {

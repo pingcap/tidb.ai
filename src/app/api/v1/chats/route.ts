@@ -1,5 +1,5 @@
 import {type Chat, createChat, getChatByUrlKey, listChats} from '@/core/repositories/chat';
-import {getChatEngineByNameOrDefault} from '@/core/repositories/chat_engine';
+import {getChatEngineByIdOrName} from '@/core/repositories/chat_engine';
 import {getIndexByNameOrThrow} from '@/core/repositories/index_';
 import {LlamaindexChatService} from '@/core/services/llamaindex/chating';
 import {toPageRequest} from '@/lib/database';
@@ -21,6 +21,9 @@ const ChatRequest = z.object({
   // TODO: using `title` instead of.
   name: z.string().optional(),
   index: z.string().optional(),
+  // TODO: remove it
+  // @Deprecated
+  engine: z.number().optional(),
   chat_engine: z.string().optional(),
   regenerate: z.boolean().optional(),
   messageId: z.coerce.number().int().optional(),
@@ -42,7 +45,7 @@ export const POST = defineHandler({
     messages,
   } = body;
 
-  const engine = await getChatEngineByNameOrDefault(body.chat_engine);
+  const engine = await getChatEngineByIdOrName(body.chat_engine ?? body.engine)
 
   // TODO: need refactor, it is too complex now
   // For chat page, create a chat and return the session ID (url_key) first.
@@ -75,6 +78,7 @@ export const POST = defineHandler({
   if (!sessionId) {
     chat = await createChat({
       engine: engine.engine,
+      engine_id: engine.id,
       engine_name: engine.name,
       engine_options: JSON.stringify(engine.engine_options),
       created_at: new Date(),

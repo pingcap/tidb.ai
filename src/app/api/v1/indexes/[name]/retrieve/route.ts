@@ -1,8 +1,5 @@
 import {
-  ChatEngine,
-  getChatEngineByIdOrDefault,
-  getChatEngineByNameOrDefault,
-  getDefaultChatEngine
+  getChatEngineByIdOrName,
 } from "@/core/repositories/chat_engine";
 import {getIndexByName} from '@/core/repositories/index_';
 import {LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
@@ -31,17 +28,7 @@ export const POST = defineHandler({
     notFound();
   }
 
-  let engine: ChatEngine;
-  if (body.chat_engine) {
-    engine = await getChatEngineByNameOrDefault(body.chat_engine);
-  } else if (body.engine) {
-    // TODO: remove it after migration is finished.
-    engine = await getChatEngineByIdOrDefault(body.engine)
-  } else {
-    engine = await getDefaultChatEngine();
-  }
-  const { engine_options } = engine;
-
+  const { engine_options } = await getChatEngineByIdOrName(body.chat_engine ?? body.engine)
   const {
     llm: llmConfig = {
       provider: LLMProvider.OPENAI,

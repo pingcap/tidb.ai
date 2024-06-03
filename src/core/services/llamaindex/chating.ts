@@ -105,7 +105,7 @@ export class LlamaindexChatService extends AppChatService {
       prompts
     } = engineOptions;
 
-    const chatEngineName = await getChatEngineNameByID(chat.engine_id);
+    const chatEngineName = chat.engine_name || await getChatEngineNameByID(chat.engine_id);
 
     // Init tracing.
     const trace = this.langfuse?.trace({
