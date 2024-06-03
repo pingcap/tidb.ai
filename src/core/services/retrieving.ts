@@ -21,8 +21,10 @@ import z from "zod";
 
 export const retrieveOptionsSchema = z.object({
   query: z.string().min(1),
-  // TODO: using engine name instead.
+  // TODO: using chat engine name instead.
+  // @Deprecated
   engine: z.number().optional(),
+  chat_engine: z.string().optional(),
   filters: z.array(metadataFilterSchema).optional(),
   search_top_k: z.number().int().optional(),
   top_k:  z.number().int().optional(),
@@ -106,7 +108,7 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
       callbacks?.onRetrieved(retrieve.id, results);
 
       if (options.reversed) {
-        // use cloned array to avoid affecting langfuse output tracing.
+        // use a cloned array to avoid affecting langfuse output tracing.
         return Array.from(results).reverse();
       } else {
         return results;

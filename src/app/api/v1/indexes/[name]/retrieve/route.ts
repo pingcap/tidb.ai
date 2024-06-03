@@ -1,4 +1,9 @@
-import {getChatEngineConfig} from "@/core/repositories/chat_engine";
+import {
+  ChatEngine,
+  getChatEngineByIdOrDefault,
+  getChatEngineByNameOrDefault,
+  getDefaultChatEngine
+} from "@/core/repositories/chat_engine";
 import {getIndexByName} from '@/core/repositories/index_';
 import {LlamaindexRetrieveService} from '@/core/services/llamaindex/retrieving';
 import {retrieveOptionsSchema} from '@/core/services/retrieving';
@@ -26,28 +31,36 @@ export const POST = defineHandler({
     notFound();
   }
 
-  const [engineId, engine, engineOptions] = await getChatEngineConfig(body.engine);
+  let engine: ChatEngine;
+  if (body.chat_engine) {
+    engine = await getChatEngineByNameOrDefault(body.chat_engine);
+  } else if (body.engine) {
+    // TODO: remove it after migration is finished.
+    engine = await getChatEngineByIdOrDefault(body.engine)
+  } else {
+    engine = await getDefaultChatEngine();
+  }
+  const { engine_options } = engine;
+
   const {
     llm: llmConfig = {
       provider: LLMProvider.OPENAI,
       config: {}
     },
-  } = engineOptions;
+  } = engine_options;
 
   const flow = await getFlow(baseRegistry);
   const serviceContext = serviceContextFromDefaults({
     llm: buildLLM(llmConfig),
     embedModel: await buildEmbedding(index.config.embedding),
   });
-
   const retrieveService = new LlamaindexRetrieveService({
-    metadata_filter: engineOptions.metadata_filter,
-    reranker: engineOptions.reranker,
+    metadata_filter: engine_options.metadata_filter,
+    reranker: engine_options.reranker,
     flow,
     index,
     serviceContext
   });
-
   const result = await retrieveService.retrieve(body);
 
   return await retrieveService.extendResultDetails(result);

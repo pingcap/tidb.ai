@@ -24,34 +24,70 @@ export type ChatStreamEvent = {
   error?: unknown;
 }
 
+export interface ChatNonStreamingResult {
+  traceURL: string;
+  content: string;
+  sources: AppChatStreamSource[];
+  state: AppChatStreamState;
+}
+
 export abstract class AppChatService extends AppIndexBaseService {
 
-  async chat (sessionId: string, userId: string, userInput: string, regenerating: boolean) {
+  async chat (sessionId: string, userId: string, userInput: string, regenerating: boolean, stream: boolean = true): Promise<any> {
     const { chat, history } = await this.getSessionInfo(sessionId, userId);
     const respondMessage = await this.startChat(chat, history, userInput, regenerating);
 
-    return new AppChatStream(sessionId, respondMessage.id, async controller => {
+    if (stream) {
+      return new AppChatStream(sessionId, respondMessage.id, async controller => {
+        try {
+          let content = '';
+          let retrieveIds = new Set<number>();
+          for await (const chunk of this.run(chat, { userInput, history, userId, respondMessage })) {
+            controller.appendText(chunk.content, chunk.status === AppChatStreamState.CREATING /* force sends an empty text chunk first, to avoid a dependency BUG */);
+            controller.setChatState(chunk.status, chunk.statusMessage);
+            controller.setTraceURL(chunk.traceURL);
+            controller.setSources(chunk.sources);
+            content += chunk.content;
+            if (chunk.retrieveId) {
+              retrieveIds.add(chunk.retrieveId);
+            }
+          }
+          controller.setChatState(AppChatStreamState.FINISHED);
+          await this.finishChat(respondMessage, content, retrieveIds);
+        } catch (error) {
+          controller.setChatState(AppChatStreamState.ERROR, getErrorMessage(error));
+          await this.terminateChat(respondMessage, error);
+          return Promise.reject(error);
+        }
+      });
+    } else {
+      let chatResult: ChatNonStreamingResult = {
+        traceURL: '',
+        content: '',
+        sources: [],
+        state: AppChatStreamState.CREATING,
+      };
       try {
-        let content = '';
         let retrieveIds = new Set<number>();
         for await (const chunk of this.run(chat, { userInput, history, userId, respondMessage })) {
-          controller.appendText(chunk.content, chunk.status === AppChatStreamState.CREATING /* force sends an empty text chunk first, to avoid a dependency BUG */);
-          controller.setChatState(chunk.status, chunk.statusMessage);
-          controller.setTraceURL(chunk.traceURL);
-          controller.setSources(chunk.sources);
-          content += chunk.content;
+          chatResult.content += chunk.content;
+          chatResult.sources = chunk.sources;
           if (chunk.retrieveId) {
             retrieveIds.add(chunk.retrieveId);
           }
+          if (chunk.traceURL && chunk.traceURL.length > 0) {
+            chatResult.traceURL = chunk.traceURL;
+          }
         }
-        controller.setChatState(AppChatStreamState.FINISHED);
-        await this.finishChat(respondMessage, content, retrieveIds);
+        chatResult.state = AppChatStreamState.FINISHED;
+        await this.finishChat(respondMessage, chatResult.content, retrieveIds);
+        return chatResult;
       } catch (error) {
-        controller.setChatState(AppChatStreamState.ERROR, getErrorMessage(error));
+        chatResult.state = AppChatStreamState.ERROR;
         await this.terminateChat(respondMessage, error);
         return Promise.reject(error);
       }
-    });
+    }
   }
 
   async deleteHistoryFromMessage (chat: Chat, messageId: number) {

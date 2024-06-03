@@ -39,6 +39,7 @@ export interface Chat {
   deleted_by: string | null;
   engine: string;
   engine_id: number | null;
+  engine_name: string | null;
   engine_options: Json;
   id: Generated<number>;
   title: string;
