@@ -17,6 +17,7 @@ export type ChatOptions = {
 export type ChatStreamEvent = {
   status: AppChatStreamState;
   statusMessage: string;
+  trace?: LangfuseTraceClient;
   traceURL?: string;
   sources: AppChatStreamSource[];
   content: string;
@@ -25,6 +26,7 @@ export type ChatStreamEvent = {
 }
 
 export interface ChatNonStreamingResult {
+  trace?: LangfuseTraceClient;
   traceURL: string;
   content: string;
   sources: AppChatStreamSource[];
@@ -33,7 +35,9 @@ export interface ChatNonStreamingResult {
 
 export abstract class AppChatService extends AppIndexBaseService {
 
-  async chat (sessionId: string, userId: string, userInput: string, regenerating: boolean, stream: boolean = true): Promise<any> {
+  chat(sessionId: string, userId: string, userInput: string, regenerating: boolean, stream: true): Promise<AppChatStream>;
+  chat(sessionId: string, userId: string, userInput: string, regenerating: boolean, stream: false): Promise<ChatNonStreamingResult>
+  async chat(sessionId: string, userId: string, userInput: string, regenerating: boolean, stream: true | false): Promise<AppChatStream | ChatNonStreamingResult> {
     const { chat, history } = await this.getSessionInfo(sessionId, userId);
     const respondMessage = await this.startChat(chat, history, userInput, regenerating);
 
@@ -77,6 +81,9 @@ export abstract class AppChatService extends AppIndexBaseService {
           }
           if (chunk.traceURL && chunk.traceURL.length > 0) {
             chatResult.traceURL = chunk.traceURL;
+          }
+          if (chunk.trace) {
+            chatResult.trace = chunk.trace;
           }
         }
         chatResult.state = AppChatStreamState.FINISHED;

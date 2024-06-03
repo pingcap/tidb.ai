@@ -122,6 +122,9 @@ importers:
       '@vercel/blob':
         specifier: ^0.19.0
         version: 0.19.0
+      async:
+        specifier: ^3.2.5
+        version: 3.2.5
       change-case:
         specifier: ^5.4.2
         version: 5.4.2
@@ -312,6 +315,9 @@ importers:
       '@tanstack/table-core':
         specifier: ^8.11.7
         version: 8.11.7
+      '@types/async':
+        specifier: ^3.2.24
+        version: 3.2.24
       '@types/d3':
         specifier: ^7.4.3
         version: 7.4.3
@@ -5293,6 +5299,10 @@ packages:
     dependencies:
       '@types/estree': 1.0.5
     dev: false
+
+  /@types/async@3.2.24:
+    resolution: {integrity: sha512-8iHVLHsCCOBKjCF2KwFe0p9Z3rfM9mL+sSP8btyR5vTjJRAqpBYD28/ZLgXPf0pjG1VxOvtCV/BgXkQbpSe8Hw==}
+    dev: true
 
   /@types/braces@3.0.4:
     resolution: {integrity: sha512-0WR3b8eaISjEW7RpZnclONaLFDf7buaowRHdqLp4vLj54AsSAYWfh3DRbfiYJY9XDxMgx1B4sE1Afw2PGpuHOA==}

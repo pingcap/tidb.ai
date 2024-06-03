@@ -130,6 +130,7 @@ export class LlamaindexChatService extends AppChatService {
     yield {
       status: AppChatStreamState.CREATING,
       sources: [],
+      trace: trace,
       traceURL: trace?.getTraceUrl(),
       statusMessage: '',
       retrieveId: undefined,
@@ -376,8 +377,6 @@ export class LlamaindexChatService extends AppChatService {
     trace?.update({
       output: finalResponse
     });
-
-    await this.langfuse?.flushAsync();
   }
 
   async searchKnowledgeGraph (
