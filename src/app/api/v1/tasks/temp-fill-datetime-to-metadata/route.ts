@@ -47,7 +47,7 @@ async function getUnfilledDocuments(urlPattern: string) {
 }
 
 async function updateDocumentNodeMetadata(documentId: number, metadata: Record<string, any>) {
-  const qb = getDb().updateTable('llamaindex_document_node')
+  return getDb().updateTable('llamaindex_document_node')
     .set({
       metadata: eb =>
         eb.fn('JSON_MERGE_PATCH', [
@@ -55,10 +55,7 @@ async function updateDocumentNodeMetadata(documentId: number, metadata: Record<s
         ])
     })
     .where('document_id', '=', documentId)
-  ;
-  // const q = qb.compile();
-  // console.log(q.sql, q.parameters);
-  await qb.execute();
+    .execute();
 }
 
 async function fillLastUpdatedAtField(documentIds: number[]) {
