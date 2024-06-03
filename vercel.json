@@ -11,6 +11,10 @@
     {
       "schedule": "* * * * *",
       "path": "/api/v1/tasks/document_index/process"
+    },
+    {
+      "schedule": "* * * * *",
+      "path": "/api/v1/tasks/temp-fill-datetime-to-metadata"
     }
   ],
   "rewrites": [
