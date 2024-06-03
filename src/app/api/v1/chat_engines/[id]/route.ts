@@ -1,7 +1,7 @@
 import {CreateChatEngineOptionsSchema} from "@/core/schema/chat_engines";
 import {
   deleteChatEngine,
-  getChatEngine,
+  getChatEngineById,
   updateChatEngine
 } from '@/core/repositories/chat_engine';
 import { defineHandler } from '@/lib/next/handler';
@@ -18,7 +18,7 @@ export const GET = defineHandler({
 }, async ({
   params,
 }) => {
-  const engine = await getChatEngine(params.id);
+  const engine = await getChatEngineById(params.id);
   if (!engine) {
     notFound();
   }

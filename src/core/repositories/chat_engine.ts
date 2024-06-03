@@ -15,12 +15,21 @@ export type ChatEngine = Rewrite<Selectable<DBv1['chat_engine']>, { engine: Chat
 export type CreateChatEngine = Rewrite<Insertable<DBv1['chat_engine']>, { engine: ChatEngineProvider, engine_options: ChatEngineOptions }>;
 export type UpdateChatEngine = Rewrite<Updateable<DBv1['chat_engine']>, { engine: ChatEngineProvider, engine_options: ChatEngineOptions }>;
 
-export async function getChatEngine (id: number) {
+export async function getChatEngineById (id: number) {
   return await getDb()
     .selectFrom('chat_engine')
     .selectAll()
     .$castTo<ChatEngine>()
     .where('id', '=', id)
+    .executeTakeFirst();
+}
+
+export async function getChatEngineByName (name: string) {
+  return await getDb()
+    .selectFrom('chat_engine')
+    .selectAll()
+    .$castTo<ChatEngine>()
+    .where('name', '=', name)
     .executeTakeFirst();
 }
 
@@ -43,16 +52,27 @@ export async function getDefaultChatEngine () {
     .executeTakeFirstOrThrow();
 }
 
-export async function getChatEngineConfig (engineConfigId?: number): Promise<[number, string, ChatEngineOptions]> {
-  if (engineConfigId) {
-    const config = await getChatEngine(engineConfigId);
-    if (!config) {
-      throw CHAT_ENGINE_NOT_FOUND_ERROR.format(engineConfigId);
+export async function getChatEngineByIdOrDefault (engineId?: number): Promise<ChatEngine> {
+  if (engineId) {
+    const engine = await getChatEngineById(engineId);
+    if (!engine) {
+      throw CHAT_ENGINE_NOT_FOUND_ERROR.format(engineId);
     }
-    return [config.id, config.engine, config.engine_options];
+    return engine;
   } else {
-    const config = await getDefaultChatEngine();
-    return [config.id, config.engine, config.engine_options];
+    return await getDefaultChatEngine();
+  }
+}
+
+export async function getChatEngineByNameOrDefault (engineName?: string): Promise<ChatEngine> {
+  if (engineName) {
+    const engine = await getChatEngineByName(engineName);
+    if (!engine) {
+      throw CHAT_ENGINE_NOT_FOUND_ERROR.format(engineName);
+    }
+    return engine;
+  } else {
+    return await getDefaultChatEngine();
   }
 }
 
@@ -70,7 +90,7 @@ export async function createChatEngine (create: CreateChatEngine) {
     .values({ ...create, engine_options: JSON.stringify(create.engine_options) })
     .executeTakeFirstOrThrow();
 
-  return (await getChatEngine(Number(insertId)))!;
+  return (await getChatEngineById(Number(insertId)))!;
 }
 
 export async function updateChatEngine (id: number, update: UpdateChatEngine) {
@@ -83,7 +103,7 @@ export async function updateChatEngine (id: number, update: UpdateChatEngine) {
 
 export async function deleteChatEngine (id: number) {
   await tx(async () => {
-    const chatEngine = await getChatEngine(id);
+    const chatEngine = await getChatEngineById(id);
     if (!chatEngine) {
       notFound();
     }

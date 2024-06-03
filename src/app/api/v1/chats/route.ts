@@ -1,5 +1,5 @@
 import {type Chat, createChat, getChatByUrlKey, listChats} from '@/core/repositories/chat';
-import {getChatEngineConfig} from '@/core/repositories/chat_engine';
+import {getChatEngineByNameOrDefault} from '@/core/repositories/chat_engine';
 import {getIndexByNameOrThrow} from '@/core/repositories/index_';
 import {LlamaindexChatService} from '@/core/services/llamaindex/chating';
 import {toPageRequest} from '@/lib/database';
@@ -18,12 +18,13 @@ const ChatRequest = z.object({
     role: z.string(),
   }).array(),
   sessionId: z.string().optional(),
+  // TODO: using `title` instead of.
   name: z.string().optional(),
   index: z.string().optional(),
-  // TODO: using engine name instead.
-  engine: z.number().int().optional(),
+  chat_engine: z.string().optional(),
   regenerate: z.boolean().optional(),
   messageId: z.coerce.number().int().optional(),
+  stream: z.boolean().default(true),
 });
 
 const DEFAULT_CHAT_TITLE = 'Untitled';
@@ -41,7 +42,7 @@ export const POST = defineHandler({
     messages,
   } = body;
 
-  const [engineId, engine, engineOptions] = await getChatEngineConfig(body.engine);
+  const engine = await getChatEngineByNameOrDefault(body.chat_engine);
 
   // TODO: need refactor, it is too complex now
   // For chat page, create a chat and return the session ID (url_key) first.
@@ -58,9 +59,10 @@ export const POST = defineHandler({
     }
 
     return await createChat({
-      engine,
-      engine_id: engineId,
-      engine_options: JSON.stringify(engineOptions),
+      engine: engine.engine,
+      engine_id: engine.id,
+      engine_name: engine.name,
+      engine_options: JSON.stringify(engine.engine_options),
       created_at: new Date(),
       created_by: userId,
       title: title,
@@ -72,8 +74,9 @@ export const POST = defineHandler({
   let sessionId = body.sessionId;
   if (!sessionId) {
     chat = await createChat({
-      engine,
-      engine_options: JSON.stringify(engineOptions),
+      engine: engine.engine,
+      engine_name: engine.name,
+      engine_options: JSON.stringify(engine.engine_options),
       created_at: new Date(),
       created_by: userId,
       title: body.name ?? body.messages.findLast(message => message.role === 'user')?.content ?? DEFAULT_CHAT_TITLE,
@@ -100,9 +103,13 @@ export const POST = defineHandler({
   }
 
   const lastUserMessage = messages.findLast(m => m.role === 'user')?.content ?? '';
-  const chatStream = await chatService.chat(sessionId, userId, lastUserMessage, body.regenerate ?? false);
+  const chatResult = await chatService.chat(sessionId, userId, lastUserMessage, body.regenerate ?? false, body.stream);
 
-  return chatStream.toResponse();
+  if (body.stream) {
+    return chatResult.toResponse();
+  } else {
+    return chatResult;
+  }
 });
 
 export const GET = defineHandler({
