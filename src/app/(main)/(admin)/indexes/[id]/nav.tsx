@@ -2,7 +2,7 @@
 
 import { useIndex } from '@/app/(main)/(admin)/indexes/[id]/context';
 import { Button } from '@/components/ui/button';
-import type { IndexConfig } from "@/core/schema/indexes";
+import type { IndexConfig } from '@/core/schema/indexes';
 import { cn } from '@/lib/utils';
 import { useRouter, useSelectedLayoutSegment } from 'next/navigation';
 
@@ -11,10 +11,12 @@ export function IndexConfigNav () {
   const part = useSelectedLayoutSegment();
   const router = useRouter();
 
+  const isGraph = index.config.provider === 'knowledge-graph';
+
   return (
     <nav>
       <ul className="flex gap-2 items-center">
-        {items.map((item) => (
+        {(isGraph ? graphItems : items).map((item) => (
           <li key={item.part}>
             <Button
               variant={item.part === part ? 'secondary' : 'ghost'}
@@ -33,7 +35,8 @@ export function IndexConfigNav () {
   );
 }
 
-const items: { title: string, part: null | keyof IndexConfig, disabled?: boolean }[] = [
+type NavItem<K> = { title: string, part: null | K, disabled?: boolean };
+const items: NavItem<keyof IndexConfig>[] = [
   {
     title: 'General',
     part: null,
@@ -58,5 +61,16 @@ const items: { title: string, part: null | keyof IndexConfig, disabled?: boolean
   {
     title: 'Embedding',
     part: 'embedding',
+  },
+];
+
+const graphItems: NavItem<'graph-editor'>[] = [
+  {
+    title: 'General',
+    part: null,
+  },
+  {
+    title: 'Graph Editor',
+    part: 'graph-editor',
   },
 ];

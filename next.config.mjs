@@ -1,11 +1,14 @@
 import withSvgr from 'next-plugin-svgr';
 import mdx from '@next/mdx';
+import MonacoWebpackPlugin from "monaco-editor-webpack-plugin";
+
 
 const withMDX = mdx({});
 
 /** @type {import('next').NextConfig} */
 let nextConfig = withSvgr(withMDX({
   output: process.env.STANDALONE_BUILD ? 'standalone' : undefined,
+  transpilePackages: ['monaco-editor'],
   experimental: {
     optimizePackageImports: ['ai', 'lucide-react'],
     serverComponentsExternalPackages: ['pdfjs-dist', 'llamaindex'],
@@ -15,13 +18,19 @@ let nextConfig = withSvgr(withMDX({
   },
   pageExtensions: ['js', 'jsx', 'mdx', '.md', 'ts', 'tsx'],
 
-  webpack(config) {
+  webpack(config, options) {
     config.module.rules.push(
       {
         test: /\.liquid$/,
         type: 'asset/source',
       }
     )
+    if (!options.isServer) {
+      config.plugins.push(new MonacoWebpackPlugin({
+        languages: ['json'],
+        filename: 'static/[name].worker.js',
+      }));
+    }
     return config
   },
 

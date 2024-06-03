@@ -49,7 +49,7 @@ function ConversationMessageGroup ({ group }: { group: ConversationMessageGroupP
           </CollapsibleTrigger>
         </div>
         <CollapsibleContent>
-          <DebugInfo traceURL={group.assistantAnnotation.traceURL} />
+          <DebugInfo group={group} />
         </CollapsibleContent>
       </Collapsible>
 

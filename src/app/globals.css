@@ -87,4 +87,16 @@
   }
 }
 
+@layer base {
+  :root {
+    --brand1: 221.2 83.2% 53.3%;
+    --brand1-foreground: 210 40% 98%;
+  }
+
+  .dark {
+    --brand1: 217.2 91.2% 59.8%;
+    --brand1-foreground: 222.2 47.4% 11.2%;
+  }
+}
+
 .grecaptcha-badge { visibility: hidden; }

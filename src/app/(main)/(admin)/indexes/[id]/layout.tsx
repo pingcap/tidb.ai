@@ -13,9 +13,7 @@ export default async function Layout ({ children, params }: LayoutProps<{ id: st
     <div className='my-16'>
       <IndexProvider index={index}>
         <IndexConfigNav />
-        <div className='lg:max-w-[50vw] p-4'>
-          {children}
-        </div>
+        {children}
       </IndexProvider>
     </div>
   );

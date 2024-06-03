@@ -9,3 +9,5 @@ export const GET = defineHandler({
     .selectAll()
     .execute();
 });
+
+export const dynamic = 'force-dynamic';
