@@ -41,7 +41,7 @@ export const POST = defineHandler({
     messages,
   } = body;
 
-  const [engine, engineOptions] = await getChatEngineConfig(body.engine);
+  const [engineId, engine, engineOptions] = await getChatEngineConfig(body.engine);
 
   // TODO: need refactor, it is too complex now
   // For chat page, create a chat and return the session ID (url_key) first.
@@ -59,6 +59,7 @@ export const POST = defineHandler({
 
     return await createChat({
       engine,
+      engine_id: engineId,
       engine_options: JSON.stringify(engineOptions),
       created_at: new Date(),
       created_by: userId,

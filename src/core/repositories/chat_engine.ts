@@ -24,6 +24,16 @@ export async function getChatEngine (id: number) {
     .executeTakeFirst();
 }
 
+export async function getChatEngineNameByID (id?: number | null) {
+  if (!id) return undefined;
+  const res = await getDb()
+    .selectFrom('chat_engine')
+    .select(['name'])
+    .where('id', '=', id)
+    .executeTakeFirst();
+  return res?.name;
+}
+
 export async function getDefaultChatEngine () {
   return await getDb()
     .selectFrom('chat_engine')
@@ -33,16 +43,16 @@ export async function getDefaultChatEngine () {
     .executeTakeFirstOrThrow();
 }
 
-export async function getChatEngineConfig (engineConfigId?: number): Promise<[string, ChatEngineOptions]> {
+export async function getChatEngineConfig (engineConfigId?: number): Promise<[number, string, ChatEngineOptions]> {
   if (engineConfigId) {
-    const chatEngine = await getChatEngine(engineConfigId);
-    if (!chatEngine) {
+    const config = await getChatEngine(engineConfigId);
+    if (!config) {
       throw CHAT_ENGINE_NOT_FOUND_ERROR.format(engineConfigId);
     }
-    return [chatEngine.engine, chatEngine.engine_options];
+    return [config.id, config.engine, config.engine_options];
   } else {
     const config = await getDefaultChatEngine();
-    return [config.engine, config.engine_options];
+    return [config.id, config.engine, config.engine_options];
   }
 }
 
