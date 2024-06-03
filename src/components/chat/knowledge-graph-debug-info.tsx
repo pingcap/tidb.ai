@@ -3,6 +3,7 @@ import type { ConversationMessageGroupProps } from '@/components/chat/use-groupe
 import { type ServerGraphData } from '@/components/graph/api';
 import { NetworkViewer } from '@/components/graph/components/NetworkViewer';
 import { useNetwork } from '@/components/graph/useNetwork';
+import { getTraceId } from '@/core/services/feedback/utils';
 import { fetcher } from '@/lib/fetch';
 import { PencilIcon } from 'lucide-react';
 import { useSession } from 'next-auth/react';
@@ -25,6 +26,7 @@ export function KnowledgeGraphDebugInfo ({ group }: { group: ConversationMessage
   );
 
   const network = useNetwork(span);
+  const traceUrl = group.assistantAnnotation.traceURL;
 
   return (
     <NetworkViewer
@@ -32,9 +34,9 @@ export function KnowledgeGraphDebugInfo ({ group }: { group: ConversationMessage
       loading={!shouldFetch || isLoading}
       loadingTitle={shouldFetch ? 'Loading knowledge graph...' : 'Waiting knowledge graph request...'}
       network={network}
-      Details={() => canEdit
+      Details={() => canEdit && traceUrl
         ? (
-          <Link href={`/indexes/${index_id}/graph-editor`} className="absolute top-2 right-2 text-xs underline">
+          <Link href={`/indexes/${index_id}/graph-editor?query=${encodeURIComponent(`trace:${getTraceId(traceUrl)}`)}`} className="absolute top-2 right-2 text-xs underline">
             <PencilIcon className="w-3 h-3 mr-1 inline-block" />
             Edit graph
           </Link>

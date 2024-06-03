@@ -19,7 +19,6 @@ export const GET = defineHandler({
   }).then(handleErrors).then(res => res.json());
 
   const span = trace.observations.find((observation: any) => observation.name === params.span)!;
-
   if (!span) {
     notFound();
   }

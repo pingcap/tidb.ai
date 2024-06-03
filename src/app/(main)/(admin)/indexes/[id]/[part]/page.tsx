@@ -5,10 +5,11 @@ import { EmbeddingConfigViewer } from '@/components/llamaindex/config/EmbeddingC
 import { LlmConfigViewer } from '@/components/llamaindex/config/LLMConfigViewer';
 import { ParserConfigViewer } from '@/components/llamaindex/config/ParserConfigViewer';
 import { ReaderConfigViewer } from '@/components/llamaindex/config/ReaderConfigViewer';
+import { Skeleton } from '@/components/ui/skeleton';
 import type { IndexConfig } from '@/core/schema/indexes';
 import type { PageProps } from '@/lib/next/types';
 import dynamic from 'next/dynamic';
-import type { ReactElement } from 'react';
+import { type ReactElement, Suspense } from 'react';
 
 const GraphEditor = dynamic(() => import('@/components/graph/GraphEditor').then(m => m.GraphEditor), { ssr: false });
 
@@ -40,7 +41,11 @@ export default function Page ({ params }: PageProps<{ part: string }>) {
   } else if (index.config.provider === 'knowledge-graph') {
     switch (params.part as 'graph-editor') {
       case 'graph-editor':
-        return <GraphEditor />;
+        return (
+          <Suspense fallback={<Skeleton className="block w-4 h-20 rounded" />}>
+            <GraphEditor />
+          </Suspense>
+        );
     }
   }
 }

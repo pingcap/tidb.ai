@@ -107,7 +107,6 @@ function getFetchUrl (query: string | null): ['get', string] | null {
   }
 
   const parsedQuery = parseQuery(query);
-  console.log('parsedQuery', parsedQuery);
   if (!parsedQuery) {
     return null;
   }
