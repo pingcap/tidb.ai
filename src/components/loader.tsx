@@ -1,7 +1,7 @@
 'use client';
 
 import { cn } from '@/lib/utils';
-import { LoaderIcon } from 'lucide-react';
+import { Loader2Icon, LoaderIcon } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
 
 export function Loader ({ loading, children = 'Loading data' }: { loading: boolean, children?: ReactNode }) {
@@ -28,7 +28,7 @@ export function Loader ({ loading, children = 'Loading data' }: { loading: boole
         loading ? 'opacity-100' : 'opacity-0',
       )}>
         <span className="flex gap-2 items-center">
-          <LoaderIcon className="animate-spin" />
+          <Loader2Icon className="animate-spin" />
           <span>{children}</span>
         </span>
       </div>
