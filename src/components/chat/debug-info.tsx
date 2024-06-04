@@ -22,10 +22,6 @@ export function DebugInfo ({ group }: DebugInfoProps) {
           <WorkflowIcon className="inline w-3 h-3 mr-1" />
           Langfuse Tracing
         </a>
-        {graph_retriever?.enable && <a className="underline" target="_blank" href={traceUrlToGraphUrl(traceURL)}>
-          <WaypointsIcon className="inline w-3 h-3 mr-1" />
-          Knowledge Graph Viewer
-        </a>}
       </div>}
       {graph_retriever?.enable && <KnowledgeGraphDebugInfo group={group} />}
       {graph_retriever?.top_k && <div className="mt-2"><b>Knowledge Graph Top K</b>: {graph_retriever.top_k}</div>}
@@ -48,15 +44,6 @@ export function DebugInfo ({ group }: DebugInfoProps) {
       )}
     </div>
   );
-}
-
-function traceUrlToGraphUrl (url: string | undefined) {
-  if (!url) {
-    return undefined;
-  }
-  const tokens = url.split('/');
-  const traceId = tokens[tokens.length - 1];
-  return `https://tidb-ai-graph-editor.vercel.app/?langfuse_trace=${traceId}`;
 }
 
 interface PromptDialogProps {
