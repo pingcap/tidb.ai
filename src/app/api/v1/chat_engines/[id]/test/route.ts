@@ -49,6 +49,7 @@ export const POST = defineHandler({
   await eachOfLimit(dataset.items, concurrency, async (item: any) => {
     const userMessage = item.input;
     const userId = 'tester';
+    const title = item.input.length > 255 ? item.input.substring(0, 255) : item.input;
     const chat = await createChat({
       engine: engine.engine,
       engine_id: engine.id,
@@ -56,7 +57,7 @@ export const POST = defineHandler({
       engine_options: JSON.stringify(engine.engine_options),
       created_at: new Date(),
       created_by: userId,
-      title: userMessage,
+      title: title,
     });
 
     console.log(`[Testing] Testing with question (chat engine: ${id}): ${userMessage}`)
@@ -72,4 +73,4 @@ export const POST = defineHandler({
 
 export const dynamic = 'force-dynamic';
 
-export const maxDuration = 150;
+export const maxDuration = 300;
