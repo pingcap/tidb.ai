@@ -5,7 +5,7 @@ import {LlamaindexChatService} from "@/core/services/llamaindex/chating";
 import { defineHandler } from '@/lib/next/handler';
 import {baseRegistry} from "@/rag-spec/base";
 import {getFlow} from "@/rag-spec/createFlow";
-import {Langfuse, LangfuseTraceClient} from "langfuse";
+import {Langfuse} from "langfuse";
 import { z } from 'zod';
 import { eachOfLimit } from 'async';
 
