@@ -3,14 +3,15 @@ import { ExternalLinkIcon, Loader2Icon, PencilIcon } from 'lucide-react';
 
 export interface EditingButtonProps {
   editing: boolean;
-  onEnterEntitySubgraph?: () => void;
+  onEnterSubgraph?: () => void;
+  subGraphTitle?: string;
   onStartEdit: () => void;
   onSave: () => void;
   onReset: () => void;
   busy: boolean;
 }
 
-export function EditingButton ({ onEnterEntitySubgraph, editing, onStartEdit, onReset, onSave, busy }: EditingButtonProps) {
+export function EditingButton ({ onEnterSubgraph, subGraphTitle = 'Subgraph', editing, onStartEdit, onReset, onSave, busy }: EditingButtonProps) {
   return editing
     ? (
       <div className="flex gap-2 items-center">
@@ -36,9 +37,9 @@ export function EditingButton ({ onEnterEntitySubgraph, editing, onStartEdit, on
           <PencilIcon className="w-3 h-3 mr-2" />
           Edit
         </Button>
-        {onEnterEntitySubgraph && <Button size="sm" variant="secondary" onClick={onEnterEntitySubgraph}>
+        {onEnterSubgraph && <Button size="sm" variant="secondary" onClick={onEnterSubgraph}>
           <ExternalLinkIcon className="w-3 h-3 mr-2" />
-          Subgraph
+          {subGraphTitle}
         </Button>}
       </div>
     );

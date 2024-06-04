@@ -17,12 +17,12 @@ export function NodeDetails ({
   entity,
   onClickTarget,
   onUpdate,
-  onEnterEntitySubgraph,
+  onEnterSubgraph,
 }: {
   entity: Entity,
   onClickTarget?: (target: { type: string, id: IdType }) => void;
   onUpdate?: (newData: Entity) => void
-  onEnterEntitySubgraph: (id: number) => void
+  onEnterSubgraph: (type: string, entityId: IdType) => void
 }) {
   const [editing, setEditing] = useState(false);
   const network = useContext(NetworkContext);
@@ -69,7 +69,7 @@ export function NodeDetails ({
         <span className="text-sm text-muted-foreground font-normal ">
           <b>#{entity.id}</b> {entity.entity_type} entity
         </span>
-        <EditingButton onEnterEntitySubgraph={() => onEnterEntitySubgraph(entity.id as number)} editing={editing} onStartEdit={() => setEditing(true)} onSave={handleSave} onReset={handleReset} busy={busy} />
+        <EditingButton onEnterSubgraph={() => onEnterSubgraph('entity', entity.id)} editing={editing} onStartEdit={() => setEditing(true)} onSave={handleSave} onReset={handleReset} busy={busy} />
       </div>
       <InputField label="Name" ref={dirtyEntity.nameRef} defaultValue={entity.name} disabled={controlsDisabled} />
       <TextareaField label="Description" ref={dirtyEntity.descriptionRef} defaultValue={entity.description} disabled={controlsDisabled} />

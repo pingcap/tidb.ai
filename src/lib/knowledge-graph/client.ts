@@ -174,4 +174,33 @@ export class KnowledgeGraphClient {
     };
   }
 
+  async getChunkSubgraph (uri: string) {
+    const url = `${this.baseURL}/api/graph/chunks/${encodeURIComponent(uri)}/subgraph`;
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+      },
+    }).then(handleErrors).then(res => res.json());
+
+    return res as {
+      entities: Entity[]
+      relationships: Relationship[]
+    };
+  }
+
+  async getChunkImportState (uri: string) {
+    const url = `${this.baseURL}/api/import/check`;
+    const res = await fetch(url, {
+      method: 'POST',
+      body: JSON.stringify({
+        uri,
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    }).then(handleErrors).then(res => res.json());
+
+    return res;
+  }
 }

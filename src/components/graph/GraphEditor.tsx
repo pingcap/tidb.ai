@@ -2,6 +2,7 @@ import { type ServerGraphData } from '@/components/graph/api';
 import { LinkDetails } from '@/components/graph/components/LinkDetails';
 import { NetworkViewer, type NetworkViewerDetailsProps } from '@/components/graph/components/NetworkViewer';
 import { NodeDetails } from '@/components/graph/components/NodeDetails';
+import type { IdType } from '@/components/graph/network/Network';
 import { useNetwork } from '@/components/graph/useNetwork';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
@@ -10,7 +11,7 @@ import { useSearchParam } from '@/components/use-search-param';
 import { getErrorMessage } from '@/lib/errors';
 import { fetcher } from '@/lib/fetch';
 import isHotkey from 'is-hotkey';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import useSWR from 'swr';
 
@@ -39,14 +40,27 @@ export function GraphEditor ({}: {}) {
             loadingTitle={'Loading knowledge graph...'}
             network={network}
             Details={(props) => (
-              ref.current && createPortal(<Editor {...props} onEnterEntitySubgraph={id => {
-                props.onTargetChange(undefined);
-                setQuery(`entity:${id}`);
-              }} />, ref.current!)
+              ref.current && createPortal(
+                <Editor
+                  {...props}
+                  onEnterSubgraph={(type, id) => {
+                    props.onTargetChange(undefined);
+                    switch (type) {
+                      case `entity`:
+                        setQuery(`entity:${id}`);
+                        break;
+                      case 'document':
+                        setQuery(`document:${id}`);
+                        break;
+                    }
+                  }}
+                />,
+                ref.current!,
+              )
             )}
           />
         </div>
-        <div className="w-96 flex-shrink-0 relative" ref={ref} />
+        <div className="w-96 flex-shrink-0 relative" style={{ padding: '0.1px' }} ref={ref} />
       </div>
     </div>
   );
@@ -57,6 +71,12 @@ function SubgraphSelector ({ query, onQueryChange }: { query: string | null, onQ
 
   const [type, setType] = useState<string>(initialType);
   const [input, setInput] = useState<string>(initialInput);
+
+  useEffect(() => {
+    const [type = 'sample-question', input = 'What is TiDB?'] = parseQuery(query) ?? [];
+    setType(type);
+    setInput(input);
+  }, [query]);
 
   return (
     <div className="flex gap-2">
@@ -70,6 +90,7 @@ function SubgraphSelector ({ query, onQueryChange }: { query: string | null, onQ
         <SelectContent>
           <SelectItem value="trace">Langfuse Trace ID (UUID)</SelectItem>
           <SelectItem value="entity">Entity ID</SelectItem>
+          <SelectItem value="document">Document URI</SelectItem>
           <SelectItem value="sample-question">Sample Question</SelectItem>
         </SelectContent>
         <Input
@@ -87,16 +108,16 @@ function SubgraphSelector ({ query, onQueryChange }: { query: string | null, onQ
   );
 }
 
-function Editor ({ network, target, onTargetChange, onEnterEntitySubgraph }: NetworkViewerDetailsProps & { onEnterEntitySubgraph: (entityId: number) => void }) {
+function Editor ({ network, target, onTargetChange, onEnterSubgraph }: NetworkViewerDetailsProps & { onEnterSubgraph: (type: string, entityId: IdType) => void }) {
   if (target) {
     if (target.type === 'link') {
-      return <LinkDetails relationship={network.link(target.id)!} onClickTarget={onTargetChange} />;
+      return <LinkDetails relationship={network.link(target.id)!} onClickTarget={onTargetChange} onEnterSubgraph={onEnterSubgraph} />;
     } else if (target.type === 'node') {
-      return <NodeDetails entity={network.node(target.id)!} onClickTarget={onTargetChange} onEnterEntitySubgraph={onEnterEntitySubgraph} />;
+      return <NodeDetails entity={network.node(target.id)!} onClickTarget={onTargetChange} onEnterSubgraph={onEnterSubgraph} />;
     }
   }
 
-  return <div className='flex items-center justify-center h-40 text-sm text-muted-foreground font-bold'>
+  return <div className="flex items-center justify-center h-40 text-sm text-muted-foreground font-bold">
     Select an entity or relationship
   </div>;
 }
@@ -114,6 +135,8 @@ function getFetchUrl (query: string | null): ['get', string] | null {
   switch (parsedQuery[0]) {
     case 'trace':
       return ['get', `/api/v1/traces/${parsedQuery[1]}/knowledge-graph-retrieval`];
+    case 'document':
+      return ['get', `/api/v1/indexes/graph/chunks/${encodeURIComponent(parsedQuery[1])}/subgraph`];
     case 'entity':
       return ['get', `/api/v1/indexes/graph/entities/${parsedQuery[1]}/subgraph`];
     case 'sample-question':

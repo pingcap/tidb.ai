@@ -17,10 +17,12 @@ export function LinkDetails ({
   relationship,
   onClickTarget,
   onUpdate,
+  onEnterSubgraph,
 }: {
   relationship: Relationship,
   onClickTarget?: (target: { type: string, id: IdType }) => void;
   onUpdate?: (newRelationship: Relationship) => void;
+  onEnterSubgraph: (type: string, entityId: IdType) => void
 }) {
   const network = useContext(NetworkContext);
 
@@ -69,8 +71,14 @@ export function LinkDetails ({
         <span className="text-sm text-muted-foreground font-normal ">
           <b>#{relationship.id}</b> relationship
         </span>
-        <EditingButton editing={editing} onStartEdit={() => setEditing(true)} onSave={handleSave} onReset={handleReset} busy={busy} />
+        <EditingButton editing={editing} onStartEdit={() => setEditing(true)} onSave={handleSave} onReset={handleReset} busy={busy} onEnterSubgraph={() => onEnterSubgraph('document', relationship.meta.doc_id)} subGraphTitle='Document subgraph' />
       </div>
+      <section>
+        <h6 className="text-xs font-bold text-accent-foreground mb-1">Document URI</h6>
+        <p className="block w-full text-xs text-accent-foreground">
+          <a className="underline" href={relationship.meta.doc_id} target="_blank">{relationship.meta.doc_id}</a>
+        </p>
+      </section>
       <TextareaField label="Description" ref={dirtyRelationship.descriptionRef} defaultValue={relationship.description} disabled={controlsDisabled} />
       <InputField label="Weight" ref={dirtyRelationship.weightRef} defaultValue={relationship.weight} disabled={controlsDisabled} min={0} step={1} type="number" />
       <JsonField label="meta" ref={dirtyRelationship.metaRef} defaultValue={relationship.meta} disabled={controlsDisabled} />
