@@ -5,7 +5,7 @@ import {LlamaindexChatService} from "@/core/services/llamaindex/chating";
 import { defineHandler } from '@/lib/next/handler';
 import {baseRegistry} from "@/rag-spec/base";
 import {getFlow} from "@/rag-spec/createFlow";
-import {Langfuse} from "langfuse";
+import {Langfuse, LangfuseTraceClient} from "langfuse";
 import { z } from 'zod';
 import { eachOfLimit } from 'async';
 
@@ -62,8 +62,10 @@ export const POST = defineHandler({
 
     console.log(`[Testing] Testing with question (chat engine: ${id}): ${userMessage}`)
     const chatResult = await chatService.chat(chat.url_key, userId, userMessage, false, false);
-    if (chatResult.trace) {
-      await item.link(chatResult.trace, run.name, {
+    if (chatResult.traceId) {
+      await item.link(langfuse.trace({
+        id: chatResult.traceId,
+      }), run.name, {
         description: run.description,
         metadata: run.metadata
       });

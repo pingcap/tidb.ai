@@ -130,7 +130,7 @@ export class LlamaindexChatService extends AppChatService {
     yield {
       status: AppChatStreamState.CREATING,
       sources: [],
-      trace: trace,
+      traceId: trace?.traceId,
       traceURL: trace?.getTraceUrl(),
       statusMessage: '',
       retrieveId: undefined,

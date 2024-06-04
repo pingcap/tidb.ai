@@ -113,8 +113,7 @@ export const POST = defineHandler({
   if (body.stream) {
     return chatResult.toResponse();
   } else {
-    const { trace, ...result} = chatResult as unknown as ChatNonStreamingResult;
-    return result;
+    return chatResult;
   }
 });
 
