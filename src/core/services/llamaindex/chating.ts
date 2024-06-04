@@ -121,7 +121,7 @@ export class LlamaindexChatService extends AppChatService {
       ],
       metadata: {
         chat_id: chat.id,
-        chat_slug: chat.url_key,
+        chat_url: `${process.env.SITE_URL}/c/${chat.url_key}`,
         chat_engine_type: chat.engine,
         chat_engine_options: engineOptions,
       },
