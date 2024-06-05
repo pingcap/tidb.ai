@@ -12,6 +12,7 @@ export interface Entity {
   name: string;
   description: string;
   meta: Record<string, any> | null;
+  entity_type: 'original' | 'synopsis'
 }
 
 export interface Relationship {
