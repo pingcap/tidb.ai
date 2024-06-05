@@ -276,7 +276,8 @@ export class LlamaindexRetrieverWrapper implements BaseRetriever {
           metadata: {
             //// MARK: we don't need the metadata from extractors, they are for embedding.
             // ...chunk.metadata,
-            sourceUri: chunk.document_uri || url,
+            source_title: chunk.document_name,
+            source_uri: chunk.document_uri || url,
             ...restMetadata,
           },
           relationships: Object.fromEntries(Object.entries(chunk.relationships).map(([k, v]) => {

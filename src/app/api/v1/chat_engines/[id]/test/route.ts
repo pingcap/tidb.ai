@@ -62,8 +62,10 @@ export const POST = defineHandler({
 
     console.log(`[Testing] Testing with question (chat engine: ${id}): ${userMessage}`)
     const chatResult = await chatService.chat(chat.url_key, userId, userMessage, false, false);
-    if (chatResult.trace) {
-      await item.link(chatResult.trace, run.name, {
+    if (chatResult.traceId) {
+      await item.link(langfuse.trace({
+        id: chatResult.traceId,
+      }), run.name, {
         description: run.description,
         metadata: run.metadata
       });

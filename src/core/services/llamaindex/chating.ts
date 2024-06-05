@@ -121,7 +121,7 @@ export class LlamaindexChatService extends AppChatService {
       ],
       metadata: {
         chat_id: chat.id,
-        chat_slug: chat.url_key,
+        chat_url: `${process.env.SITE_URL || 'https://tidb.ai'}/c/${chat.url_key}`,
         chat_engine_type: chat.engine,
         chat_engine_options: engineOptions,
       },
@@ -130,7 +130,7 @@ export class LlamaindexChatService extends AppChatService {
     yield {
       status: AppChatStreamState.CREATING,
       sources: [],
-      trace: trace,
+      traceId: trace?.traceId,
       traceURL: trace?.getTraceUrl(),
       statusMessage: '',
       retrieveId: undefined,
@@ -200,8 +200,15 @@ export class LlamaindexChatService extends AppChatService {
         );
 
         // Flatten relationships and entities.
+
+        // Notice: Synopsis entities do not link to any relationship, so we need to append them to the entity list.
+        const synopsisEntities = result.entities.filter(entity => entity.entity_type === 'synopsis');
+        const rerankedEntities = result.document_relationships.map(dr => dr.entities).flat().filter(deduplicateItems('id'));
+        result.entities = [
+          ...synopsisEntities,
+          ...rerankedEntities
+        ];
         result.relationships = result.document_relationships.map(dr => dr.relationships).flat().filter(deduplicateItems('id'));
-        result.entities = result.document_relationships.map(dr => dr.entities).flat().filter(deduplicateItems('id'));
       }
 
       kgContext = result;
@@ -401,7 +408,7 @@ export class LlamaindexChatService extends AppChatService {
     const duration = DateTime.now().diff(start, 'milliseconds').milliseconds;
 
     kgSearchSpan?.end({
-      output: searchResult,
+      output: JSON.parse(JSON.stringify(searchResult)),
     });
     console.log(`[KG-Retrieving] Finish knowledge graph searching, take ${duration} ms.`);
     // Fixme: DO NOT MUTATE THE LANGFUSE OUTPUT. Langfuse always delays it's push operation, mutations before pushing will affect langfuse tracking.

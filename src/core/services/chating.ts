@@ -17,7 +17,7 @@ export type ChatOptions = {
 export type ChatStreamEvent = {
   status: AppChatStreamState;
   statusMessage: string;
-  trace?: LangfuseTraceClient;
+  traceId?: string;
   traceURL?: string;
   sources: AppChatStreamSource[];
   content: string;
@@ -26,7 +26,7 @@ export type ChatStreamEvent = {
 }
 
 export interface ChatNonStreamingResult {
-  trace?: LangfuseTraceClient;
+  traceId?: string;
   traceURL: string;
   content: string;
   sources: AppChatStreamSource[];
@@ -82,8 +82,8 @@ export abstract class AppChatService extends AppIndexBaseService {
           if (chunk.traceURL && chunk.traceURL.length > 0) {
             chatResult.traceURL = chunk.traceURL;
           }
-          if (chunk.trace) {
-            chatResult.trace = chunk.trace;
+          if (chunk.traceId && chunk.traceId.length > 0) {
+            chatResult.traceId = chunk.traceId;
           }
         }
         chatResult.state = AppChatStreamState.FINISHED;
