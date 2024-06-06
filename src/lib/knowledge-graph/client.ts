@@ -12,7 +12,7 @@ export interface Entity {
   name: string;
   description: string;
   meta: Record<string, any> | null;
-  entity_type: 'original' | 'synopsis'
+  entity_type: 'original' | 'synopsis';
 }
 
 export interface Relationship {
@@ -51,13 +51,25 @@ export interface FeedbackOptions {
 
 export class KnowledgeGraphClient {
   baseURL: string;
+  apiKey: string;
 
   constructor (init?: Partial<KnowledgeGraphClient>) {
     const baseURL = init?.baseURL ?? getEnv('GRAPH_RAG_API_URL');
     if (!baseURL) {
       throw new Error('GRAPH_RAG_API_URL is required');
     }
+    const apiKey = init?.apiKey ?? getEnv('GRAPH_RAG_API_KEY');
+    if (!apiKey) {
+      throw new Error('GRAPH_RAG_API_KEY is required');
+    }
     this.baseURL = baseURL;
+    this.apiKey = apiKey;
+  }
+
+  private authenticationHeaders () {
+    return {
+      'X-Api-Key': this.apiKey,
+    };
   }
 
   async search (options?: SearchOptions): Promise<SearchResult> {
@@ -65,6 +77,7 @@ export class KnowledgeGraphClient {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
+        ...this.authenticationHeaders(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(options),
@@ -80,6 +93,7 @@ export class KnowledgeGraphClient {
     const res = await fetch(url, {
       method: 'POST',
       headers: {
+        ...this.authenticationHeaders(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(options),
@@ -97,6 +111,7 @@ export class KnowledgeGraphClient {
       const res = await fetch(url, {
         method: 'POST',
         headers: {
+          ...this.authenticationHeaders(),
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(doc),
@@ -123,6 +138,9 @@ export class KnowledgeGraphClient {
     const url = `${this.baseURL}/api/graph/entities/${id}`;
     const res = await fetch(url, {
       method: 'GET',
+      headers: {
+        ...this.authenticationHeaders(),
+      },
     }).then(handleErrors).then(res => res.json());
 
     return res as Entity;
@@ -133,6 +151,7 @@ export class KnowledgeGraphClient {
     const res = await fetch(url, {
       method: 'PUT',
       headers: {
+        ...this.authenticationHeaders(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
@@ -145,6 +164,9 @@ export class KnowledgeGraphClient {
     const url = `${this.baseURL}/api/graph/relationships/${id}`;
     const res = await fetch(url, {
       method: 'GET',
+      headers: {
+        ...this.authenticationHeaders(),
+      },
     }).then(handleErrors).then(res => res.json());
 
     return res as Relationship;
@@ -155,6 +177,7 @@ export class KnowledgeGraphClient {
     const res = await fetch(url, {
       method: 'PUT',
       headers: {
+        ...this.authenticationHeaders(),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(data),
@@ -167,6 +190,9 @@ export class KnowledgeGraphClient {
     const url = `${this.baseURL}/api/graph/entities/${id}/subgraph`;
     const res = await fetch(url, {
       method: 'GET',
+      headers: {
+        ...this.authenticationHeaders(),
+      },
     }).then(handleErrors).then(res => res.json());
 
     return res as {
@@ -180,6 +206,7 @@ export class KnowledgeGraphClient {
     const res = await fetch(url, {
       method: 'GET',
       headers: {
+        ...this.authenticationHeaders(),
         'Accept': 'application/json',
       },
     }).then(handleErrors).then(res => res.json());
@@ -198,6 +225,7 @@ export class KnowledgeGraphClient {
         uri,
       }),
       headers: {
+        ...this.authenticationHeaders(),
         'Content-Type': 'application/json',
       },
     }).then(handleErrors).then(res => res.json());
