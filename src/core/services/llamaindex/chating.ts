@@ -127,6 +127,8 @@ export class LlamaindexChatService extends AppChatService {
       },
     });
 
+    await this.langfuse?.flushAsync();
+
     yield {
       status: AppChatStreamState.CREATING,
       sources: [],
