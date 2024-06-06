@@ -384,6 +384,8 @@ export class LlamaindexChatService extends AppChatService {
     trace?.update({
       output: finalResponse
     });
+
+    await this.langfuse?.flushAsync();
   }
 
   async searchKnowledgeGraph (
