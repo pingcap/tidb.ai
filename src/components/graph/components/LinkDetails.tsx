@@ -73,12 +73,12 @@ export function LinkDetails ({
         </span>
         <EditingButton editing={editing} onStartEdit={() => setEditing(true)} onSave={handleSave} onReset={handleReset} busy={busy} onEnterSubgraph={() => onEnterSubgraph('document', relationship.meta.doc_id)} subGraphTitle='Document subgraph' />
       </div>
-      <section>
+      {relationship.meta.doc_id && <section>
         <h6 className="text-xs font-bold text-accent-foreground mb-1">Document URI</h6>
         <p className="block w-full text-xs text-accent-foreground">
           <a className="underline" href={relationship.meta.doc_id} target="_blank">{relationship.meta.doc_id}</a>
         </p>
-      </section>
+      </section>}
       <TextareaField label="Description" ref={dirtyRelationship.descriptionRef} defaultValue={relationship.description} disabled={controlsDisabled} />
       <InputField label="Weight" ref={dirtyRelationship.weightRef} defaultValue={relationship.weight} disabled={controlsDisabled} min={0} step={1} type="number" />
       <JsonField label="meta" ref={dirtyRelationship.metaRef} defaultValue={relationship.meta} disabled={controlsDisabled} />

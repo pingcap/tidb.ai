@@ -6,6 +6,10 @@ export type Entity = {
   created_at: string
   updated_at: string
   entity_type: string
+  synopsis_info: {
+    entities: number[]
+    topic: string
+  } | null
 }
 
 export type Relationship = {
@@ -21,10 +25,10 @@ export type Relationship = {
   weight: number
 }
 
-interface ServerEntity extends Entity {
+export interface ServerEntity extends Entity {
 }
 
-interface ServerRelationship extends Omit<Relationship, 'source' | 'target'> {
+export interface ServerRelationship extends Omit<Relationship, 'source' | 'target'> {
   source_entity_id: number;
   target_entity_id: number;
 }
@@ -44,6 +48,17 @@ export const EMPTY_GRAPH: GraphData = {
   entities: [],
   relationships: [],
 };
+
+export async function createSynopsisEntity (data: { name: string, description: string, topic: string, meta: any, entities: number[] }): Promise<Entity> {
+  return await fetch(`/api/v1/indexes/graph/entities/synopsis`, {
+    method: 'post',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data),
+  })
+    .then(handleResponse);
+}
 
 export async function editEntity (id: any, data: any): Promise<Entity> {
   return await fetch(`/api/v1/indexes/graph/entities/${encodeURIComponent(id)}`, {
@@ -91,14 +106,22 @@ const handleResponse = (res: Response) => {
   return res.json();
 };
 
+export function handleServerEntity (serverEntity: ServerEntity): Entity {
+  return serverEntity;
+}
+
+export function handleServerRelationship ({ source_entity_id, target_entity_id, ...rest }: ServerRelationship): Relationship {
+  return ({
+    ...rest,
+    source: source_entity_id,
+    target: target_entity_id,
+  });
+}
+
 export const handleServerGraph = <T extends {}> ({ entities, relationships, ...rest }: ServerGraphData & T): GraphData & T => {
   return {
     ...rest,
-    relationships: relationships.map(({ source_entity_id, target_entity_id, ...rest }) => ({
-      ...rest,
-      source: source_entity_id,
-      target: target_entity_id,
-    })),
-    entities,
+    relationships: relationships.map(handleServerRelationship),
+    entities: entities.map(handleServerEntity),
   } as never;
 };

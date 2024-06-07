@@ -8,6 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useSearchParam } from '@/components/use-search-param';
+import type { Index } from '@/core/repositories/index_';
 import { getErrorMessage } from '@/lib/errors';
 import { fetcher } from '@/lib/fetch';
 import isHotkey from 'is-hotkey';
@@ -15,10 +16,10 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import useSWR from 'swr';
 
-export function GraphEditor ({}: {}) {
+export function GraphEditor ({ index }: { index: Index }) {
   const [query, setQuery] = useSearchParam('query', 'sample-question:What is TiDB?');
 
-  const { data: span, isLoading, error } = useSWR(getFetchUrl(query), fetcher<ServerGraphData | { output: ServerGraphData }>, { revalidateOnFocus: false });
+  const { data: span, isLoading, error } = useSWR(getFetchUrl(index.name, query), fetcher<ServerGraphData | { output: ServerGraphData }>, { revalidateOnFocus: false });
 
   const network = useNetwork(span);
 
@@ -122,7 +123,7 @@ function Editor ({ network, target, onTargetChange, onEnterSubgraph }: NetworkVi
   </div>;
 }
 
-function getFetchUrl (query: string | null): ['get', string] | null {
+function getFetchUrl (indexName: string, query: string | null): ['get', string] | null {
   if (!query) {
     return null;
   }
@@ -136,11 +137,11 @@ function getFetchUrl (query: string | null): ['get', string] | null {
     case 'trace':
       return ['get', `/api/v1/traces/${parsedQuery[1]}/knowledge-graph-retrieval`];
     case 'document':
-      return ['get', `/api/v1/indexes/graph/chunks/${encodeURIComponent(parsedQuery[1])}/subgraph`];
+      return ['get', `/api/v1/indexes/${indexName}/chunks/${encodeURIComponent(parsedQuery[1])}/subgraph`];
     case 'entity':
-      return ['get', `/api/v1/indexes/graph/entities/${parsedQuery[1]}/subgraph`];
+      return ['get', `/api/v1/indexes/${indexName}/entities/${parsedQuery[1]}/subgraph`];
     case 'sample-question':
-      return ['get', `/api/v1/indexes/graph/search/?query=${encodeURIComponent(parsedQuery[1])}`];
+      return ['get', `/api/v1/indexes/${indexName}/search/?query=${encodeURIComponent(parsedQuery[1])}`];
   }
 
   return null;

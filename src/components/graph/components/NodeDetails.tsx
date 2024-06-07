@@ -71,6 +71,12 @@ export function NodeDetails ({
         </span>
         <EditingButton onEnterSubgraph={() => onEnterSubgraph('entity', entity.id)} editing={editing} onStartEdit={() => setEditing(true)} onSave={handleSave} onReset={handleReset} busy={busy} />
       </div>
+      {entity.synopsis_info?.topic && <section>
+        <h6 className="text-xs font-bold text-accent-foreground mb-1">Synopsis topic</h6>
+        <p className='block w-full text-xs text-accent-foreground'>
+          {entity.synopsis_info.topic}
+        </p>
+      </section>}
       <InputField label="Name" ref={dirtyEntity.nameRef} defaultValue={entity.name} disabled={controlsDisabled} />
       <TextareaField label="Description" ref={dirtyEntity.descriptionRef} defaultValue={entity.description} disabled={controlsDisabled} />
       <JsonField label="Meta" ref={dirtyEntity.metaRef} defaultValue={entity.meta} disabled={controlsDisabled} />

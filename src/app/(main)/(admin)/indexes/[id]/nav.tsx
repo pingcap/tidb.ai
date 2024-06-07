@@ -64,7 +64,7 @@ const items: NavItem<keyof IndexConfig>[] = [
   },
 ];
 
-const graphItems: NavItem<'graph-editor'>[] = [
+const graphItems: NavItem<'graph-editor' | 'graph-entities'>[] = [
   {
     title: 'General',
     part: null,
@@ -72,5 +72,9 @@ const graphItems: NavItem<'graph-editor'>[] = [
   {
     title: 'Graph Editor',
     part: 'graph-editor',
+  },
+  {
+    title: 'Graph Entities',
+    part: 'graph-entities',
   },
 ];
