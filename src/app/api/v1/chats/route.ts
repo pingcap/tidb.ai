@@ -55,12 +55,6 @@ export const POST = defineHandler({
       return CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR;
     }
 
-    // TODO: using AI generated title.
-    let title = body.name ?? DEFAULT_CHAT_TITLE;
-    if (title.length > 255) {
-      title = title.substring(0, 255);
-    }
-
     return await createChat({
       engine: engine.engine,
       engine_id: engine.id,
@@ -68,9 +62,12 @@ export const POST = defineHandler({
       engine_options: JSON.stringify(engine.engine_options),
       created_at: new Date(),
       created_by: userId,
-      title: title,
+      // TODO: using AI generated title.
+      title: limitTitleLength(body.name ?? DEFAULT_CHAT_TITLE),
     });
   }
+
+  const lastUserMessage = messages.findLast(m => m.role === 'user')?.content ?? '';
 
   // For Ask Widget.
   let chat: Chat | undefined;
@@ -83,7 +80,7 @@ export const POST = defineHandler({
       engine_options: JSON.stringify(engine.engine_options),
       created_at: new Date(),
       created_by: userId,
-      title: body.name ?? body.messages.findLast(message => message.role === 'user')?.content ?? DEFAULT_CHAT_TITLE,
+      title: limitTitleLength(body.name ?? lastUserMessage ?? DEFAULT_CHAT_TITLE),
     });
     sessionId = chat.url_key;
   } else {
@@ -106,7 +103,6 @@ export const POST = defineHandler({
     await chatService.deleteHistoryFromMessage(chat, body.messageId);
   }
 
-  const lastUserMessage = messages.findLast(m => m.role === 'user')?.content ?? '';
   const chatResult = await chatService.chat(sessionId, userId, lastUserMessage, body.regenerate ?? false, body.stream as any);
 
   if (body.stream) {
@@ -115,6 +111,10 @@ export const POST = defineHandler({
     return chatResult;
   }
 });
+
+function limitTitleLength(title: string, limit: number = 255): string {
+  return title.length > limit ? title.substring(0, limit) : title;
+}
 
 export const GET = defineHandler({
   auth: 'anonymous',
