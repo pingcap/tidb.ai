@@ -239,7 +239,7 @@ function CreateEntityForm ({ className, entities, onSubmit, onClearSelection, af
           <TooltipProvider>
             <div className="flex gap-2 flex-wrap">
               {entities.map(entity => (
-                <Tooltip>
+                <Tooltip key={entity.id}>
                   <TooltipTrigger>
                     <Badge key={entity.id} variant="secondary">{entity.name} #{entity.id}</Badge>
                   </TooltipTrigger>
