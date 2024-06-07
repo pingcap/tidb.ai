@@ -24,7 +24,7 @@ export async function fetcher<T> ([method, input, params, body]: DefaultFetcherP
 
   if (params) {
     Object.entries(params).forEach(([key, value]) => {
-      if (value) {
+      if (value != null) {
         if (!(value instanceof Array)) {
           usp.set(key, String(value));
         } else {

@@ -12,6 +12,7 @@ import dynamic from 'next/dynamic';
 import { type ReactElement, Suspense } from 'react';
 
 const GraphEditor = dynamic(() => import('@/components/graph/GraphEditor').then(m => m.GraphEditor), { ssr: false });
+const GraphEntitiesTable = dynamic(() => import('@/components/graph/GraphEntitiesTable').then(m => m.GraphEntitiesTable), { ssr: false });
 
 export default function Page ({ params }: PageProps<{ part: string }>) {
   const index = useIndex();
@@ -39,13 +40,28 @@ export default function Page ({ params }: PageProps<{ part: string }>) {
       </div>
     );
   } else if (index.config.provider === 'knowledge-graph') {
-    switch (params.part as 'graph-editor') {
+    let el: ReactElement | undefined;
+    switch (params.part as 'graph-editor' | 'graph-entities') {
       case 'graph-editor':
-        return (
+        el = (
           <Suspense fallback={<Skeleton className="block w-4 h-20 rounded" />}>
-            <GraphEditor />
+            <GraphEditor index={index} />
           </Suspense>
         );
+        break;
+      case 'graph-entities':
+        el = (
+          <Suspense fallback={<Skeleton className="block w-4 h-20 rounded" />}>
+            <GraphEntitiesTable index={index} />
+          </Suspense>
+        );
+        break;
     }
+
+    return (
+      <div className="p-4">
+        {el}
+      </div>
+    );
   }
 }

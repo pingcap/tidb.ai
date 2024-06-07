@@ -2,7 +2,7 @@ import * as monaco from 'monaco-editor';
 import { useTheme } from 'next-themes';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 
-export const JsonEditor = forwardRef<monaco.editor.IStandaloneCodeEditor | undefined, { defaultValue: string, disabled?: boolean }>(({ disabled, defaultValue }, forwardedRef) => {
+export const JsonEditor = forwardRef<monaco.editor.IStandaloneCodeEditor | undefined, { defaultValue: string, disabled?: boolean, id?: string }>(({ disabled, defaultValue, id }, forwardedRef) => {
   const [editor, setEditor] = useState<monaco.editor.IStandaloneCodeEditor | undefined>(undefined);
 
   useImperativeHandle(forwardedRef, () => editor, [editor]);
@@ -56,7 +56,7 @@ export const JsonEditor = forwardRef<monaco.editor.IStandaloneCodeEditor | undef
     }
   }, [theme]);
 
-  return <div className="w-full h-full" ref={ref} style={{ height: '100%', width: '100%' }}></div>;
+  return <div className="w-full h-full" id={id} ref={ref} style={{ height: '100%', width: '100%' }}></div>;
 });
 
 JsonEditor.displayName = 'JsonEditor';

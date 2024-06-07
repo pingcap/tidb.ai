@@ -13,6 +13,7 @@ export interface Entity {
   description: string;
   meta: Record<string, any> | null;
   entity_type: 'original' | 'synopsis';
+  synopsis_info: string[];
 }
 
 export interface Relationship {
@@ -132,6 +133,39 @@ export class KnowledgeGraphClient {
       console.error(`Failed to build knowledge graph for doc: ${doc.uri}`, err);
       throw err;
     }
+  }
+
+  async searchEntity ({ name, description, top_k }: { name: string, description: string, top_k?: number }) {
+    const usp = new URLSearchParams();
+    usp.set('name', name);
+    usp.set('description', description);
+    if (top_k) {
+      usp.set('top_k', String(top_k));
+    }
+
+    const url = `${this.baseURL}/api/graph/entities/search?${usp.toString()}`;
+    const res = await fetch(url, {
+      method: 'GET',
+      headers: {
+        ...this.authenticationHeaders(),
+      },
+    }).then(handleErrors).then(res => res.json());
+
+    return res as Entity[];
+  }
+
+  async createSynopsisEntity (data: { name: string, description: string, topic: string, meta: any, entities: number[] }) {
+    const url = `${this.baseURL}/api/graph/entities/synopsis`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: {
+        ...this.authenticationHeaders(),
+        'Content-Type': 'application/json',
+        body: JSON.stringify(data),
+      },
+    }).then(handleErrors).then(res => res.json());
+
+    return res as Entity;
   }
 
   async getEntity (id: number) {
