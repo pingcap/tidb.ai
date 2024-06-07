@@ -13,7 +13,10 @@ export interface Entity {
   description: string;
   meta: Record<string, any> | null;
   entity_type: 'original' | 'synopsis';
-  synopsis_info: string[];
+  synopsis_info: {
+    entities: number[]
+    topic: string
+  } | null;
 }
 
 export interface Relationship {

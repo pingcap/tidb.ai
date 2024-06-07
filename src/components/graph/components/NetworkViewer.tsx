@@ -58,6 +58,13 @@ export function NetworkViewer ({ network, loading, loadingTitle, className, Deta
       }
     },
     getNodeMeta: node => node.meta,
+    getLinkColor: link => {
+      if (link.meta.relationship_type === 'synopsis') {
+        return `hsl(var(--brand1) / 50%)`;
+      } else {
+        return `hsl(var(--primary) / 50%)`;
+      }
+    },
     getLinkLabel: link => {
       const source = network.node(link.source)!;
       const target = network.node(link.target)!;
@@ -67,8 +74,12 @@ export function NetworkViewer ({ network, loading, loadingTitle, className, Deta
     },
     getLinkDetails: link => link.description,
     getLinkMeta: link => link.meta,
-    getLinkLabelColor: () => {
-      return `hsl(var(--primary) / 50%)`;
+    getLinkLabelColor: (link) => {
+      if (link.meta.relationship_type === 'synopsis') {
+        return `hsl(var(--brand1) / 50%)`;
+      } else {
+        return `hsl(var(--primary) / 50%)`;
+      }
     },
     getLinkLabelStrokeColor: () => {
       return `hsl(var(--primary-foreground) / 50%)`;

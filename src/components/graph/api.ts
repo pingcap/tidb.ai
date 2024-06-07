@@ -6,7 +6,10 @@ export type Entity = {
   created_at: string
   updated_at: string
   entity_type: string
-  synopsis_info: string[]
+  synopsis_info: {
+    entities: number[]
+    topic: string
+  } | null
 }
 
 export type Relationship = {

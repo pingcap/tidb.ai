@@ -19,6 +19,7 @@ export interface NetworkRendererOptions<Node, Link> {
   getLinkDetails?: (node: Link) => string | undefined;
   getLinkMeta?: (node: Link) => any;
 
+  getLinkColor?: (link: Link) => string;
   getLinkLabelColor?: (link: Link) => string;
   getLinkLabelStrokeColor?: (link: Link) => string;
 
@@ -280,7 +281,7 @@ export class NetworkRenderer<Node extends NetworkNode, Link extends NetworkLink>
 
     const linkPath = link
       .append('path')
-      .attr('fill', 'hsl(var(--primary) / 50%)');
+      .attr('fill', d => this.options.getLinkColor?.(this.network.link(d.id) as any) ?? 'hsl(var(--primary) / 50%)');
 
     let linkText = (this.options.showLinkLabel !== false && !this.massive)
       ? link
