@@ -9,8 +9,7 @@ export const GET = defineHandler({
     name: z.string(),
   }),
   searchParams: z.object({
-    name: z.string(),
-    description: z.string(),
+    query: z.string(),
     top_k: z.coerce.number().optional(),
   }),
   auth: 'admin',

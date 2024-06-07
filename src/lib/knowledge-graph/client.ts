@@ -138,10 +138,9 @@ export class KnowledgeGraphClient {
     }
   }
 
-  async searchEntity ({ name, description, top_k }: { name: string, description: string, top_k?: number }) {
+  async searchEntity ({ query, top_k }: { query: string, top_k?: number }) {
     const usp = new URLSearchParams();
-    usp.set('name', name);
-    usp.set('description', description);
+    usp.set('query', query);
     if (top_k) {
       usp.set('top_k', String(top_k));
     }

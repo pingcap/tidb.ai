@@ -5,8 +5,8 @@ import { Loader } from '@/components/loader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogClose, DialogContent, DialogTrigger } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
+import { Dialog, DialogClose, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -20,6 +20,7 @@ import { TooltipArrow } from '@radix-ui/react-tooltip';
 import { type ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import type { RowSelectionState } from '@tanstack/table-core';
 import { createColumnHelper } from '@tanstack/table-core';
+import isHotkey from 'is-hotkey';
 import { Maximize2Icon, PlusIcon } from 'lucide-react';
 import type monaco from 'monaco-editor';
 import { useRouter } from 'next/navigation';
@@ -50,7 +51,12 @@ export function GraphEntitiesTable ({ index, className }: { index: Index, classN
                   Select entities
                 </Button>
               </DialogTrigger>
-              <DialogContent className="overflow-x-hidden max-w-screen-md space-y-4">
+              <DialogContent className="overflow-x-hidden max-w-screen-md space-y-2">
+                <DialogHeader>
+                  <DialogTitle>
+                    Add entities
+                  </DialogTitle>
+                </DialogHeader>
                 <TableFilterForm filter={filter} onFilterChange={setFilter} disabled={isLoading} />
                 <TooltipProvider>
                   <div className={cn('rounded-md border max-w-full max-h-[360px] overflow-x-hidden relative', className)}>
@@ -119,41 +125,35 @@ function TableFilterForm ({ className, filter, onFilterChange, disabled }: { cla
     resolver: zodResolver(tableFilterSchema),
     disabled,
     defaultValues: {
-      name: '',
-      description: '',
+      query: '',
       top_k: undefined,
     },
   });
 
-  const handleSubmit = form.handleSubmit((value) => onFilterChange(value));
-
   return (
     <Form {...form}>
-      <form className={cn('space-y-4', className)} onSubmit={handleSubmit}>
-        <h2 className="font-bold text-xl">Search entities</h2>
+      <form className={cn('flex gap-2 items-center', className)} onSubmit={event => {
+        event.stopPropagation();
+        event.preventDefault();
+        return false;
+      }}>
         <FormField
-          name="name"
+          name="query"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-            </FormItem>
+            <FormControl>
+              <Input
+                {...field}
+                placeholder="Input your query..."
+                onKeyDown={ev => {
+                  if (isHotkey('Entry', ev)) {
+                    onFilterChange(form.getValues());
+                  }
+                }}
+              />
+            </FormControl>
           )}
         />
-        <FormField
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Textarea {...field} />
-              </FormControl>
-            </FormItem>
-          )}
-        />
-        <Button className="w-full" variant="secondary" type="submit" disabled={disabled}>Search Entities</Button>
+        <Button className="w-max" variant="secondary" type="button" onClick={() => { onFilterChange(form.getValues()); }} disabled={disabled}>Search</Button>
       </form>
     </Form>
   );
@@ -194,6 +194,7 @@ function CreateEntityForm ({ className, entities, onSubmit, onClearSelection, af
               <FormControl>
                 <Input {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -205,6 +206,7 @@ function CreateEntityForm ({ className, entities, onSubmit, onClearSelection, af
               <FormControl>
                 <Textarea {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -216,6 +218,7 @@ function CreateEntityForm ({ className, entities, onSubmit, onClearSelection, af
               <FormControl>
                 <Input {...field} />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
@@ -224,7 +227,7 @@ function CreateEntityForm ({ className, entities, onSubmit, onClearSelection, af
             <Label>
               Meta
             </Label>
-            <button className="text-foreground/50 hover:text-foreground transition-colors" onClick={handleClickFullscreen}>
+            <button className="text-foreground/50 hover:text-foreground transition-colors" onMouseDown={handleClickFullscreen}>
               <Maximize2Icon className="w-3 h-3" />
             </button>
           </div>
@@ -240,7 +243,7 @@ function CreateEntityForm ({ className, entities, onSubmit, onClearSelection, af
             <div className="flex gap-2 flex-wrap">
               {entities.map(entity => (
                 <Tooltip key={entity.id}>
-                  <TooltipTrigger>
+                  <TooltipTrigger type="button">
                     <Badge key={entity.id} variant="secondary">{entity.name} #{entity.id}</Badge>
                   </TooltipTrigger>
                   <TooltipContent className="space-y-2 w-[360px]">
@@ -268,29 +271,27 @@ function CreateEntityForm ({ className, entities, onSubmit, onClearSelection, af
 }
 
 type TableFilter = {
-  name: string
-  description: string
+  query: string;
   top_k?: number
 }
 
 const tableFilterSchema = z.object({
-  name: z.string(),
-  description: z.string(),
+  query: z.string(),
   top_k: z.coerce.number().optional(),
 });
 
 const createEntitySchema = z.object({
-  name: z.string(),
-  description: z.string(),
-  topic: z.string(),
+  name: z.string().min(1).regex(/\S/),
+  description: z.string().min(1).regex(/\S/),
+  topic: z.string().min(1).regex(/\S/),
 });
 
 function shouldFetch (filter: TableFilter) {
-  return filter.name.trim() && filter.description.trim();
+  return !!filter.query.trim();
 }
 
 function useGraphEntitiesTable () {
-  const [filter, setFilter] = useState<TableFilter>(() => ({ name: '', description: '', top_k: undefined }));
+  const [filter, setFilter] = useState<TableFilter>(() => ({ query: '', top_k: undefined }));
 
   const [rowSelection, setRowSelection] = useState<RowSelectionState>({});
   const entityMap = useRef<Map<string, Entity>>(undefined as never);
@@ -384,7 +385,6 @@ const columns: ColumnDef<Entity, any>[] = [
     enableHiding: false,
   },
   helper.accessor('id', {}),
-  helper.accessor('entity_type', {}),
   helper.accessor('name', {}),
   helper.accessor('description', {
     cell: row => {
@@ -410,11 +410,5 @@ const columns: ColumnDef<Entity, any>[] = [
     },
   }),
   helper.accessor('meta', { cell: metadataCell }),
-  // helper.accessor('created_at', {
-  //   cell: row => <time>{formatDate(row.getValue(), 'yyyy-MM-dd HH:mm:ss')}</time>,
-  // }),
-  // helper.accessor('updated_at', {
-  //   cell: row => <time>{formatDate(row.getValue(), 'yyyy-MM-dd HH:mm:ss')}</time>,
-  // }),
 ];
 
