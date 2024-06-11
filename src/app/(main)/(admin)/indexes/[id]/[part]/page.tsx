@@ -12,7 +12,7 @@ import dynamic from 'next/dynamic';
 import { type ReactElement, Suspense } from 'react';
 
 const GraphEditor = dynamic(() => import('@/components/graph/GraphEditor').then(m => m.GraphEditor), { ssr: false });
-const GraphEntitiesTable = dynamic(() => import('@/components/graph/GraphEntitiesTable').then(m => m.GraphEntitiesTable), { ssr: false });
+const GraphCreateEntity = dynamic(() => import('@/components/graph/GraphCreateEntity').then(m => m.GraphCreateEntity), { ssr: false });
 
 export default function Page ({ params }: PageProps<{ part: string }>) {
   const index = useIndex();
@@ -52,7 +52,7 @@ export default function Page ({ params }: PageProps<{ part: string }>) {
       case 'graph-entities':
         el = (
           <Suspense fallback={<Skeleton className="block w-4 h-20 rounded" />}>
-            <GraphEntitiesTable index={index} />
+            <GraphCreateEntity index={index} />
           </Suspense>
         );
         break;
