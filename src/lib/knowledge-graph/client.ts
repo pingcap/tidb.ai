@@ -163,8 +163,8 @@ export class KnowledgeGraphClient {
       headers: {
         ...this.authenticationHeaders(),
         'Content-Type': 'application/json',
-        body: JSON.stringify(data),
       },
+      body: JSON.stringify(data),
     }).then(handleErrors).then(res => res.json());
 
     return res as Entity;
