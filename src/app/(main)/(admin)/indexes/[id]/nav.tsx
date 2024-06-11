@@ -14,7 +14,7 @@ export function IndexConfigNav () {
   const isGraph = index.config.provider === 'knowledge-graph';
 
   return (
-    <nav>
+    <nav className='my-4'>
       <ul className="flex gap-2 items-center">
         {(isGraph ? graphItems : items).map((item) => (
           <li key={item.part}>
@@ -36,10 +36,14 @@ export function IndexConfigNav () {
 }
 
 type NavItem<K> = { title: string, part: null | K, disabled?: boolean };
-const items: NavItem<keyof IndexConfig>[] = [
+const items: NavItem<string>[] = [
   {
     title: 'General',
     part: null,
+  },
+  {
+    title: 'Tasks',
+    part: 'tasks',
   },
   {
     title: 'Reader',
@@ -64,10 +68,14 @@ const items: NavItem<keyof IndexConfig>[] = [
   },
 ];
 
-const graphItems: NavItem<'graph-editor' | 'graph-entities'>[] = [
+const graphItems: NavItem<string>[] = [
   {
     title: 'General',
     part: null,
+  },
+  {
+    title: 'Tasks',
+    part: 'tasks',
   },
   {
     title: 'Graph Editor',

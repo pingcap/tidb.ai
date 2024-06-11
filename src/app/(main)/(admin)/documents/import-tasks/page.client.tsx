@@ -16,7 +16,12 @@ export default function TasksPage ({}: {}) {
 
   return (
     <>
-      <AdminPageHeading title="Importing tasks" />
+      <AdminPageHeading
+        breadcrumbs={[
+          { title: 'Documents', url: '/documents' },
+          { title: 'Importing Tasks' },
+        ]}
+      />
       <DataTableRemote
         before={
           <DataTableHeading>

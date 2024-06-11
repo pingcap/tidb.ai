@@ -74,7 +74,12 @@ export default function Page () {
 
   return (
     <>
-      <AdminPageHeading title="Sources" />
+      <AdminPageHeading
+        breadcrumbs={[
+          { title: 'Documents', url: '/documents' },
+          { title: 'Sources' },
+        ]}
+      />
       <div className="flex justify-end">
         <ImportSiteDialog />
       </div>

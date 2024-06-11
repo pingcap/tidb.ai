@@ -2,6 +2,7 @@ import { DBv1, getDb, tx } from '@/core/db';
 import { executePage, type PageRequest } from '@/lib/database';
 import type { Rewrite } from '@/lib/type-utils';
 import type { Insertable, Selectable, Updateable } from 'kysely';
+import { OperandExpression, SqlBool } from 'kysely';
 
 export type DocumentIndexTask = Rewrite<Selectable<DBv1['document_index_task']>, { 'info': DocumentIndexTaskInfo }>;
 export type CreateDocumentIndexTask = Rewrite<Insertable<DBv1['document_index_task']>, { 'info': DocumentIndexTaskInfo }>;
@@ -70,16 +71,21 @@ export async function createDocumentIndexTasks (list: CreateDocumentIndexTask[])
     .execute();
 }
 
-export async function listDocumentIndexTasks (page: PageRequest<{ status?: string[] }>) {
+export async function listDocumentIndexTasks (page: PageRequest<{ status?: string[], indexId?: number }>) {
   const builder = getDb()
     .selectFrom('document_index_task')
     .selectAll()
     .where(eb => {
+      const conditions: OperandExpression<SqlBool>[] = [];
       if (page.status?.length) {
-        return eb('status', 'in', page.status as any);
-      } else {
-        return eb.val(true);
+        conditions.push(eb('status', 'in', page.status as any));
       }
+
+      if (page.indexId) {
+        conditions.push(eb('index_id', '=', page.indexId));
+      }
+
+      return eb.and(conditions);
     })
     .orderBy('ended_at desc')
     .orderBy('started_at desc')
