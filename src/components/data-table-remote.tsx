@@ -2,22 +2,18 @@
 
 import { Loader } from '@/components/loader';
 import { Button } from '@/components/ui/button';
+import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem } from '@/components/ui/pagination';
 import { RowCheckbox } from '@/components/ui/row-checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger } from '@/components/ui/select';
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import {getSortedRowModel, SortingState, Table as ReactTable} from "@tanstack/react-table"
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { DataTableProvider } from '@/components/use-data-table';
 import type { Page } from '@/lib/database';
 import { fetcher } from '@/lib/fetch';
-import {
-  ColumnDef,
-  type ColumnFilter,
-  flexRender,
-  getCoreRowModel,
-  useReactTable
-} from '@tanstack/react-table';
+import { ColumnDef, type ColumnFilter, flexRender, getCoreRowModel, getSortedRowModel, SortingState, Table as ReactTable, useReactTable } from '@tanstack/react-table';
 import type { PaginationState } from '@tanstack/table-core';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
@@ -54,7 +50,7 @@ export function DataTableRemote<TData, TValue> ({
   const [rowSelection, setRowSelection] = useState({});
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const [globalFilter, setGlobalFilter] = useState('');
-  const [sorting, setSorting] = useState<SortingState>(defaultSorting)
+  const [sorting, setSorting] = useState<SortingState>(defaultSorting);
 
   const idSelection = useMemo(() => {
     return Object.keys(rowSelection);
@@ -83,7 +79,8 @@ export function DataTableRemote<TData, TValue> ({
       refreshInterval,
       revalidateOnReconnect: false,
       revalidateOnFocus: false,
-      focusThrottleInterval: 1000
+      focusThrottleInterval: 1000,
+      keepPreviousData: true,
     });
 
   useEffect(() => {
@@ -168,10 +165,10 @@ export function DataTableRemote<TData, TValue> ({
                           ? null
                           : flexRender(
                             header.column.columnDef.header,
-                            header.getContext()
+                            header.getContext(),
                           )}
                       </TableHead>
-                    )
+                    );
                   })}
                 </TableRow>
               ))}
@@ -201,7 +198,7 @@ export function DataTableRemote<TData, TValue> ({
           </Table>
           <Loader loading={isLoading || isValidating} />
         </div>
-        <div className="flex w-full items-center gap-2 py-4">
+        <div className="flex w-full gap-2 py-4">
           {selectable && (
             <>
               <span className="text-xs text-secondary-foreground">
@@ -210,23 +207,7 @@ export function DataTableRemote<TData, TValue> ({
               {batchOperations?.(idSelection, () => mutate())}
             </>
           )}
-          <Button
-            className="ml-auto"
-            variant="outline"
-            size="sm"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            Previous
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            Next
-          </Button>
+          <TablePagination className="mx-0 ml-auto w-max" loading={isLoading} table={table} />
         </div>
       </TooltipProvider>
       {after}
@@ -234,6 +215,97 @@ export function DataTableRemote<TData, TValue> ({
   );
 }
 
-function getSortingSearchString(sorting: SortingState) {
+function getSortingSearchString (sorting: SortingState) {
   return sorting.map(({ id, desc }) => `${id}:${desc ? 'desc' : 'asc'}`).join(',');
+}
+
+const sizes = [10, 20, 50, 100];
+
+function TablePagination ({ className, limit = 4, loading, table }: { className?: string, limit?: number, loading: boolean, table: ReactTable<any> }) {
+  const options = table.getPageOptions();
+  const pagination = table.getState().pagination;
+
+  const min = Math.max(pagination.pageIndex - limit / 2, 0);
+  const max = Math.min(min + limit + 1, options.length - 1);
+
+  if (min >= max) {
+    return <span className={className} />;
+  }
+
+  return (
+    <Pagination className={className}>
+      <Select value={String(pagination.pageSize)} onValueChange={value => table.setPageSize(Number(value))}>
+        <SelectTrigger className="w-max">
+          {pagination.pageSize} / page
+        </SelectTrigger>
+        <SelectContent>
+          {sizes.map(size => (
+            <SelectItem value={String(size)}>
+              {size}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      <PaginationContent>
+        <PaginationItem>
+          <Button variant="ghost" size="icon" disabled={loading || !table.getCanPreviousPage()} onClick={() => table.previousPage()}>
+            <ChevronLeft />
+          </Button>
+        </PaginationItem>
+        {min > 0 && (
+          <PaginationItem>
+            <Button variant="ghost" size="icon" disabled={loading} onClick={() => table.setPageIndex(0)}>
+              1
+            </Button>
+          </PaginationItem>
+        )}
+        {min > 1 && (
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+        )}
+        {steps(min, max).map((page) => (
+          <PaginationItem key={page}>
+            <Button
+              variant={page === pagination.pageIndex ? 'outline' : 'ghost'}
+              disabled={loading}
+              size="icon"
+              onClick={() => table.setPageIndex(page)}
+            >
+              {page + 1}
+            </Button>
+          </PaginationItem>
+        ))}
+        {(max < options.length - 2) && (
+          <PaginationItem>
+            <PaginationEllipsis />
+          </PaginationItem>
+        )}
+        {(max < options.length - 1) && (
+          <PaginationItem>
+            <Button variant="ghost" size="icon" disabled={loading} onClick={() => table.setPageIndex(options.length - 1)}>
+              {options.length}
+            </Button>
+          </PaginationItem>
+        )}
+        <PaginationItem>
+          <Button variant="ghost" size="icon" disabled={loading || !table.getCanNextPage()} onClick={() => table.nextPage()}>
+            <ChevronRight />
+          </Button>
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  );
+}
+
+function steps (from: number, to: number) {
+  if (from >= to) {
+    return [];
+  }
+  let arr = new Array(to - from + 1);
+  for (let i = from; i <= to; i++) {
+    arr[i - from] = i;
+  }
+
+  return arr;
 }
