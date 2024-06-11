@@ -240,7 +240,7 @@ function TablePagination ({ className, limit = 4, loading, table }: { className?
         </SelectTrigger>
         <SelectContent>
           {sizes.map(size => (
-            <SelectItem value={String(size)}>
+            <SelectItem key={size} value={String(size)}>
               {size}
             </SelectItem>
           ))}
