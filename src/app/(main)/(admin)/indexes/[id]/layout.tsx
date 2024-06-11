@@ -1,4 +1,5 @@
 import { IndexConfigNav } from '@/app/(main)/(admin)/indexes/[id]/nav';
+import { AdminPageHeading } from '@/components/admin-page-heading';
 import { getIndex } from '@/core/repositories/index_';
 import type { LayoutProps } from '@/lib/next/types';
 import { notFound } from 'next/navigation';
@@ -10,7 +11,13 @@ export default async function Layout ({ children, params }: LayoutProps<{ id: st
     notFound();
   }
   return (
-    <div className='my-16'>
+    <div>
+      <AdminPageHeading
+        breadcrumbs={[
+          { title: 'Indexes', url: '/indexes' },
+          { title: index.name },
+        ]}
+      />
       <IndexProvider index={index}>
         <IndexConfigNav />
         {children}

@@ -11,8 +11,7 @@ import type { CellContext } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { format } from 'date-fns';
 
-export default function TasksPage ({}: {}) {
-
+export default function TasksPage ({ indexId }: { indexId: number }) {
   return (
     <>
       <AdminPageHeading title="Indexing tasks" />
@@ -24,7 +23,7 @@ export default function TasksPage ({}: {}) {
           </DataTableHeading>
         }
         idColumn="id"
-        api="/api/v1/tasks/document_index"
+        api={`/api/v1/tasks/document_index?index_id=${indexId}`}
         columns={columns as any}
       />
     </>

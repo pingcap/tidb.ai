@@ -13,11 +13,13 @@ export const GET = defineHandler({
       'SUCCEED',
       'FAILED',
     ]).array().optional(),
+    index_id: z.coerce.number().optional(),
   }),
 }, async ({ request, searchParams }) => {
   return await listDocumentIndexTasks({
     ...toPageRequest(request),
     status: searchParams.status,
+    indexId: searchParams.index_id,
   });
 });
 

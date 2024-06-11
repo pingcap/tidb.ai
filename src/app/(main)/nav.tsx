@@ -16,21 +16,7 @@ import type { Page } from '@/lib/database';
 import { fetcher } from '@/lib/fetch';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import {
-  ActivitySquareIcon,
-  BinaryIcon,
-  CogIcon,
-  CommandIcon,
-  GlobeIcon,
-  HomeIcon,
-  ImportIcon,
-  ListIcon,
-  MenuIcon,
-  MessagesSquareIcon,
-  PlusIcon,
-  BotMessageSquareIcon,
-  FilesIcon
-} from 'lucide-react';
+import { ActivitySquareIcon, BinaryIcon, BotMessageSquareIcon, CogIcon, CommandIcon, FilesIcon, GlobeIcon, HomeIcon, ImportIcon, MenuIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react';
 
 import { useSession } from 'next-auth/react';
 import Link from 'next/link';
@@ -109,10 +95,7 @@ export function Nav () {
         items: [
           { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon },
           { href: '/documents', title: 'Documents', icon: FilesIcon },
-          { href: '/sources', title: 'Data Sources', icon: ImportIcon },
-          { href: '/import-tasks', title: 'Import Tasks', icon: GlobeIcon },
           { href: '/indexes', title: 'Indexes', icon: BinaryIcon },
-          { href: '/index-tasks', title: 'Index Tasks', icon: ListIcon },
           { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon },
           { href: '/settings', title: 'Settings', icon: CogIcon },
         ],

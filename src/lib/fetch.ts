@@ -37,10 +37,14 @@ export async function fetcher<T> ([method, input, params, body]: DefaultFetcherP
   let url: string;
 
   if (Array.from(usp.keys()).length > 0) {
-    if (typeof input === 'string') {
-      url = input + '?' + usp.toString();
+    let base = input.toString();
+
+    if (base.endsWith('?')) {
+      url = base + usp.toString();
+    } else if (base.includes('?')) {
+      url = base + '&' + usp.toString();
     } else {
-      url = input.toString() + '?' + usp.toString();
+      url = base + '?' + usp.toString();
     }
   } else {
     url = input.toString();

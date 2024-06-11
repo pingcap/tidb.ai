@@ -31,7 +31,7 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
   const [dialogOpen, setDialogOpen] = useState(false);
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between gap-4">
       <div className="flex flex-1 items-center space-x-2">
         <Input
           placeholder="Filter documents..."
@@ -39,7 +39,7 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
           onChange={(event: { target: { value: any } }) =>
             table.setGlobalFilter(event.target.value)
           }
-          className="h-8 w-[150px] lg:w-[250px]"
+          className="w-full max-w-[250px] lg:max-w-[450px]"
         />
         {isFiltered && (
           <Button
@@ -52,7 +52,7 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
           </Button>
         )}
       </div>
-      <div className="flex flex-1 items-center space-x-2">
+      <div className="ml-auto flex items-center space-x-2">
         <DataTableViewOptions table={table} />
         <ImportDocumentsDialog trigger={<Button size="sm">Import documents</Button>}/>
         {
