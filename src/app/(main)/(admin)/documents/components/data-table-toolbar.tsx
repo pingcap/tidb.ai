@@ -35,9 +35,9 @@ export function DataTableToolbar({ table }: DataTableToolbarProps) {
       <div className="flex flex-1 items-center space-x-2">
         <Input
           placeholder="Filter documents..."
-          value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
+          value={(table.getState().globalFilter as string) ?? ""}
           onChange={(event: { target: { value: any } }) =>
-            table.getColumn("name")?.setFilterValue(event.target.value)
+            table.setGlobalFilter(event.target.value)
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />

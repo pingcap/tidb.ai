@@ -32,6 +32,7 @@ interface DataTableRemoteProps<TData, TValue> {
   after?: ReactNode;
   toolbar?: (table: ReactTable<TData>) => ReactNode;
   ts?: number;
+  defaultSorting?: SortingState;
 }
 
 export function DataTableRemote<TData, TValue> ({
@@ -45,6 +46,7 @@ export function DataTableRemote<TData, TValue> ({
   after,
   toolbar,
   ts,
+  defaultSorting = [],
 }: DataTableRemoteProps<TData, TValue>) {
   const [pagination, setPagination] = useState<PaginationState>(() => {
     return { pageIndex: 0, pageSize: 10 };
@@ -52,7 +54,7 @@ export function DataTableRemote<TData, TValue> ({
   const [rowSelection, setRowSelection] = useState({});
   const [columnFilters, setColumnFilters] = useState<ColumnFilter[]>([]);
   const [globalFilter, setGlobalFilter] = useState('');
-  const [sorting, setSorting] = useState<SortingState>([])
+  const [sorting, setSorting] = useState<SortingState>(defaultSorting)
 
   const idSelection = useMemo(() => {
     return Object.keys(rowSelection);
@@ -79,6 +81,8 @@ export function DataTableRemote<TData, TValue> ({
     ],
     fetcher<Page<TData>>, {
       refreshInterval,
+      revalidateOnReconnect: false,
+      revalidateOnFocus: false,
       focusThrottleInterval: 1000
     });
 

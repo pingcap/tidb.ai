@@ -42,10 +42,27 @@ export async function getDocumentsBySourceUris (sourceUris: string[]) {
     .execute();
 }
 
-export async function listDocuments (request: PageRequest) {
+export async function listDocuments (request: PageRequest<{ q: string[] }>) {
+  let q = request.q?.[0] ?? undefined;
+  const escapedQ = q ? q
+      .replaceAll('%', '\\%')
+      .replaceAll('_', '\\_')
+      .replaceAll('\\', '\\\\')
+    : undefined;
+
   return await executePage(getDb()
       .selectFrom('document')
       .selectAll()
+      .where(eb => {
+        if (escapedQ) {
+          return eb.or([
+            eb('name', 'like', eb.val(`%${escapedQ}%`)),
+            eb('source_uri', 'like', eb.val(`%${escapedQ}%`)),
+          ]);
+        } else {
+          return eb.and([]);
+        }
+      })
     , request);
 }
 

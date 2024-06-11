@@ -8,7 +8,7 @@ export const GET = defineHandler({
   auth: 'admin',
 
 }, async ({ request }) => {
-  return await listDocuments(toPageRequest(request));
+  return await listDocuments(toPageRequest(request, ['q']));
 });
 
 export const PUT = defineHandler({
