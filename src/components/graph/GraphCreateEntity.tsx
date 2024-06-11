@@ -13,7 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import type { Index } from '@/core/repositories/index_';
 import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Maximize2Icon } from 'lucide-react';
+import { Loader2Icon, Maximize2Icon } from 'lucide-react';
 import type monaco from 'monaco-editor';
 import { useRouter } from 'next/navigation';
 import { type ReactNode, useRef } from 'react';
@@ -152,7 +152,10 @@ function CreateEntityForm ({ className, entities, onSubmit, onClearSelection, af
           </div>
         </FormItem>
         <div className="!mt-8">
-          <Button type="submit">Create Entity</Button>
+          <Button type="submit" disabled={form.formState.disabled}>
+            {form.formState.isSubmitting && <Loader2Icon className='w-4 h-4 mr-2 animate-spin repeat-infinite' />}
+            Create Entity
+          </Button>
         </div>
       </form>
     </Form>
