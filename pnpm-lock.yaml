@@ -165,8 +165,8 @@ importers:
         specifier: ^0.27.2
         version: 0.27.2
       langfuse:
-        specifier: ^3.10.0
-        version: 3.10.0
+        specifier: ^3.11.2
+        version: 3.11.2
       liquidjs:
         specifier: ^10.10.0
         version: 10.10.0
@@ -9902,18 +9902,18 @@ packages:
     resolution: {integrity: sha512-DmRvEfiR/NLpgsTbSxma2ldekhsdcd65+MNiKXyd/qj7w7X5e3cLkXxcj+MypsRDjPhHQ/CD5u3Eq1sBYzX0bw==}
     engines: {node: '>=14.0.0'}
 
-  /langfuse-core@3.10.0:
-    resolution: {integrity: sha512-ws0sLM0ua/0pb2DyDBbBIljUxXLiljIdwgdwPW5ewMlJzrFXJa4TdUNiWjoVvQdea2Y8Tf8KRWH2X8gesmkuMQ==}
+  /langfuse-core@3.11.2:
+    resolution: {integrity: sha512-iBhX0oJXXg34SHxY/a3oA5A6Nozd+82XtmRnJ9yO7eYPsyLwCqIWIgj++38W9ffll5lbhKStpNk4ZWvVX94kDw==}
     engines: {node: '>=18'}
     dependencies:
       mustache: 4.2.0
     dev: false
 
-  /langfuse@3.10.0:
-    resolution: {integrity: sha512-hDLaIO3OJ8Vg9w0m3g+AdbyguPQeCXxUPsUqdcHet/hUr2hKVT1VjIYklVPlCPUzL5H0FMmTDrhROk94b4bVnQ==}
+  /langfuse@3.11.2:
+    resolution: {integrity: sha512-+XQNSZiWvHlpkIMYNCeuVNFu2l7KZbHD1FzozmOzV2vveDJkL+c9t0nby/WWnqFpAXJ2CA4LwGT7Al8uiFc7hg==}
     engines: {node: '>=18'}
     dependencies:
-      langfuse-core: 3.10.0
+      langfuse-core: 3.11.2
     dev: false
 
   /language-subtag-registry@0.3.22:
