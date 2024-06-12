@@ -1,18 +1,18 @@
 'use client';
 
-import type { KnowledgeGraphFeedback } from '@/core/repositories/knowledge_graph_feedback';
+import type { Feedback } from '@/core/repositories/feedback';
 import { fetcher } from '@/lib/fetch';
 import { useState } from 'react';
 import useSWR, { mutate } from 'swr';
 
 export interface UseMessageFeedbackReturns {
-  feedbackData: KnowledgeGraphFeedback | undefined;
+  feedbackData: Feedback | undefined;
   disabled: boolean;
 
   source?: ContentSource;
   sourceLoading: boolean;
 
-  feedback (details: Record<string, 'like' | 'dislike'>, comment: string): Promise<void>;
+  feedback (action: 'like' | 'dislike', details: Record<string, 'like' | 'dislike'>, comment: string): Promise<void>;
 }
 
 export type ContentSource = {
@@ -25,7 +25,7 @@ export type ContentSource = {
 }
 
 export function useMessageFeedback (chatId: number, messageId: number, enabled: boolean): UseMessageFeedbackReturns {
-  const { data: feedback, isLoading, isValidating } = useSWR(enabled ? ['get', `/api/v1/chats/${chatId}/messages/${messageId}/feedback`] : undefined, fetcher<KnowledgeGraphFeedback>);
+  const { data: feedback, isLoading, isValidating } = useSWR(enabled ? ['get', `/api/v1/chats/${chatId}/messages/${messageId}/feedback`] : undefined, fetcher<Feedback>);
   const [acting, setActing] = useState(false);
   const disabled = isValidating || isLoading || acting || !enabled;
 
@@ -34,9 +34,9 @@ export function useMessageFeedback (chatId: number, messageId: number, enabled: 
   return {
     feedbackData: feedback,
     disabled,
-    feedback: (detail, comment) => {
+    feedback: (action, detail, comment) => {
       setActing(true);
-      return addFeedback(chatId, messageId, { detail, comment }).finally(() => setActing(false));
+      return addFeedback(chatId, messageId, { action, knowledge_graph_detail: detail, comment }).finally(() => setActing(false));
     },
     source: contentData.data,
     sourceLoading: contentData.isLoading || contentData.isValidating,

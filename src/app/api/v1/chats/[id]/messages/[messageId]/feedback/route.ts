@@ -1,5 +1,5 @@
 import { getChat, getChatMessage } from '@/core/repositories/chat';
-import { createKnowledgeGraphFeedback, findKnowledgeGraphFeedback } from '@/core/repositories/knowledge_graph_feedback';
+import { createFeedback, findFeedback } from '@/core/repositories/feedback';
 import { getTraceId } from '@/core/services/feedback/utils';
 import { defineHandler } from '@/lib/next/handler';
 import { notFound } from 'next/navigation';
@@ -33,7 +33,7 @@ export const GET = defineHandler(({
   }
 
   const userId = auth.user.id!;
-  return await findKnowledgeGraphFeedback(getTraceId(message.trace_url), userId);
+  return await findFeedback(getTraceId(message.trace_url), userId);
 });
 
 export const POST = defineHandler(({
@@ -42,7 +42,8 @@ export const POST = defineHandler(({
     messageId: z.coerce.number(),
   }),
   body: z.object({
-    detail: z.record(z.enum(['like', 'dislike'])),
+    action: z.enum(['like', 'dislike']),
+    knowledge_graph_detail: z.record(z.enum(['like', 'dislike'])),
     comment: z.string(),
   }),
   auth: 'anonymous',
@@ -69,7 +70,7 @@ export const POST = defineHandler(({
 
   const traceId = getTraceId(message.trace_url);
   const userId = auth.user.id!;
-  const feedback = await findKnowledgeGraphFeedback(traceId, userId);
+  const feedback = await findFeedback(traceId, userId);
 
   // like whole answer
 
@@ -79,8 +80,9 @@ export const POST = defineHandler(({
     }, { status: 400 });
   }
 
-  await createKnowledgeGraphFeedback({
-    detail: body.detail,
+  await createFeedback({
+    action: body.action,
+    knowledge_graph_detail: body.knowledge_graph_detail,
     created_by: userId,
     trace_id: getTraceId(message.trace_url),
     created_at: new Date(),

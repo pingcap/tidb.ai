@@ -115,6 +115,18 @@ export interface DocumentIndexTask {
   type: "CREATE_INDEX" | "REINDEX";
 }
 
+export interface Feedback {
+  action: "dislike" | "like";
+  comment: string;
+  created_at: Date;
+  created_by: string;
+  id: Generated<number>;
+  knowledge_graph_detail: Json;
+  knowledge_graph_report_error: string | null;
+  knowledge_graph_reported_at: Date | null;
+  trace_id: Buffer;
+}
+
 export interface Index {
   config: Json;
   configured: Generated<number>;
@@ -223,6 +235,7 @@ export interface DB {
   document: Document;
   document_import_task: DocumentImportTask;
   document_index_task: DocumentIndexTask;
+  feedback: Feedback;
   index: Index;
   knowledge_graph_feedback: KnowledgeGraphFeedback;
   llamaindex_document_chunk_node_default: LlamaindexDocumentChunkNodeDefault;

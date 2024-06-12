@@ -31,7 +31,7 @@ export function MessageOperations ({ group }: { group: ConversationMessageGroupP
 
         <MessageFeedback
           initial={feedbackData}
-          source={source} sourceLoading={sourceLoading} onFeedback={async (feedback, comment) => callFeedback(feedback, comment)}>
+          source={source} sourceLoading={sourceLoading} onFeedback={async (action, feedback, comment) => callFeedback(action, feedback, comment)}>
           <Button size="icon" variant="ghost" className="ml-auto rounded-full w-7 h-7" disabled={disabled}>
             {feedbackData ? <MessageSquareHeartIcon className="w-4 h-4 text-green-500" /> : <MessageSquarePlusIcon className="w-4 h-4" />}
           </Button>
