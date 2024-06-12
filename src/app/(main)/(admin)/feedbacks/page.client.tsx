@@ -1,5 +1,6 @@
 'use client';
 
+import { AdminPageHeading } from '@/components/admin-page-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
 import type { Feedback } from '@/core/repositories/feedback';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -10,11 +11,14 @@ import Link from 'next/link';
 
 export default function FeedbackPage () {
   return (
-    <DataTableRemote<Feedback & { chat_key: string, chat_title: string }, any>
-      idColumn="id"
-      api="/api/v1/feedbacks"
-      columns={columns}
-    />
+    <>
+      <AdminPageHeading title="Feedbacks" />
+      <DataTableRemote<Feedback & { chat_key: string, chat_title: string }, any>
+        idColumn="id"
+        api="/api/v1/feedbacks"
+        columns={columns}
+      />
+    </>
   );
 }
 
