@@ -124,6 +124,8 @@ export class LlamaindexChatService extends AppChatService {
         chat_url: `${process.env.SITE_URL || 'https://tidb.ai'}/c/${chat.url_key}`,
         chat_engine_type: chat.engine,
         chat_engine_options: engineOptions,
+        request_message_id: options.requestMessage.id,
+        respond_message_id: options.respondMessage.id,
       },
     });
 

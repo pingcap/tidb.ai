@@ -102,3 +102,7 @@ export const CHAT_ENGINE_NOT_FOUND_ERROR = APIError.new(`Specified chat engine %
  * Chat Related
  */
 export const CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR = APIError.new( 'Cannot assign sessionId when creating chats.', 400);
+
+export const CHAT_NOT_FOUND_ERROR = APIError.new(`Chat <%s> not found`, 404);
+
+export const CHAT_FAILED_TO_CREATE_ERROR = APIError.new(`Failed to create chat`, 500);

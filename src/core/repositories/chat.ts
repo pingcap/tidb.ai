@@ -93,6 +93,13 @@ export async function createChatMessage (create: CreateChatMessage) {
   return (await getChatMessage(Number(insertId)))!;
 }
 
+export async function createChatMessages (create: CreateChatMessage[]) {
+  return await getDb()
+    .insertInto('chat_message')
+    .values(create)
+    .executeTakeFirstOrThrow();
+}
+
 export async function updateChatMessage (id: number, update: UpdateChatMessage) {
   await getDb()
     .updateTable('chat_message')
