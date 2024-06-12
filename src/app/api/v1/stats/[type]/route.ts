@@ -1,6 +1,7 @@
 import { getDb } from '@/core/db';
 import { getDocumentIndexTasksSummary } from '@/core/repositories/document_index_task';
 import { defineHandler } from '@/lib/next/handler';
+import { sql } from 'kysely';
 import { notFound } from 'next/navigation';
 import { z } from 'zod';
 
@@ -87,14 +88,25 @@ async function getChatDailyStats () {
     .leftJoin('chat', 'chat.id', 'chat_message.chat_id')
     .select([
       eb => eb.fn.count('chat.id').distinct().as('chats'),
+      eb => eb.case()
+        .when(sql`chat.created_by LIKE '\\$\\$a_%'`).then('anonymous')
+        .when(sql`chat.created_by LIKE '%-bot'`).then('bot')
+        .when(sql`chat.created_by = 'admin'`).then('admin')
+        .else('user')
+        .end().as('user_type'),
       eb => eb.fn.count('chat_message.id').as('chat_messages'),
       eb => eb.fn.count('chat.created_by').distinct().as('sessions'),
       eb => eb.fn('DATE', ['chat_message.created_at']).as('date'),
     ])
     .where('role', '=', eb => eb.val('user'))
-    .groupBy('date')
+    .groupBy(['date', eb => eb.case()
+      .when(sql`chat.created_by LIKE '\\$\\$a_%'`).then('anonymous')
+      .when(sql`chat.created_by LIKE '%-bot'`).then('bot')
+      .when(sql`chat.created_by = 'admin'`).then('admin')
+      .else('user')
+      .end()])
     .orderBy('date desc')
-    .limit(28)
+    .limit(28 * 4)
     .execute();
 }
 

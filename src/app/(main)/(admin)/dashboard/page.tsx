@@ -7,7 +7,7 @@ import { differenceInDays } from 'date-fns';
 import { ArrowRightIcon, BarChartIcon, BinaryIcon, ListTodoIcon, MessageSquareTextIcon, MessagesSquareIcon, UserIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useMemo } from 'react';
-import { Bar, BarChart, ResponsiveContainer } from 'recharts';
+import { Bar, BarChart, Legend, ResponsiveContainer } from 'recharts';
 import useSWR from 'swr';
 
 export default function Page () {
@@ -69,7 +69,7 @@ function TaskStats () {
 }
 
 type ChatStatsData = Partial<Record<'chats' | 'chat_messages' | 'sessions', number>>;
-type DailyChatStatsData = (ChatStatsData & { date: string })[];
+type DailyChatStatsData = (ChatStatsData & { date: string, user_type: 'bot' | 'admin' | 'anonymous' | 'user' })[];
 
 function ChatStats () {
   const { data, isLoading } = useSWR(['get', '/api/v1/stats/chats'], fetcher<ChatStatsData>);
@@ -103,15 +103,32 @@ function ChatDailyStats () {
   const { data = [] } = useSWR(['get', '/api/v1/stats/chats_daily'], fetcher<DailyChatStatsData>);
 
   const refinedData = useMemo(() => {
-    const res: { day: number, value: number }[] = [];
+    const res: { day: number, value: number, user: number, admin: number, bot: number, anonymous: number }[] = [];
     for (let i = 0; i < 28; i++) {
-      res[i] = { day: 0, value: 0 };
+      res[i] = { day: 0, value: 0, user: 0, admin: 0, bot: 0, anonymous: 0 };
     }
     const now = new Date();
     data.forEach(item => {
       const i = differenceInDays(now, item.date);
       if (i >= 0 && i < 28) {
-        res[i].value = item.chat_messages ?? 0;
+        switch (item.user_type) {
+          case 'admin':
+            res[i].admin = item.chat_messages ?? 0;
+            res[i].value += res[i].admin;
+            break;
+          case 'bot':
+            res[i].bot = item.chat_messages ?? 0;
+            res[i].value += res[i].bot;
+            break;
+          case 'anonymous':
+            res[i].anonymous = item.chat_messages ?? 0;
+            res[i].value += res[i].anonymous;
+            break;
+          case 'user':
+            res[i].user = item.chat_messages ?? 0;
+            res[i].value += res[i].user;
+            break;
+        }
       }
     });
     return res;
@@ -125,7 +142,30 @@ function ChatDailyStats () {
     >
       <ResponsiveContainer width="100%" height="100%" minHeight={160}>
         <BarChart data={refinedData}>
-          <Bar dataKey="value" className="fill-primary" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="admin" className="fill-primary" stackId="a" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="bot" className="dark:fill-sky-200 fill-sky-600" stackId="a" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="user" className="dark:fill-emerald-200 fill-emerald-600" stackId="a" radius={[0, 0, 0, 0]} />
+          <Bar dataKey="anonymous" className="dark:fill-amber-200 fill-amber-600" stackId="a" radius={[4, 4, 0, 0]} />
+          <Legend content={() => (
+            <ul className='flex gap-2 text-xs p-2'>
+              <li className='flex gap-1 items-center'>
+                <span className="size-3 rounded bg-primary" />
+                Admin
+              </li>
+              <li className='flex gap-1 items-center'>
+                <span className="size-3 rounded dark:bg-sky-200 bg-sky-600" />
+                Bot
+              </li>
+              <li className='flex gap-1 items-center'>
+                <span className="size-3 rounded dark:bg-emerald-200 bg-emerald-600" />
+                User
+              </li>
+              <li className='flex gap-1 items-center'>
+                <span className="size-3 rounded dark:bg-amber-200 bg-amber-600" />
+                Anonymous
+              </li>
+            </ul>
+          )} />
         </BarChart>
       </ResponsiveContainer>
     </OverviewCard>
