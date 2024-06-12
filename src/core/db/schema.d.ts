@@ -117,6 +117,7 @@ export interface DocumentIndexTask {
 
 export interface Feedback {
   action: "dislike" | "like";
+  chat_id: number;
   comment: string;
   created_at: Date;
   created_by: string;
@@ -124,6 +125,7 @@ export interface Feedback {
   knowledge_graph_detail: Json;
   knowledge_graph_report_error: string | null;
   knowledge_graph_reported_at: Date | null;
+  message_id: number;
   trace_id: Buffer;
 }
 

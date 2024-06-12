@@ -1,6 +1,10 @@
+DROP TABLE feedback;
+
 CREATE TABLE feedback
 (
     id                           INTEGER                  NOT NULL AUTO_INCREMENT,
+    chat_id                      INTEGER                  NOT NULL,
+    message_id                   INTEGER                  NOT NULL,
     trace_id                     BINARY(16)               NOT NULL COMMENT 'Langfuse trace ID (UUID)',
     action                       ENUM ('like', 'dislike') NOT NULL,
     comment                      TEXT                     NOT NULL COMMENT 'Comments from user',
@@ -11,5 +15,6 @@ CREATE TABLE feedback
     knowledge_graph_report_error TEXT                     NULL COMMENT 'Report failure reason if reporting failed.',
     PRIMARY KEY (id),
     UNIQUE INDEX (trace_id, created_by),
-    INDEX (created_at, knowledge_graph_reported_at)
+    INDEX (created_at, knowledge_graph_reported_at),
+    INDEX (chat_id, message_id)
 );

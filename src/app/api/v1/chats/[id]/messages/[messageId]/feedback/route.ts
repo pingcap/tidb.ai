@@ -82,6 +82,8 @@ export const POST = defineHandler(({
 
   await createFeedback({
     action: body.action,
+    chat_id: params.id,
+    message_id: params.messageId,
     knowledge_graph_detail: body.knowledge_graph_detail,
     created_by: userId,
     trace_id: getTraceId(message.trace_url),
