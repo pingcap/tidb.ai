@@ -9,6 +9,7 @@ import { notFound } from 'next/navigation';
 export type ChatOptions = {
   userInput: string;
   userId: string;
+  requestMessage: ChatMessage;
   respondMessage: ChatMessage;
   history: ChatMessage[];
 }
@@ -39,14 +40,20 @@ export abstract class AppChatService extends AppIndexBaseService {
   chat(sessionId: string, userId: string, userInput: string, regenerating: boolean, stream: false): Promise<ChatNonStreamingResult>
   async chat(sessionId: string, userId: string, userInput: string, regenerating: boolean, stream: true | false): Promise<AppChatStream | ChatNonStreamingResult> {
     const { chat, history } = await this.getSessionInfo(sessionId, userId);
-    const respondMessage = await this.startChat(chat, history, userInput, regenerating);
+    const { requestMessage, respondMessage } = await this.startChat(chat, history, userInput, regenerating);
 
     if (stream) {
       return new AppChatStream(sessionId, respondMessage.id, async controller => {
         try {
           let content = '';
           let retrieveIds = new Set<number>();
-          for await (const chunk of this.run(chat, { userInput, history, userId, respondMessage })) {
+          for await (const chunk of this.run(chat, {
+            userInput,
+            history,
+            userId,
+            requestMessage,
+            respondMessage
+          })) {
             controller.appendText(chunk.content, chunk.status === AppChatStreamState.CREATING /* force sends an empty text chunk first, to avoid a dependency BUG */);
             controller.setChatState(chunk.status, chunk.statusMessage);
             controller.setTraceURL(chunk.traceURL);
@@ -73,7 +80,13 @@ export abstract class AppChatService extends AppIndexBaseService {
       };
       try {
         let retrieveIds = new Set<number>();
-        for await (const chunk of this.run(chat, { userInput, history, userId, respondMessage })) {
+        for await (const chunk of this.run(chat, {
+          userInput,
+          history,
+          userId,
+          requestMessage,
+          respondMessage
+        })) {
           chatResult.content += chunk.content;
           chatResult.sources = chunk.sources;
           if (chunk.retrieveId) {
@@ -131,11 +144,15 @@ export abstract class AppChatService extends AppIndexBaseService {
     });
   }
 
-  private async startChat (chat: Chat, history: ChatMessage[], userInput: string, regenerating: boolean) {
+  private async startChat (chat: Chat, history: ChatMessage[], userInput: string, regenerating: boolean): Promise<{
+    requestMessage: ChatMessage,
+    respondMessage: ChatMessage,
+  }> {
     return await tx(async () => {
       let ordinal = history.length;
+      let requestMessage = history[ordinal - 1];
       if (!regenerating) {
-        await createChatMessage({
+        requestMessage = await createChatMessage({
           role: 'user',
           chat_id: chat.id,
           content: userInput,
@@ -145,7 +162,7 @@ export abstract class AppChatService extends AppIndexBaseService {
           options: JSON.stringify({}),
         });
       }
-      return await createChatMessage({
+      let respondMessage = await createChatMessage({
         role: 'assistant',
         chat_id: chat.id,
         content: '',
@@ -154,6 +171,7 @@ export abstract class AppChatService extends AppIndexBaseService {
         ordinal: ordinal,
         options: JSON.stringify({}),
       });
+      return { requestMessage, respondMessage };
     });
   }
 

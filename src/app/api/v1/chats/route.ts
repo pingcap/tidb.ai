@@ -1,14 +1,17 @@
-import {type Chat, createChat, getChatByUrlKey, listChats} from '@/core/repositories/chat';
+import {type Chat, createChat, createChatMessages, getChatByUrlKey, listChats} from '@/core/repositories/chat';
 import {getChatEngineByIdOrName} from '@/core/repositories/chat_engine';
 import {getIndexByNameOrThrow} from '@/core/repositories/index_';
 import {LlamaindexChatService} from '@/core/services/llamaindex/chating';
 import {toPageRequest} from '@/lib/database';
-import {CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR} from '@/lib/errors';
+import {
+  CHAT_CAN_NOT_ASSIGN_SESSION_ID_ERROR,
+  CHAT_FAILED_TO_CREATE_ERROR,
+  CHAT_NOT_FOUND_ERROR
+} from '@/lib/errors';
 import {defineHandler} from '@/lib/next/handler';
 import {baseRegistry} from '@/rag-spec/base';
 import {getFlow} from '@/rag-spec/createFlow';
 import {Langfuse} from "langfuse";
-import {notFound} from 'next/navigation';
 import {NextResponse} from 'next/server';
 import {z} from 'zod';
 
@@ -69,11 +72,11 @@ export const POST = defineHandler({
 
   const lastUserMessage = messages.findLast(m => m.role === 'user')?.content ?? '';
 
-  // For Ask Widget.
-  let chat: Chat | undefined;
+  // For Ask Widget / API.
+  let chat: Chat;
   let sessionId = body.sessionId;
   if (!sessionId) {
-    chat = await createChat({
+    chat = (await createChat({
       engine: engine.engine,
       engine_id: engine.id,
       engine_name: engine.name,
@@ -81,12 +84,27 @@ export const POST = defineHandler({
       created_at: new Date(),
       created_by: userId,
       title: limitTitleLength(body.name ?? lastUserMessage ?? DEFAULT_CHAT_TITLE),
-    });
-    sessionId = chat.url_key;
-  } else {
-    chat = await getChatByUrlKey(sessionId);
+    }))!;
     if (!chat) {
-      notFound();
+      throw CHAT_FAILED_TO_CREATE_ERROR;
+    }
+    sessionId = chat.url_key;
+    const previousMessages = messages.length > 1 ? messages.slice(0, -1) : [];
+    if (previousMessages.length > 0) {
+      await createChatMessages(previousMessages.map((m, idx) => ({
+        chat_id: chat.id,
+        content: m.content,
+        role: m.role,
+        ordinal: idx,
+        status: 'SUCCEED',
+        options: '{}',
+        created_at: new Date(),
+      })));
+    }
+  } else {
+    chat = (await getChatByUrlKey(sessionId))!;
+    if (!chat) {
+      throw CHAT_NOT_FOUND_ERROR.format(sessionId);
     }
   }
 
