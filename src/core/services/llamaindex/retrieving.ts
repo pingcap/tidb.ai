@@ -263,7 +263,7 @@ export class LlamaindexRetrieverWrapper implements BaseRetriever {
 
   async retrieve (params: RetrieveParams): Promise<NodeWithScore[]> {
     // Notice: Due to the limitations of Llamaindex, some parameters can only be passed in when instantiating the Retriever class
-    const chunks = await this.retrieveService.retrieve({ ...this.options, query: params.query }, this.callbacks, this.trace);
+    const chunks = await this.retrieveService.retrieve({ ...this.options, query: params.query as string }, this.callbacks, this.trace);
 
     const detailedChunks = await this.retrieveService.extendResultDetails(chunks);
 

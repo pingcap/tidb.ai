@@ -147,7 +147,7 @@ export class LlamaindexChatService extends AppChatService {
 
     // Service context.
     const llm = buildLLM(llmConfig!, trace);
-    const promptHelper = new PromptHelper(llm.metadata.contextWindow);
+    const promptHelper = new PromptHelper(llm.metadata?.contextWindow);
     const embedModel = await buildEmbedding(this.index.config.embedding);
     const serviceContext = serviceContextFromDefaults({
       llm,

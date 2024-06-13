@@ -129,7 +129,7 @@ export abstract class AppRetrieveService extends AppIndexBaseService {
 
     const embeddings = await buildEmbedding(this.index.config.embedding);
     const eqStart = DateTime.now();
-    const result = await embeddings.getQueryEmbedding(query);
+    const result = await embeddings.getTextEmbedding(query);
     const eqDuration = DateTime.now().diff(eqStart).as('milliseconds');
 
     eqSpan?.end({

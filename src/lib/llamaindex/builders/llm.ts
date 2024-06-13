@@ -1,7 +1,7 @@
 import {observeLlamaindexLLM} from "@/lib/langfuse/llamaindex/llm";
 import {LLMConfig, LLMProvider} from "@/lib/llamaindex/config/llm";
 import {LangfuseTraceClient} from "langfuse";
-import {OpenAI, Ollama} from "llamaindex";
+import {OpenAI, Ollama, Gemini} from "llamaindex";
 import {Bitdeer} from "@/lib/llamaindex/llm/bitdeer";
 
 export function buildLLM ({ provider, options}: LLMConfig, trace?: LangfuseTraceClient) {
@@ -16,6 +16,12 @@ export function buildLLM ({ provider, options}: LLMConfig, trace?: LangfuseTrace
     case LLMProvider.OLLAMA:
       baseLLM = new Ollama(options ?? {
         model: "llama3",
+      });
+      break;
+    case LLMProvider.GEMINI:
+      baseLLM = new Gemini({
+        ...options,
+        model: options?.model as any
       });
       break;
     default:
