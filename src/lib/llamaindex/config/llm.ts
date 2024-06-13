@@ -4,6 +4,7 @@ export enum LLMProvider {
   OPENAI = 'openai',
   BITDEER = 'bitdeer',
   OLLAMA = 'ollama',
+  GEMINI = 'gemini',
 }
 
 export const BaseLLMOptionsSchema = z.object({
@@ -73,10 +74,34 @@ export const OllamaConfigSchema = z.object({
   options: OllamaOptionsSchema.optional(),
 });
 
+export enum GeminiModel {
+  GEMINI_PRO = "gemini-pro",
+  GEMINI_PRO_VISION = "gemini-pro-vision",
+  GEMINI_PRO_LATEST = "gemini-1.5-pro-latest",
+  GEMINI_PRO_1_5_PRO_PREVIEW = "gemini-1.5-pro-preview-0514",
+  GEMINI_PRO_1_5_FLASH_PREVIEW = "gemini-1.5-flash-preview-0514",
+  GEMINI_PRO_1_5 = "gemini-1.5-pro-001",
+  GEMINI_PRO_1_5_FLASH = "gemini-1.5-flash-001",
+  GEMINI_1_5_FLASH_LATEST = "gemini-1.5-flash-latest",
+}
+
+export const GeminiModelSchema = z.nativeEnum(GeminiModel);
+
+export const GeminiOptionsSchema = BaseLLMOptionsSchema.extend({
+  model: GeminiModelSchema,
+  apiKey: z.string().optional()
+});
+
+export const GeminiConfigSchema = z.object({
+  provider: z.literal(LLMProvider.GEMINI),
+  options:GeminiOptionsSchema.optional(),
+});
+
 export const LLMConfigSchema = z.discriminatedUnion('provider', [
   OpenAIConfigSchema,
   BitdeerConfigSchema,
   OllamaConfigSchema,
+  GeminiConfigSchema
 ]);
 
 export type LLMConfig = z.infer<typeof LLMConfigSchema>;
