@@ -59,11 +59,6 @@ function TaskStats () {
       icon={ListTodoIcon}
       value={data?.SUCCEED ?? 0}
     >
-      <div className="mt-2">
-        <Link href="/import-tasks" className="text-xs flex items-center gap-1 transition-colors text-muted-foreground hover:text-foreground">
-          View all tasks <ArrowRightIcon size="1em" />
-        </Link>
-      </div>
     </OverviewCard>
   );
 }
@@ -91,7 +86,7 @@ function ChatStats () {
             <code>{data?.chat_messages ?? 0}</code>
           </span>
         </span>
-        <Link href="#" className="text-xs inline-flex items-center gap-1 transition-colors text-muted-foreground hover:text-foreground">
+        <Link href="/c" className="text-xs inline-flex items-center gap-1 transition-colors text-muted-foreground hover:text-foreground">
           View all chats <ArrowRightIcon size="1em" />
         </Link>
       </div>
