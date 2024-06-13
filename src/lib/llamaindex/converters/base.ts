@@ -34,7 +34,7 @@ export function chunkToNode<M extends Metadata> (chunk: rag.ContentChunk<M> | ra
 }
 
 export function nodeToContent<M extends Metadata> (node: BaseNode<M>): rag.Content<M> {
-  if (node.getType() !== ObjectType.DOCUMENT) {
+  if (node.type !== ObjectType.DOCUMENT) {
     throw new Error('node is not a document');
   }
   return {
