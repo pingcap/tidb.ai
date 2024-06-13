@@ -50,7 +50,4 @@ export class BitdeerEmbedding extends BaseEmbedding {
     return this.getBitdeerEmbedding(text);
   }
 
-  async getQueryEmbedding(query: string): Promise<number[]> {
-    return this.getBitdeerEmbedding(query);
-  }
 }

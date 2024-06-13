@@ -1,8 +1,10 @@
 import {EmbeddingConfig, EmbeddingProvider} from "@/lib/llamaindex/config/embedding";
 import {BitdeerEmbedding} from "@/lib/llamaindex/embeddings/BitdeerEmbedding";
-import {JinaAIEmbedding, OllamaEmbedding, OpenAIEmbedding} from 'llamaindex';
+import {BaseEmbedding, JinaAIEmbedding, OllamaEmbedding, OpenAIEmbedding} from 'llamaindex';
 
-export async function buildEmbedding ({ provider, options }: EmbeddingConfig) {
+export async function buildEmbedding ({ provider, options }: EmbeddingConfig): Promise<BaseEmbedding & {
+  model?: string;
+}> {
   switch (provider) {
     case EmbeddingProvider.OPENAI:
       return new OpenAIEmbedding(options);

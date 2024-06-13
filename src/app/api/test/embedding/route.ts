@@ -15,7 +15,7 @@ export const POST = defineHandler({
 }) => {
   const { text, config } = body;
   const bitdeerEmbedding = await buildEmbedding(config);
-  const embedding = await bitdeerEmbedding.getQueryEmbedding(text);
+  const embedding = await bitdeerEmbedding.getTextEmbedding(text);
   return NextResponse.json(embedding);
 });
 
