@@ -1,0 +1,32 @@
+[project]
+name = "tidb-ai-python"
+version = "0.1.0"
+description = "Add your description here"
+authors = [
+    { name = "wd0517", email = "me@wangdi.ink" }
+]
+dependencies = [
+    "fastapi>=0.111.0",
+    "sqlmodel>=0.0.19",
+    "pymysql>=1.1.1",
+    "celery>=5.4.0",
+    "dspy-ai>=2.4.9",
+    "langfuse>=2.36.1",
+    "llama-index>=0.10.44",
+    "alembic>=1.13.1",
+    "pydantic>=2.7.4",
+    "pydantic-settings>=2.3.3",
+    "sentry-sdk>=2.5.1",
+    "click>=8.1.7",
+    "uvicorn>=0.30.1",
+    "tenacity>=8.3.0",
+    "redis>=5.0.5",
+    "flower>=2.0.1",
+]
+readme = "README.md"
+requires-python = ">= 3.8"
+
+[tool.rye]
+managed = true
+virtual = true
+dev-dependencies = []
