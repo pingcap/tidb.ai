@@ -7,6 +7,7 @@ from pydantic import (
     BeforeValidator,
     HttpUrl,
     MySQLDsn,
+    SecretStr,
     computed_field,
     model_validator,
 )
@@ -57,6 +58,9 @@ class Settings(BaseSettings):
 
     CELERY_BROKER_URL: str = "redis://redis:6379/0"
     CELERY_RESULT_BACKEND: str = "redis://redis:6379/0"
+
+    TIDB_AI_CHAT_ENDPOINT: str = "https://tidb.ai/api/v1/chats"
+    TIDB_AI_API_KEY: SecretStr | None = None
 
     @computed_field  # type: ignore[misc]
     @property

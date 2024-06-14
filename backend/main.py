@@ -8,6 +8,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from app.api.main import api_router
 from app.core.config import settings
+from app.evaluation.evals import Evaluation, DEFAULT_TIDB_AI_CHAT_ENGINE
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
@@ -62,6 +63,21 @@ def runserver(host, port):
         "main:app", host=host, port=port, reload=True,
         log_level="debug"
     )
+
+
+@cli.command()
+@click.option('--dataset', default='regression', help="Dataset name, default=regression")
+@click.option('--llm-provider', default='openai', help="LLM provider, default=openai, options=[openai, google]")
+@click.option('--run-name', default=None, help="Run name, default=None")
+@click.option('--tidb-ai-chat-engine', default=DEFAULT_TIDB_AI_CHAT_ENGINE, help=f"TiDB AI chat engine, default={DEFAULT_TIDB_AI_CHAT_ENGINE}")
+def runeval(dataset, llm_provider, run_name, tidb_ai_chat_engine):
+    eval = Evaluation(
+        dataset_name=dataset,
+        llm_provider=llm_provider,
+        run_name=run_name,
+        tidb_ai_chat_engine=tidb_ai_chat_engine,
+    )
+    eval.run()
 
 
 if __name__ == "__main__":

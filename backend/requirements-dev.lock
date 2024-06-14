@@ -35,6 +35,8 @@ beautifulsoup4==4.12.3
     # via llama-index-readers-file
 billiard==4.2.0
     # via celery
+cachetools==5.3.3
+    # via google-auth
 celery==5.4.0
     # via flower
 certifi==2024.6.2
@@ -95,13 +97,42 @@ fsspec==2023.10.0
     # via huggingface-hub
     # via llama-index-core
     # via llama-index-legacy
+google-ai-generativelanguage==0.6.4
+    # via google-generativeai
+google-api-core==2.19.1
+    # via google-ai-generativelanguage
+    # via google-api-python-client
+    # via google-generativeai
+google-api-python-client==2.134.0
+    # via google-generativeai
+google-auth==2.30.0
+    # via google-ai-generativelanguage
+    # via google-api-core
+    # via google-api-python-client
+    # via google-auth-httplib2
+    # via google-generativeai
+google-auth-httplib2==0.2.0
+    # via google-api-python-client
+google-generativeai==0.5.4
+    # via llama-index-llms-gemini
+googleapis-common-protos==1.63.2
+    # via google-api-core
+    # via grpcio-status
 greenlet==3.0.3
     # via sqlalchemy
+grpcio==1.64.1
+    # via google-api-core
+    # via grpcio-status
+grpcio-status==1.62.2
+    # via google-api-core
 h11==0.14.0
     # via httpcore
     # via uvicorn
 httpcore==1.0.5
     # via httpx
+httplib2==0.22.0
+    # via google-api-python-client
+    # via google-auth-httplib2
 httptools==0.6.1
     # via uvicorn
 httpx==0.27.0
@@ -142,6 +173,7 @@ llama-index-core==0.10.44
     # via llama-index-cli
     # via llama-index-embeddings-openai
     # via llama-index-indices-managed-llama-cloud
+    # via llama-index-llms-gemini
     # via llama-index-llms-openai
     # via llama-index-multi-modal-llms-openai
     # via llama-index-program-openai
@@ -156,6 +188,7 @@ llama-index-indices-managed-llama-cloud==0.1.6
     # via llama-index
 llama-index-legacy==0.9.48
     # via llama-index
+llama-index-llms-gemini==0.1.11
 llama-index-llms-openai==0.1.22
     # via llama-index
     # via llama-index-agent-openai
@@ -235,17 +268,34 @@ pandas==2.2.2
     # via llama-index-legacy
 pillow==10.3.0
     # via llama-index-core
+    # via llama-index-llms-gemini
 prometheus-client==0.20.0
     # via flower
 prompt-toolkit==3.0.47
     # via click-repl
+proto-plus==1.24.0
+    # via google-ai-generativelanguage
+    # via google-api-core
+protobuf==4.25.3
+    # via google-ai-generativelanguage
+    # via google-api-core
+    # via google-generativeai
+    # via googleapis-common-protos
+    # via grpcio-status
+    # via proto-plus
 pyarrow==16.1.0
     # via datasets
 pyarrow-hotfix==0.6
     # via datasets
+pyasn1==0.6.0
+    # via pyasn1-modules
+    # via rsa
+pyasn1-modules==0.4.0
+    # via google-auth
 pydantic==2.7.4
     # via dspy-ai
     # via fastapi
+    # via google-generativeai
     # via langfuse
     # via llamaindex-py-client
     # via openai
@@ -257,6 +307,8 @@ pydantic-settings==2.3.3
 pygments==2.18.0
     # via rich
 pymysql==1.1.1
+pyparsing==3.1.2
+    # via httplib2
 pypdf==4.2.0
     # via llama-index-readers-file
 python-dateutil==2.9.0.post0
@@ -285,12 +337,15 @@ requests==2.32.3
     # via datasets
     # via dspy-ai
     # via fsspec
+    # via google-api-core
     # via huggingface-hub
     # via llama-index-core
     # via llama-index-legacy
     # via tiktoken
 rich==13.7.1
     # via typer
+rsa==4.9
+    # via google-auth
 sentry-sdk==2.5.1
 shellingham==1.5.4
     # via typer
@@ -326,6 +381,7 @@ tornado==6.4.1
 tqdm==4.66.4
     # via datasets
     # via dspy-ai
+    # via google-generativeai
     # via huggingface-hub
     # via llama-index-core
     # via nltk
@@ -336,6 +392,7 @@ typer==0.12.3
 typing-extensions==4.12.2
     # via alembic
     # via fastapi
+    # via google-generativeai
     # via huggingface-hub
     # via llama-index-core
     # via llama-index-legacy
@@ -355,6 +412,8 @@ tzdata==2024.1
 ujson==5.10.0
     # via dspy-ai
     # via fastapi
+uritemplate==4.1.1
+    # via google-api-python-client
 urllib3==2.2.1
     # via requests
     # via sentry-sdk
