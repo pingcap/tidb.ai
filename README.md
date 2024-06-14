@@ -23,25 +23,6 @@ With this tool, you can achieve:
 ![embeddable-javascript-snippet](https://github.com/pingcap/tidb.ai/assets/1237528/5a445231-a27a-4ae6-8287-a4f8cf7b64d0 "Image Title")
 
 
-## Quick Start [Working in Progress]
-To deploy the application in a self-hosted environment, run the following command:
-
-```
-curl https://tidb.cloud/install.sh | sh
-```
-then:
-```
-ticloud create-app --template rag
-```
-
-
-## Deployment [TODO]
-For deploying the application to production, there are many options available:
-
-* **[Deploy with Docker](/docs/deploy-with-docker)**
-* **[Deploy to Vercel](/docs/deploy-to-vercel)**
-
-
 ## Tech Stack
 - [Next.js](https://nextjs.org/) – Framework
 - [TypeScript](https://www.typescriptlang.org/) – Language
