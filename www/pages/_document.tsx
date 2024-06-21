@@ -14,8 +14,8 @@ export default function Document() {
           data-btn-img-src='https://tidb.ai/tidb-ai.svg'
           data-logo-src='https://tidb.ai/tidb-ai.svg'
           data-preferred-mode='system'
-          data-widget-title='Conversation Search Box'
-          data-widget-input-placeholder='Ask a question...'
+          data-widget-title='Ask AI'
+          data-widget-input-placeholder='Ask a question about TiDB ...'
           data-example-questions='["What is TiDB?","Does TiDB support FOREIGN KEY?","Does TiDB support serverless?"]'
         />
       </Head>
