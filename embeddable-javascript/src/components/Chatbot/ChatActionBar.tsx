@@ -1,18 +1,15 @@
-import * as React from 'react';
-import { styled, css } from '@mui/system';
+import { css, styled } from '@mui/system';
+import { SxProps } from '@mui/system/styleFunctionSx';
 import copy from 'copy-to-clipboard';
+import * as React from 'react';
+import { useMemo } from 'react';
 
 import { ChatActionButton } from '../Button';
-import {
-  StopFilledIcon,
-  ThumbUpIcon,
-  ThumbDownIcon,
-  CopyIcon,
-  CopiedIcon,
-  RefreshIcon,
-} from '../Icons';
+import { CopiedIcon, CopyIcon, RefreshIcon, StopFilledIcon, ThumbDownIcon, ThumbUpIcon } from '../Icons';
+import { getChatMessageAnnotations, type MyChatMessageAnnotation } from './ChatItem.tsx';
+import { useMessageFeedback } from './use-message-feedback.ts';
 
-export function ChatActionBar(props: {
+export function ChatActionBar (props: {
   handleStop: () => void;
   className?: string;
 }) {
@@ -42,13 +39,32 @@ export function ChatActionBar(props: {
   );
 }
 
-export function ChatItemActionBar(props: {
+export function ChatItemActionBar (props: {
+  sessionId?: string | null;
+  annotations?: MyChatMessageAnnotation[];
   handleReload?: () => void;
   className?: string;
   content?: string;
 }) {
-  const { className, handleReload, content } = props;
+  const { className, handleReload, content, sessionId, annotations } = props;
   const [copied, setCopied] = React.useState(false);
+
+  const annotation = useMemo(() => {
+    return getChatMessageAnnotations(annotations);
+  }, []);
+
+  const {
+    feedbackData,
+    feedback,
+  } = useMessageFeedback(Number(sessionId), annotation.messageId, annotation.state === 'FINISHED');
+
+  const like = () => {
+    feedback('like', {}, 'From tidb.ai ChatBot');
+  }
+
+  const dislike = () => {
+    feedback('dislike', {}, 'From tidb.ai ChatBot');
+  }
 
   React.useEffect(() => {
     if (copied) {
@@ -69,7 +85,7 @@ export function ChatItemActionBar(props: {
             <ActionButton
               onClick={handleReload}
               Icon={RefreshIcon}
-              name='Regenerate'
+              name="Regenerate"
               className={className}
             >
               Regenerate
@@ -82,7 +98,7 @@ export function ChatItemActionBar(props: {
               setCopied(true);
             }}
             Icon={copied ? CopiedIcon : CopyIcon}
-            name='Copy'
+            name="Copy"
             className={className}
           >
             {copied ? 'Copied!' : 'Copy'}
@@ -94,15 +110,27 @@ export function ChatItemActionBar(props: {
         >
           <ActionButton
             Icon={ThumbUpIcon}
-            name='GoodAnswer'
+            name="GoodAnswer"
             className={className}
+            disabled={!!feedbackData}
+            sx={feedbackData?.action === 'like' ? ({
+              backgroundColor: 'rgb(34 197 94 / 0.05)',
+              color: 'rgb(34 197 94)'
+            }) : !!feedbackData ? {opacity: 0.5, cursor: 'not-allowed'} : undefined}
+            onClick={like}
           >
             Good Answer
           </ActionButton>
           <ActionButton
             Icon={ThumbDownIcon}
-            name='BadAnswer'
+            name="BadAnswer"
             className={className}
+            disabled={!!feedbackData}
+            sx={feedbackData?.action === 'dislike' ? ({
+              backgroundColor: 'rgb(239 68 68 / 0.05)',
+              color: 'rgb(239 68 68)',
+            }) : !!feedbackData ? {opacity: 0.5, cursor: 'not-allowed'} : undefined}
+            onClick={dislike}
           >
             Bad Answer
           </ActionButton>
@@ -112,17 +140,20 @@ export function ChatItemActionBar(props: {
   );
 }
 
-function ActionButton(props: {
+function ActionButton (props: {
   name: string;
   className?: string;
   onClick?: () => void;
   children: React.ReactNode;
   Icon: React.ElementType;
+  disabled?: boolean;
+  sx?: SxProps;
 }) {
-  const { name, className, onClick, children, Icon } = props;
+  const { name, className, onClick, children, Icon, disabled, sx } = props;
 
   return (
     <ChatActionButton
+      disabled={disabled}
       onClick={onClick}
       className={className + `-${name}`}
       sx={{
@@ -131,6 +162,7 @@ function ActionButton(props: {
         fontWeight: 'normal',
         fontSize: '0.75rem',
         color: 'mutedForeground',
+        ...sx,
       }}
     >
       <Icon
@@ -171,5 +203,5 @@ const StyledChatActionBar = styled('div')(({ theme }) =>
         gap: '0.5rem',
       },
     },
-  })
+  }),
 );

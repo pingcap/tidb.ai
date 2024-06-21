@@ -41,7 +41,7 @@ const production: RehypeReactOptions = {
 
       if (!(props as any)['data-footnotes']) return <section {...props} />;
       return (
-        <section {...props} className={cn(props.className, 'sr-only')}>
+        <section {...props} className={cn(props.className /*, 'sr-only'*/)}>
           {dirtyRewrite(props.children, reactId)}
         </section>
       );

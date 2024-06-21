@@ -11,6 +11,7 @@ export const MDLightCss = css`
     font-size: 16px;
     line-height: 1.5;
     word-wrap: break-word;
+    padding: 8px;
   }
 
   .markdown-body .octicon {

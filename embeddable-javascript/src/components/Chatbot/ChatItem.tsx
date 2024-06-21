@@ -12,6 +12,7 @@ export type AppChatStreamSource = { title: string, uri: string };
 export const enum AppChatStreamState {
   CONNECTING = 'CONNECTING', // only client side
   CREATING = 'CREATING',
+  KG_RETRIEVING = 'KG_RETRIEVING',
   SEARCHING = 'SEARCHING',
   RERANKING = 'RERANKING',
   GENERATING = 'GENERATING',
@@ -20,6 +21,8 @@ export const enum AppChatStreamState {
 }
 
 export type MyChatMessageAnnotation = {
+  ts: number;
+  messageId: number;
   traceURL?: string,
   context?: AppChatStreamSource[],
   state?: AppChatStreamState,
@@ -95,6 +98,9 @@ export function ChatItemLoading({ annotations }: { annotations: MyChatMessageAnn
       break;
     case 'CREATING':
       text = 'Preparing to ask...';
+      break;
+    case 'KG_RETRIEVING':
+      text = 'Retrieving knowledge...';
       break;
     case 'SEARCHING':
       text = 'Gathering resources...';
@@ -348,7 +354,7 @@ export const StyledExampleQuestionWrapper = styled('div')(() =>
 //   })
 // );
 
-function getChatMessageAnnotations (annotations: MyChatMessageAnnotation[] | undefined) {
+export function getChatMessageAnnotations (annotations: MyChatMessageAnnotation[] | undefined) {
   return ((annotations ?? []) as MyChatMessageAnnotation[])
-    .reduce((annotation, next) => Object.assign(annotation, next), {});
+    .reduce((annotation, next) => Object.assign(annotation, next), {} as MyChatMessageAnnotation);
 }
