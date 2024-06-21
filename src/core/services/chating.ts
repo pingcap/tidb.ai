@@ -43,7 +43,7 @@ export abstract class AppChatService extends AppIndexBaseService {
     const { requestMessage, respondMessage } = await this.startChat(chat, history, userInput, regenerating);
 
     if (stream) {
-      return new AppChatStream(sessionId, respondMessage.id, async controller => {
+      return new AppChatStream(chat.id, sessionId, respondMessage.id, async controller => {
         try {
           let content = '';
           let retrieveIds = new Set<number>();

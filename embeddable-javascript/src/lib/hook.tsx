@@ -11,7 +11,7 @@ export const useAbortableFetch = () => {
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState(null);
   const [controller, setController] = React.useState<AbortController | null>(
-    null
+    null,
   );
 
   const fetchData = React.useCallback(
@@ -41,7 +41,7 @@ export const useAbortableFetch = () => {
         setLoading(false);
       }
     },
-    []
+    [],
   );
 
   React.useEffect(() => {
@@ -57,14 +57,21 @@ export const useAbortableFetch = () => {
 
 // todo: update this after the API is ready
 const CREATE_RAG_SESSION_KEY = 'test1-CreateRag-Session';
+const CREATE_RAG_SESSION_ID_KEY = 'test1-CreateRag-Session-Id';
 
-export function useLocalCreateRAGSessionId() {
+export function useLocalCreateRAGSessionId () {
+  const [sessionId, setSessionId] = React.useState<string | null>(null);
   const [session, setSession] = React.useState<string | null>(null);
 
-  const [cookies, setCookie] = useCookies([CREATE_RAG_SESSION_KEY]);
+  const [cookies, setCookie] = useCookies([CREATE_RAG_SESSION_KEY, CREATE_RAG_SESSION_ID_KEY]);
   const localSessionMemo = React.useMemo(() => {
     return (cookies?.[CREATE_RAG_SESSION_KEY] as string) || null;
   }, [cookies]);
+  const localSessionIdMemo = React.useMemo(() => {
+
+    return (cookies?.[CREATE_RAG_SESSION_ID_KEY] as string) || null;
+  }, [cookies]);
+
   const setSessionMemo = React.useCallback(
     (value: string | undefined) => {
       if (!value) {
@@ -73,20 +80,33 @@ export function useLocalCreateRAGSessionId() {
       setCookie(CREATE_RAG_SESSION_KEY, value, { path: '/' });
       setSession(value);
     },
-    [setCookie]
+    [setCookie],
+  );
+
+  const setSessionIdMemo = React.useCallback(
+    (value: string | undefined) => {
+      if (!value) {
+        return;
+      }
+      setCookie(CREATE_RAG_SESSION_ID_KEY, value, { path: '/' });
+      setSessionId(value);
+    },
+    [setCookie],
   );
 
   return {
     session: session || localSessionMemo,
     setSession: setSessionMemo,
+    sessionId: sessionId || localSessionIdMemo,
+    setSessionId: setSessionIdMemo,
   };
 }
 
 export const usePostChatMessage = async (
   externalUserId: number,
-  message: string
+  message: string,
 ) => {
-  const { session, setSession } = useLocalCreateRAGSessionId();
+  const { session, setSession, sessionId, setSessionId } = useLocalCreateRAGSessionId();
   const { fetchData, response, loading, error, headers } = useAbortableFetch();
   const url = CREATE_RAG_CHAT_API;
 
@@ -108,7 +128,7 @@ export const usePostChatMessage = async (
     fetchData(url, options);
   }, [externalUserId, fetchData, message, session, url]);
 
-  return { response, loading, error, headers, setSession };
+  return { response, loading, error, headers, setSession, sessionId, setSessionId };
 };
 
 export const useRemoteAuth = async (cfg?: { baseUrl: string, entryButtonLabel: string }) => {

@@ -30,7 +30,7 @@ export default function ChatContainer(props: {
     securityMode,
   } = props;
 
-  const { session, setSession } = useLocalCreateRAGSessionId();
+  const { session, setSession, sessionId, setSessionId } = useLocalCreateRAGSessionId();
   // const contextRef = React.useRef<string[]>([]);
 
   const cfg = React.useContext(CfgContext);
@@ -58,6 +58,9 @@ export default function ChatContainer(props: {
     onResponse: (response) => {
       if (session !== response.headers.get('X-CreateRag-Session')) {
         setSession(response.headers.get('X-CreateRag-Session') ?? undefined);
+      }
+      if (sessionId !== response.headers.get('X-CreateRag-Session-Id')) {
+        setSessionId(response.headers.get('X-CreateRag-Session-Id') ?? undefined);
       }
     },
   });
@@ -128,6 +131,8 @@ export default function ChatContainer(props: {
                   Action={
                     showAction ? (
                       <ChatItemActionBar
+                        sessionId={sessionId}
+                        annotations={m.annotations as any}
                         handleReload={idx === 0 ? reload : undefined}
                         content={m.content}
                         className={

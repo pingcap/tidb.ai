@@ -19,6 +19,7 @@ export type AppChatStreamSource = { title: string, uri: string };
 export class AppChatStream extends ReadableStream<StreamString> {
 
   constructor (
+    public readonly chatId: number,
     public readonly sessionId: string,
     messageId: number,
     pull: (controller: AppChatStreamController) => Promise<void>,
@@ -43,6 +44,7 @@ export class AppChatStream extends ReadableStream<StreamString> {
       {
         headers: {
           'X-CreateRag-Session': this.sessionId,
+          'X-CreateRag-Session-Id': String(this.chatId),
           'Content-Type': 'text/event-stream; charset=utf-8',
           'X-Content-Type-Options': 'nosniff',
         },
