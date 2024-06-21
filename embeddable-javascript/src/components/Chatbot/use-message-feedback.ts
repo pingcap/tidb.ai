@@ -33,7 +33,6 @@ export function useMessageFeedback (chatId: number, messageId: number, enabled: 
 
   // const contentData = useSWR((enabled && !disabled) ? ['get', `/api/v1/chats/${chatId}/messages/${messageId}/content-sources`] : undefined, fetcher<ContentSource>, { keepPreviousData: true, revalidateIfStale: false, revalidateOnReconnect: false });
 
-  console.log(feedback);
   return {
     feedbackData: feedback,
     disabled,
