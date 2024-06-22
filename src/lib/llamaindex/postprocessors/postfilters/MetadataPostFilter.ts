@@ -90,11 +90,6 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
     const filteredNodes = await this.filterNodes(nodes, filters);
     console.log(`[Metadata Filter] Applied provided/generated filter (before: ${nodes.length} nodes, after: ${filteredNodes.length} nodes).`);
 
-    if (filteredNodes.length === 0) {
-      console.warn('[Metadata Filter] No nodes left after filtering, fallback to using all nodes.');
-      return nodes;
-    }
-
     return filteredNodes;
   }
 
