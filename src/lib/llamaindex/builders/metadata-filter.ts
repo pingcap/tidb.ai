@@ -15,7 +15,8 @@ export function buildMetadataFilter (serviceContext: ServiceContext, config: Met
         return new MetadataPostFilter({
           llm,
           metadata_fields: config.options?.metadata_fields,
-          filters: config.options?.filters
+          filters: config.options?.filters,
+          strict: config.options?.strict,
         });
       default:
         throw new Error(`Unknown metadata filter provider: ${config.provider}`)
