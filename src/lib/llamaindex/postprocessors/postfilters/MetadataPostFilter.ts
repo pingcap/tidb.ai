@@ -66,6 +66,12 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
    * Provide the filters to apply to the search.
    */
   filters: MetadataFieldFilter[] | null;
+  /**
+   * Whether to strictly filter out nodes that do not meet the filtering conditions.
+   * In strict mode, if a node has no metadata or lacks the metadata field in the filtering conditions,
+   * it is considered not to meet the filtering conditions.
+   */
+  strict: boolean;
 
   constructor(init?: MetadataPostFilterOptions) {
     this.serviceContext = init?.serviceContext ?? serviceContextFromDefaults();
@@ -73,6 +79,7 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
     this.metadata_fields = init?.metadata_fields ?? [];
     this.filters = init?.filters ?? null;
     this.metadataFilterChoicePrompt = init?.metadataFilterChoicePrompt || defaultMetadataFilterChoicePrompt;
+    this.strict = init?.strict ?? false;
   }
 
   async postprocessNodes(nodes: NodeWithScore[], query: string): Promise<NodeWithScore[]> {
@@ -124,13 +131,13 @@ export class MetadataPostFilter implements BaseNodePostprocessor {
 
       // If the document metadata is not found, skip the filter.
       if (!metadata) {
-        return true;
+        return !this.strict;
       }
 
       return filters.every(filter => {
         // If the document metadata field is not set, skip the filter.
         if (!metadata[filter.name] || !filter.value || filter.value === '') {
-          return true;
+          return !this.strict;
         }
         return metadata[filter.name] === filter.value;
       });
