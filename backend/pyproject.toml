@@ -23,6 +23,7 @@ dependencies = [
     "redis>=5.0.5",
     "flower>=2.0.1",
     "llama-index-llms-gemini>=0.1.11",
+    "tidb-vector~=0.0.9",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"

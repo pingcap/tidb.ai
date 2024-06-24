@@ -246,6 +246,7 @@ numpy==1.26.4
     # via optuna
     # via pandas
     # via pyarrow
+    # via tidb-vector
 openai==1.34.0
     # via dspy-ai
     # via llama-index-agent-openai
@@ -373,6 +374,7 @@ structlog==24.2.0
 tenacity==8.3.0
     # via llama-index-core
     # via llama-index-legacy
+tidb-vector==0.0.9
 tiktoken==0.7.0
     # via llama-index-core
     # via llama-index-legacy
