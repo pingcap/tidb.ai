@@ -22,6 +22,7 @@ export function createIndexIngestionPipeline (
     docStoreStrategy: 'upserts' as any,
     disableCache: true,
   });
+  pipeline.vectorStores = undefined;
   return wrapLlamaindexIndexPipeline(reader, async (document) => {
     return pipeline.run({
       documents: [document],
