@@ -16,6 +16,8 @@ import { InfoCircledIcon } from '@radix-ui/react-icons';
 import { AlertTriangleIcon } from 'lucide-react';
 import { useState } from 'react';
 
+const enableDebug = !process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL;
+
 export function ConversationMessageGroups ({ history }: { history: ChatMessage[] }) {
   const { error, messages, isLoading, isWaiting } = useMyChatContext();
   const groups = useGroupedConversationMessages(history, messages, isLoading || isWaiting, error);
@@ -38,7 +40,7 @@ function ConversationMessageGroup ({ group }: { group: ConversationMessageGroupP
   const [debugInfoOpen, setDebugInfoOpen] = useState(false);
   return (
     <section className="space-y-6 p-4 pt-12 border-b pb-10 last-of-type:border-b-0 last-of-type:border-pb-4">
-      <Collapsible open={debugInfoOpen} onOpenChange={setDebugInfoOpen}>
+      {enableDebug && <Collapsible open={debugInfoOpen} onOpenChange={setDebugInfoOpen}>
         <div className="relative pr-12">
           <h2 className="text-2xl font-normal">{group.userMessage.content}</h2>
           <CollapsibleTrigger asChild>
@@ -51,7 +53,7 @@ function ConversationMessageGroup ({ group }: { group: ConversationMessageGroupP
         <CollapsibleContent>
           <DebugInfo group={group} />
         </CollapsibleContent>
-      </Collapsible>
+      </Collapsible>}
 
       <MessageContextSources group={group} />
       <section className="space-y-2">
