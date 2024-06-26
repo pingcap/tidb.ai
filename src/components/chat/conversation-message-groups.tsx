@@ -40,20 +40,20 @@ function ConversationMessageGroup ({ group }: { group: ConversationMessageGroupP
   const [debugInfoOpen, setDebugInfoOpen] = useState(false);
   return (
     <section className="space-y-6 p-4 pt-12 border-b pb-10 last-of-type:border-b-0 last-of-type:border-pb-4">
-      {enableDebug && <Collapsible open={debugInfoOpen} onOpenChange={setDebugInfoOpen}>
+      <Collapsible open={debugInfoOpen} onOpenChange={setDebugInfoOpen}>
         <div className="relative pr-12">
           <h2 className="text-2xl font-normal">{group.userMessage.content}</h2>
-          <CollapsibleTrigger asChild>
+          {enableDebug && <CollapsibleTrigger asChild>
             <Button className="absolute right-0 top-0 z-0 rounded-full" variant="ghost" size="sm">
               <InfoCircledIcon className="h-4 w-4" />
               <span className="sr-only">Toggle</span>
             </Button>
-          </CollapsibleTrigger>
+          </CollapsibleTrigger>}
         </div>
         <CollapsibleContent>
           <DebugInfo group={group} />
         </CollapsibleContent>
-      </Collapsible>}
+      </Collapsible>
 
       <MessageContextSources group={group} />
       <section className="space-y-2">
