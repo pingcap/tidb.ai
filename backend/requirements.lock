@@ -67,6 +67,7 @@ dataclasses-json==0.6.7
     # via llama-index-legacy
 datasets==2.14.7
     # via dspy-ai
+deepdiff==7.0.1
 deprecated==1.2.14
     # via llama-index-core
     # via llama-index-legacy
@@ -160,7 +161,7 @@ joblib==1.3.2
     # via nltk
 kombu==5.3.7
     # via celery
-langfuse==2.36.1
+langfuse==2.36.2
 llama-index==0.10.44
 llama-index-agent-openai==0.2.7
     # via llama-index
@@ -254,6 +255,8 @@ openai==1.34.0
     # via llama-index-legacy
 optuna==3.6.1
     # via dspy-ai
+ordered-set==4.1.0
+    # via deepdiff
 orjson==3.10.4
     # via fastapi
 packaging==23.2

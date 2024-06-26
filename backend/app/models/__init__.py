@@ -16,6 +16,5 @@ from .chat_engine import ChatEngine
 from .chat import Chat
 from .chat_message import ChatMessage
 from .document import Document
-from .llama_index_document import LlamaIndexDocument
-from .llama_index_chunk import LlamaIndexChunk
+from .chunk import Chunk
 from .option import Option

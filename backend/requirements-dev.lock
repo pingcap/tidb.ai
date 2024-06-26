@@ -26,6 +26,8 @@ anyio==4.4.0
     # via openai
     # via starlette
     # via watchfiles
+asttokens==2.4.1
+    # via stack-data
 attrs==23.2.0
     # via aiohttp
 backoff==2.2.1
@@ -62,11 +64,18 @@ click-repl==0.3.0
     # via celery
 colorlog==6.8.2
     # via optuna
+comm==0.2.2
+    # via ipykernel
 dataclasses-json==0.6.7
     # via llama-index-core
     # via llama-index-legacy
 datasets==2.14.7
     # via dspy-ai
+debugpy==1.8.2
+    # via ipykernel
+decorator==5.1.1
+    # via ipython
+deepdiff==7.0.1
 deprecated==1.2.14
     # via llama-index-core
     # via llama-index-legacy
@@ -83,6 +92,8 @@ dnspython==2.6.1
 dspy-ai==2.4.9
 email-validator==2.1.1
     # via fastapi
+executing==2.0.1
+    # via stack-data
 fastapi==0.111.0
 fastapi-cli==0.0.4
     # via fastapi
@@ -153,14 +164,24 @@ idna==3.7
     # via langfuse
     # via requests
     # via yarl
+ipykernel==6.29.4
+ipython==8.25.0
+    # via ipykernel
+jedi==0.19.1
+    # via ipython
 jinja2==3.1.4
     # via fastapi
 joblib==1.3.2
     # via dspy-ai
     # via nltk
+jupyter-client==8.6.2
+    # via ipykernel
+jupyter-core==5.7.2
+    # via ipykernel
+    # via jupyter-client
 kombu==5.3.7
     # via celery
-langfuse==2.36.1
+langfuse==2.36.2
 llama-index==0.10.44
 llama-index-agent-openai==0.2.7
     # via llama-index
@@ -221,6 +242,9 @@ markupsafe==2.1.5
     # via mako
 marshmallow==3.21.3
     # via dataclasses-json
+matplotlib-inline==0.1.7
+    # via ipykernel
+    # via ipython
 mdurl==0.1.2
     # via markdown-it-py
 multidict==6.0.5
@@ -231,6 +255,7 @@ multiprocess==0.70.15
 mypy-extensions==1.0.0
     # via typing-inspect
 nest-asyncio==1.6.0
+    # via ipykernel
     # via llama-index-core
     # via llama-index-legacy
 networkx==3.3
@@ -254,11 +279,14 @@ openai==1.34.0
     # via llama-index-legacy
 optuna==3.6.1
     # via dspy-ai
+ordered-set==4.1.0
+    # via deepdiff
 orjson==3.10.4
     # via fastapi
 packaging==23.2
     # via datasets
     # via huggingface-hub
+    # via ipykernel
     # via langfuse
     # via marshmallow
     # via optuna
@@ -267,13 +295,20 @@ pandas==2.2.2
     # via dspy-ai
     # via llama-index-core
     # via llama-index-legacy
+parso==0.8.4
+    # via jedi
+pexpect==4.9.0
+    # via ipython
 pillow==10.3.0
     # via llama-index-core
     # via llama-index-llms-gemini
+platformdirs==4.2.2
+    # via jupyter-core
 prometheus-client==0.20.0
     # via flower
 prompt-toolkit==3.0.47
     # via click-repl
+    # via ipython
 proto-plus==1.24.0
     # via google-ai-generativelanguage
     # via google-api-core
@@ -284,6 +319,12 @@ protobuf==4.25.3
     # via googleapis-common-protos
     # via grpcio-status
     # via proto-plus
+psutil==6.0.0
+    # via ipykernel
+ptyprocess==0.7.0
+    # via pexpect
+pure-eval==0.2.2
+    # via stack-data
 pyarrow==16.1.0
     # via datasets
 pyarrow-hotfix==0.6
@@ -306,6 +347,7 @@ pydantic-core==2.18.4
     # via pydantic
 pydantic-settings==2.3.3
 pygments==2.18.0
+    # via ipython
     # via rich
 pymysql==1.1.1
 pyparsing==3.1.2
@@ -314,6 +356,7 @@ pypdf==4.2.0
     # via llama-index-readers-file
 python-dateutil==2.9.0.post0
     # via celery
+    # via jupyter-client
     # via pandas
 python-dotenv==1.0.1
     # via pydantic-settings
@@ -329,6 +372,9 @@ pyyaml==6.0.1
     # via llama-index-core
     # via optuna
     # via uvicorn
+pyzmq==26.0.3
+    # via ipykernel
+    # via jupyter-client
 redis==5.0.5
 regex==2024.5.15
     # via dspy-ai
@@ -351,6 +397,7 @@ sentry-sdk==2.5.1
 shellingham==1.5.4
     # via typer
 six==1.16.0
+    # via asttokens
     # via python-dateutil
 sniffio==1.3.1
     # via anyio
@@ -365,6 +412,8 @@ sqlalchemy==2.0.30
     # via optuna
     # via sqlmodel
 sqlmodel==0.0.19
+stack-data==0.6.3
+    # via ipython
 starlette==0.37.2
     # via fastapi
 striprtf==0.0.26
@@ -380,6 +429,8 @@ tiktoken==0.7.0
     # via llama-index-legacy
 tornado==6.4.1
     # via flower
+    # via ipykernel
+    # via jupyter-client
 tqdm==4.66.4
     # via datasets
     # via dspy-ai
@@ -389,6 +440,13 @@ tqdm==4.66.4
     # via nltk
     # via openai
     # via optuna
+traitlets==5.14.3
+    # via comm
+    # via ipykernel
+    # via ipython
+    # via jupyter-client
+    # via jupyter-core
+    # via matplotlib-inline
 typer==0.12.3
     # via fastapi-cli
 typing-extensions==4.12.2
@@ -396,6 +454,7 @@ typing-extensions==4.12.2
     # via fastapi
     # via google-generativeai
     # via huggingface-hub
+    # via ipython
     # via llama-index-core
     # via llama-index-legacy
     # via openai

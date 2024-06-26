@@ -28,7 +28,7 @@ class Feedback(UpdatableBaseModel, table=True):
     langfuse_link: str
     relationships: List[int] = Field(default=[], sa_column=Column(JSON))
 
-    __tablename__ = "feedback"
+    __tablename__ = "feedbacks"
 
 
 class FeedbackCreate(SQLModel):

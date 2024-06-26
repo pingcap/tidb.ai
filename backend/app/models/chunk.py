@@ -1,0 +1,37 @@
+from typing import Any
+
+from sqlmodel import (
+    Field,
+    Column,
+    Text,
+    JSON,
+    Relationship as SQLRelationship,
+)
+from tidb_vector.sqlalchemy import VectorType
+from llama_index.core.schema import TextNode
+
+from .base import UpdatableBaseModel, UUIDBaseModel
+
+
+class Chunk(UUIDBaseModel, UpdatableBaseModel, table=True):
+    hash: str = Field(max_length=64)
+    text: str = Field(sa_column=Column(Text))
+    meta: str = Field(default={}, sa_column=Column(JSON))
+    embedding: Any = Field(sa_column=Column(VectorType(1536)))
+    document_id: int = Field(foreign_key="documents.id", nullable=True)
+    document: "Document" = SQLRelationship(
+        sa_relationship_kwargs={
+            "lazy": "joined",
+            "primaryjoin": "Chunk.document_id == Document.id",
+        },
+    )
+
+    __tablename__ = "chunks"
+
+    def to_llama_text_node(self) -> TextNode:
+        return TextNode(
+            id_=self.id,
+            text=self.text,
+            embedding=self.embedding,
+            metadata=self.meta,
+        )

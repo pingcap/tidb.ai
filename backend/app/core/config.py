@@ -14,6 +14,9 @@ from pydantic import (
 from pydantic_core import MultiHostUrl
 from pydantic_settings import BaseSettings, SettingsConfigDict
 from typing_extensions import Self
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def parse_cors(v: Any) -> list[str] | str:
@@ -59,8 +62,11 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str = "redis://redis:6379/0"
     CELERY_RESULT_BACKEND: str = "redis://redis:6379/0"
 
+    # TODO: move below config to `option` table, it should be configurable by staff in console
     TIDB_AI_CHAT_ENDPOINT: str = "https://tidb.ai/api/v1/chats"
     TIDB_AI_API_KEY: SecretStr | None = None
+    OPENAI_API_KEY: SecretStr | None = None
+    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
 
     @computed_field  # type: ignore[misc]
     @property

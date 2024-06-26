@@ -11,7 +11,7 @@ dependencies = [
     "pymysql>=1.1.1",
     "celery>=5.4.0",
     "dspy-ai>=2.4.9",
-    "langfuse>=2.36.1",
+    "langfuse>=2.36.2",
     "llama-index>=0.10.44",
     "alembic>=1.13.1",
     "pydantic>=2.7.4",
@@ -24,6 +24,8 @@ dependencies = [
     "flower>=2.0.1",
     "llama-index-llms-gemini>=0.1.11",
     "tidb-vector~=0.0.9",
+    "deepdiff>=7.0.1",
+    "python-dotenv>=1.0.1",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
@@ -31,4 +33,6 @@ requires-python = ">= 3.8"
 [tool.rye]
 managed = true
 virtual = true
-dev-dependencies = []
+dev-dependencies = [
+    "ipykernel>=6.29.4",
+]

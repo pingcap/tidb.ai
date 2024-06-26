@@ -14,7 +14,7 @@ from .base import UUIDBaseModel, UpdatableBaseModel
 
 class Chat(UUIDBaseModel, UpdatableBaseModel, table=True):
     title: str = Field(max_length=256)
-    engine_id: int = Field(foreign_key="chat_engine.id")
+    engine_id: int = Field(foreign_key="chat_engines.id")
     engine: "ChatEngine" = SQLRelationship(
         sa_relationship_kwargs={
             "lazy": "joined",
@@ -24,4 +24,4 @@ class Chat(UUIDBaseModel, UpdatableBaseModel, table=True):
     engine_options: Dict = Field(default={}, sa_column=Column(JSON))
     deleted_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime))
 
-    __tablename__ = "chat"
+    __tablename__ = "chats"

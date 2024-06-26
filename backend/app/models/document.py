@@ -1,13 +1,12 @@
 from typing import Optional
 from datetime import datetime
 
+from llama_index.core.schema import Document as LlamaDocument
 from sqlmodel import (
-    SQLModel,
     Field,
     Column,
     Text,
     DateTime,
-    func,
 )
 
 from .base import UpdatableBaseModel
@@ -23,4 +22,10 @@ class Document(UpdatableBaseModel, table=True):
     # the last time the document was modified in the source system
     last_modified_at: Optional[datetime] = Field(sa_column=Column(DateTime))
 
-    __tablename__ = "document"
+    __tablename__ = "documents"
+
+    def to_llama_document(self) -> LlamaDocument:
+        return LlamaDocument(
+            id=self.id,
+            text=self.content,
+        )

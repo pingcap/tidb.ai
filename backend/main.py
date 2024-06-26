@@ -49,27 +49,36 @@ if settings.BACKEND_CORS_ORIGINS:
 app.include_router(api_router, prefix=settings.API_V1_STR)
 
 
-@click.group(context_settings={'max_content_width': 150})
+@click.group(context_settings={"max_content_width": 150})
 def cli():
     pass
 
 
 @cli.command()
-@click.option('--host', default='127.0.0.1', help="Host, default=127.0.0.1")
-@click.option('--port', default=3000, help="Port, default=3000")
+@click.option("--host", default="127.0.0.1", help="Host, default=127.0.0.1")
+@click.option("--port", default=3000, help="Port, default=3000")
 def runserver(host, port):
-    warnings.warn("This command will start the server in development mode, do not use it in production.")
-    uvicorn.run(
-        "main:app", host=host, port=port, reload=True,
-        log_level="debug"
+    warnings.warn(
+        "This command will start the server in development mode, do not use it in production."
     )
+    uvicorn.run("main:app", host=host, port=port, reload=True, log_level="debug")
 
 
 @cli.command()
-@click.option('--dataset', default='regression', help="Dataset name, default=regression")
-@click.option('--llm-provider', default='openai', help="LLM provider, default=openai, options=[openai, google]")
-@click.option('--run-name', default=None, help="Run name, default=None")
-@click.option('--tidb-ai-chat-engine', default=DEFAULT_TIDB_AI_CHAT_ENGINE, help=f"TiDB AI chat engine, default={DEFAULT_TIDB_AI_CHAT_ENGINE}")
+@click.option(
+    "--dataset", default="regression", help="Dataset name, default=regression"
+)
+@click.option(
+    "--llm-provider",
+    default="openai",
+    help="LLM provider, default=openai, options=[openai, google]",
+)
+@click.option("--run-name", default=None, help="Run name, default=None")
+@click.option(
+    "--tidb-ai-chat-engine",
+    default=DEFAULT_TIDB_AI_CHAT_ENGINE,
+    help=f"TiDB AI chat engine, default={DEFAULT_TIDB_AI_CHAT_ENGINE}",
+)
 def runeval(dataset, llm_provider, run_name, tidb_ai_chat_engine):
     eval = Evaluation(
         dataset_name=dataset,

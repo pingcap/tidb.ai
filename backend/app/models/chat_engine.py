@@ -18,4 +18,4 @@ class ChatEngine(UpdatableBaseModel, table=True):
     is_default: bool = Field(default=False)
     deleted_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime))
 
-    __tablename__ = "chat_engine"
+    __tablename__ = "chat_engines"
