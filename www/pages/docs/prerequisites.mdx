@@ -2,45 +2,43 @@
 In this section, we will cover the prerequisites for setting up this project on your local machine.
 
 
-## Software & Database
+## Software Requirements
 * Python 3.11 or higher.
-* Node.js 18.17 or later.
-* An account of [TiDB Serverless Vector](https://pingcap.com/ai), currently only TiDB Serverless tier has the support for the Vector Search. You can use the free tier with 25GiB storage. We suggest to choose a nearby region for better performance according to your location.
+* Node.js 18.17 or higher.
+* An [TiDB Serverless Vector](https://pingcap.com/ai) account, currently only TiDB Serverless tier has the support for the Vector Search. You can use the free tier with 25GiB storage. We suggest to choose a nearby region for better performance according to your location.
   * One more thing, we may probably introduce vector search to open source version in the future(maybe next quarter), so stay tuned.
 
 
-## LLM
-LLM(Large Language Model) is used for two purposes in this project:
-* **Knowledge graph extractor**. As you know this project is a knowledge graph based RAG - GraphRAG, so we need to extract the knowledge graph from the text.
-* **Chat Engine**. To generate the answer for the question asked by the user.
+## GenAI Services / API Keys
 
-You can use any of the following models for these purposes:
-* `gpt-4o`(**suggested**), provided by OpenAI.
-* `gpt-4`, provided by OpenAI.
+* An **OpenAI API key**, you can get it from [here](https://platform.openai.com/). It will be used for these purposes:
+  * LLM(Large Language Model) for knowledge graph extraction and chat engine.
+  * Embedding model for converting text into vectors.
+  * Chat Engine for generating the answer for the question asked by the user.
 
-
-## Embedding Model
-The embedding model is used to convert the text into vectors. We are using the following models for this purpose:
-* `text-embedding-3-small`, provided by OpenAI.
-
-
-## Reranker Service
-The reranker service is used to rerank the results retrieved from vector storage. this will help to filter the most relevant corpus to the user query. We are using the following models for this purpose:
-* `jina-reranker-v2-base-multilingual`, provided by Jina AI. You can get API key from [here](https://jina.ai/reranker/), it is free for 1M tokens.
-
-
-## Domain name and SSL certificate
-You need to have a domain name and SSL certificate to deploy the project on the server. You can get a free SSL certificate from [Let's Encrypt](https://letsencrypt.org/).
+* An **Jina AI API key**, you can get it from [here](https://jina.ai/reranker/), it is free for 1M tokens. It will be used for reranking the results retrieved from vector storage.
 
 
 ## Web Hosting
+
+### Hardware
 You can use any of the following web hosting services to deploy the project:
-* Cloud servers such as: [AWS EC2](https://aws.amazon.com/ec2/), [Google Cloud Compute Engine](https://cloud.google.com/compute), [Microsoft Azure Virtual Machines](https://azure.microsoft.com/en-us/services/virtual-machines/), [DigitalOcean Droplets](https://www.digitalocean.com/products/droplets/)
-* Or your own hardware server or virtual machine.
+* Cloud server providers like [AWS](https://aws.amazon.com/), [Google Cloud](https://cloud.google.com/), [Azure](https://azure.microsoft.com/), etc.
+* Or your own server.
 
-**Number of servers required**: 1
+We suggest the following configuration for the server:
 
-**Memory and CPU requirements**:
-* 8 GB RAM
-* 4 vCPUs
-* 100 GB SSD, if your corpus is large then you may need more storage, currently we only use text data so it should be enough for most of the cases.
+| Name                 | Value            |
+|----------------------|------------------|
+| Memory               | 8 GB RAM         |
+| CPU                  | 4 vCPUs          |
+| Disk                 | 100 GB SSD       |
+| Number of servers    | 1                |
+
+100 GB SSD is enough for most of the cases, but if your corpus is large then you may need more storage.
+
+### Domain name
+You need to have a domain name to deploy the project on the server. You can get a domain name from [GoDaddy](https://www.godaddy.com/), [Namecheap](https://www.namecheap.com/), [Google Domains](https://domains.google/), etc.
+
+### SSL certificate
+You need to have a domain name and SSL certificate to deploy the project on the server. You can get a free SSL certificate from [Let's Encrypt](https://letsencrypt.org/).
