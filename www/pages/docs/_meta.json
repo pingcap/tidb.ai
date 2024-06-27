@@ -14,7 +14,7 @@
     "type": "separator",
     "title": "Deployment"
   },
-  "prerequisites": "Prerequisites",
+  "requirements": "Requirements",
   "deploy-with-docker": {
     "title": "Deploy with Docker",
     "display": "hidden"
