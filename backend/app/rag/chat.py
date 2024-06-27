@@ -9,10 +9,9 @@ from llama_index.core.chat_engine.types import ChatMode, StreamingAgentChatRespo
 from llama_index.core.chat_engine.condense_question import DEFAULT_TEMPLATE as CONDENSE_QUESTION_TEMPLATE
 from llama_index.core.callbacks import CallbackManager
 from llama_index.core.prompts.base import PromptTemplate
-from llama_index.embeddings.openai import OpenAIEmbedding
+from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
 from langfuse.decorators import langfuse_context, observe
 
-from app.core.config import settings
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.knowledge_graph import KnowledgeGraphIndex
@@ -27,8 +26,9 @@ class ChatService:
     ) -> None:
         self._llm = llm
         self._embed_model = OpenAIEmbedding(
-            # model=settings.OPENAI_EMBEDDING_MODEL,
+            model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL
         )
+
     @observe()
     def chat(self, session: Session, chat_messages: List[ChatMessage]) -> Iterator[str]:
         user_question, chat_history = self._parse_chat_messages(chat_messages)

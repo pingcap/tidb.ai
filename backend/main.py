@@ -5,10 +5,13 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
+from dotenv import load_dotenv
 
 from app.api.main import api_router
 from app.core.config import settings
 from app.evaluation.evals import Evaluation, DEFAULT_TIDB_AI_CHAT_ENGINE
+
+load_dotenv()
 
 
 def custom_generate_unique_id(route: APIRoute) -> str:
