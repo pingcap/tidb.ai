@@ -12,24 +12,15 @@
   "faq": "FAQ",
   "-- Deploy This RAG": {
     "type": "separator",
-    "title": "Deploy this RAG",
-    "display": "hidden"
+    "title": "Deployment"
   },
+  "prerequisites": "Prerequisites",
   "deploy-with-docker": {
     "title": "Deploy with Docker",
     "display": "hidden"
   },
-  "deploy-to-vercel": {
-    "title": "Deploy to Vercel",
-    "display": "hidden"
-  },
-  "-- Usage": {
-    "type": "separator",
-    "title": "Usage",
-    "display": "hidden"
-  },
   "javascript": {
-    "title": "Embedable JS Code Snippet",
+    "title": "Deploy with JavaScript",
     "display": "hidden"
   },
   "README": {
