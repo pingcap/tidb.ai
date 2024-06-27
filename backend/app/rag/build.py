@@ -72,7 +72,7 @@ class BuildService:
         )
         db_chunks = session.exec(
             select(DBChunk).where(DBChunk.document_id == db_document.id)
-        )
+        ).all()
         for chunk in db_chunks:
             node = chunk.to_llama_text_node()
             logger.info(f"Start building graph index for chunk {chunk.id}")

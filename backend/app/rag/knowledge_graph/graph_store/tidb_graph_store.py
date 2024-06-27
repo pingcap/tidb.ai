@@ -64,9 +64,6 @@ class MergeEntitiesProgram(dspy.Module):
         return pred
 
 
-
-
-
 class TiDBGraphStore(KnowledgeGraphStore):
     def __init__(
         self,

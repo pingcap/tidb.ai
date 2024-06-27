@@ -87,7 +87,8 @@ class TiDBVectorStore(BasePydanticVectorStore):
         Returns:
             None
         """
-        delete_stmt = delete(DBChunk).where(DBChunk.meta["doc_id"] == ref_doc_id)
+        assert ref_doc_id.isdigit(), "ref_doc_id must be an integer."
+        delete_stmt = delete(DBChunk).where(DBChunk.document_id == int(ref_doc_id))
         self._session.exec(delete_stmt)
         self._session.commit()
 
