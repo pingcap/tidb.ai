@@ -3,13 +3,17 @@ from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Optional, Sequence, Tuple
 
 from llama_index.core.data_structs import IndexLPG
-from llama_index.core.callbacks import CallbackManager
+from llama_index.core.callbacks import CallbackManager, trace_method
+from llama_index.core.callbacks.schema import CBEventType, EventPayload
 from llama_index.core.indices.base import BaseIndex
 from llama_index.core.storage.docstore.types import RefDocInfo
 from llama_index.core.storage.storage_context import StorageContext
 from llama_index.core.schema import BaseNode, TransformComponent
+import llama_index.core.instrumentation as instrument
 
 from app.rag.knowledge_graph.extractor import SimpleGraphExtractor
+
+dispatcher = instrument.get_dispatcher(__name__)
 
 
 class KnowledgeGraphStore(ABC):
@@ -40,9 +44,6 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
             A list of nodes to insert into the index.
         dspy_lm (dspy.BaseLLM):
             The language model of dspy to use for extracting triplets.
-        embed_model (Optional[EmbedType]):
-            The embedding model to use for embedding nodes.
-            If not provided, `Settings.embed_model` will be used if `embed_kg_nodes=True`.
         callback_manager (Optional[CallbackManager]):
             The callback manager to use.
         transformations (Optional[List[TransformComponent]]):
@@ -120,6 +121,14 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
         # this isn't really used or needed
         return IndexLPG()
 
+    def as_retriever(self, **kwargs: Any):
+        """Return a retriever for the index."""
+        # Our retriever params is more complex than the base retriever,
+        # so we can't use the base retriever.
+        raise NotImplementedError(
+            "Retriever not implemented for KnowledgeGraphIndex, use `retrieve_with_weight` instead."
+        )
+
     def retrieve_with_weight(
         self,
         query: str,
@@ -130,15 +139,34 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
         # experimental feature to filter relationships based on meta, can be removed in the future
         relationship_meta_filters: Dict = {},
     ) -> Tuple[list, list, list]:
-        """Retrieve nodes and relationships with weights."""
-        return self._kg_store.retrieve_with_weight(
-            query,
-            embedding,
-            depth,
-            include_meta,
-            with_degree,
-            relationship_meta_filters,
-        )
+        """Retrieve entities, relations, and chunks with weights."""
+        params = {
+            "query": query,
+            "depth": depth,
+            "include_meta": include_meta,
+            "with_degree": with_degree,
+            "relationship_meta_filters": relationship_meta_filters,
+        }
+        with self._callback_manager.as_trace("retrieve_with_weight"):
+            with self._callback_manager.event(
+                CBEventType.RETRIEVE, payload={EventPayload.QUERY_STR: params}
+            ) as event:
+                entities, relations, chunks = self._kg_store.retrieve_with_weight(
+                    query,
+                    embedding,
+                    depth,
+                    include_meta,
+                    with_degree,
+                    relationship_meta_filters,
+                )
+                event.on_end(
+                    payload={
+                        "entities": entities,
+                        "relations": relations,
+                        "chunks": chunks,
+                    },
+                )
+        return entities, relations, chunks
 
     def _delete_node(self, node_id: str, **delete_kwargs: Any) -> None:
         """Delete a node."""

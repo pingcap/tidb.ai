@@ -26,6 +26,6 @@ class Document(UpdatableBaseModel, table=True):
 
     def to_llama_document(self) -> LlamaDocument:
         return LlamaDocument(
-            id=self.id,
+            id_=self.id,
             text=self.content,
         )

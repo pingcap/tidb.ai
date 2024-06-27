@@ -1,10 +1,9 @@
 import logging
 
 import dspy
-from llama_index.core import (
-    VectorStoreIndex,
-)
+from llama_index.core import VectorStoreIndex
 from llama_index.core.base.llms.base import BaseLLM
+from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.extractors import (
     SummaryExtractor,
@@ -35,13 +34,14 @@ class BuildService:
         dspy_llm: dspy.LM,
     ):
         self._llm = llm
-        self._dspt_llm = dspy_llm
+        self._dspy_llm = dspy_llm
         self._transformations = [
             SentenceSplitter(),
             SummaryExtractor(llm=llm),
             KeywordExtractor(llm=llm),
             QuestionsAnsweredExtractor(llm=llm),
         ]
+        self._embed_model = OpenAIEmbedding(model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL)
 
     def build_from_document(self, session: Session, db_document: DBDocument):
         """
@@ -55,20 +55,21 @@ class BuildService:
         vector_store = TiDBVectorStore(session=session)
         vector_index = VectorStoreIndex.from_vector_store(
             vector_store,
+            embed_model=self._embed_model,
             transformations=self._transformations,
         )
         document = db_document.to_llama_document()
-        logger.info(f"Start building index for document {document.id}")
+        logger.info(f"Start building index for document {document.doc_id}")
         vector_index.insert(document)
-        logger.info(f"Finish building vecter index for document {document.id}")
+        logger.info(f"Finish building vecter index for document {document.doc_id}")
 
         # Build graph index will do the following:
         # 1. load TextNode from `chunks` table.
         # 2. extract entities and relations from TextNode.
         # 3. insert entities and relations into `entities` and `relations` table.
-        graph_store = TiDBGraphStore(dspy_lm=self._dspt_llm)
+        graph_store = TiDBGraphStore(dspy_lm=self._dspy_llm, embed_model=self._embed_model)
         graph_index = KnowledgeGraphIndex.from_existing(
-            dspy_lm=self._dspt_llm, kg_store=graph_store
+            dspy_lm=self._dspy_llm, kg_store=graph_store
         )
         db_chunks = session.exec(
             select(DBChunk).where(DBChunk.document_id == db_document.id)

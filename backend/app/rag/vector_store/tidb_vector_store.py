@@ -68,7 +68,7 @@ class TiDBVectorStore(BasePydanticVectorStore):
                     "text": n.get_content(metadata_mode=MetadataMode.NONE),
                     "meta": node_to_metadata_dict(n, remove_text=True),
                     "embedding": n.get_embedding(),
-                    "document_id": n.metadata.get("ref_doc_id", None),
+                    "document_id": n.ref_doc_id,
                 }
             )
 
@@ -146,7 +146,6 @@ class TiDBVectorStore(BasePydanticVectorStore):
             similarities.append((1 - row.distance) if row.distance is not None else 0)
             ids.append(row.id)
             nodes.append(node)
-
         return VectorStoreQueryResult(
             nodes=nodes,
             similarities=similarities,

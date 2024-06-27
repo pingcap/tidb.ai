@@ -271,15 +271,18 @@ class TiDBGraphStore(KnowledgeGraphStore):
             return pred.merged_entity
 
     def get_query_embedding(self, query: str):
-        return self._embed_model.get_text_embedding(query)
+        return self._embed_model.get_query_embedding(query)
+
+    def get_text_embedding(self, text: str):
+        return self._embed_model.get_text_embedding(text)
 
     def get_entity_description_embedding(self, name: str, description: str):
         combined_text = f"{name}: {description}"
-        return self.get_query_embedding(combined_text)
+        return self.get_text_embedding(combined_text)
 
     def get_entity_metadata_embedding(self, metadata: Mapping[str, Any]):
         combined_text = json.dumps(metadata)
-        return self.get_query_embedding(combined_text)
+        return self.get_text_embedding(combined_text)
 
     def get_relationship_description_embedding(
         self,
@@ -293,7 +296,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
             f"{source_entity_name}({source_entity_description}) -> "
             f"{relationship_desc} -> {target_entity_name}({target_entity_description}) "
         )
-        return self.get_query_embedding(combined_text)
+        return self.get_text_embedding(combined_text)
 
     def retrieve_with_weight(
         self,
@@ -400,11 +403,12 @@ class TiDBGraphStore(KnowledgeGraphStore):
             for r in all_relationships
         ]
         chunks = [
-            {"text": c[0], "link": c[1], "meta": c[2], "last_modified_at": c[3]}
+            # TODO: add last_modified_at
+            {"text": c[0], "link": c[1], "meta": c[2]}
             for c in self._session.exec(
                 select(
-                    DBChunk.text, DBChunk.doc_id, DBChunk.meta, DBChunk.last_modified_at
-                ).where(DBChunk.doc_id.in_(related_doc_ids))
+                    DBChunk.text, DBChunk.document_id, DBChunk.meta
+                ).where(DBChunk.id.in_(related_doc_ids))
             ).all()
         ]
         return entities, relationships, chunks
@@ -442,7 +446,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
             for row in in_degree_query:
                 degrees[row.target_entity_id]["in_degree"] = row.in_degree
         except Exception as e:
-            print(f"An error occurred: {e}")
+            logger.error(e)
 
         return degrees
 
@@ -496,7 +500,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
                 query = query.where(relationships_alias.meta[k] == v)
 
         if visited_relationships:
-            query = query.where(Relationship.id.notin_(visited_relationships))
+            query = query.where(DBRelationship.id.notin_(visited_relationships))
 
         if distance_range != (0.0, 1.0):
             # embedding_distance bewteen the range
@@ -513,8 +517,6 @@ class TiDBGraphStore(KnowledgeGraphStore):
 
         # Order by embedding distance and apply limit
         relationships = self._session.exec(query).all()
-
-        print(f"Found {len(relationships)} relationships to rank")
 
         if len(relationships) <= rank_n:
             relationship_set = set([rel for rel, _ in relationships])
@@ -579,10 +581,12 @@ class TiDBGraphStore(KnowledgeGraphStore):
 
         # Retrieve entities based on their ID and similarity to the embedding
         for entity in (
-            self._session.query(Entity)
-            .filter(DBEntity.entity_type == entity_type)
-            .order_by(DBEntity.description_vec.cosine_distance(embedding))
-            .limit(top_k)
+            self._session.exec(
+                select(DBEntity)
+                .where(DBEntity.entity_type == entity_type)
+                .order_by(DBEntity.description_vec.cosine_distance(embedding))
+                .limit(top_k)
+            ).all()
         ):
             new_entity_set.add(entity)
 

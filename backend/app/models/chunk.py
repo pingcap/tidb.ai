@@ -30,8 +30,8 @@ class Chunk(UUIDBaseModel, UpdatableBaseModel, table=True):
 
     def to_llama_text_node(self) -> TextNode:
         return TextNode(
-            id_=self.id,
+            id_=self.id.hex,
             text=self.text,
-            embedding=self.embedding,
+            embedding=list(self.embedding),
             metadata=self.meta,
         )
