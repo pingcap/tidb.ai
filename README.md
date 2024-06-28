@@ -10,7 +10,7 @@ A conversational search tool based on GraphRAG (Knowledge Graph) that built on t
 
 **Live Demo**: [TiDB.AI](https://tidb.cloud/?utm_source=github&utm_medium=tidb.ai)
 
-With this tool, you can achieve:
+**Documentation**: [TiDB.AI Docs](https://tidb.ai/docs/?utm_source=github&utm_medium=tidb.ai)
 
 ## Features
 1. **Perplexity-style Conversational Search page**: Our platform features an advanced built-in website crawler, designed to elevate your browsing experience. This crawler effortlessly navigates official and documentation sites, ensuring comprehensive coverage and streamlined search processes through sitemap URL scraping.
