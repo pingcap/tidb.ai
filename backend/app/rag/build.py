@@ -41,7 +41,9 @@ class BuildService:
             KeywordExtractor(llm=llm),
             QuestionsAnsweredExtractor(llm=llm),
         ]
-        self._embed_model = OpenAIEmbedding(model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL)
+        self._embed_model = OpenAIEmbedding(
+            model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL
+        )
 
     def build_from_document(self, session: Session, db_document: DBDocument):
         """
@@ -67,7 +69,9 @@ class BuildService:
         # 1. load TextNode from `chunks` table.
         # 2. extract entities and relations from TextNode.
         # 3. insert entities and relations into `entities` and `relations` table.
-        graph_store = TiDBGraphStore(dspy_lm=self._dspy_llm, embed_model=self._embed_model)
+        graph_store = TiDBGraphStore(
+            dspy_lm=self._dspy_llm, embed_model=self._embed_model
+        )
         graph_index = KnowledgeGraphIndex.from_existing(
             dspy_lm=self._dspy_llm, kg_store=graph_store
         )

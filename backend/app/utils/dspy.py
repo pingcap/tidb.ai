@@ -1,6 +1,8 @@
 import dspy
 
 from llama_index.core.base.llms.base import BaseLLM
+from llama_index.llms.openai import OpenAI
+from llama_index.llms.gemini import Gemini
 
 
 def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
@@ -11,4 +13,20 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
     This function can help us reduce the complexity of the code by converting the llama LLM to the dspy LLM.
     """
     # TODO: Implement this function
-    pass
+    if isinstance(llama_llm, OpenAI):
+        return dspy.OpenAI(
+            model=llama_llm.model,
+            max_tokens=llama_llm.max_tokens,
+            api_key=llama_llm.api_key,
+            # if you want to use another base url, uncomment the line below,
+            # api_base=llama_llm.api_base,
+        )
+    elif isinstance(llama_llm, Gemini):
+        # Don't need to configure the api_key again,
+        # it has already been configured as `genai` by the llama_llm.
+        return dspy.Google(
+            model=llama_llm.model,
+            max_tokens=llama_llm.max_tokens,
+        )
+    else:
+        raise ValueError(f"Got unknown LLM provider: {llama_llm.__class__.__name__}")

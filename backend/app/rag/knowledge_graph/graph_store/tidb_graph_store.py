@@ -406,9 +406,9 @@ class TiDBGraphStore(KnowledgeGraphStore):
             # TODO: add last_modified_at
             {"text": c[0], "link": c[1], "meta": c[2]}
             for c in self._session.exec(
-                select(
-                    DBChunk.text, DBChunk.document_id, DBChunk.meta
-                ).where(DBChunk.id.in_(related_doc_ids))
+                select(DBChunk.text, DBChunk.document_id, DBChunk.meta).where(
+                    DBChunk.id.in_(related_doc_ids)
+                )
             ).all()
         ]
         return entities, relationships, chunks
@@ -580,14 +580,12 @@ class TiDBGraphStore(KnowledgeGraphStore):
         new_entity_set = set()
 
         # Retrieve entities based on their ID and similarity to the embedding
-        for entity in (
-            self._session.exec(
-                select(DBEntity)
-                .where(DBEntity.entity_type == entity_type)
-                .order_by(DBEntity.description_vec.cosine_distance(embedding))
-                .limit(top_k)
-            ).all()
-        ):
+        for entity in self._session.exec(
+            select(DBEntity)
+            .where(DBEntity.entity_type == entity_type)
+            .order_by(DBEntity.description_vec.cosine_distance(embedding))
+            .limit(top_k)
+        ).all():
             new_entity_set.add(entity)
 
         return new_entity_set
