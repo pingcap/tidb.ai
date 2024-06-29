@@ -1,14 +1,18 @@
-from collections.abc import Generator
 from typing import Annotated
 from fastapi import Depends
 from sqlmodel import Session
 
-from app.core.db import engine
-
-
-def get_db_session() -> Generator[Session, None, None]:
-    with Session(engine) as session:
-        yield session
+from app.core.db import get_db_session
+from app.models import User
+from app.auth.users import (
+    current_user,
+    current_superuser,
+    optional_current_user,
+)
 
 
 SessionDep = Annotated[Session, Depends(get_db_session)]
+
+OptionalUserDep = Annotated[User | None, Depends(optional_current_user)]
+CurrentUserDep = Annotated[User, Depends(current_user)]
+CurrentSuperuserDep = Annotated[User, Depends(current_superuser)]

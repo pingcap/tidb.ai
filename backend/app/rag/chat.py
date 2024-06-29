@@ -1,10 +1,10 @@
 import json
 import logging
-from typing import List, Iterator
+from typing import List, Generator
 
 from sqlmodel import Session
 from llama_index.core import VectorStoreIndex, Settings
-from llama_index.core.base.llms.base import BaseLLM, ChatMessage
+from llama_index.core.base.llms.base import ChatMessage
 from llama_index.core.chat_engine.types import ChatMode, StreamingAgentChatResponse
 from llama_index.core.chat_engine.condense_question import (
     DEFAULT_TEMPLATE as CONDENSE_QUESTION_TEMPLATE,
@@ -13,6 +13,8 @@ from llama_index.core.callbacks import CallbackManager
 from llama_index.core.prompts.base import PromptTemplate
 from langfuse.decorators import langfuse_context, observe
 
+from app.models import User
+from app.core.config import settings
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.knowledge_graph import KnowledgeGraphIndex
@@ -25,24 +27,33 @@ class ChatService:
     def __init__(
         self,
         session: Session,
+        user: User,
         engine_name: str,
     ) -> None:
-        self._session = session
+        self.session = session
+        self.user = user
+        self.engine_name = engine_name
+
         self.chat_engine_config = ChatEngineConfig.load_from_db(session, engine_name)
         self._llm = self.chat_engine_config.get_llama_llm()
         self._dspy_lm = self.chat_engine_config.get_dspy_lm()
         self._embed_model = self.chat_engine_config.get_embedding_model()
 
     @observe()
-    def chat(self, chat_messages: List[ChatMessage]) -> Iterator[str]:
+    def chat(self, chat_messages: List[ChatMessage]) -> Generator[str, None, None]:
         user_question, chat_history = self._parse_chat_messages(chat_messages)
 
         langfuse_handler = langfuse_context.get_current_llama_index_handler()
         Settings.callback_manager = CallbackManager([langfuse_handler])
+        langfuse_context.update_current_observation(
+            user_id=self.user.email if self.user else "anonymous",
+            release=settings.ENVIRONMENT,
+            tags=[f"chat_engine:{self.engine_name}"]
+        )
 
         # 1. Retrieve entities, relations, and chunks from the knowledge graph
         graph_store = TiDBGraphStore(
-            dspy_lm=self._dspy_lm, session=self._session, embed_model=self._embed_model
+            dspy_lm=self._dspy_lm, session=self.session, embed_model=self._embed_model
         )
         graph_index: KnowledgeGraphIndex = KnowledgeGraphIndex.from_existing(
             dspy_lm=self._dspy_lm,
@@ -59,7 +70,7 @@ class ChatService:
         condense_question_prompt = self._build_condense_question_prompt(
             entities, relations, chunks
         )
-        vector_store = TiDBVectorStore(session=self._session)
+        vector_store = TiDBVectorStore(session=self.session)
         vector_index = VectorStoreIndex.from_vector_store(
             vector_store,
             embed_model=self._embed_model,
@@ -85,47 +96,38 @@ class ChatService:
     def _build_condense_question_prompt(
         self, entities: List[dict], relations: List[dict], chunks: List[dict]
     ) -> PromptTemplate:
-        # TODO: this is a temporary solution, we need to use a prompt from the database
-        template = """\
-Given a list of relationships of knowledge graph, the format of description of relationship is as follows:
-
-- SOURCE_ENTITY_NAME -> RELATIONSHIP -> TARGET_ENTITY_NAME
-
-When there is a conflict in meaning between knowledge relationships, the relationship with the higher `weight` and newer `last_modified_at` value takes precedence.
-
-Knowledge relationships:
-"""
-        relations_str = (
+        relations_str = "\n".join([
             (
                 f"description: {r['rag_description']}\n"
                 f"weight: {r['weight']}\n"
-                f"meta: {json.dumps(r['meta'], indent=4)}\n\n".replace(
-                    "{", "{{"
-                ).replace("}", "}}")
+                f"meta: {json.dumps(r['meta'], indent=4)}\n"
             )
             for r in relations
-        )
-        template += "\n".join(relations_str)
-        template += """
----------------------
-
-Entities:
-        """
-        entities_str = (
+        ])
+        entities_str = "\n".join([
             (
                 f"name: {e['name']}\n"
                 f"description: {e['description']}\n"
-                f"meta: {json.dumps(e['meta'], indent=4)}\n\n".replace(
-                    "{", "{{"
-                ).replace("}", "}}")
+                f"meta: {json.dumps(e['meta'], indent=4)}\n"
             )
             for e in entities
-        )
-        template += "\n".join(entities_str)
-        template += """
----------------------
+        ])
+        template = f"""\
+{self.chat_engine_config.llm.condense_question_prompt}
+
+Knowledge relationships:
+
+{relations_str}
+
+----------------------
+
+Entities:
+{entities_str}
+
+-----------------------
 
 """
+        template = template.replace("{", "{{").replace("}", "}}")
         template += CONDENSE_QUESTION_TEMPLATE
         with open("temp", "w") as f:
             f.write(template)

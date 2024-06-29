@@ -30,10 +30,12 @@ class Settings(BaseSettings):
     )
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
-    # 60 minutes * 24 hours * 8 days = 8 days
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8
     DOMAIN: str = "localhost"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
+
+    SESSION_COOKIE_NAME: str = "session"
+    # 90 days
+    SESSION_COOKIE_MAX_AGE: int = 3600 * 24 * 90
 
     @computed_field  # type: ignore[misc]
     @property
@@ -76,6 +78,18 @@ class Settings(BaseSettings):
             port=self.TIDB_PORT,
             path=self.TIDB_DATABASE,
             query="ssl_verify_cert=true&ssl_verify_identity=true",
+        )
+
+    @computed_field  # type: ignore[misc]
+    @property
+    def SQLALCHEMY_ASYNC_DATABASE_URI(self) -> MySQLDsn:
+        return MultiHostUrl.build(
+            scheme="mysql+asyncmy",
+            username=self.TIDB_USER,
+            password=self.TIDB_PASSWORD,
+            host=self.TIDB_HOST,
+            port=self.TIDB_PORT,
+            path=self.TIDB_DATABASE,
         )
 
     def _check_default_secret(self, var_name: str, value: str | None) -> None:

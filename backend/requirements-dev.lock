@@ -26,13 +26,20 @@ anyio==4.4.0
     # via openai
     # via starlette
     # via watchfiles
+argon2-cffi==23.1.0
+    # via pwdlib
+argon2-cffi-bindings==21.2.0
+    # via argon2-cffi
 asttokens==2.4.1
     # via stack-data
+asyncmy==0.2.9
 attrs==23.2.0
     # via aiohttp
 backoff==2.2.1
     # via dspy-ai
     # via langfuse
+bcrypt==4.1.2
+    # via pwdlib
 beautifulsoup4==4.12.3
     # via llama-index-readers-file
 billiard==4.2.0
@@ -46,6 +53,9 @@ certifi==2024.6.2
     # via httpx
     # via requests
     # via sentry-sdk
+cffi==1.16.0
+    # via argon2-cffi-bindings
+    # via cryptography
 charset-normalizer==3.3.2
     # via requests
 click==8.1.7
@@ -66,6 +76,8 @@ colorlog==6.8.2
     # via optuna
 comm==0.2.2
     # via ipykernel
+cryptography==42.0.8
+    # via pyjwt
 dataclasses-json==0.6.7
     # via llama-index-core
     # via llama-index-legacy
@@ -92,11 +104,16 @@ dnspython==2.6.1
 dspy-ai==2.4.9
 email-validator==2.1.1
     # via fastapi
+    # via fastapi-users
 executing==2.0.1
     # via stack-data
 fastapi==0.111.0
+    # via fastapi-users
 fastapi-cli==0.0.4
     # via fastapi
+fastapi-users==13.0.0
+    # via fastapi-users-db-sqlmodel
+fastapi-users-db-sqlmodel==0.3.0
 filelock==3.15.1
     # via huggingface-hub
 flower==2.0.1
@@ -130,6 +147,7 @@ googleapis-common-protos==1.63.2
     # via google-api-core
     # via grpcio-status
 greenlet==3.0.3
+    # via fastapi-users-db-sqlmodel
     # via sqlalchemy
 grpcio==1.64.1
     # via google-api-core
@@ -235,6 +253,8 @@ llama-parse==0.4.4
 llamaindex-py-client==0.1.19
     # via llama-index-core
     # via llama-index-indices-managed-llama-cloud
+makefun==1.15.2
+    # via fastapi-users
 mako==1.3.5
     # via alembic
 markdown-it-py==3.0.0
@@ -327,6 +347,8 @@ ptyprocess==0.7.0
     # via pexpect
 pure-eval==0.2.2
     # via stack-data
+pwdlib==0.2.0
+    # via fastapi-users
 pyarrow==16.1.0
     # via datasets
 pyarrow-hotfix==0.6
@@ -336,6 +358,8 @@ pyasn1==0.6.0
     # via rsa
 pyasn1-modules==0.4.0
     # via google-auth
+pycparser==2.22
+    # via cffi
 pydantic==2.7.4
     # via dspy-ai
     # via fastapi
@@ -351,6 +375,8 @@ pydantic-settings==2.3.3
 pygments==2.18.0
     # via ipython
     # via rich
+pyjwt==2.8.0
+    # via fastapi-users
 pymysql==1.1.1
 pyparsing==3.1.2
     # via httplib2
@@ -365,6 +391,7 @@ python-dotenv==1.0.1
     # via uvicorn
 python-multipart==0.0.9
     # via fastapi
+    # via fastapi-users
 pytz==2024.1
     # via flower
     # via pandas
@@ -414,6 +441,7 @@ sqlalchemy==2.0.30
     # via optuna
     # via sqlmodel
 sqlmodel==0.0.19
+    # via fastapi-users-db-sqlmodel
 stack-data==0.6.3
     # via ipython
 starlette==0.37.2

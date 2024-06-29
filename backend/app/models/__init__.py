@@ -18,3 +18,5 @@ from .chat_message import ChatMessage
 from .document import Document
 from .chunk import Chunk
 from .option import Option
+from .auth import User, UserSession
+from .api_key import ApiKey

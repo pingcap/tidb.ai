@@ -1,9 +1,6 @@
 import dspy
 
 from pydantic import BaseModel
-from llama_index.core.chat_engine.condense_question import (
-    DEFAULT_TEMPLATE as DEFAULT_CONDENSE_QUESTION_TEMPLATE,
-)
 from llama_index.llms.openai import OpenAI
 from llama_index.llms.gemini import Gemini
 from llama_index.core.base.llms.base import BaseLLM
@@ -23,6 +20,15 @@ from app.repositories import chat_engine_repo
 from app.utils.dspy import get_dspy_lm_by_llama_llm
 
 
+DEFAULT_CONDENSE_QUESTION_PROMPT = """\
+Given a list of relationships of knowledge graph, the format of description of relationship is as follows:
+
+- SOURCE_ENTITY_NAME -> RELATIONSHIP -> TARGET_ENTITY_NAME
+
+When there is a conflict in meaning between knowledge relationships, the relationship with the higher `weight` and newer `last_modified_at` value takes precedence.
+"""
+
+
 class LLMOption(BaseModel):
     provider: LLMProvider = LLMProvider.OPENAI
     openai_chat_model: OpenAIModel = OpenAIModel.GPT_35_TURBO
@@ -30,7 +36,7 @@ class LLMOption(BaseModel):
 
     reranker_provider: RerankerProvider = RerankerProvider.JINAAI
 
-    condense_question_prompt: str = DEFAULT_CONDENSE_QUESTION_TEMPLATE
+    condense_question_prompt: str = DEFAULT_CONDENSE_QUESTION_PROMPT
     # text_qa_system_prompt: str
     # text_qa_assistant_prompt: str
 
