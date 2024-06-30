@@ -71,7 +71,7 @@ fastapi_users = FastAPIUsers[User, uuid.UUID](get_user_manager, [auth_backend])
 async def current_user(
     request: Request,
     user: User = Depends(
-        fastapi_users.current_user(optional=False, active=True, verified=True)
+        fastapi_users.current_user(optional=True, active=True, verified=True)
     ),
     session: AsyncSession = Depends(get_db_async_session),
 ) -> User:
@@ -89,7 +89,7 @@ async def current_user(
 async def current_superuser(
     request: Request,
     user: User = Depends(
-        fastapi_users.current_user(optional=False, active=True, verified=True)
+        fastapi_users.current_user(optional=True, active=True, verified=True)
     ),
     session: AsyncSession = Depends(get_db_async_session),
 ) -> User:
