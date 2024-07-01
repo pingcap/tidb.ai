@@ -92,13 +92,12 @@ class ChatService:
             payload={"langfuse_url": langfuse_handler.get_trace_url()},
         )
 
+        # 1. Retrieve entities, relations, and chunks from the knowledge graph
         yield ChatEvent(
             ChatEventType.KG_RETRIEVAL,
             display="Start knowledge graph searching ...",
             payload={},
         )
-
-        # 1. Retrieve entities, relations, and chunks from the knowledge graph
         graph_store = TiDBGraphStore(
             dspy_lm=self._dspy_lm, session=self.session, embed_model=self._embed_model
         )
@@ -111,13 +110,12 @@ class ChatService:
             user_question, [], include_meta=True
         )
 
+        # 2. Refine the user question using graph information and chat history
         yield ChatEvent(
             ChatEventType.REFINE_QUESTION,
             display="Refine the user question ...",
             payload={},
         )
-
-        # 2. Refine the user question using graph information and chat history
         with Settings.callback_manager.as_trace("condense_question"):
             with Settings.callback_manager.event(
                 MyCBEventType.CONDENSE_QUESTION,
@@ -143,15 +141,14 @@ class ChatService:
                 )
                 event.on_end(payload={EventPayload.COMPLETION: refined_question})
 
+        # 3. Retrieve the related chunks from the vector store
+        # 4. Rerank after the retrieval
+        # 5. Generate a response using the refined question and related chunks
         yield ChatEvent(
             ChatEventType.SEARCH_RELATED_DOCUMENTS,
             display="Search related documents ...",
             payload={},
         )
-
-        # 3. Retrieve the related chunks from the vector store
-        # 4. Rerank after the retrieval
-        # 5. Generate a response using the refined question and related chunks
         text_qa_template = PromptTemplate(
             template=jinja2.Template(self.chat_engine_config.llm.text_qa_prompt)
             .render(
@@ -191,6 +188,25 @@ class ChatService:
         )
         response: StreamingResponse = query_engine.query(refined_question)
 
+        yield ChatEvent(
+            ChatEventType.SOURCE_NODES,
+            payload=self._get_source_documents(response),
+        )
+
+        for word in response.response_gen:
+            yield ChatEvent(
+                ChatEventType.TEXT_RESPONSE,
+                payload=word,
+            )
+
+    def _parse_chat_messages(
+        self, chat_messages: List[ChatMessage]
+    ) -> tuple[str, List[ChatMessage]]:
+        user_question = chat_messages[-1].content
+        chat_history = chat_messages[:-1]
+        return user_question, chat_history
+
+    def _get_source_documents(self, response: StreamingResponse) -> List[dict]:
         source_nodes_ids = [s_n.node_id for s_n in response.source_nodes]
         stmt = select(
             Document.id,
@@ -213,20 +229,4 @@ class ChatService:
             }
             for doc_id, doc_name, source_uri in self.session.exec(stmt).all()
         ]
-        yield ChatEvent(
-            ChatEventType.SOURCE_NODES,
-            payload=source_documents,
-        )
-
-        for word in response.response_gen:
-            yield ChatEvent(
-                ChatEventType.TEXT_RESPONSE,
-                payload=word,
-            )
-
-    def _parse_chat_messages(
-        self, chat_messages: List[ChatMessage]
-    ) -> tuple[str, List[ChatMessage]]:
-        user_question = chat_messages[-1].content
-        chat_history = chat_messages[:-1]
-        return user_question, chat_history
+        return source_documents
