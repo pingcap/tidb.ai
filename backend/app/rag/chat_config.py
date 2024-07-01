@@ -3,7 +3,7 @@ import dspy
 from pydantic import BaseModel
 from llama_index.llms.openai import OpenAI
 from llama_index.llms.gemini import Gemini
-from llama_index.core.base.llms.base import BaseLLM
+from llama_index.core.llms.llm import LLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
@@ -16,17 +16,13 @@ from app.rag.types import (
     GeminiModel,
     RerankerProvider,
 )
+from app.rag.default_prompt import (
+    DEFAULT_CONDENSE_QUESTION_PROMPT,
+    DEFAULT_TEXT_QA_PROMPT,
+    DEFAULT_REFINE_PROMPT,
+)
 from app.repositories import chat_engine_repo
 from app.utils.dspy import get_dspy_lm_by_llama_llm
-
-
-DEFAULT_CONDENSE_QUESTION_PROMPT = """\
-Given a list of relationships of knowledge graph, the format of description of relationship is as follows:
-
-- SOURCE_ENTITY_NAME -> RELATIONSHIP -> TARGET_ENTITY_NAME
-
-When there is a conflict in meaning between knowledge relationships, the relationship with the higher `weight` and newer `last_modified_at` value takes precedence.
-"""
 
 
 class LLMOption(BaseModel):
@@ -35,10 +31,11 @@ class LLMOption(BaseModel):
     gemini_chat_model: GeminiModel = GeminiModel.GEMINI_15_FLASH
 
     reranker_provider: RerankerProvider = RerankerProvider.JINAAI
+    reranker_top_k: int = 10
 
     condense_question_prompt: str = DEFAULT_CONDENSE_QUESTION_PROMPT
-    # text_qa_system_prompt: str
-    # text_qa_assistant_prompt: str
+    text_qa_prompt: str = DEFAULT_TEXT_QA_PROMPT
+    refine_prompt: str = DEFAULT_REFINE_PROMPT
 
 
 class KnowledgeGraphOption(BaseModel):
@@ -64,7 +61,7 @@ class ChatEngineConfig(BaseModel):
 
         return cls.model_validate(db_chat_engine.engine_options)
 
-    def get_llama_llm(self) -> BaseLLM:
+    def get_llama_llm(self) -> LLM:
         if self.llm.provider == LLMProvider.OPENAI:
             return OpenAI(model=self.llm.openai_chat_model.value)
         elif self.llm.provider == LLMProvider.GEMINI:
@@ -83,7 +80,10 @@ class ChatEngineConfig(BaseModel):
 
     def get_reranker(self) -> BaseNodePostprocessor:
         if self.llm.reranker_provider == RerankerProvider.JINAAI:
-            return JinaRerank()
+            return JinaRerank(
+                model="jina-reranker-v2-base-multilingual",
+                top_n=self.llm.reranker_top_k,
+            )
         else:
             raise ValueError(
                 f"Got unknown reranker provider: {self.llm.reranker_provider}"

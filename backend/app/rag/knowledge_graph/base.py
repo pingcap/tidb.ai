@@ -12,6 +12,7 @@ from llama_index.core.schema import BaseNode, TransformComponent
 import llama_index.core.instrumentation as instrument
 
 from app.rag.knowledge_graph.extractor import SimpleGraphExtractor
+from app.rag.types import MyCBEventType
 
 dispatcher = instrument.get_dispatcher(__name__)
 
@@ -149,7 +150,8 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
         }
         with self._callback_manager.as_trace("retrieve_with_weight"):
             with self._callback_manager.event(
-                CBEventType.RETRIEVE, payload={EventPayload.QUERY_STR: params}
+                MyCBEventType.RETRIEVE_FROM_GRAPH,
+                payload={EventPayload.QUERY_STR: params},
             ) as event:
                 entities, relations, chunks = self._kg_store.retrieve_with_weight(
                     query,

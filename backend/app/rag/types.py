@@ -43,3 +43,24 @@ class ChatMessage(BaseModel):
     role: MessageRole = MessageRole.USER
     content: str = ""
     additional_kwargs: dict[str, Any] = {}
+
+
+# Langfuse needs an enum class for event types,
+# but the CBEventType in llama-index does not have sufficient types.
+class MyCBEventType(str, enum.Enum):
+    CHUNKING = "chunking"
+    NODE_PARSING = "node_parsing"
+    EMBEDDING = "embedding"
+    LLM = "llm"
+    QUERY = "query"
+    RETRIEVE = "retrieve"
+    SYNTHESIZE = "synthesize"
+    TREE = "tree"
+    SUB_QUESTION = "sub_question"
+    TEMPLATING = "templating"
+    FUNCTION_CALL = "function_call"
+    RERANKING = "reranking"
+    EXCEPTION = "exception"
+    AGENT_STEP = "agent_step"
+    CONDENSE_QUESTION = "condense_question"
+    RETRIEVE_FROM_GRAPH = "retrieve_from_graph"
