@@ -20,6 +20,18 @@ from app.models import Chunk as DBChunk
 _logger = logging.getLogger(__name__)
 
 
+def node_to_relation_dict(node: BaseNode) -> dict:
+    relations = {}
+    for r_type, node_info in node.relationships.items():
+        relations[r_type.name] = {
+            "node_id": node_info.node_id,
+            "node_type": node_info.node_type.name,
+            "meta": node_info.metadata,
+            "hash": node_info.hash,
+        }
+    return relations
+
+
 class TiDBVectorStore(BasePydanticVectorStore):
     _session: Session = PrivateAttr()
     _owns_session: bool = PrivateAttr()
@@ -69,6 +81,8 @@ class TiDBVectorStore(BasePydanticVectorStore):
                     "meta": node_to_metadata_dict(n, remove_text=True),
                     "embedding": n.get_embedding(),
                     "document_id": n.ref_doc_id,
+                    "relations": node_to_relation_dict(n),
+                    "source_uri": add_kwargs.get("source_uri"),
                 }
             )
 

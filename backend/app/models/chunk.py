@@ -16,7 +16,7 @@ from .base import UpdatableBaseModel, UUIDBaseModel
 class Chunk(UUIDBaseModel, UpdatableBaseModel, table=True):
     hash: str = Field(max_length=64)
     text: str = Field(sa_column=Column(Text))
-    meta: str = Field(default={}, sa_column=Column(JSON))
+    meta: dict | list = Field(default={}, sa_column=Column(JSON))
     embedding: Any = Field(sa_column=Column(VectorType(1536)))
     document_id: int = Field(foreign_key="documents.id", nullable=True)
     document: "Document" = SQLRelationship(
@@ -25,6 +25,8 @@ class Chunk(UUIDBaseModel, UpdatableBaseModel, table=True):
             "primaryjoin": "Chunk.document_id == Document.id",
         },
     )
+    relations: dict | list = Field(default={}, sa_column=Column(JSON))
+    source_uri: str = Field(max_length=512, nullable=True)
 
     __tablename__ = "chunks"
 

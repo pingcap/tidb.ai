@@ -62,7 +62,7 @@ class BuildService:
         )
         document = db_document.to_llama_document()
         logger.info(f"Start building index for document {document.doc_id}")
-        vector_index.insert(document)
+        vector_index.insert(document, source_uri=db_document.source_uri)
         logger.info(f"Finish building vecter index for document {document.doc_id}")
 
         # Build graph index will do the following:
