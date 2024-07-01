@@ -45,6 +45,14 @@ export async function findFeedback (traceId: UUID, user: string): Promise<Feedba
     .executeTakeFirst();
 }
 
+export async function deleteFeedback (id: number): Promise<boolean> {
+  return await getDb()
+    .deleteFrom('feedback')
+    .where('id', '=', id)
+    .executeTakeFirstOrThrow()
+    .then(res => Number(res.numDeletedRows) === 1)
+}
+
 export async function listFeedbacks (request: PageRequest<{ chat_id?: number, message_id?: number }>) {
   let builder = getDb()
     .selectFrom('feedback')

@@ -11,7 +11,7 @@ import { useState } from 'react';
 
 export function MessageOperations ({ group }: { group: ConversationMessageGroupProps }) {
   const { handleRegenerate, id } = useMyChatContext();
-  const { feedbackData, feedback: callFeedback, source, sourceLoading, disabled } = useMessageFeedback(id, group.assistantAnnotation.messageId, !!group.assistantAnnotation.traceURL);
+  const { feedbackData, feedback: callFeedback, deleteFeedback: callDeleteFeedback, source, sourceLoading, disabled } = useMessageFeedback(id, group.assistantAnnotation.messageId, !!group.assistantAnnotation.traceURL);
   const [copied, setCopied] = useState(false);
   if (!group.finished) {
     return;
@@ -31,7 +31,7 @@ export function MessageOperations ({ group }: { group: ConversationMessageGroupP
 
         <MessageFeedback
           initial={feedbackData}
-          source={source} sourceLoading={sourceLoading} onFeedback={async (action, feedback, comment) => callFeedback(action, feedback, comment)}>
+          source={source} sourceLoading={sourceLoading} onFeedback={async (action, feedback, comment) => callFeedback(action, feedback, comment)} onDeleteFeedback={() => callDeleteFeedback()}>
           <Button size="icon" variant="ghost" className="ml-auto rounded-full w-7 h-7" disabled={disabled}>
             {feedbackData ? <MessageSquareHeartIcon className="w-4 h-4 text-green-500" /> : <MessageSquarePlusIcon className="w-4 h-4" />}
           </Button>
