@@ -29,6 +29,8 @@ class ChatRequest(BaseModel):
                 raise ValueError("role must be either 'user' or 'assistant'")
             if len(m.content) > 1000:
                 raise ValueError("message content cannot exceed 1000 characters")
+        if messages[-1].role != MessageRole.USER:
+            raise ValueError("last message must be from user")
         return messages
 
 
