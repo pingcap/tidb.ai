@@ -98,7 +98,9 @@ class MarkdownNodeParser(NodeParser):
         for line in lines:
             if line.lstrip().startswith("```"):
                 code_block = not code_block
-            header_match = re.match(r"^(#{1," + str(self.chunk_header_level) + "})\s(.*)", line)
+            header_match = re.match(
+                r"^(#{1," + str(self.chunk_header_level) + "})\s(.*)", line
+            )
             if header_match and not code_block:
                 if current_section != "":
                     markdown_nodes.append(

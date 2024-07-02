@@ -9,3 +9,9 @@ class BaseRepo:
 
     def get_all(self, session: Session):
         return session.exec(select(self.model_cls)).all()
+
+    def create(self, session: Session, obj: SQLModel):
+        session.add(obj)
+        session.commit()
+        session.refresh(obj)
+        return obj

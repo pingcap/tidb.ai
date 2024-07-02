@@ -1,7 +1,9 @@
 import json
 import logging
-from typing import List, Generator
+from uuid import UUID
+from typing import List, Generator, Optional
 from dataclasses import dataclass
+from datetime import datetime, UTC
 
 import jinja2
 from sqlmodel import Session, select
@@ -15,20 +17,32 @@ from llama_index.core.prompts.base import PromptTemplate
 from langfuse import Langfuse
 from langfuse.llama_index import LlamaIndexCallbackHandler
 
-from app.models import User, Document, Chunk
+from app.models import (
+    User,
+    Document,
+    Chunk,
+    Chat as DBChat,
+    ChatMessage as DBChatMessage,
+)
 from app.core.config import settings
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.knowledge_graph import KnowledgeGraphIndex
 from app.rag.chat_config import ChatEngineConfig
-from app.rag.types import MyCBEventType, ChatMessageSate, ChatEventType
+from app.rag.types import (
+    MyCBEventType,
+    ChatMessageSate,
+    ChatEventType,
+    MessageRole,
+)
+from app.repositories import chat_repo
 
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class ChatStreamMessagePayload:
-    chat_id: str = "1"
+    chat_id: Optional[UUID] = None
     state: ChatMessageSate = ChatMessageSate.TRACE
     display: str = ""
     context: dict | list | str = ""
@@ -41,11 +55,11 @@ class ChatEvent:
 
     def encode(self, charset) -> bytes:
         # fastapi will use this method in streaming response
-        if self.event_type == ChatEventType.TEXT_PART:
+        if self.event_type in (ChatEventType.TEXT_PART, ChatEventType.ERROR_PART):
             body = self.payload
         else:
             body = {
-                "chat_id": self.payload.chat_id,
+                "chat_id": str(self.payload.chat_id),
                 "state": self.payload.state.name,
             }
             if self.payload.display:
@@ -60,24 +74,59 @@ class ChatEvent:
 class ChatService:
     def __init__(
         self,
-        session: Session,
+        db_session: Session,
         user: User,
-        engine_name: str,
+        engine_name: str = "default",
     ) -> None:
-        self.session = session
+        self.db_session = db_session
         self.user = user
         self.engine_name = engine_name
 
-        self.chat_engine_config = ChatEngineConfig.load_from_db(session, engine_name)
+        self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
+        self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
         self._llm = self.chat_engine_config.get_llama_llm()
         self._dspy_lm = self.chat_engine_config.get_dspy_lm()
         self._embed_model = self.chat_engine_config.get_embedding_model()
         self._reranker = self.chat_engine_config.get_reranker()
 
     def chat(
-        self, chat_messages: List[ChatMessage]
+        self, chat_messages: List[ChatMessage], chat_id: Optional[UUID] = None
     ) -> Generator[ChatEvent, None, None]:
         user_question, chat_history = self._parse_chat_messages(chat_messages)
+
+        if chat_id:
+            self.db_chat_obj = chat_repo.get(self.db_session, chat_id)
+            if not self.db_chat_obj:
+                yield ChatEvent(
+                    event_type=ChatEventType.ERROR_PART,
+                    payload="Chat not found",
+                )
+            chat_history = [
+                ChatMessage(role=m.role, content=m.content, additional_kwargs={})
+                for m in chat_repo.get_messages(self.db_session, self.db_chat_obj)
+            ]
+        else:
+            self.db_chat_obj = chat_repo.create(
+                self.db_session,
+                DBChat(
+                    title=user_question[:100],
+                    engine_id=self.db_chat_engine.id,
+                    engine_options=self.chat_engine_config.screenshot(),
+                    user_id=self.user.id,
+                ),
+            )
+            chat_id = self.db_chat_obj.id
+            # slack/discord may create a new chat with history messages
+            for i, m in enumerate(chat_history):
+                chat_repo.create_message(
+                    session=self.db_session,
+                    chat=self.db_chat_obj,
+                    chat_message=DBChatMessage(
+                        role=m.role,
+                        content=m.content,
+                        ordinal=i + 1,
+                    ),
+                )
 
         langfuse = Langfuse()
         observation = langfuse.trace(
@@ -94,6 +143,25 @@ class ChatService:
             },
         )
         trace_id = observation.trace_id
+        trace_url = observation.get_trace_url()
+
+        chat_repo.create_message(
+            session=self.db_session,
+            chat=self.db_chat_obj,
+            chat_message=DBChatMessage(
+                role=MessageRole.USER.value,
+                content=user_question,
+            ),
+        )
+        db_assistant_message = chat_repo.create_message(
+            session=self.db_session,
+            chat=self.db_chat_obj,
+            chat_message=DBChatMessage(
+                role=MessageRole.ASSISTANT.value,
+                trace_url=trace_url,
+                content="",
+            ),
+        )
 
         def _set_langfuse_callback_manager():
             # Why we don't use high-level decorator `observe()` as \
@@ -110,9 +178,10 @@ class ChatService:
         yield ChatEvent(
             event_type=ChatEventType.MESSAGE_PART,
             payload=ChatStreamMessagePayload(
+                chat_id=chat_id,
                 state=ChatMessageSate.TRACE,
                 display="Start chatting",
-                context={"langfuse_url": observation.get_trace_url()},
+                context={"langfuse_url": trace_url},
             ),
         )
 
@@ -120,13 +189,16 @@ class ChatService:
         yield ChatEvent(
             event_type=ChatEventType.MESSAGE_PART,
             payload=ChatStreamMessagePayload(
+                chat_id=chat_id,
                 state=ChatMessageSate.KG_RETRIEVAL,
                 display="Start knowledge graph searching ...",
             ),
         )
         _set_langfuse_callback_manager()
         graph_store = TiDBGraphStore(
-            dspy_lm=self._dspy_lm, session=self.session, embed_model=self._embed_model
+            dspy_lm=self._dspy_lm,
+            session=self.db_session,
+            embed_model=self._embed_model,
         )
         graph_index: KnowledgeGraphIndex = KnowledgeGraphIndex.from_existing(
             dspy_lm=self._dspy_lm,
@@ -141,6 +213,7 @@ class ChatService:
         yield ChatEvent(
             event_type=ChatEventType.MESSAGE_PART,
             payload=ChatStreamMessagePayload(
+                chat_id=chat_id,
                 state=ChatMessageSate.REFINE_QUESTION,
                 display="Refine the user question ...",
             ),
@@ -168,6 +241,7 @@ class ChatService:
         yield ChatEvent(
             event_type=ChatEventType.MESSAGE_PART,
             payload=ChatStreamMessagePayload(
+                chat_id=chat_id,
                 state=ChatMessageSate.SEARCH_RELATED_DOCUMENTS,
                 display="Search related documents ...",
             ),
@@ -183,7 +257,7 @@ class ChatService:
             entities=entities,
             relationships=relations,
         )
-        vector_store = TiDBVectorStore(session=self.session)
+        vector_store = TiDBVectorStore(session=self.db_session)
         vector_index = VectorStoreIndex.from_vector_store(
             vector_store,
             embed_model=self._embed_model,
@@ -196,24 +270,35 @@ class ChatService:
             refine_template=refine_template,
         )
         response: StreamingResponse = query_engine.query(refined_question)
+        source_documents = self._get_source_documents(response)
 
         yield ChatEvent(
             event_type=ChatEventType.MESSAGE_PART,
             payload=ChatStreamMessagePayload(
+                chat_id=chat_id,
                 state=ChatMessageSate.SOURCE_NODES,
-                context=self._get_source_documents(response),
+                context=source_documents,
             ),
         )
 
+        response_text = ""
         for word in response.response_gen:
+            response_text += word
             yield ChatEvent(
                 event_type=ChatEventType.TEXT_PART,
                 payload=word,
             )
 
+        db_assistant_message.sources = source_documents
+        db_assistant_message.content = response_text
+        db_assistant_message.finshed_at = datetime.now(UTC)
+        self.db_session.add(db_assistant_message)
+        self.db_session.commit()
+
         yield ChatEvent(
             event_type=ChatEventType.MESSAGE_PART,
             payload=ChatStreamMessagePayload(
+                chat_id=chat_id,
                 state=ChatMessageSate.FINISHED,
             ),
         )
@@ -246,7 +331,7 @@ class ChatService:
                 "name": doc_name,
                 "source_uri": source_uri,
             }
-            for doc_id, doc_name, source_uri in self.session.exec(stmt).all()
+            for doc_id, doc_name, source_uri in self.db_session.exec(stmt).all()
         ]
         return source_documents
 

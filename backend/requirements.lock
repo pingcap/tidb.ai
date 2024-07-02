@@ -101,6 +101,7 @@ fastapi==0.111.0
     # via fastapi-users
 fastapi-cli==0.0.4
     # via fastapi
+fastapi-pagination==0.12.25
 fastapi-users==13.0.0
     # via fastapi-users-db-sqlmodel
 fastapi-users-db-sqlmodel==0.3.0
@@ -327,6 +328,7 @@ pycparser==2.22
 pydantic==2.7.4
     # via dspy-ai
     # via fastapi
+    # via fastapi-pagination
     # via google-generativeai
     # via langfuse
     # via llamaindex-py-client
@@ -429,6 +431,7 @@ typer==0.12.3
 typing-extensions==4.12.2
     # via alembic
     # via fastapi
+    # via fastapi-pagination
     # via google-generativeai
     # via huggingface-hub
     # via llama-index-core

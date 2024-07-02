@@ -1,4 +1,6 @@
 import logging
+from typing import Optional
+
 import dspy
 from pydantic import BaseModel
 from llama_index.llms.openai import OpenAI
@@ -21,6 +23,7 @@ from app.rag.default_prompt import (
     DEFAULT_TEXT_QA_PROMPT,
     DEFAULT_REFINE_PROMPT,
 )
+from app.models import ChatEngine
 from app.repositories import chat_engine_repo
 from app.utils.dspy import get_dspy_lm_by_llama_llm
 
@@ -51,6 +54,14 @@ class ChatEngineConfig(BaseModel):
     llm: LLMOption = LLMOption()
     knowledge_graph: KnowledgeGraphOption = KnowledgeGraphOption()
 
+    __db_chat_engine: Optional[ChatEngine] = None
+
+    def set_db_chat_engine(self, db_chat_engine: ChatEngine):
+        self.__db_chat_engine = db_chat_engine
+
+    def get_db_chat_engine(self) -> Optional[ChatEngine]:
+        return self.__db_chat_engine
+
     @classmethod
     def load_from_db(cls, session: Session, engine_name: str) -> "ChatEngineConfig":
         if not engine_name or engine_name == "default":
@@ -64,7 +75,9 @@ class ChatEngineConfig(BaseModel):
             )
             return cls()
 
-        return cls.model_validate(db_chat_engine.engine_options)
+        obj = cls.model_validate(db_chat_engine.engine_options)
+        obj.set_db_chat_engine(db_chat_engine)
+        return obj
 
     def get_llama_llm(self) -> LLM:
         if self.llm.provider == LLMProvider.OPENAI:
