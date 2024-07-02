@@ -93,3 +93,14 @@ class ChatEngineConfig(BaseModel):
             raise ValueError(
                 f"Got unknown reranker provider: {self.llm.reranker_provider}"
             )
+
+    def screenshot(self) -> dict:
+        return self.model_dump_json(
+            exclude={
+                "llm": [
+                    "condense_question_prompt",
+                    "text_qa_prompt",
+                    "refine_prompt",
+                ]
+            }
+        )

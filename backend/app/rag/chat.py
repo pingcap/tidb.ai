@@ -13,7 +13,8 @@ from llama_index.core.base.response.schema import StreamingResponse
 from llama_index.core.callbacks.schema import EventPayload
 from llama_index.core.callbacks import CallbackManager
 from llama_index.core.prompts.base import PromptTemplate
-from langfuse.decorators import langfuse_context, observe
+from langfuse import Langfuse
+from langfuse.llama_index import LlamaIndexCallbackHandler
 
 from app.models import User, Document, Chunk
 from app.core.config import settings
@@ -72,25 +73,43 @@ class ChatService:
         self._embed_model = self.chat_engine_config.get_embedding_model()
         self._reranker = self.chat_engine_config.get_reranker()
 
-    @observe()
     def chat(
         self, chat_messages: List[ChatMessage]
     ) -> Generator[ChatEvent, None, None]:
         user_question, chat_history = self._parse_chat_messages(chat_messages)
 
-        langfuse_handler = langfuse_context.get_current_llama_index_handler()
-        Settings.callback_manager = CallbackManager([langfuse_handler])
-        self._llm.callback_manager = Settings.callback_manager
-        langfuse_context.update_current_observation(
+        langfuse = Langfuse()
+        observation = langfuse.trace(
+            name="chat",
             user_id=self.user.email if self.user else "anonymous",
-            release=settings.ENVIRONMENT,
+            metadata={
+                "chat_engine_config": self.chat_engine_config.screenshot(),
+            },
             tags=[f"chat_engine:{self.engine_name}"],
+            release=settings.ENVIRONMENT,
+            input={
+                "user_question": user_question,
+                "chat_history": chat_history,
+            },
         )
+        trace_id = observation.trace_id
+
+        def _set_langfuse_callback_manager():
+            # Why we don't use high-level decorator `observe()` as \
+            #   `https://langfuse.com/docs/integrations/llama-index/get-started` suggested?
+            # track:
+            #   - https://github.com/langfuse/langfuse/issues/2015
+            #   - https://langfuse.com/blog/2024-04-python-decorator
+            observation = langfuse.trace(id=trace_id)
+            langfuse_handler = LlamaIndexCallbackHandler()
+            langfuse_handler.set_root(observation)
+            Settings.callback_manager = CallbackManager([langfuse_handler])
+            self._llm.callback_manager = Settings.callback_manager
 
         yield ChatEvent(
             ChatEventType.CREATE,
             display="Start chatting",
-            payload={"langfuse_url": langfuse_handler.get_trace_url()},
+            payload={"langfuse_url": observation.get_trace_url()},
         )
 
         # 1. Retrieve entities, relations, and chunks from the knowledge graph
@@ -99,6 +118,7 @@ class ChatService:
             display="Start knowledge graph searching ...",
             payload={},
         )
+        _set_langfuse_callback_manager()
         graph_store = TiDBGraphStore(
             dspy_lm=self._dspy_lm, session=self.session, embed_model=self._embed_model
         )
@@ -117,6 +137,7 @@ class ChatService:
             display="Refine the user question ...",
             payload={},
         )
+        _set_langfuse_callback_manager()
         with Settings.callback_manager.as_trace("condense_question"):
             with Settings.callback_manager.event(
                 MyCBEventType.CONDENSE_QUESTION,
@@ -150,6 +171,7 @@ class ChatService:
             display="Search related documents ...",
             payload={},
         )
+        _set_langfuse_callback_manager()
         text_qa_template = PromptTemplate(
             template=jinja2.Template(self.chat_engine_config.llm.text_qa_prompt)
             .render(
