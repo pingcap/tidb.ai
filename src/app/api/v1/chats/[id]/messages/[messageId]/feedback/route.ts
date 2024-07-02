@@ -19,13 +19,6 @@ export const GET = defineHandler(({
     notFound();
   }
 
-  // Only support chat with knowledge graph enabled.
-  if (!chat.engine_options.graph_retriever?.enable) {
-    return Response.json({
-      message: 'This conversation does not support knowledge graph feedback. (Knowledge graph not enabled for this conversation)',
-    }, { status: 400 });
-  }
-
   if (!message.trace_url) {
     return Response.json({
       message: 'This conversation does not support knowledge graph feedback. (Langfuse link not recorded)',
@@ -53,13 +46,6 @@ export const POST = defineHandler(({
 
   if (!chat || !message) {
     notFound();
-  }
-
-  // Only support chat with knowledge graph enabled.
-  if (!chat.engine_options.graph_retriever?.enable) {
-    return Response.json({
-      message: 'This conversation does not support knowledge graph feedback. (Knowledge graph not enabled for this conversation)',
-    }, { status: 400 });
   }
 
   if (!message.trace_url) {
@@ -104,13 +90,6 @@ export const DELETE = defineHandler({
 
   if (!chat || !message) {
     notFound();
-  }
-
-  // Only support chat with knowledge graph enabled.
-  if (!chat.engine_options.graph_retriever?.enable) {
-    return Response.json({
-      message: 'This conversation does not support knowledge graph feedback. (Knowledge graph not enabled for this conversation)',
-    }, { status: 400 });
   }
 
   if (!message.trace_url) {
