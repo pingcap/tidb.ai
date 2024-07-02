@@ -144,21 +144,12 @@ class ChatService:
                 payload={EventPayload.QUERY_STR: user_question},
             ) as event:
                 refined_question = self._llm.predict(
-                    PromptTemplate(
-                        # use jinja2's template because it support complex render logic
-                        template=jinja2.Template(
-                            self.chat_engine_config.llm.condense_question_prompt
-                        )
-                        .render(
-                            relationships=relations,
-                            entities=entities,
-                            chat_history=chat_history,
-                            question=user_question,
-                            # llama-index will use f-string to format the template
-                            # so we need to escape the curly braces even if we do not use it
-                        )
-                        .replace("{", "{{")
-                        .replace("}", "}}")
+                    get_prompt_by_jinja2_template(
+                        self.chat_engine_config.llm.condense_question_prompt,
+                        entities=entities,
+                        relationships=relations,
+                        chat_history=chat_history,
+                        question=user_question,
                     ),
                 )
                 event.on_end(payload={EventPayload.COMPLETION: refined_question})
@@ -172,30 +163,15 @@ class ChatService:
             payload={},
         )
         _set_langfuse_callback_manager()
-        text_qa_template = PromptTemplate(
-            template=jinja2.Template(self.chat_engine_config.llm.text_qa_prompt)
-            .render(
-                entities=entities,
-                relationships=relations,
-            )
-            .replace("{", "{{")
-            .replace("}", "}}")
-            # This is a workaround to escape the curly braces.
-            # llama-index will use f-string to format following variables
-            .replace("<<context_str>>", "{context_str}")
-            .replace("<<query_str>>", "{query_str}")
+        text_qa_template = get_prompt_by_jinja2_template(
+            self.chat_engine_config.llm.text_qa_prompt,
+            entities=entities,
+            relationships=relations,
         )
-        refine_template = PromptTemplate(
-            template=jinja2.Template(self.chat_engine_config.llm.refine_prompt)
-            .render(
-                entities=entities,
-                relationships=relations,
-            )
-            .replace("{", "{{")
-            .replace("}", "}}")
-            .replace("<<query_str>>", "{query_str}")
-            .replace("<<existing_answer>>", "{existing_answer}")
-            .replace("<<context_msg>>", "{context_msg}")
+        refine_template = get_prompt_by_jinja2_template(
+            self.chat_engine_config.llm.refine_prompt,
+            entities=entities,
+            relationships=relations,
         )
         vector_store = TiDBVectorStore(session=self.session)
         vector_index = VectorStoreIndex.from_vector_store(
@@ -255,3 +231,27 @@ class ChatService:
             for doc_id, doc_name, source_uri in self.session.exec(stmt).all()
         ]
         return source_documents
+
+
+def get_prompt_by_jinja2_template(template_string: str, **kwargs) -> str:
+    # use jinja2's template because it support complex render logic
+    # for example:
+    #       {% for e in entities %}
+    #           {{ e.name }}
+    #       {% endfor %}
+    template = (
+        jinja2.Template(template_string)
+        .render(**kwargs)
+        # llama-index will use f-string to format the template
+        # so we need to escape the curly braces even if we do not use it
+        .replace("{", "{{")
+        .replace("}", "}}")
+        # This is a workaround to bypass above escape,
+        # llama-index will use f-string to format following variables,
+        # maybe we can use regex to replace the variable name to make this more robust
+        .replace("<<query_str>>", "{query_str}")
+        .replace("<<context_str>>", "{context_str}")
+        .replace("<<existing_answer>>", "{existing_answer}")
+        .replace("<<context_msg>>", "{context_msg}")
+    )
+    return PromptTemplate(template=template)
