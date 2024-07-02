@@ -13,6 +13,8 @@ export interface UseMessageFeedbackReturns {
   sourceLoading: boolean;
 
   feedback (action: 'like' | 'dislike', details: Record<string, 'like' | 'dislike'>, comment: string): Promise<void>;
+
+  deleteFeedback (): Promise<void>;
 }
 
 export type ContentSource = {
@@ -38,6 +40,10 @@ export function useMessageFeedback (chatId: number, messageId: number, enabled: 
       setActing(true);
       return addFeedback(chatId, messageId, { action, knowledge_graph_detail: detail, comment }).finally(() => setActing(false));
     },
+    deleteFeedback: () => {
+      setActing(true);
+      return deleteFeedback(chatId, messageId).finally(() => setActing(false));
+    },
     source: contentData.data,
     sourceLoading: contentData.isLoading || contentData.isValidating,
   };
@@ -49,4 +55,11 @@ async function addFeedback (chatId: number, messageId: number, data: any) {
     body: JSON.stringify(data),
   });
   mutate(['get', `/api/v1/chats/${chatId}/messages/${messageId}/feedback`], data => data, true);
+}
+
+async function deleteFeedback (chatId: number, messageId: number) {
+  await fetch(`/api/v1/chats/${chatId}/messages/${messageId}/feedback`, {
+    method: 'delete',
+  });
+  mutate(['get', `/api/v1/chats/${chatId}/messages/${messageId}/feedback`], null, false);
 }

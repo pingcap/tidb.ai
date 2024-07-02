@@ -1,18 +1,19 @@
 import type { ContentSource } from '@/components/chat/use-message-feedback';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import type { Feedback } from '@/core/repositories/feedback';
 import { Loader2Icon, ThumbsDownIcon, ThumbsUpIcon } from 'lucide-react';
 import { type ReactElement, useEffect, useState } from 'react';
 
-export function MessageFeedback ({ initial, source, sourceLoading, onFeedback, children }: { initial?: Feedback, source: ContentSource | undefined, sourceLoading: boolean, onFeedback: (action: 'like' | 'dislike', detail: Record<string, 'like' | 'dislike'>, comment: string) => Promise<void>, children: ReactElement }) {
+export function MessageFeedback ({ initial, source, sourceLoading, onFeedback, onDeleteFeedback, children }: { initial?: Feedback, source: ContentSource | undefined, sourceLoading: boolean, onFeedback: (action: 'like' | 'dislike', detail: Record<string, 'like' | 'dislike'>, comment: string) => Promise<void>, onDeleteFeedback: () => Promise<void>, children: ReactElement }) {
   const [open, setOpen] = useState(false);
-  const [action, setAction] = useState<'like' | 'dislike'>('like');
+  const [action, setAction] = useState<'like' | 'dislike'>(initial?.action ?? 'like');
   const [detail, setDetail] = useState<Record<string, 'like' | 'dislike'>>(() => (initial ?? {}));
   const [comment, setComment] = useState(initial?.comment ?? '');
   const [running, setRunning] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (initial) {
@@ -22,33 +23,34 @@ export function MessageFeedback ({ initial, source, sourceLoading, onFeedback, c
     }
   }, [initial]);
 
-  const disabled = running || !!initial;
+  const disabled = running || deleting || !!initial;
+  const deleteDisabled = running || deleting || !initial;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
-      <DialogContent className='space-y-4'>
+      <DialogContent className="space-y-4">
         <DialogHeader>
           <DialogTitle>
             Feedback
           </DialogTitle>
         </DialogHeader>
-        <section className='space-y-2'>
+        <section className="space-y-2">
           <h6 className="text-sm font-bold">Do you like this answer</h6>
-          <ToggleGroup disabled={disabled} className='w-max' type="single" value={action} onValueChange={value => setAction(value as any)}>
-            <ToggleGroupItem value="like" className='data-[state=on]:text-green-500 data-[state=on]:bg-green-500/5'>
+          <ToggleGroup disabled={disabled} className="w-max" type="single" value={action} onValueChange={value => setAction(value as any)}>
+            <ToggleGroupItem value="like" className="data-[state=on]:text-green-500 data-[state=on]:bg-green-500/5">
               <ThumbsUpIcon className="w-4 h-4 mr-2" />
               Like
             </ToggleGroupItem>
-            <ToggleGroupItem value="dislike" className='data-[state=on]:text-red-500 data-[state=on]:bg-red-500/5'>
+            <ToggleGroupItem value="dislike" className="data-[state=on]:text-red-500 data-[state=on]:bg-red-500/5">
               <ThumbsDownIcon className="w-4 h-4 mr-2" />
               Dislike
             </ToggleGroupItem>
           </ToggleGroup>
         </section>
-        <section  className='space-y-2'>
+        <section className="space-y-2">
           <h6 className="text-sm font-bold">Sources from Knowledge Graph</h6>
           {!source && sourceLoading && <div className="flex gap-2 items-center"><Loader2Icon className="w-4 h-4 animate-spin repeat-infinite" /> Loading...</div>}
           {source && (
@@ -89,20 +91,44 @@ export function MessageFeedback ({ initial, source, sourceLoading, onFeedback, c
             disabled={disabled}
           />
         </section>
-        <Button
-          className="w-full gap-2"
-          disabled={disabled}
-          onClick={() => {
-            setRunning(true);
-            onFeedback(action, detail, comment)
-              .then(() => setOpen(false))
-              .finally(() => {
-                setRunning(false);
-              });
-          }}>
-          {running && <Loader2Icon className="w-4 h-4 animate-spin repeat-infinite" />}
-          Add feedback
-        </Button>
+        <div className="flex w-full justify-end items-center gap-2">
+          <Button
+            className="gap-2"
+            disabled={disabled}
+            onClick={() => {
+              setRunning(true);
+              onFeedback(action, detail, comment)
+                .then(() => setOpen(false))
+                .finally(() => {
+                  setRunning(false);
+                });
+            }}>
+            {running && <Loader2Icon className="w-4 h-4 animate-spin repeat-infinite" />}
+            Add feedback
+          </Button>
+          <Button
+            className="gap-2 hover:text-destructive hover:bg-transparent"
+            variant="ghost"
+            disabled={deleteDisabled}
+            type='button'
+            onClick={() => {
+              setDeleting(true);
+              onDeleteFeedback()
+                .then(() => {
+                  setOpen(false);
+                  setAction('like');
+                  setComment('');
+                  setDetail({});
+                })
+                .finally(() => {
+                  setDeleting(false);
+                });
+            }}
+          >
+            Cancel feedback
+            {deleting && <Loader2Icon className="w-4 h-4 animate-spin repeat-infinite" />}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );

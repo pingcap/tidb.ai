@@ -172,6 +172,7 @@ async function verifyCronJobAuth(request: NextRequest): Promise<Session> {
 
 async function verifyAppAuth(request: NextRequest): Promise<Session> {
   const accessToken = request.headers.get('authorization')?.replace('Bearer ', '')?.trim();
+  const externalUserId = request.headers.get('x-external-user-id');
   if (!accessToken) {
     throw APP_AUTH_REQUIRE_AUTH_TOKEN_ERROR;
   }
@@ -181,7 +182,7 @@ async function verifyAppAuth(request: NextRequest): Promise<Session> {
   }
   return {
     user: {
-      id: aat.app_id,
+      id: externalUserId ? `${aat.app_id}:${externalUserId}` : aat.app_id,
       role: 'app',
     },
     expires: DateTime.now().plus({ month: 12 }).toISO(),
