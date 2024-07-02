@@ -1,5 +1,5 @@
+import logging
 import dspy
-
 from pydantic import BaseModel
 from llama_index.llms.openai import OpenAI
 from llama_index.llms.gemini import Gemini
@@ -23,6 +23,8 @@ from app.rag.default_prompt import (
 )
 from app.repositories import chat_engine_repo
 from app.utils.dspy import get_dspy_lm_by_llama_llm
+
+logger = logging.getLogger(__name__)
 
 
 class LLMOption(BaseModel):
@@ -57,6 +59,9 @@ class ChatEngineConfig(BaseModel):
             db_chat_engine = chat_engine_repo.get_engine_by_name(session, engine_name)
 
         if not db_chat_engine:
+            logger.warning(
+                f"Chat engine {engine_name} not found in DB, using default engine"
+            )
             return cls()
 
         return cls.model_validate(db_chat_engine.engine_options)

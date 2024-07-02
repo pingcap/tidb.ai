@@ -32,7 +32,8 @@ class ChatEventType(int, enum.Enum):
     REFINE_QUESTION = 2
     SEARCH_RELATED_DOCUMENTS = 3
     SOURCE_NODES = 4
-    TEXT_RESPONSE = 9
+    TEXT_RESPONSE = 8
+    DONE = 9
 
 
 @dataclass
@@ -157,7 +158,7 @@ class ChatService:
             )
             .replace("{", "{{")
             .replace("}", "}}")
-            # it's some hacky way to escape the curly braces
+            # This is a workaround to escape the curly braces.
             # llama-index will use f-string to format following variables
             .replace("<<context_str>>", "{context_str}")
             .replace("<<query_str>>", "{query_str}")
@@ -198,6 +199,8 @@ class ChatService:
                 ChatEventType.TEXT_RESPONSE,
                 payload=word,
             )
+
+        yield ChatEvent(ChatEventType.DONE)
 
     def _parse_chat_messages(
         self, chat_messages: List[ChatMessage]
