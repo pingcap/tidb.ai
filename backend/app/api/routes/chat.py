@@ -39,13 +39,8 @@ def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest)
     chat_svc = ChatService(session, user, chat_request.chat_engine)
 
     if chat_request.stream:
-
-        def as_streaming_response():
-            for i in chat_svc.chat(chat_request.messages):
-                yield i
-
         return StreamingResponse(
-            as_streaming_response(), media_type="text/event-stream"
+            chat_svc.chat(chat_request.messages), media_type="text/event-stream"
         )
     else:
         trace = None
