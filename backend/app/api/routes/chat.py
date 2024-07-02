@@ -8,7 +8,11 @@ from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
 from app.api.deps import SessionDep, OptionalUserDep
-from app.rag.chat import ChatService, ChatEventType
+from app.rag.chat import (
+    ChatService,
+    ChatEventType,
+    ChatMessageSate,
+)
 from app.rag.types import ChatMessage, MessageRole
 
 router = APIRouter()
@@ -47,11 +51,12 @@ def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest)
         soruces = None
         content = ""
         for m in chat_svc.chat(chat_request.messages):
-            if m.event_type == ChatEventType.CREATE:
-                trace = m.payload
-            elif m.event_type == ChatEventType.SOURCE_NODES:
-                soruces = m.payload
-            elif m.event_type == ChatEventType.TEXT_RESPONSE:
+            if m.event_type == ChatEventType.MESSAGE_PART:
+                if m.payload.state == ChatMessageSate.SOURCE_NODES:
+                    soruces = m.payload.context
+                elif m.payload.state == ChatMessageSate.TRACE:
+                    trace = m.payload.context
+            elif m.event_type == ChatEventType.TEXT_PART:
                 content += m.payload
             else:
                 pass

@@ -1,4 +1,3 @@
-import enum
 import json
 import logging
 from typing import List, Generator
@@ -22,36 +21,38 @@ from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.knowledge_graph import KnowledgeGraphIndex
 from app.rag.chat_config import ChatEngineConfig
-from app.rag.types import MyCBEventType
+from app.rag.types import MyCBEventType, ChatMessageSate, ChatEventType
 
 logger = logging.getLogger(__name__)
 
 
-class ChatEventType(int, enum.Enum):
-    CREATE = 0
-    KG_RETRIEVAL = 1
-    REFINE_QUESTION = 2
-    SEARCH_RELATED_DOCUMENTS = 3
-    SOURCE_NODES = 4
-    TEXT_RESPONSE = 8
-    DONE = 9
+@dataclass
+class ChatStreamMessagePayload:
+    chat_id: str = "1"
+    state: ChatMessageSate = ChatMessageSate.TRACE
+    display: str = ""
+    context: dict | list | str = ""
 
 
 @dataclass
 class ChatEvent:
-    event_type: ChatEventType = ChatEventType.CREATE
-    display: str = ""
-    payload: dict[str, str] | list | str = ""
+    event_type: ChatEventType = ChatEventType.MESSAGE_PART
+    payload: ChatStreamMessagePayload | str | None = None
 
     def encode(self, charset) -> bytes:
         # fastapi will use this method in streaming response
-        body = {
-            "event_type": self.event_type.name,
-        }
-        if self.payload:
-            body["payload"] = self.payload
-        if self.display:
-            body["display"] = self.display
+        if self.event_type == ChatEventType.TEXT_PART:
+            body = self.payload
+        else:
+            body = {
+                "chat_id": self.payload.chat_id,
+                "state": self.payload.state.name,
+            }
+            if self.payload.display:
+                body["display"] = self.payload.display
+            if self.payload.context:
+                body["context"] = self.payload.context
+
         body = json.dumps(body, separators=(",", ":"))
         return f"{self.event_type.value}: {body}\n".encode(charset)
 
@@ -107,16 +108,21 @@ class ChatService:
             self._llm.callback_manager = Settings.callback_manager
 
         yield ChatEvent(
-            ChatEventType.CREATE,
-            display="Start chatting",
-            payload={"langfuse_url": observation.get_trace_url()},
+            event_type=ChatEventType.MESSAGE_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.TRACE,
+                display="Start chatting",
+                context={"langfuse_url": observation.get_trace_url()},
+            ),
         )
 
         # 1. Retrieve entities, relations, and chunks from the knowledge graph
         yield ChatEvent(
-            ChatEventType.KG_RETRIEVAL,
-            display="Start knowledge graph searching ...",
-            payload={},
+            event_type=ChatEventType.MESSAGE_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.KG_RETRIEVAL,
+                display="Start knowledge graph searching ...",
+            ),
         )
         _set_langfuse_callback_manager()
         graph_store = TiDBGraphStore(
@@ -133,9 +139,11 @@ class ChatService:
 
         # 2. Refine the user question using graph information and chat history
         yield ChatEvent(
-            ChatEventType.REFINE_QUESTION,
-            display="Refine the user question ...",
-            payload={},
+            event_type=ChatEventType.MESSAGE_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.REFINE_QUESTION,
+                display="Refine the user question ...",
+            ),
         )
         _set_langfuse_callback_manager()
         with Settings.callback_manager.as_trace("condense_question"):
@@ -158,9 +166,11 @@ class ChatService:
         # 4. Rerank after the retrieval
         # 5. Generate a response using the refined question and related chunks
         yield ChatEvent(
-            ChatEventType.SEARCH_RELATED_DOCUMENTS,
-            display="Search related documents ...",
-            payload={},
+            event_type=ChatEventType.MESSAGE_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.SEARCH_RELATED_DOCUMENTS,
+                display="Search related documents ...",
+            ),
         )
         _set_langfuse_callback_manager()
         text_qa_template = get_prompt_by_jinja2_template(
@@ -188,17 +198,25 @@ class ChatService:
         response: StreamingResponse = query_engine.query(refined_question)
 
         yield ChatEvent(
-            ChatEventType.SOURCE_NODES,
-            payload=self._get_source_documents(response),
+            event_type=ChatEventType.MESSAGE_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.SOURCE_NODES,
+                context=self._get_source_documents(response),
+            ),
         )
 
         for word in response.response_gen:
             yield ChatEvent(
-                ChatEventType.TEXT_RESPONSE,
+                event_type=ChatEventType.TEXT_PART,
                 payload=word,
             )
 
-        yield ChatEvent(ChatEventType.DONE)
+        yield ChatEvent(
+            event_type=ChatEventType.MESSAGE_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.FINISHED,
+            ),
+        )
 
     def _parse_chat_messages(
         self, chat_messages: List[ChatMessage]

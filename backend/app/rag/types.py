@@ -64,3 +64,22 @@ class MyCBEventType(str, enum.Enum):
     AGENT_STEP = "agent_step"
     CONDENSE_QUESTION = "condense_question"
     RETRIEVE_FROM_GRAPH = "retrieve_from_graph"
+
+
+# Chat stream response event types
+class ChatEventType(int, enum.Enum):
+    # Following vercel ai sdk's event type
+    # https://github.com/vercel/ai/blob/84871281ab5a2c080e3f8e18d02cd09c7e1691c4/packages/ui-utils/src/stream-parts.ts#L368
+    TEXT_PART = 0
+    ERROR_PART = 3
+    MESSAGE_PART = 8
+
+
+class ChatMessageSate(str, enum.Enum):
+    TRACE = 0
+    SOURCE_NODES = 1
+    KG_RETRIEVAL = 2
+    REFINE_QUESTION = 3
+    SEARCH_RELATED_DOCUMENTS = 4
+    GENERATE_ANSWER = 5
+    FINISHED = 9
