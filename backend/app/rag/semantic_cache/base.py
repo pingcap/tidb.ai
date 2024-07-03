@@ -70,18 +70,20 @@ class QASemanticSearchModule(dspy.Signature):
 
 
 class SemanticSearchProgram(dspy.Module):
-    def __init__(self):
+    def __init__(self, dspy_lm: dspy.LM):
         super().__init__()
+        self.dspy_lm = dspy_lm
         self.prog = dspy.TypedChainOfThought(QASemanticSearchModule)
 
     def forward(self, query: str, candidats: QASet):
-        return self.prog(query=query, candidats=candidats)
+        with dspy.settings.context(lm=self.dspy_lm):
+            return self.prog(query=query, candidats=candidats)
 
 
 class SemanticCacheManager:
     def __init__(
         self,
-        dspy_lm: dspy.LM,
+        dspy_llm: dspy.LM,
         session: Optional[Session] = None,
         embed_model: Optional[EmbedType] = None,
         complied_sc_search_program_path: Optional[str] = None,
@@ -90,11 +92,11 @@ class SemanticCacheManager:
         self._owns_session = session is None
         if self._session is None:
             self._session = Session(engine)
-        self._dspy_lm = dspy_lm
+        self._dspy_lm = dspy_llm
         self._embed_model = (
             resolve_embed_model(embed_model) if embed_model else Settings.embed_model
         )
-        self.prog = SemanticSearchProgram(dspy_lm=dspy_lm)
+        self.prog = SemanticSearchProgram(dspy_lm=dspy_llm)
         if complied_sc_search_program_path is not None:
             self.prog.load(complied_sc_search_program_path)
 

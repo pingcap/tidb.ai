@@ -67,7 +67,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: SecretStr | None = None
     OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
 
-    COMPLIED_INTENT_ANALYSIS_PROGRAM_PATH = None
+    COMPLIED_INTENT_ANALYSIS_PROGRAM_PATH: str = None
 
     @computed_field  # type: ignore[misc]
     @property

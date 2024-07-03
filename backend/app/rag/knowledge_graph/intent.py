@@ -55,12 +55,14 @@ class DecomposeQuery(dspy.Signature):
 
 
 class DecomposeQueryModule(dspy.Module):
-    def __init__(self):
+    def __init__(self, dspy_lm: dspy.LM):
         super().__init__()
+        self.dspy_lm = dspy_lm
         self.prog = TypedChainOfThought(DecomposeQuery)
 
     def forward(self, query):
-        return self.prog(query=query)
+        with dspy.settings.context(lm=self.dspy_lm):
+            return self.prog(query=query)
 
 
 class IntentAnalyzer:
