@@ -11,6 +11,7 @@ from .feedback import (
     FeedbackCreate,
     FeedbackType,
 )
+from .semantic_cache import SemanticCache
 from .staff_action_log import StaffActionLog
 from .chat_engine import ChatEngine
 from .chat import Chat

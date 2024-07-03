@@ -1,6 +1,8 @@
 import dspy
+import logging
 from abc import ABC, abstractmethod
-from typing import Any, Dict, List, Optional, Sequence, Tuple
+from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
+from collections import defaultdict
 
 from llama_index.core.data_structs import IndexLPG
 from llama_index.core.callbacks import CallbackManager, trace_method
@@ -12,7 +14,11 @@ from llama_index.core.schema import BaseNode, TransformComponent
 import llama_index.core.instrumentation as instrument
 
 from app.rag.knowledge_graph.extractor import SimpleGraphExtractor
+from app.rag.knowledge_graph.intent import IntentAnalyzer
 from app.rag.types import MyCBEventType
+from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 dispatcher = instrument.get_dispatcher(__name__)
 
@@ -31,6 +37,7 @@ class KnowledgeGraphStore(ABC):
         depth: int = 2,
         include_meta: bool = False,
         with_degree: bool = False,
+        with_chunks: bool = True,
         relationship_meta_filters: Dict = {},
     ) -> Tuple[list, list, list]:
         """Retrieve nodes and relationships with weights."""
@@ -72,6 +79,10 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
     ) -> None:
         self._dspy_lm = dspy_lm
         self._kg_store = kg_store
+        self._intents = IntentAnalyzer(
+            dspy_lm=dspy_lm,
+            complied_program_path=settings.COMPLIED_INTENT_ANALYSIS_PROGRAM_PATH,
+        )
 
         super().__init__(
             nodes=nodes,
@@ -186,3 +197,88 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
             "Ref doc info not implemented for KnowledgeGraphIndex. "
             "All inserts are already upserts."
         )
+
+    def intent_based_search(
+        self,
+        query: str,
+        depth: int = 2,
+        include_meta: bool = False,
+    ) -> Mapping[str, Any]:
+        intents = self._intents.analyze(query)
+        result = {"queries": {}, "graph": None}
+        all_entities = []
+        all_relationships = defaultdict(
+            lambda: {
+                "id": None,
+                "source_entity_id": None,
+                "target_entity_id": None,
+                "description": None,
+                "rag_description": None,
+                "meta": None,
+                "weight": 0,
+                "last_modified_at": None,
+            }
+        )
+
+        def add_relationships(relationships):
+            for r in relationships:
+                key = (r["source_entity_id"], r["target_entity_id"], r["description"])
+                all_relationships[key]["weight"] += r["weight"]
+                if all_relationships[key]["id"] is None:
+                    all_relationships[key].update(
+                        {
+                            "id": r["id"],
+                            "source_entity_id": r["source_entity_id"],
+                            "target_entity_id": r["target_entity_id"],
+                            "description": r["description"],
+                            "rag_description": r["rag_description"],
+                            "meta": r["meta"],
+                            "last_modified_at": r["last_modified_at"],
+                        }
+                    )
+
+        for r in intents.relationships:
+            sub_query = (
+                f"{r.source_entity} -> {r.relationship_desc} -> {r.target_entity}"
+            )
+            logging.info(f"Searching for: {sub_query}")
+            entities, relationships = self._kg_store.retrieve_with_weight(
+                sub_query, [], depth, include_meta, with_chunks=False
+            )
+            result["queries"][sub_query] = {
+                "entities": entities,
+                "relationships": relationships,
+            }
+            all_entities.extend(entities)
+            add_relationships(relationships)
+
+        entities, relationships = self._kg_store.retrieve_with_weight(
+            sub_query, [], depth, include_meta, with_chunks=False
+        )
+        result["queries"][query] = {
+            "entities": entities,
+            "relationships": relationships,
+        }
+        all_entities.extend(entities)
+        add_relationships(relationships)
+
+        unique_entities = {e["id"]: e for e in all_entities}.values()
+
+        result["graph"] = {
+            "entities": list(unique_entities),
+            "relationships": [
+                {
+                    "id": v["id"],
+                    "source_entity_id": v["source_entity_id"],
+                    "target_entity_id": v["target_entity_id"],
+                    "description": v["description"],
+                    "rag_description": v["rag_description"],
+                    "meta": v["meta"],
+                    "weight": v["weight"],
+                    "last_modified_at": v["last_modified_at"],
+                }
+                for v in all_relationships.values()
+            ],
+        }
+
+        return result
