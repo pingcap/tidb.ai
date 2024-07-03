@@ -43,6 +43,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class ChatStreamMessagePayload:
     chat_id: Optional[UUID] = None
+    message_id: Optional[int] = None
     state: ChatMessageSate = ChatMessageSate.TRACE
     display: str = ""
     context: dict | list | str = ""
@@ -60,6 +61,7 @@ class ChatEvent:
         else:
             body = {
                 "chat_id": str(self.payload.chat_id),
+                "message_id": self.payload.message_id,
                 "state": self.payload.state.name,
             }
             if self.payload.display:
@@ -180,6 +182,7 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_PART,
             payload=ChatStreamMessagePayload(
                 chat_id=chat_id,
+                message_id=db_assistant_message.id,
                 state=ChatMessageSate.TRACE,
                 display="Start chatting",
                 context={"langfuse_url": trace_url},
@@ -191,6 +194,7 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_PART,
             payload=ChatStreamMessagePayload(
                 chat_id=chat_id,
+                message_id=db_assistant_message.id,
                 state=ChatMessageSate.KG_RETRIEVAL,
                 display="Start knowledge graph searching ...",
             ),
@@ -215,6 +219,7 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_PART,
             payload=ChatStreamMessagePayload(
                 chat_id=chat_id,
+                message_id=db_assistant_message.id,
                 state=ChatMessageSate.REFINE_QUESTION,
                 display="Refine the user question ...",
             ),
@@ -243,6 +248,7 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_PART,
             payload=ChatStreamMessagePayload(
                 chat_id=chat_id,
+                message_id=db_assistant_message.id,
                 state=ChatMessageSate.SEARCH_RELATED_DOCUMENTS,
                 display="Search related documents ...",
             ),
@@ -277,6 +283,7 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_PART,
             payload=ChatStreamMessagePayload(
                 chat_id=chat_id,
+                message_id=db_assistant_message.id,
                 state=ChatMessageSate.SOURCE_NODES,
                 context=source_documents,
             ),
@@ -300,6 +307,7 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_PART,
             payload=ChatStreamMessagePayload(
                 chat_id=chat_id,
+                message_id=db_assistant_message.id,
                 state=ChatMessageSate.FINISHED,
             ),
         )

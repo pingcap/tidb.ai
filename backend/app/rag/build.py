@@ -2,9 +2,8 @@ import logging
 
 import dspy
 from llama_index.core import VectorStoreIndex
-from llama_index.core.base.llms.base import BaseLLM
+from llama_index.core.llms.llm import LLM
 from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
-from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.extractors import (
     SummaryExtractor,
     KeywordExtractor,
@@ -14,6 +13,7 @@ from sqlmodel import Session, select
 
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.knowledge_graph import KnowledgeGraphIndex
+from app.rag.node_parser import MarkdownNodeParser
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.models import (
     Document as DBDocument,
@@ -30,13 +30,13 @@ class BuildService:
 
     def __init__(
         self,
-        llm: BaseLLM,
-        dspy_llm: dspy.LM,
+        llm: LLM,
+        dspy_lm: dspy.LM,
     ):
         self._llm = llm
-        self._dspy_llm = dspy_llm
+        self._dspy_lm = dspy_lm
         self._transformations = [
-            SentenceSplitter(),
+            MarkdownNodeParser(),
             SummaryExtractor(llm=llm),
             KeywordExtractor(llm=llm),
             QuestionsAnsweredExtractor(llm=llm),
@@ -45,7 +45,9 @@ class BuildService:
             model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL
         )
 
-    def build_from_document(self, session: Session, db_document: DBDocument):
+    def build_vector_index_from_document(
+        self, session: Session, db_document: DBDocument
+    ):
         """
         Build vector index and graph index from document.
         """
@@ -64,22 +66,21 @@ class BuildService:
         logger.info(f"Start building index for document {document.doc_id}")
         vector_index.insert(document, source_uri=db_document.source_uri)
         logger.info(f"Finish building vecter index for document {document.doc_id}")
+        return
 
+    def build_kg_index_from_chunk(self, session: Session, db_chunk: DBChunk):
         # Build graph index will do the following:
         # 1. load TextNode from `chunks` table.
         # 2. extract entities and relations from TextNode.
         # 3. insert entities and relations into `entities` and `relations` table.
         graph_store = TiDBGraphStore(
-            dspy_lm=self._dspy_llm, embed_model=self._embed_model
+            dspy_lm=self._dspy_lm, embed_model=self._embed_model
         )
         graph_index = KnowledgeGraphIndex.from_existing(
-            dspy_lm=self._dspy_llm, kg_store=graph_store
+            dspy_lm=self._dspy_lm, kg_store=graph_store
         )
-        db_chunks = session.exec(
-            select(DBChunk).where(DBChunk.document_id == db_document.id)
-        ).all()
-        for chunk in db_chunks:
-            node = chunk.to_llama_text_node()
-            logger.info(f"Start building graph index for chunk {chunk.id}")
-            graph_index.insert_nodes([node])
-            logger.info(f"Finish building graph index for chunk {chunk.id}")
+        node = db_chunk.to_llama_text_node()
+        logger.info(f"Start building graph index for chunk {db_chunk.id}")
+        graph_index.insert_nodes([node])
+        logger.info(f"Finish building graph index for chunk {db_chunk.id}")
+        return

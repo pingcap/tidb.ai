@@ -25,8 +25,8 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
         # Don't need to configure the api_key again,
         # it has already been configured as `genai` by the llama_llm.
         return dspy.Google(
-            model=llama_llm.model,
-            max_tokens=llama_llm.max_tokens,
+            model=llama_llm.model.split("models/")[1],
+            max_output_tokens=llama_llm.max_tokens,
         )
     else:
         raise ValueError(f"Got unknown LLM provider: {llama_llm.__class__.__name__}")

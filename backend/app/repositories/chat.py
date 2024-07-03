@@ -60,6 +60,18 @@ class ChatRepo(BaseRepo):
             .order_by(ChatMessage.ordinal.asc())
         ).all()
 
+    def get_message(
+        self,
+        session: Session,
+        chat_message_id: int,
+    ) -> Optional[ChatMessage]:
+        return session.exec(
+            select(ChatMessage).where(
+                ChatMessage.id == chat_message_id,
+                ChatMessage.chat.has(Chat.deleted_at == None),
+            )
+        ).first()
+
     def create_message(
         self,
         session: Session,

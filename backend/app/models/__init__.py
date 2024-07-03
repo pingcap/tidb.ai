@@ -8,15 +8,14 @@ from .knowledge_graph import (
 )
 from .feedback import (
     Feedback,
-    FeedbackCreate,
     FeedbackType,
 )
 from .staff_action_log import StaffActionLog
 from .chat_engine import ChatEngine
 from .chat import Chat
 from .chat_message import ChatMessage
-from .document import Document
-from .chunk import Chunk
+from .document import Document, DocIndexTaskStatus
+from .chunk import Chunk, KgIndexStatus
 from .option import Option
 from .auth import User, UserSession
 from .api_key import ApiKey

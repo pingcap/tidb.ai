@@ -56,22 +56,27 @@ def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest)
         )
     else:
         trace, sources, content = None, [], ""
+        chat_id, message_id = None, None
         for m in chat_svc.chat(chat_request.messages, chat_request.chat_id):
             if m.event_type == ChatEventType.MESSAGE_PART:
                 if m.payload.state == ChatMessageSate.SOURCE_NODES:
                     sources = m.payload.context
                 elif m.payload.state == ChatMessageSate.TRACE:
                     trace = m.payload.context
+                    chat_id = m.payload.chat_id
+                    message_id = m.payload.message_id
             elif m.event_type == ChatEventType.TEXT_PART:
                 content += m.payload
             elif m.event_type == ChatEventType.ERROR_PART:
                 raise HTTPException(
                     status_code=HTTPStatus.BAD_REQUEST,
-                    detail="Error in chat engine",
+                    detail=m.payload,
                 )
             else:
                 pass
         return {
+            "chat_id": chat_id,
+            "message_id": message_id,
             "trace": trace,
             "sources": sources,
             "content": content,

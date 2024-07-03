@@ -1,3 +1,4 @@
+import enum
 from typing import Any
 
 from sqlmodel import (
@@ -11,6 +12,14 @@ from tidb_vector.sqlalchemy import VectorType
 from llama_index.core.schema import TextNode
 
 from .base import UpdatableBaseModel, UUIDBaseModel
+
+
+class KgIndexStatus(str, enum.Enum):
+    NOT_STARTED = "not_started"
+    PENDING = "pending"
+    RUNNING = "running"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 class Chunk(UUIDBaseModel, UpdatableBaseModel, table=True):
@@ -27,6 +36,8 @@ class Chunk(UUIDBaseModel, UpdatableBaseModel, table=True):
     )
     relations: dict | list = Field(default={}, sa_column=Column(JSON))
     source_uri: str = Field(max_length=512, nullable=True)
+    index_status: KgIndexStatus = KgIndexStatus.NOT_STARTED
+    index_result: str = Field(sa_column=Column(Text, nullable=True))
 
     __tablename__ = "chunks"
 

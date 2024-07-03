@@ -9,4 +9,9 @@ app = Celery(
     backend=settings.CELERY_RESULT_BACKEND,
 )
 
+app.conf.update(
+    task_acks_late=True,
+    task_reject_on_worker_lost=True,
+)
+
 app.autodiscover_tasks(["app"])

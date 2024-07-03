@@ -156,7 +156,9 @@ class TiDBGraphStore(KnowledgeGraphStore):
                     relationship_desc=row["relationship_desc"],
                 ),
                 relationship_meatadata=row["meta"],
+                commit=False,
             )
+        self._session.commit()
 
     def create_relationship(
         self,

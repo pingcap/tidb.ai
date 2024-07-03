@@ -14,8 +14,8 @@ class OpenAIModel(str, enum.Enum):
 
 
 class GeminiModel(str, enum.Enum):
-    GEMINI_15_FLASH = "gemini-1.5-flash"
-    GEMINI_15_PRO = "gemini-1.5-pro"
+    GEMINI_15_FLASH = "models/gemini-1.5-flash"
+    GEMINI_15_PRO = "models/gemini-1.5-pro"
 
 
 class EmbeddingProvider(str, enum.Enum):

@@ -10,7 +10,7 @@ from llama_index.core.utils import get_tqdm_iterable
 
 
 class MarkdownNodeParser(NodeParser):
-    """Markdown node pa=rser.
+    """Markdown node parser.
 
     Splits a document into Nodes using custom Markdown splitting logic.
 
@@ -18,7 +18,6 @@ class MarkdownNodeParser(NodeParser):
         include_metadata (bool): whether to include metadata in nodes
         include_prev_next_rel (bool): whether to include prev/next relationships
         chunk_header_level (int): The header level to split on
-
     """
 
     chunk_header_level: int = Field(
