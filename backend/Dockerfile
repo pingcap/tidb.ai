@@ -1,17 +1,18 @@
-FROM python:3.11.9-slim
+FROM tiangolo/uvicorn-gunicorn-fastapi:python3.11-slim
+
+WORKDIR /app/
 
 RUN apt-get update && apt-get install -y supervisor
-
-WORKDIR /app
 
 COPY requirements.lock /app/requirements.lock
 RUN PYTHONDONTWRITEBYTECODE=1 pip install --no-cache-dir -r /app/requirements.lock
 
-COPY . /app/
 COPY supervisord.conf /usr/etc/supervisord.conf
 
-ENV PYTHONPATH /app
 
-EXPOSE 5000
+# Copy poetry.lock* in case it doesn't exist in the repo
+COPY ./pyproject.toml ./poetry.lock* /app/
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "5000"]
+ENV PYTHONPATH=/app
+
+COPY . /app/

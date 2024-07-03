@@ -64,6 +64,11 @@ def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest)
                     trace = m.payload.context
             elif m.event_type == ChatEventType.TEXT_PART:
                 content += m.payload
+            elif m.event_type == ChatEventType.ERROR_PART:
+                raise HTTPException(
+                    status_code=HTTPStatus.BAD_REQUEST,
+                    detail="Error in chat engine",
+                )
             else:
                 pass
         return {

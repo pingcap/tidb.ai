@@ -101,6 +101,7 @@ class ChatService:
                     event_type=ChatEventType.ERROR_PART,
                     payload="Chat not found",
                 )
+                return
             chat_history = [
                 ChatMessage(role=m.role, content=m.content, additional_kwargs={})
                 for m in chat_repo.get_messages(self.db_session, self.db_chat_obj)

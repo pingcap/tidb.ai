@@ -83,7 +83,7 @@ async def current_user(
     user = await api_key_manager.get_active_user_from_request(session, request)
     if not user:
         raise HTTPException(status_code=HTTPStatus.UNAUTHORIZED)
-    return None
+    return user
 
 
 async def current_superuser(
