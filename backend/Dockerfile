@@ -9,10 +9,6 @@ RUN PYTHONDONTWRITEBYTECODE=1 pip install --no-cache-dir -r /app/requirements.lo
 
 COPY supervisord.conf /usr/etc/supervisord.conf
 
-
-# Copy poetry.lock* in case it doesn't exist in the repo
-COPY ./pyproject.toml ./poetry.lock* /app/
-
 ENV PYTHONPATH=/app
 
 COPY . /app/
