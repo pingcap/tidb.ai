@@ -242,7 +242,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
                 f"{r.source_entity} -> {r.relationship_desc} -> {r.target_entity}"
             )
             logging.info(f"Searching for: {sub_query}")
-            entities, relationships = self._kg_store.retrieve_with_weight(
+            entities, relationships, _ = self._kg_store.retrieve_with_weight(
                 sub_query, [], depth, include_meta, with_chunks=False
             )
             result["queries"][sub_query] = {
@@ -252,7 +252,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
             all_entities.extend(entities)
             add_relationships(relationships)
 
-        entities, relationships = self._kg_store.retrieve_with_weight(
+        entities, relationships, _ = self._kg_store.retrieve_with_weight(
             sub_query, [], depth, include_meta, with_chunks=False
         )
         result["queries"][query] = {

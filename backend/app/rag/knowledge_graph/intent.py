@@ -4,8 +4,7 @@ from dspy.functional import TypedChainOfThought
 from typing import List, Optional
 from pydantic import BaseModel, Field
 
-from app.knowledge_graph.model import Relationship
-from app.core.settings import COMPLIED_INTENT_ANALYSIS_PROGRAM_PATH
+from app.rag.knowledge_graph.schema import Relationship
 
 logger = logging.getLogger(__name__)
 
