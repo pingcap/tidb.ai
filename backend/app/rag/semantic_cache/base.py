@@ -127,21 +127,21 @@ class SemanticCacheManager:
         if commit:
             self._session.commit()
 
-    def search(self, query: str) -> QASemanticOutput:
+    def search(self, query: str, namespace: Optional[str] = None) -> QASemanticOutput:
         embedding = self.get_query_embedding(query)
         sql = (
             select(
                 SemanticCache,
                 SemanticCache.query_vec.cosine_distance(embedding).label("distance"),
             )
-            .where(
-                func.json_extract(SemanticCache.meta, "$.namespace")
-                == "jira_tidbcloud_serverless_ticket"
-            )
             .having(SemanticCache.query_vec.cosine_distance(embedding) < 0.5)
             .order_by("distance")
             .limit(20)
         )
+        if namespace:
+            sql = sql.where(
+                func.json_extract(SemanticCache.meta, "$.namespace") == namespace
+            )
 
         results = self._session.execute(sql).all()
         candidates = QASet(
