@@ -26,6 +26,7 @@ class ChatRepo(BaseRepo):
         else:
             # Anonymouse user can't list chats
             query = query.where(False)
+        query = query.order_by(Chat.created_at.desc())
         return paginate(session, query, params)
 
     def get(

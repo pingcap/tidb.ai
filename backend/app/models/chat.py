@@ -22,7 +22,8 @@ class Chat(UUIDBaseModel, UpdatableBaseModel, table=True):
             "primaryjoin": "Chat.engine_id == ChatEngine.id",
         },
     )
-    engine_options: Dict = Field(default={}, sa_column=Column(JSON))
+    # FIXME: why fastapi_pagination return string(json) instead of dict?
+    engine_options: Dict | str = Field(default={}, sa_column=Column(JSON))
     deleted_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime))
     user_id: UUID = Field(foreign_key="users.id", nullable=True)
     user: "User" = SQLRelationship(
