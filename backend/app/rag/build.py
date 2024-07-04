@@ -4,12 +4,13 @@ import dspy
 from llama_index.core import VectorStoreIndex
 from llama_index.core.llms.llm import LLM
 from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
+from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.extractors import (
     SummaryExtractor,
     KeywordExtractor,
     QuestionsAnsweredExtractor,
 )
-from sqlmodel import Session, select
+from sqlmodel import Session
 
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.knowledge_graph import KnowledgeGraphIndex
@@ -37,6 +38,7 @@ class BuildService:
         self._dspy_lm = dspy_lm
         self._transformations = [
             MarkdownNodeParser(),
+            # SentenceSplitter(),
             SummaryExtractor(llm=llm),
             KeywordExtractor(llm=llm),
             QuestionsAnsweredExtractor(llm=llm),

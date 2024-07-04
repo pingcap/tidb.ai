@@ -93,6 +93,7 @@ class MarkdownNodeParser(NodeParser):
         metadata: Dict[str, str] = {}
         code_block = False
         current_section = ""
+        first_header = True
 
         for line in lines:
             if line.lstrip().startswith("```"):
@@ -101,17 +102,23 @@ class MarkdownNodeParser(NodeParser):
                 r"^(#{1," + str(self.chunk_header_level) + "})\s(.*)", line
             )
             if header_match and not code_block:
-                if current_section != "":
-                    markdown_nodes.append(
-                        self._build_node_from_split(
-                            current_section.strip(), node, metadata
+                header = f"{header_match.group(1)} {header_match.group(2)}\n"
+                if first_header:
+                    # If this is the first header, add it to the current section,
+                    # do not create a new node
+                    first_header = False
+                    current_section += header
+                else:
+                    if current_section != "":
+                        markdown_nodes.append(
+                            self._build_node_from_split(
+                                current_section.strip(), node, metadata
+                            )
                         )
+                    metadata = self._update_metadata(
+                        metadata, header_match.group(2), len(header_match.group(1).strip())
                     )
-                metadata = self._update_metadata(
-                    metadata, header_match.group(2), len(header_match.group(1).strip())
-                )
-                header_prefix = "#" * self.chunk_header_level
-                current_section = f"{header_prefix} {header_match.group(2)}\n"
+                    current_section = header
             else:
                 current_section += line + "\n"
 

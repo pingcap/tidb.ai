@@ -242,7 +242,7 @@ def upgrade():
         sa.Column(
             "trace_url", sqlmodel.sql.sqltypes.AutoString(length=512), nullable=True
         ),
-        sa.Column("finshed_at", sa.DateTime(), nullable=True),
+        sa.Column("finished_at", sa.DateTime(), nullable=True),
         sa.Column("chat_id", sqlmodel.sql.sqltypes.GUID(), nullable=False),
         sa.ForeignKeyConstraint(
             ["chat_id"],

@@ -38,7 +38,7 @@ class ChatRequest(BaseModel):
         for m in messages:
             if m.role not in [MessageRole.USER, MessageRole.ASSISTANT]:
                 raise ValueError("role must be either 'user' or 'assistant'")
-            if len(m.content) > 1000:
+            if len(m.content) > 10000:
                 raise ValueError("message content cannot exceed 1000 characters")
         if messages[-1].role != MessageRole.USER:
             raise ValueError("last message must be from user")
@@ -53,6 +53,9 @@ def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest)
         return StreamingResponse(
             chat_svc.chat(chat_request.messages, chat_request.chat_id),
             media_type="text/event-stream",
+            headers={
+                "X-Content-Type-Options": "nosniff",
+            }
         )
     else:
         trace, sources, content = None, [], ""

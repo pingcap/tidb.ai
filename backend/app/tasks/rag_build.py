@@ -68,6 +68,7 @@ def build_vector_index_from_document(document_id: int):
         logger.info(f"Document {document_id} indexed successfully")
 
 
+@celery_app.task
 def build_kg_index_from_chunk(chunk_id: UUID):
     with Session(engine) as session:
         db_chunk = session.get(DBChunk, chunk_id)

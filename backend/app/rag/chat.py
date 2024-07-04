@@ -68,6 +68,7 @@ class ChatEvent:
                 body["display"] = self.payload.display
             if self.payload.context:
                 body["context"] = self.payload.context
+            body = [body]
 
         body = json.dumps(body, separators=(",", ":"))
         return f"{self.event_type.value}: {body}\n".encode(charset)
@@ -299,7 +300,7 @@ class ChatService:
 
         db_assistant_message.sources = source_documents
         db_assistant_message.content = response_text
-        db_assistant_message.finshed_at = datetime.now(UTC)
+        db_assistant_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_assistant_message)
         self.db_session.commit()
 

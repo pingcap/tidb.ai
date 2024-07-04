@@ -26,8 +26,6 @@ anyio==4.4.0
     # via openai
     # via starlette
     # via watchfiles
-appnope==0.1.4
-    # via ipykernel
 argon2-cffi==23.1.0
     # via pwdlib
 argon2-cffi-bindings==21.2.0
