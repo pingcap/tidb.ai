@@ -112,7 +112,6 @@ class SemanticCacheManager:
         self,
         candidates: List[QA],
         namespace: str,
-        commit: bool = True,
     ):
         for qa in candidates:
             object = SemanticCache(
@@ -124,8 +123,7 @@ class SemanticCacheManager:
             )
             self._session.add(object)
 
-        if commit:
-            self._session.commit()
+        self._session.commit()
 
     def search(self, query: str, namespace: Optional[str] = None) -> QASemanticOutput:
         embedding = self.get_query_embedding(query)
