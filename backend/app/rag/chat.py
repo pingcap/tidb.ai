@@ -98,6 +98,9 @@ class ChatService:
         user_question, chat_history = self._parse_chat_messages(chat_messages)
 
         if chat_id:
+            # FIXME:
+            #   only chat owner or superuser can access the chat,
+            #   anonymous user can only access anonymous chat by track_id
             self.db_chat_obj = chat_repo.get(self.db_session, chat_id)
             if not self.db_chat_obj:
                 yield ChatEvent(
@@ -116,7 +119,7 @@ class ChatService:
                     title=user_question[:100],
                     engine_id=self.db_chat_engine.id,
                     engine_options=self.chat_engine_config.screenshot(),
-                    user_id=self.user.id,
+                    user_id=self.user.id if self.user else None,
                 ),
             )
             chat_id = self.db_chat_obj.id

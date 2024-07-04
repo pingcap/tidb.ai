@@ -14,7 +14,9 @@ class FeedbackRequest(BaseModel):
     comment: str
 
 
-@router.post("/chat-messages/{chat_message_id}/feedback", status_code=HTTPStatus.CREATED)
+@router.post(
+    "/chat-messages/{chat_message_id}/feedback", status_code=HTTPStatus.CREATED
+)
 def feedback(
     session: SessionDep,
     user: OptionalUserDep,

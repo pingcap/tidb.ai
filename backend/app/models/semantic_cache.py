@@ -12,6 +12,7 @@ from sqlmodel import (
 )
 from tidb_vector.sqlalchemy import VectorType
 
+
 class SemanticCache(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     query: str = Field(sa_column=Column(Text))

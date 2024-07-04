@@ -55,7 +55,7 @@ def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest)
             media_type="text/event-stream",
             headers={
                 "X-Content-Type-Options": "nosniff",
-            }
+            },
         )
     else:
         trace, sources, content = None, [], ""
@@ -98,13 +98,14 @@ def get_chat(session: SessionDep, user: OptionalUserDep, chat_id: UUID):
     chat = chat_repo.get(session, chat_id)
     if not chat:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Chat not found")
-    if not chat.user_id or user.is_superuser or chat.user_id == user.id:
-        return {
-            "chat": chat,
-            "messages": chat_repo.get_messages(session, chat),
-        }
-    else:
+
+    if chat.user_id and not (user and (user.is_superuser or chat.user_id == user.id)):
         raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Access denied")
+
+    return {
+        "chat": chat,
+        "messages": chat_repo.get_messages(session, chat),
+    }
 
 
 @router.delete("/chats/{chat_id}")

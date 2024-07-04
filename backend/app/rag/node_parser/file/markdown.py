@@ -116,7 +116,9 @@ class MarkdownNodeParser(NodeParser):
                             )
                         )
                     metadata = self._update_metadata(
-                        metadata, header_match.group(2), len(header_match.group(1).strip())
+                        metadata,
+                        header_match.group(2),
+                        len(header_match.group(1).strip()),
                     )
                     current_section = header
             else:

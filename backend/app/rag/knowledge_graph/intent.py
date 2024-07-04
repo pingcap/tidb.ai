@@ -65,7 +65,7 @@ class DecomposeQueryModule(dspy.Module):
 
 
 class IntentAnalyzer:
-    def __init__(self,  dspy_lm: dspy.LM, complied_program_path: Optional[str] = None):
+    def __init__(self, dspy_lm: dspy.LM, complied_program_path: Optional[str] = None):
         self.intent_anlysis_prog = DecomposeQueryModule(dspy_lm=dspy_lm)
         if complied_program_path is not None:
             self.intent_anlysis_prog.load(complied_program_path)
