@@ -45,9 +45,9 @@ class Settings(BaseSettings):
             return f"http://{self.DOMAIN}"
         return f"https://{self.DOMAIN}"
 
-    BACKEND_CORS_ORIGINS: Annotated[
-        list[AnyUrl] | str, BeforeValidator(parse_cors)
-    ] = []
+    BACKEND_CORS_ORIGINS: Annotated[list[AnyUrl] | str, BeforeValidator(parse_cors)] = (
+        []
+    )
 
     PROJECT_NAME: str = "TiDB.AI"
     SENTRY_DSN: HttpUrl | None = None
@@ -66,6 +66,8 @@ class Settings(BaseSettings):
     TIDB_AI_API_KEY: SecretStr | None = None
     OPENAI_API_KEY: SecretStr | None = None
     OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
+
+    COMPLIED_INTENT_ANALYSIS_PROGRAM_PATH: str = None
 
     @computed_field  # type: ignore[misc]
     @property

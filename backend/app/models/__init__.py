@@ -10,6 +10,7 @@ from .feedback import (
     Feedback,
     FeedbackType,
 )
+from .semantic_cache import SemanticCache
 from .staff_action_log import StaffActionLog
 from .chat_engine import ChatEngine
 from .chat import Chat

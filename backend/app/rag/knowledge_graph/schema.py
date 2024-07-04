@@ -70,6 +70,16 @@ class Relationship(BaseModel):
     )
 
 
+class RelationshipReasoning(Relationship):
+    """Relationship between two entities extracted from the query"""
+
+    reasoning: str = Field(
+        description=(
+            "Category reasoning for the relationship, e.g., 'the main conerns of the user', 'the problem the user is facing', 'the user case scenario', etc."
+        )
+    )
+
+
 class KnowledgeGraph(BaseModel):
     """Graph representation of the knowledge for text."""
 
@@ -97,4 +107,12 @@ class EntityCovariateOutput(BaseModel):
         description=(
             "The attributes (which is a comprehensive json TREE, the first field is always: 'topic') to claim the entity. "
         )
+    )
+
+
+class DecomposedFactors(BaseModel):
+    """Decomposed factors extracted from the query to form the knowledge graph"""
+
+    relationships: List[RelationshipReasoning] = Field(
+        description="List of relationships to represent critical concepts and their relationships extracted from the query."
     )

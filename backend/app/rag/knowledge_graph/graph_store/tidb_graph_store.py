@@ -307,6 +307,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         depth: int = 2,
         include_meta: bool = False,
         with_degree: bool = False,
+        with_chunks: bool = True,
         # experimental feature to filter relationships based on meta, can be removed in the future
         relationship_meta_filters: Dict = {},
     ) -> Tuple[list, list, list]:
@@ -404,15 +405,19 @@ class TiDBGraphStore(KnowledgeGraphStore):
             }
             for r in all_relationships
         ]
-        chunks = [
-            # TODO: add last_modified_at
-            {"text": c[0], "link": c[1], "meta": c[2]}
-            for c in self._session.exec(
-                select(DBChunk.text, DBChunk.document_id, DBChunk.meta).where(
-                    DBChunk.id.in_(related_doc_ids)
-                )
-            ).all()
-        ]
+
+        chunks = []
+        if with_chunks:
+            chunks = [
+                # TODO: add last_modified_at
+                {"text": c[0], "link": c[1], "meta": c[2]}
+                for c in self._session.exec(
+                    select(DBChunk.text, DBChunk.document_id, DBChunk.meta).where(
+                        DBChunk.id.in_(related_doc_ids)
+                    )
+                ).all()
+            ]
+
         return entities, relationships, chunks
 
     # Function to fetch degrees for entities
