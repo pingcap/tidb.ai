@@ -182,6 +182,11 @@ class ChatService:
             Settings.callback_manager = CallbackManager([langfuse_handler])
             self._llm.callback_manager = Settings.callback_manager
 
+        # Frontend requires the empty event to start the chat
+        yield ChatEvent(
+            event_type=ChatEventType.TEXT_PART,
+            payload="",
+        )
         yield ChatEvent(
             event_type=ChatEventType.MESSAGE_PART,
             payload=ChatStreamMessagePayload(
@@ -270,6 +275,7 @@ class ChatService:
             streaming=True,
             text_qa_template=text_qa_template,
             refine_template=refine_template,
+            similarity_top_k=100,
         )
         response: StreamingResponse = query_engine.query(refined_question)
         source_documents = self._get_source_documents(response)

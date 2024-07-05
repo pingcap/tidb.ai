@@ -75,7 +75,7 @@ class ChatEventType(int, enum.Enum):
     MESSAGE_PART = 8
 
 
-class ChatMessageSate(str, enum.Enum):
+class ChatMessageSate(int, enum.Enum):
     TRACE = 0
     SOURCE_NODES = 1
     KG_RETRIEVAL = 2
