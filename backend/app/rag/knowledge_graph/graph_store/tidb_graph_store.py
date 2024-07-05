@@ -99,13 +99,13 @@ class TiDBGraphStore(KnowledgeGraphStore):
 
         if (
             self._session.exec(
-                select(DBRelationship)
-                .where(DBRelationship.meta["chunk_id"] == chunk_id)
-            ).first() is not None
+                select(DBRelationship).where(
+                    DBRelationship.meta["chunk_id"] == chunk_id
+                )
+            ).first()
+            is not None
         ):
-            logger.info(
-                f"{chunk_id} already exists in the relationship table, skip."
-            )
+            logger.info(f"{chunk_id} already exists in the relationship table, skip.")
             return
 
         entities_name_map = defaultdict(list)
