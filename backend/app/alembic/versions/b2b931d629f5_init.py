@@ -81,8 +81,18 @@ def upgrade():
         ),
         sa.Column("synopsis_info", sa.JSON(), nullable=True),
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("description_vec", VectorType(dim=1536), nullable=True, comment="hnsw(distance=cosine)"),
-        sa.Column("meta_vec", VectorType(dim=1536), nullable=True, comment="hnsw(distance=cosine)"),
+        sa.Column(
+            "description_vec",
+            VectorType(dim=1536),
+            nullable=True,
+            comment="hnsw(distance=cosine)",
+        ),
+        sa.Column(
+            "meta_vec",
+            VectorType(dim=1536),
+            nullable=True,
+            comment="hnsw(distance=cosine)",
+        ),
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
@@ -191,7 +201,12 @@ def upgrade():
         sa.Column("hash", sqlmodel.sql.sqltypes.AutoString(length=64), nullable=False),
         sa.Column("text", sa.Text(), nullable=True),
         sa.Column("meta", sa.JSON(), nullable=True),
-        sa.Column("embedding", VectorType(dim=1536), nullable=True, comment="hnsw(distance=cosine)"),
+        sa.Column(
+            "embedding",
+            VectorType(dim=1536),
+            nullable=True,
+            comment="hnsw(distance=cosine)",
+        ),
         sa.Column("document_id", sa.Integer(), nullable=True),
         sa.ForeignKeyConstraint(
             ["document_id"],
@@ -209,7 +224,12 @@ def upgrade():
         sa.Column("target_entity_id", sa.Integer(), nullable=False),
         sa.Column("last_modified_at", sa.DateTime(), nullable=True),
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("description_vec", VectorType(dim=1536), nullable=True, comment="hnsw(distance=cosine)"),
+        sa.Column(
+            "description_vec",
+            VectorType(dim=1536),
+            nullable=True,
+            comment="hnsw(distance=cosine)",
+        ),
         sa.ForeignKeyConstraint(
             ["source_entity_id"],
             ["entities.id"],
