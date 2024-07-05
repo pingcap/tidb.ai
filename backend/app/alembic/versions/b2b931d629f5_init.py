@@ -112,7 +112,7 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column(
             "feedback_type",
-            sa.Enum("like", "dislike", name="feedbacktype"),
+            sa.Enum("LIKE", "DISLIKE", name="feedbacktype"),
             nullable=False,
         ),
         sa.Column("query", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
