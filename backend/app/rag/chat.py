@@ -188,21 +188,12 @@ class ChatService:
                 chat_id=chat_id,
                 message_id=db_assistant_message.id,
                 state=ChatMessageSate.TRACE,
-                display="Start chatting",
+                display="Start knowledge graph searching ...",
                 context={"langfuse_url": trace_url},
             ),
         )
 
         # 1. Retrieve entities, relations, and chunks from the knowledge graph
-        yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_PART,
-            payload=ChatStreamMessagePayload(
-                chat_id=chat_id,
-                message_id=db_assistant_message.id,
-                state=ChatMessageSate.KG_RETRIEVAL,
-                display="Start knowledge graph searching ...",
-            ),
-        )
         _set_langfuse_callback_manager()
         graph_store = TiDBGraphStore(
             dspy_lm=self._dspy_lm,

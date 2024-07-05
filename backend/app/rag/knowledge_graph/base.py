@@ -123,7 +123,8 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
         extractor = SimpleGraphExtractor(dspy_lm=self._dspy_lm)
         for node in nodes:
             entities_df, rel_df = extractor.extract(
-                text=node.get_content(), doc_id=node.node_id
+                text=node.get_content(),
+                node=node,
             )
             self._kg_store.save(node.node_id, entities_df, rel_df)
 

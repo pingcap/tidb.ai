@@ -68,6 +68,7 @@ class BuildService:
         logger.info(f"Start building index for document {document.doc_id}")
         vector_index.insert(document, source_uri=db_document.source_uri)
         logger.info(f"Finish building vecter index for document {document.doc_id}")
+        vector_store.close_session()
         return
 
     def build_kg_index_from_chunk(self, session: Session, db_chunk: DBChunk):
@@ -76,13 +77,14 @@ class BuildService:
         # 2. extract entities and relations from TextNode.
         # 3. insert entities and relations into `entities` and `relations` table.
         graph_store = TiDBGraphStore(
-            dspy_lm=self._dspy_lm, embed_model=self._embed_model
+            session=session, dspy_lm=self._dspy_lm, embed_model=self._embed_model
         )
-        graph_index = KnowledgeGraphIndex.from_existing(
+        graph_index: KnowledgeGraphIndex = KnowledgeGraphIndex.from_existing(
             dspy_lm=self._dspy_lm, kg_store=graph_store
         )
         node = db_chunk.to_llama_text_node()
         logger.info(f"Start building graph index for chunk {db_chunk.id}")
         graph_index.insert_nodes([node])
         logger.info(f"Finish building graph index for chunk {db_chunk.id}")
+        graph_store.close_session()
         return

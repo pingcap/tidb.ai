@@ -90,7 +90,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         if self._owns_session:
             self._session.close()
 
-    def save(self, doc_id, entities_df, relationships_df):
+    def save(self, chunk_id, entities_df, relationships_df):
         if entities_df.empty or relationships_df.empty:
             logger.info(
                 "Entities or relationships are empty, skip saving to the database"
@@ -98,13 +98,13 @@ class TiDBGraphStore(KnowledgeGraphStore):
             return
 
         if (
-            self._session.query(DBRelationship)
-            .filter(DBRelationship.meta["doc_id"] == doc_id)
-            .first()
-            is not None
+            self._session.exec(
+                select(DBRelationship)
+                .where(DBRelationship.meta["chunk_id"] == chunk_id)
+            ).first() is not None
         ):
             logger.info(
-                f"Document with uri: {doc_id} already exists in the database, skip saving to the database"
+                f"{chunk_id} already exists in the relationship table, skip."
             )
             return
 
@@ -268,6 +268,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         return db_obj
 
     def _try_merge_entities(self, entities: List[Entity]) -> Entity:
+        logger.info(f"Trying to merge entities: {entities[0].name}")
         with dspy.settings.context(lm=self._dspy_lm):
             pred = self.merge_entities_prog(entities=entities)
             return pred.merged_entity

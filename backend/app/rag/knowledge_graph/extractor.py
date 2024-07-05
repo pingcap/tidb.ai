@@ -1,8 +1,10 @@
 import logging
+from copy import deepcopy
 import pandas as pd
 import dspy
 from dspy.functional import TypedPredictor
 from typing import Mapping, Optional, List
+from llama_index.core.schema import BaseNode
 
 from app.rag.knowledge_graph.schema import (
     Entity,
@@ -74,6 +76,20 @@ class ExtractCovariate(dspy.Signature):
     )
 
 
+def get_relation_metadata_from_node(node: BaseNode):
+    metadata = deepcopy(node.metadata)
+    for key in [
+        "_node_content",
+        "_node_type",
+        "excerpt_keywords",
+        "questions_this_excerpt_can_answer",
+        "section_summary",
+    ]:
+        metadata.pop(key, None)
+    metadata["chunk_id"] = node.node_id
+    return metadata
+
+
 class Extractor(dspy.Module):
     def __init__(self, dspy_lm: dspy.LM):
         super().__init__()
@@ -130,10 +146,11 @@ class SimpleGraphExtractor:
         if complied_extract_program_path is not None:
             self.extract_prog.load(complied_extract_program_path)
 
-    def extract(self, text: str, doc_id: str):
+    def extract(self, text: str, node: BaseNode):
         pred = self.extract_prog(text=text)
+        metadata = get_relation_metadata_from_node(node)
         return self._to_df(
-            pred.knowledge.entities, pred.knowledge.relationships, {"doc_id": doc_id}
+            pred.knowledge.entities, pred.knowledge.relationships, metadata
         )
 
     def _to_df(
