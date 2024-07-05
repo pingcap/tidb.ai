@@ -26,7 +26,9 @@ class Chunk(UUIDBaseModel, UpdatableBaseModel, table=True):
     hash: str = Field(max_length=64)
     text: str = Field(sa_column=Column(Text))
     meta: dict | list = Field(default={}, sa_column=Column(JSON))
-    embedding: Any = Field(sa_column=Column(VectorType(1536)))
+    embedding: Any = Field(
+        sa_column=Column(VectorType(1536), comment="hnsw(distance=cosine)")
+    )
     document_id: int = Field(foreign_key="documents.id", nullable=True)
     document: "Document" = SQLRelationship(
         sa_relationship_kwargs={

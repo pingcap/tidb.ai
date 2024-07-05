@@ -4,8 +4,6 @@ from typing import Optional
 from sqlmodel import (
     Field,
     Relationship as SQLRelationship,
-    Column,
-    String,
 )
 
 from app.models.base import UpdatableBaseModel

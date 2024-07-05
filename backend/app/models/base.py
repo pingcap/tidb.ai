@@ -2,7 +2,7 @@ from uuid import UUID
 from datetime import datetime
 from typing import Optional
 
-from sqlmodel import Field, Column, DateTime, func, SQLModel, text
+from sqlmodel import Field, DateTime, func, SQLModel, text
 
 from app.utils.uuid6 import uuid7
 
