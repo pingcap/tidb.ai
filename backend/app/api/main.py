@@ -10,7 +10,8 @@ from app.api.routes import (
 from app.api.admin_routes import (
     rag_index as admin_rag_index,
     chat_engine as admin_chat_engine,
-    documents as admin_documents,
+    document as admin_documents,
+    feedback as admin_feedback,
 )
 from app.auth.schemas import UserCreate, UserRead, UserUpdate
 from app.auth.users import auth_backend, fastapi_users
@@ -26,6 +27,7 @@ api_router.include_router(api_key.router, tags=["auth"])
 api_router.include_router(admin_rag_index.router, tags=["admin"])
 api_router.include_router(admin_chat_engine.router, tags=["admin"])
 api_router.include_router(admin_documents.router, tags=["admin"])
+api_router.include_router(admin_feedback.router, tags=["admin"])
 
 
 api_router.include_router(
