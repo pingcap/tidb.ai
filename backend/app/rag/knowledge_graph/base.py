@@ -149,6 +149,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
         depth: int = 2,
         include_meta: bool = False,
         with_degree: bool = False,
+        with_chunks: bool = False,
         # experimental feature to filter relationships based on meta, can be removed in the future
         relationship_meta_filters: Dict = {},
     ) -> Tuple[list, list, list]:
@@ -158,6 +159,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
             "depth": depth,
             "include_meta": include_meta,
             "with_degree": with_degree,
+            "with_chunks": with_chunks,
             "relationship_meta_filters": relationship_meta_filters,
         }
         with self._callback_manager.as_trace("retrieve_with_weight"):
@@ -171,6 +173,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
                     depth,
                     include_meta,
                     with_degree,
+                    with_chunks,
                     relationship_meta_filters,
                 )
                 event.on_end(

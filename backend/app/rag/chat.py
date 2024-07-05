@@ -1,7 +1,7 @@
 import json
 import logging
 from uuid import UUID
-from typing import List, Generator, Optional
+from typing import List, Generator, Optional, Tuple
 from dataclasses import dataclass
 from datetime import datetime, UTC
 
@@ -200,19 +200,28 @@ class ChatService:
 
         # 1. Retrieve entities, relations, and chunks from the knowledge graph
         _set_langfuse_callback_manager()
-        graph_store = TiDBGraphStore(
-            dspy_lm=self._dspy_lm,
-            session=self.db_session,
-            embed_model=self._embed_model,
-        )
-        graph_index: KnowledgeGraphIndex = KnowledgeGraphIndex.from_existing(
-            dspy_lm=self._dspy_lm,
-            kg_store=graph_store,
-            callback_manager=Settings.callback_manager,
-        )
-        entities, relations, chunks = graph_index.retrieve_with_weight(
-            user_question, [], include_meta=True
-        )
+        kg_config = self.chat_engine_config.knowledge_graph
+        if kg_config.enabled:
+            graph_store = TiDBGraphStore(
+                dspy_lm=self._dspy_lm,
+                session=self.db_session,
+                embed_model=self._embed_model,
+            )
+            graph_index: KnowledgeGraphIndex = KnowledgeGraphIndex.from_existing(
+                dspy_lm=self._dspy_lm,
+                kg_store=graph_store,
+                callback_manager=Settings.callback_manager,
+            )
+            entities, relations, chunks = graph_index.retrieve_with_weight(
+                user_question,
+                [],
+                depth=kg_config.depth,
+                include_meta=kg_config.include_meta,
+                with_degree=kg_config.with_degree,
+                with_chunks=False,
+            )
+        else:
+            entities, relations, chunks = [], [], []
 
         # 2. Refine the user question using graph information and chat history
         yield ChatEvent(
@@ -368,3 +377,39 @@ def get_prompt_by_jinja2_template(template_string: str, **kwargs) -> str:
         .replace("<<context_msg>>", "{context_msg}")
     )
     return PromptTemplate(template=template)
+
+
+def user_can_view_chat(chat: DBChat, user: Optional[User]) -> bool:
+    # Anonymous chat can be accessed by anyone
+    # Chat with owner can only be accessed by owner or superuser
+    if chat.user_id and not (user and (user.is_superuser or chat.user_id == user.id)):
+        return False
+    return True
+
+
+def get_chat_message_subgraph(
+    session: Session, chat_message: DBChatMessage
+) -> Tuple[List, List]:
+    if chat_message.role != MessageRole.USER:
+        return [], []
+
+    chat: DBChat = chat_message.chat
+    chat_engine_config = ChatEngineConfig.model_validate(
+        # FIXME: store engine_options as dict in the database
+        json.loads(chat.engine_options)
+    )
+    kg_config = chat_engine_config.knowledge_graph
+    graph_store = TiDBGraphStore(
+        dspy_lm=chat_engine_config.get_dspy_lm(),
+        session=session,
+        embed_model=chat_engine_config.get_embedding_model(),
+    )
+    entities, relations, _ = graph_store.retrieve_with_weight(
+        chat_message.content,
+        [],
+        depth=kg_config.depth,
+        include_meta=kg_config.include_meta,
+        with_degree=kg_config.with_degree,
+        with_chunks=False,
+    )
+    return entities, relations

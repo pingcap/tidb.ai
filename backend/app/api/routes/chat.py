@@ -13,7 +13,7 @@ from fastapi_pagination import Params, Page
 from app.api.deps import SessionDep, OptionalUserDep, CurrentUserDep
 from app.repositories import chat_repo
 from app.models import Chat
-from app.rag.chat import ChatService
+from app.rag.chat import ChatService, user_can_view_chat, get_chat_message_subgraph
 from app.rag.types import (
     MessageRole,
     ChatMessage,
@@ -99,7 +99,7 @@ def get_chat(session: SessionDep, user: OptionalUserDep, chat_id: UUID):
     if not chat:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Chat not found")
 
-    if chat.user_id and not (user and (user.is_superuser or chat.user_id == user.id)):
+    if not user_can_view_chat(chat, user):
         raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Access denied")
 
     return {
@@ -117,3 +117,25 @@ def delete_chat(session: SessionDep, user: CurrentUserDep, chat_id: UUID):
         return chat_repo.delete(session, chat)
     else:
         raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Access denied")
+
+
+class SubgraphResponse(BaseModel):
+    entities: List[dict]
+    relations: List[dict]
+
+
+@router.get(
+    "/chat-messages/{chat_message_id}/subgraph", response_model=SubgraphResponse
+)
+def get_chat_subgraph(session: SessionDep, user: OptionalUserDep, chat_message_id: int):
+    chat_message = chat_repo.get_message(session, chat_message_id)
+    if not chat_message:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail="Chat message not found"
+        )
+
+    if not user_can_view_chat(chat_message.chat, user):
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Access denied")
+
+    entities, relations = get_chat_message_subgraph(session, chat_message)
+    return SubgraphResponse(entities=entities, relations=relations)
