@@ -16,7 +16,7 @@ from app.evaluation.evaluators import LanguageEvaluator, ToxicityEvaluator
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_TIDB_AI_CHAT_ENGINE = "jira-bot"
+DEFAULT_TIDB_AI_CHAT_ENGINE = "default"
 
 
 class Evaluation:
@@ -40,7 +40,7 @@ class Evaluation:
         self,
         dataset_name: str,
         run_name: typing.Optional[str] = None,
-        llm_provider: str = "openai",
+        llm_provider: typing.Literal["openai", "gemini"] = "openai",
         tidb_ai_chat_engine: typing.Optional[str] = DEFAULT_TIDB_AI_CHAT_ENGINE,
     ) -> None:
         self.langfuse = Langfuse()
@@ -57,7 +57,7 @@ class Evaluation:
         llm_provider = llm_provider.lower()
         if llm_provider == "openai":
             self._llama_llm = OpenAI(model="gpt-4o")
-        elif llm_provider == "google":
+        elif llm_provider == "gemini":
             self._llama_llm = Gemini(model="models/gemini-1.5-flash")
         else:
             raise ValueError(f"Invalid LLM provider: {llm_provider}")
@@ -127,7 +127,7 @@ class Evaluation:
         )
         response.raise_for_status()
         data = response.json()
-        trace_url = data["traceURL"]
+        trace_url = data["trace"]["langfuse_url"]
         answer = data["content"]
         return answer, parse_langfuse_trace_id_from_url(trace_url)
 

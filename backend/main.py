@@ -74,7 +74,7 @@ def runserver(host, port):
 @click.option(
     "--llm-provider",
     default="openai",
-    help="LLM provider, default=openai, options=[openai, google]",
+    help="LLM provider, default=openai, options=[openai, gemini]",
 )
 @click.option("--run-name", default=None, help="Run name, default=None")
 @click.option(
