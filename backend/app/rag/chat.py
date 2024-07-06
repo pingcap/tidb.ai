@@ -213,9 +213,21 @@ class ChatService:
             )
 
             if kg_config.using_intent_search:
-                result = graph_index.intent_based_search(
-                    user_question, chat_history, include_meta=True
-                )
+                with self._callback_manager.as_trace("retrieve_with_weight"):
+                    with self._callback_manager.event(
+                        MyCBEventType.RETRIEVE_FROM_GRAPH,
+                        payload={
+                            EventPayload.QUERY_STR: {
+                                "query": user_question,
+                                "chat_history": chat_history,
+                            }
+                        },
+                    ) as event:
+                        result = graph_index.intent_based_search(
+                            user_question, chat_history, include_meta=True
+                        )
+                        event.on_end(payload={"graph": result["queries"]})
+
                 entities = result["graph"]["entities"]
                 relations = result["graph"]["relationships"]
 
