@@ -1,12 +1,50 @@
-name: tidb-ai
+name: tidb.ai
 
 services:
+  backend:
+    image: wangdi4zm/tidb.ai-py:latest
+    restart: always
+    ports:
+      - "5000:80"
+    env_file:
+      - .env
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "6"
+
   frontend:
-    build:
-      context: frontend
-      dockerfile: Dockerfile
-    image: tidb.ai/frontend
+    image: wangdi4zm/tidb.ai-py-fe:latest
+    restart: always
     ports:
       - 3000:3000
     environment:
-      BASE_URL: https://tidbai-dev.htapdb.com
+      BASE_URL: http://backend
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "6"
+
+  redis:
+    image: redis:6.0.16
+    restart: always
+    volumes:
+      - ./redis-data:/data
+
+  background:
+    image: wangdi4zm/tidb.ai-py:latest
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    command: /usr/bin/supervisord
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "6"

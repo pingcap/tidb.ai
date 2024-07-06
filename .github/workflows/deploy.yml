@@ -1,0 +1,17 @@
+name: Deploy to Production
+on:
+    workflow_dispatch:
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: ssh and deploy
+      uses: appleboy/ssh-action@v1.0.3
+      with:
+        host: ${{ secrets.DEPLOY_HOST }}
+        username: ${{ secrets.DEPLOY_USERNAME }}
+        key: ${{ secrets.DEPLOY_SSH_KEY }}
+        port: ${{ secrets.DEPLOY_PORT }}
+        script: cd /home/ubuntu/py.tidb.ai-docker && docker compose up -d --force-recreate --pull always
