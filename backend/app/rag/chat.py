@@ -13,7 +13,6 @@ from llama_index.core.prompts.base import PromptTemplate
 from llama_index.core.base.response.schema import StreamingResponse
 from llama_index.core.callbacks.schema import EventPayload
 from llama_index.core.callbacks import CallbackManager
-from llama_index.core.prompts.base import PromptTemplate
 from langfuse import Langfuse
 from langfuse.llama_index import LlamaIndexCallbackHandler
 
@@ -212,16 +211,37 @@ class ChatService:
                 kg_store=graph_store,
                 callback_manager=Settings.callback_manager,
             )
-            entities, relations, chunks = graph_index.retrieve_with_weight(
-                user_question,
-                [],
-                depth=kg_config.depth,
-                include_meta=kg_config.include_meta,
-                with_degree=kg_config.with_degree,
-                with_chunks=False,
-            )
+
+            if kg_config.using_intent_search:
+                result = graph_index.intent_based_search(
+                    user_question, chat_history, include_meta=True
+                )
+                entities = result["graph"]["entities"]
+                relations = result["graph"]["relationships"]
+
+                graph_knowledges = get_prompt_by_jinja2_template(
+                    self.chat_engine_config.llm.intent_graph_knowledge,
+                    sub_queries=result["queries"],
+                )
+                graph_knowledges_context = graph_knowledges.template
+            else:
+                entities, relations, chunks = graph_index.retrieve_with_weight(
+                    user_question,
+                    [],
+                    depth=kg_config.depth,
+                    include_meta=kg_config.include_meta,
+                    with_degree=kg_config.with_degree,
+                    with_chunks=False,
+                )
+                graph_knowledges = get_prompt_by_jinja2_template(
+                    self.chat_engine_config.llm.normal_graph_knowledge,
+                    entities=entities,
+                    relationships=relations,
+                )
+                graph_knowledges_context = graph_knowledges.template
         else:
             entities, relations, chunks = [], [], []
+            graph_knowledges_context = ""
 
         # 2. Refine the user question using graph information and chat history
         yield ChatEvent(
@@ -242,8 +262,7 @@ class ChatService:
                 refined_question = self._llm.predict(
                     get_prompt_by_jinja2_template(
                         self.chat_engine_config.llm.condense_question_prompt,
-                        entities=entities,
-                        relationships=relations,
+                        graph_knowledges=graph_knowledges_context,
                         chat_history=chat_history,
                         question=user_question,
                     ),
@@ -265,13 +284,11 @@ class ChatService:
         _set_langfuse_callback_manager()
         text_qa_template = get_prompt_by_jinja2_template(
             self.chat_engine_config.llm.text_qa_prompt,
-            entities=entities,
-            relationships=relations,
+            graph_knowledges=graph_knowledges_context,
         )
         refine_template = get_prompt_by_jinja2_template(
             self.chat_engine_config.llm.refine_prompt,
-            entities=entities,
-            relationships=relations,
+            graph_knowledges=graph_knowledges_context,
         )
         vector_store = TiDBVectorStore(session=self.db_session)
         vector_index = VectorStoreIndex.from_vector_store(
@@ -355,7 +372,7 @@ class ChatService:
         return source_documents
 
 
-def get_prompt_by_jinja2_template(template_string: str, **kwargs) -> str:
+def get_prompt_by_jinja2_template(template_string: str, **kwargs) -> PromptTemplate:
     # use jinja2's template because it support complex render logic
     # for example:
     #       {% for e in entities %}

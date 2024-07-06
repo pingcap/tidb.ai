@@ -205,10 +205,25 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
     def intent_based_search(
         self,
         query: str,
+        chat_history: list = [],
         depth: int = 2,
         include_meta: bool = False,
     ) -> Mapping[str, Any]:
-        intents = self._intents.analyze(query)
+
+        if len(chat_history) > 0:
+            chat_history_strings = [
+                f"{message.role.value}: {message.content}" for message in chat_history
+            ]
+            query_with_history = (
+                "++++ Chat History ++++\n"
+                + "\n".join(chat_history_strings)
+                + "++++ Chat History ++++\n"
+            )
+            query_with_history = query_with_history + "\n\nThen the user ask:\n" + query
+            intents = self._intents.analyze(query_with_history)
+        else:
+            intents = self._intents.analyze(query)
+
         result = {"queries": {}, "graph": None}
         all_entities = []
         all_relationships = defaultdict(

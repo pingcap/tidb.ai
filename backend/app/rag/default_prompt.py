@@ -1,34 +1,67 @@
-DEFAULT_CONDENSE_QUESTION_PROMPT = """\
-Given a list of relationships of knowledge graph, the format of description of relationship is as follows:
+DEFAULT_INTENT_GRAPH_KNOWLEDGE = """\
+Given a list of relationships of a knowledge graph as follows. When there is a conflict in meaning between knowledge relationships, the relationship with the higher `weight` and newer `last_modified_at` value takes precedence.
 
-- SOURCE_ENTITY_NAME -> RELATIONSHIP -> TARGET_ENTITY_NAME
+Knowledge sub-queries:
 
-When there is a conflict in meaning between knowledge relationships, the relationship with the higher `weight` and newer `last_modified_at` value takes precedence.
+{% for sub_query, data in sub_queries.items() %}
 
-Knowledge relationships:
+Sub-query: {{ sub_query }}
 
-{% for relationship in relationships %}
+  - Entities:
 
-description: {{relationship.rag_description}}
-weight: {{relationship.weight}}
-last_modified_at: {{relationship.last_modified_at}}
-meta:
-{{relationship.meta | tojson(indent=2) }}
+{% for entity in data['entities'] %}
+
+    - Name: {{ entity.name }}
+    - Description: {{ entity.description }}
+
+{% endfor %}
+
+  - Relationships:
+
+{% for relationship in data['relationships'] %}
+
+    - Description: {{ relationship.rag_description }}
+    - Last Modified At: {{ relationship.last_modified_at }}
+    - Meta: {{ relationship.meta | tojson(indent=2) }}
+
+{% endfor %}
+
+{% endfor %}
+"""
+
+DEFAULT_NORMAL_GRAPH_KNOWLEDGE = """\
+Given a list of relationships of a knowledge graph as follows. When there is a conflict in meaning between knowledge relationships, the relationship with the higher `weight` and newer `last_modified_at` value takes precedence.
+
+---------------------
+Entities:
+
+{% for entity in entities %}
+
+- Name: {{ entity.name }}
+- Description: {{ entity.description }}
 
 {% endfor %}
 
 ---------------------
 
-Entities:
+Knowledge relationships:
 
-{% for entity in entities %}
+{% for relationship in relationships %}
 
-name: {{entity.name}}
-description: {{entity.description}}
-meta:
-{{entity.meta | tojson(indent=2)}}
+- Description: {{ relationship.rag_description }}
+- Weight: {{ relationship.weight }}
+- Last Modified At: {{ relationship.last_modified_at }}
+- Meta: {{ relationship.meta | tojson(indent=2) }}
 
 {% endfor %}
+"""
+
+DEFAULT_CONDENSE_QUESTION_PROMPT = """\
+---------------------
+Knowledge graph information is below
+---------------------
+
+{{graph_knowledges}}
 
 ---------------------
 
@@ -74,36 +107,7 @@ DEFAULT_TEXT_QA_PROMPT = """\
 Knowledge graph information is below
 ---------------------
 
-<Entities>
-
-{% for entity in entities %}
-
-name: {{entity.name}}
-description: {{entity.description}}
-meta:
-{{entity.meta | tojson(indent=2)}}
-
-{% endfor %}
-
-<Relationships>
-
-Given a list of relationships of knowledge graph, the format of description of relationship is as follows:
-
-- SOURCE_ENTITY_NAME -> RELATIONSHIP -> TARGET_ENTITY_NAME
-
-When there is a conflict in meaning between knowledge relationships, the relationship with the higher `weight` and newer `last_modified_at` value takes precedence.
-
-relationship:
-
-{% for relationship in relationships %}
-
-description: {{relationship.rag_description}}
-weight: {{relationship.weight}}
-last_modified_at: {{relationship.last_modified_at}}
-meta:
-{{relationship.meta | tojson(indent=2)}}
-
-{% endfor %}
+{{graph_knowledges}}
 
 ---------------------
 Context information is below.
@@ -115,7 +119,18 @@ Context information is below.
 
 Answer Format:
 
-Use markdown footnote syntax (for example: [^1]) to indicate sources you used for each sentences! The source_title and source_uri field can be used as the footnote title and link.
+Use markdown footnote syntax (for example: [^1]) to indicate sources you used.
+Each footnote must correspond to a unique source. Do not use the same source for multiple footnotes.
+
+### Examples of Correct Footnote Usage (no the unique sources and diverse sources):
+[^1]: [TiDB Overview | PingCAP Docs](https://docs.pingcap.com/tidb/stable/overview)
+[^2]: [TiDB Architecture | PingCAP Docs](https://docs.pingcap.com/tidb/stable/architecture)
+
+### Examples of Incorrect Footnote Usage (Avoid duplicating the same source for multiple footnotes):
+[^1]: [TiDB Introduction | PingCAP Docs](https://docs.pingcap.com/tidb/v5.4/overview)
+[^2]: [TiDB Introduction | PingCAP Docs](https://docs.pingcap.com/tidb/v5.4/overview)
+[^3]: [TiDB Introduction | PingCAP Docs](https://docs.pingcap.com/tidb/dev/overview)
+[^4]: [TiDB Introduction | PingCAP Docs](https://docs.pingcap.com/tidb/stable/overview)
 
 ---------------------
 
@@ -154,37 +169,7 @@ We have the opportunity to refine the existing answer (only if needed) with some
 Knowledge graph information is below
 ---------------------
 
-<Entities>
-
-{% for entity in entities %}
-name: {{entity.name}}
-description: {{entity.description}}
-meta:
-{{entity.meta | tojson(indent=2)}}
-
-
-{% endfor %}
-
-<Relationships>
-
-Given a list of relationships of knowledge graph, the format of description of relationship is as follows:
-
-- SOURCE_ENTITY_NAME -> RELATIONSHIP -> TARGET_ENTITY_NAME
-
-When there is a conflict in meaning between knowledge relationships, the relationship with the higher `weight` and newer `last_modified_at` value takes precedence.
-
-relationship:
-
-{% for relationship in relationships %}
-description: {{relationship.rag_description}}
-weight: {{relationship.weight}}
-last_modified_at: {{relationship.last_modified_at}}
-meta:
-{{relationship.meta | tojson(indent=2)}}
-
-
-
-{% endfor %}
+{{graph_knowledges}}
 
 ---------------------
 Context information is below.

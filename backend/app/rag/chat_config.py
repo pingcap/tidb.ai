@@ -19,6 +19,8 @@ from app.rag.types import (
     RerankerProvider,
 )
 from app.rag.default_prompt import (
+    DEFAULT_INTENT_GRAPH_KNOWLEDGE,
+    DEFAULT_NORMAL_GRAPH_KNOWLEDGE,
     DEFAULT_CONDENSE_QUESTION_PROMPT,
     DEFAULT_TEXT_QA_PROMPT,
     DEFAULT_REFINE_PROMPT,
@@ -38,6 +40,8 @@ class LLMOption(BaseModel):
     reranker_provider: RerankerProvider = RerankerProvider.JINAAI
     reranker_top_k: int = 10
 
+    intent_graph_knowledge: str = DEFAULT_INTENT_GRAPH_KNOWLEDGE
+    normal_graph_knowledge: str = DEFAULT_NORMAL_GRAPH_KNOWLEDGE
     condense_question_prompt: str = DEFAULT_CONDENSE_QUESTION_PROMPT
     text_qa_prompt: str = DEFAULT_TEXT_QA_PROMPT
     refine_prompt: str = DEFAULT_REFINE_PROMPT
@@ -48,6 +52,7 @@ class KnowledgeGraphOption(BaseModel):
     depth: int = 2
     include_meta: bool = False
     with_degree: bool = False
+    using_intent_search: bool = True
 
 
 class ChatEngineConfig(BaseModel):
