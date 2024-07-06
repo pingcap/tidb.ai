@@ -48,9 +48,9 @@ class LLMOption(BaseModel):
 
 
 class KnowledgeGraphOption(BaseModel):
-    enabled: bool = False
+    enabled: bool = True
     depth: int = 2
-    include_meta: bool = False
+    include_meta: bool = True
     with_degree: bool = False
     using_intent_search: bool = True
 
