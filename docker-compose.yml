@@ -1,0 +1,12 @@
+name: tidb-ai
+
+services:
+  frontend:
+    build:
+      context: frontend
+      dockerfile: Dockerfile
+    image: tidb.ai/frontend
+    ports:
+      - 3000:3000
+    environment:
+      BASE_URL: https://tidbai-dev.htapdb.com

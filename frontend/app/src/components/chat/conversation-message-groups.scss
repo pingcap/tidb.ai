@@ -1,0 +1,16 @@
+@keyframes highlight {
+  from {
+    @apply bg-amber-500/10;
+  }
+  to {
+    @apply bg-transparent;
+  }
+}
+
+.animate-highlight {
+  animation-name: highlight;
+  animation-delay: 2s;
+  animation-duration: 1s;
+  animation-timing-function: ease;
+  animation-fill-mode: both;
+}

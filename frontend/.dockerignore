@@ -1,0 +1,8 @@
+node_modules
+.next
+.git
+.idea
+Dockerfile
+
+app/.env
+app/certificates

@@ -1,0 +1,11 @@
+.remark-content sup a[data-footnote-ref=true] {
+  @apply bg-primary text-primary-foreground px-1 mx-0.5 rounded-full no-underline;
+}
+
+.remark-content sup a[data-footnote-ref=true] + a[data-footnote-ref=true] {
+  @apply ml-0.5;
+}
+
+.remark-content [data-footnote-backref] {
+  @apply sr-only;
+}

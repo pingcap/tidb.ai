@@ -1,0 +1,9 @@
+{
+  "name": "tidb-ai-parent",
+  "private": true,
+  "version": "0.0.0",
+  "packageManager": "pnpm@9.4.0",
+  "scripts": {
+    "build:docker": "pnpm run --filter 'app' build:standalone"
+  }
+}
