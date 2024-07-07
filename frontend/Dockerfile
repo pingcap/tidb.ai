@@ -36,6 +36,7 @@ RUN echo NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-'""'} >> app/.env.producti
 
 RUN corepack enable pnpm
 RUN pnpm run build:docker
+RUN pnpm run build:widget-react
 
 # 3. Production image, copy all the files and run next
 FROM base AS runner

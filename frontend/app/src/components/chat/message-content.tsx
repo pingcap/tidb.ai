@@ -1,6 +1,6 @@
 import type { MyConversationMessageGroup } from '@/components/chat/use-grouped-conversation-messages';
 import { RemarkContent } from '@/components/remark-content';
-import './style.css';
+import '@/components/chat/style.css';
 
 export function MessageContent ({ group }: { group: MyConversationMessageGroup }) {
   return (

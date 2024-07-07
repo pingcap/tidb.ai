@@ -3,6 +3,7 @@ import { auth } from '@/lib/auth';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import Script from 'next/script';
 import type { ReactNode } from 'react';
 
 const inter = Inter({ subsets: ['latin'] });
@@ -28,6 +29,7 @@ export default async function RootLayout ({
     <RootProviders me={me}>
       {children}
     </RootProviders>
+    <Script async src='/widget.js' />
     </body>
     </html>
   );

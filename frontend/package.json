@@ -4,6 +4,7 @@
   "version": "0.0.0",
   "packageManager": "pnpm@9.4.0",
   "scripts": {
+    "build:widget-react": "pnpm run --filter 'packages/widget-react' build",
     "build:docker": "pnpm run --filter 'app' build:standalone"
   }
 }

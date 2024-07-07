@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useEffect, useState } from 'react';
 
-import Highlight from 'highlight.js';
+import Highlight from 'highlight.js/lib/core';
 import markdown from 'highlight.js/lib/languages/markdown';
 import './code-theme.scss';
 

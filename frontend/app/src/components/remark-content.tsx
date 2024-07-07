@@ -1,8 +1,9 @@
 import { MessageContextSourceCard } from '@/components/chat/message-content-sources';
+import { usePortalContainer } from '@/components/portal-provider';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { cn } from '@/lib/utils';
 import { HoverCardArrow, HoverCardPortal } from '@radix-ui/react-hover-card';
-import { cache, cloneElement, createContext, Suspense, use, useContext, useDeferredValue, useId, useState } from 'react';
+import { cloneElement, createContext, type ReactNode, useContext, useEffect, useId, useMemo, useState } from 'react';
 import { isElement, isFragment } from 'react-is';
 import * as prod from 'react/jsx-runtime';
 import rehypeReact, { Options as RehypeReactOptions } from 'rehype-react';
@@ -30,7 +31,7 @@ function dirtyRewrite (some: any, id: string): any {
   return some;
 }
 
-const production: RehypeReactOptions = {
+const production = ({ portalContainer }: { portalContainer: HTMLElement | undefined }): RehypeReactOptions => ({
   Fragment: (prod as any).Fragment,
   jsx: (prod as any).jsx,
   jsxs: (prod as any).jsxs,
@@ -89,7 +90,7 @@ const production: RehypeReactOptions = {
               }}
             />
           </HoverCardTrigger>
-          <HoverCardPortal>
+          <HoverCardPortal container={portalContainer}>
             <HoverCardContent onPointerDownOutside={e => e.preventDefault()} className="p-1 w-[200px] overflow-hidden rounded-lg border text-xs">
               <HoverCardArrow className="fill-border" />
               {link
@@ -103,33 +104,40 @@ const production: RehypeReactOptions = {
       );
     },
   },
-};
-
-const processor = unified()
-  .use(remarkParse)
-  .use(remarkGfm)
-  .use(remarkRehype)
-  .use(rehypeReact, production)
-  .freeze();
+});
 
 const RemarkContentContext = createContext<string>('');
 
 export function RemarkContent ({ children = '' }: { children: string | undefined }) {
+  const portalContainer = usePortalContainer();
+
+  const processFn = useMemo(() => {
+    const processor = unified()
+      .use(remarkParse)
+      .use(remarkGfm)
+      .use(remarkRehype)
+      .use(rehypeReact, production({ portalContainer }))
+      .freeze();
+
+    return (text: string) => processor.processSync(text).result;
+  }, [portalContainer]);
+
   const id = useId();
+  const [value, setValue] = useState<ReactNode>(processFn(children));
+
+  useEffect(() => {
+    if (children) {
+      try {
+        setValue(processFn(children));
+      } catch {
+        setValue(<div className="whitespace-pre-wrap">{children}</div>);
+      }
+    }
+  }, [children]);
 
   return (
     <RemarkContentContext.Provider value={id}>
-      <Suspense fallback={<div className="whitespace-pre-wrap">{children}</div>}>
-        {useDeferredValue(<RemarkContentInternal text={children} />)}
-      </Suspense>
+      {value}
     </RemarkContentContext.Provider>
   );
-}
-
-const processFn = (text: string) => processor.process(text).then(res => res.result);
-
-const process = typeof window === 'undefined' ? processFn : cache(processFn);
-
-function RemarkContentInternal ({ text }: { text: string }) {
-  return use(process(text));
 }

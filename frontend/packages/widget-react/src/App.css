@@ -1,0 +1,8 @@
+@import "../../../app/src/app/globals.css";
+
+
+@layer base {
+  #tidb-ai-widget {
+    @apply bg-background text-foreground;
+  }
+}

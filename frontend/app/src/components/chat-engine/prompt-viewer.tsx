@@ -1,6 +1,6 @@
 'use client';
 
-import Highlight from 'highlight.js';
+import Highlight from 'highlight.js/lib/core';
 import django from 'highlight.js/lib/languages/django';
 import { useEffect, useState } from 'react';
 import '../code-theme.scss';
