@@ -8,11 +8,13 @@ RUN apk add --no-cache libc6-compat
 WORKDIR /tidb.ai
 
 RUN mkdir app
+RUN mkdir -p packages/widget-react
 
 # Install dependencies based on the preferred package manager
 COPY package.json .
 COPY pnpm-*.yaml .
 COPY app/package.json ./app
+COPY packages/widget-react/package.json ./packages/widget-react
 
 RUN corepack enable pnpm
 RUN pnpm i --frozen-lockfile
@@ -23,6 +25,7 @@ FROM base AS builder
 WORKDIR /tidb.ai
 COPY --from=deps /tidb.ai/node_modules ./node_modules
 COPY --from=deps /tidb.ai/app/node_modules ./app/node_modules
+COPY --from=deps /tidb.ai/packages/widget-react/node_modules ./packages/widget-react/node_modules
 COPY . .
 # This will do the trick, use the corresponding env file for each environment.
 #COPY .env.production.sample .env.production
