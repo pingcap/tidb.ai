@@ -5,11 +5,13 @@ import uvicorn
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
 from app.api.main import api_router
 from app.core.config import settings
 from app.evaluation.evals import Evaluation, DEFAULT_TIDB_AI_CHAT_ENGINE
+from app.site_settings import SiteSetting
 
 load_dotenv()
 
@@ -31,11 +33,20 @@ if settings.SENTRY_DSN and settings.ENVIRONMENT != "local":
         profiles_sample_rate=1.0,
     )
 
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    SiteSetting.update_db_cache()
+    yield
+
+
 app = FastAPI(
     title=settings.PROJECT_NAME,
     openapi_url=f"{settings.API_V1_STR}/openapi.json",
     generate_unique_id_function=custom_generate_unique_id,
+    lifespan=lifespan,
 )
+
 
 # Set all CORS enabled origins
 if settings.BACKEND_CORS_ORIGINS:

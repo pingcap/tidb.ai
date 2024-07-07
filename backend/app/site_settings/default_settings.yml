@@ -1,0 +1,71 @@
+website:
+  title:
+    default: "TiDB.AI"
+    data_type: str
+    description: "The title of the website."
+  description:
+    default: "Knowledge Graph based RAG that built with TiDB Serverless Vector Storage and LlamaIndex"
+    data_type: str
+    description: "The description of the website."
+  homepage_title:
+    default: "Ask anything about TiDB"
+    data_type: str
+    description: "The title of the homepage."
+  homepage_example_questions:
+    default:
+      - "What is TiDB?"
+      - "Does TiDB support FOREIGN KEY?"
+      - "Does TiDB support serverless?"
+    data_type: list
+    description: "The example questions on the homepage."
+  homepage_footer_links:
+    default:
+      - text: "Release Notes"
+        text: "https://tidb.ai/docs/changelog"
+      - text: "Powered by TiDB Vector"
+        href: "https://tidb.cloud/ai"
+      - text: "© 2024 PingCAP"
+        href: "https://pingcap.com"
+    data_type: list
+    description: "The footer links on the homepage."
+  logo_in_dark_mode:
+    default: "https://tidb.ai/tidb-ai.svg"
+    data_type: str
+    description: "The logo in dark mode."
+  logo_in_light_mode:
+    default: "https://tidb.ai/tidb-ai.svg"
+    data_type: str
+    description: "The logo in light mode."
+  social_github:
+    default: "https://github.com/pingcap/tidb.ai"
+    data_type: str
+    description: "The link to the github"
+  social_twitter:
+    default: "https://github.com/pingcap/tidb.ai"
+    data_type: str
+    description: "The link to the twitter"
+  social_discord:
+    default: "https://discord.gg/XzSW23Jg9p"
+    data_type: str
+    description: "The link to the discord"
+
+custom_js:
+  custom_js_example_questions:
+    default:
+      - "What is TiDB?"
+      - "Does TiDB support FOREIGN KEY?"
+      - "Does TiDB support serverless?"
+    data_type: list
+    description: "The example questions on the custom_js."
+  custom_js_button_label:
+    default: "Ask AI"
+    data_type: str
+    description: "The button label on the custom_js."
+  cutom_js_button_img_src:
+    default: "https://tidb.ai/tidb-ai.svg"
+    data_type: str
+    description: "The button image on the custom_js."
+  custom_js_logo_src:
+    default: "https://tidb.ai/tidb-ai.svg"
+    data_type: str
+    description: "The logo on the custom_js."

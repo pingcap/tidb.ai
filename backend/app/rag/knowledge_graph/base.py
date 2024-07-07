@@ -209,7 +209,6 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
         depth: int = 2,
         include_meta: bool = False,
     ) -> Mapping[str, Any]:
-
         if len(chat_history) > 0:
             chat_history_strings = [
                 f"{message.role.value}: {message.content}" for message in chat_history

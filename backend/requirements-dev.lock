@@ -155,6 +155,7 @@ grpcio==1.64.1
     # via grpcio-status
 grpcio-status==1.62.2
     # via google-api-core
+gunicorn==22.0.0
 h11==0.14.0
     # via httpcore
     # via uvicorn
@@ -310,6 +311,7 @@ orjson==3.10.4
     # via fastapi
 packaging==23.2
     # via datasets
+    # via gunicorn
     # via huggingface-hub
     # via ipykernel
     # via langfuse
