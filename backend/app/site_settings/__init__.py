@@ -57,9 +57,9 @@ class SiteSettingProxy:
                 self.__last_checked_at_ts = now
                 last_updated_at_ts = get_db_last_updated_at(session)
 
-                if last_updated_at_ts > self.__last_updated_at_ts:
+                if last_updated_at_ts != self.__last_updated_at_ts:
                     with self.__mutex:
-                        if last_updated_at_ts > self.__last_updated_at_ts:
+                        if last_updated_at_ts != self.__last_updated_at_ts:
                             self.__db_cache = get_settings_from_db(session)
                             self.__last_updated_at_ts = last_updated_at_ts
 
