@@ -1,5 +1,6 @@
 import type { ChatEngineOptions } from '@/api/chat-engines';
 import { type KnowledgeGraph, knowledgeGraphSchema } from '@/api/graph';
+import { bufferedReadableStreamTransformer } from '@/lib/buffered-readable-stream';
 import { BASE_URL, buildUrlParams, handleErrors, handleResponse, opaqueCookieHeader, type Page, type PageParams, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { parseStreamPart } from 'ai';
@@ -160,8 +161,7 @@ export async function* chat ({ chat_id, chat_engine = 'default', content, header
     throw new Error(`${response.status} ${response.statusText} Empty response body`);
   }
 
-  const decoder = new TextDecoder();
-  const reader = response.body.getReader();
+  const reader = response.body.pipeThrough(bufferedReadableStreamTransformer()).getReader();
 
   while (true) {
     const chunk = await reader.read();
@@ -169,9 +169,8 @@ export async function* chat ({ chat_id, chat_engine = 'default', content, header
       break;
     }
 
-    const rawValue = decoder.decode(chunk.value, { stream: true });
-    for (let line of rawValue.split('\n').filter(s => !!s.trim())) {
-      yield parseStreamPart(line);
+    if (!!chunk.value.trim()) {
+      yield parseStreamPart(chunk.value);
     }
   }
 }

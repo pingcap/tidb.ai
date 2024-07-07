@@ -4,7 +4,10 @@
   "version": "0.0.0",
   "packageManager": "pnpm@9.4.0",
   "scripts": {
-    "build:widget-react": "pnpm run --filter 'packages/widget-react' build",
-    "build:docker": "pnpm run --filter 'app' build:standalone"
+    "test": "pnpm run --filter '*' test",
+    "build:widget-react": "pnpm run --filter '@tidb.ai/react' build",
+    "build:docker": "pnpm run --filter 'app' build:standalone",
+    "build": "pnpm run --filter 'app' build",
+    "verify": "pnpm run test && pnpm run build && pnpm run build:widget-react"
   }
 }
