@@ -15,4 +15,4 @@ def status(session: SessionDep):
 
 @router.get("/site-config")
 def site_config() -> dict:
-    return SiteSetting.get_client_config()
+    return SiteSetting.get_client_settings()

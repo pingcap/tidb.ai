@@ -1,6 +1,7 @@
 import secrets
 import warnings
-from typing import Annotated, Any, Literal
+import enum
+from typing import Annotated, Any
 
 from pydantic import (
     AnyUrl,
@@ -24,6 +25,12 @@ def parse_cors(v: Any) -> list[str] | str:
     raise ValueError(v)
 
 
+class Environment(str, enum.Enum):
+    LOCAL = "local"
+    STAGING = "staging"
+    PRODUCTION = "production"
+
+
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_ignore_empty=True, extra="ignore"
@@ -31,7 +38,7 @@ class Settings(BaseSettings):
     API_V1_STR: str = "/api/v1"
     SECRET_KEY: str = secrets.token_urlsafe(32)
     DOMAIN: str = "localhost"
-    ENVIRONMENT: Literal["local", "staging", "production"] = "local"
+    ENVIRONMENT: Environment = Environment.LOCAL
 
     SESSION_COOKIE_NAME: str = "session"
     # 90 days
@@ -41,7 +48,7 @@ class Settings(BaseSettings):
     @property
     def server_host(self) -> str:
         # Use HTTPS for anything other than local development
-        if self.ENVIRONMENT == "local":
+        if self.ENVIRONMENT == Environment.LOCAL:
             return f"http://{self.DOMAIN}"
         return f"https://{self.DOMAIN}"
 
@@ -65,7 +72,6 @@ class Settings(BaseSettings):
     TIDB_AI_CHAT_ENDPOINT: str = "https://tidb.ai/api/v1/chats"
     TIDB_AI_API_KEY: SecretStr | None = None
     OPENAI_API_KEY: SecretStr | None = None
-    OPENAI_EMBEDDING_MODEL: str = "text-embedding-3-small"
 
     COMPLIED_INTENT_ANALYSIS_PROGRAM_PATH: str | None = None
 
@@ -100,7 +106,7 @@ class Settings(BaseSettings):
                 f'The value of {var_name} is "changethis", '
                 "for security, please change it, at least for deployments."
             )
-            if self.ENVIRONMENT == "local":
+            if self.ENVIRONMENT == Environment.LOCAL:
                 warnings.warn(message, stacklevel=1)
             else:
                 raise ValueError(message)

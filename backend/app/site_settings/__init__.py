@@ -57,9 +57,9 @@ class SiteSettingProxy:
                 self.__last_checked_at_ts = now
                 last_updated_at_ts = get_db_last_updated_at(session)
 
-                if last_updated_at_ts != self.__last_updated_at_ts:
+                if last_updated_at_ts > self.__last_updated_at_ts:
                     with self.__mutex:
-                        if last_updated_at_ts != self.__last_updated_at_ts:
+                        if last_updated_at_ts > self.__last_updated_at_ts:
                             self.__db_cache = get_settings_from_db(session)
                             self.__last_updated_at_ts = last_updated_at_ts
 
@@ -79,26 +79,6 @@ class SiteSettingProxy:
             return db_value if db_value else default_setting.default
         else:
             raise AttributeError(f"Setting {name} does not exist.")
-
-    def get_setting_group(self, group: str) -> dict[str, SettingValue]:
-        self.update_db_cache()
-
-        if group not in default_settings.setting_groups:
-            raise AttributeError(f"Group {group} does not exist.")
-
-        result = {}
-        for default_setting in default_settings.setting_groups[group]:
-            db_value = self.__db_cache.get(default_setting.name)
-            result[default_setting.name] = SettingValue(
-                name=default_setting.name,
-                default=default_setting.default,
-                value=db_value if db_value else default_setting.default,
-                data_type=default_setting.data_type,
-                description=default_setting.description,
-                group=default_setting.group,
-                client=default_setting.client,
-            )
-        return result
 
     def get_all_settings(
         self, force_check_db_cache: bool = False
@@ -120,7 +100,9 @@ class SiteSettingProxy:
                 )
         return result
 
-    def get_client_config(self) -> dict:
+    def get_client_settings(self) -> dict:
+        # Retrieve all client settings utilized in the frontend.
+        # These settings determine the behavior of the frontend and are accessible to all users.
         settings = self.get_all_settings()
         return {k: s.value for k, s in settings.items() if s.client}
 
@@ -146,6 +128,8 @@ class SiteSettingProxy:
             )
             session.add(db_setting_obj)
         session.commit()
+
+        self.update_db_cache(force_check=True)
 
 
 SiteSetting = SiteSettingProxy()

@@ -1,17 +1,56 @@
 import warnings
+import logging
+from logging.config import dictConfig
+from contextlib import asynccontextmanager
+
 import click
 import sentry_sdk
 import uvicorn
 from fastapi import FastAPI
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 
 from app.api.main import api_router
-from app.core.config import settings
+from app.core.config import settings, Environment
 from app.evaluation.evals import Evaluation, DEFAULT_TIDB_AI_CHAT_ENGINE
 from app.site_settings import SiteSetting
+
+dictConfig({
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+        "default": {
+            "format": "%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s",
+        },
+    },
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+            "formatter": "default",
+        },
+    },
+    "root": {
+        "level": logging.INFO if settings.ENVIRONMENT != Environment.LOCAL else logging.DEBUG,
+        "handlers": ["console"],
+    },
+    "loggers": {
+        "uvicorn.error": {
+            "level": "ERROR",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+        "uvicorn.access": {
+            "level": "INFO",
+            "handlers": ["console"],
+            "propagate": False,
+        },
+    },
+})
+
+
+logger = logging.getLogger(__name__)
+
 
 load_dotenv()
 

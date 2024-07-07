@@ -13,7 +13,7 @@ from fastapi_users_db_sqlmodel import SQLModelUserDatabaseAsync
 from fastapi_users_db_sqlmodel.access_token import SQLModelAccessTokenDatabaseAsync
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.core.config import settings
+from app.core.config import settings, Environment
 from app.core.db import get_db_async_session
 from app.models import User, UserSession
 from app.auth.db import get_user_db, get_user_session_db
@@ -45,7 +45,7 @@ async def get_user_manager(user_db: SQLModelUserDatabaseAsync = Depends(get_user
 cookie_transport = CookieTransport(
     cookie_name=settings.SESSION_COOKIE_NAME,
     cookie_max_age=settings.SESSION_COOKIE_MAX_AGE,
-    cookie_secure=settings.ENVIRONMENT == "production",
+    cookie_secure=settings.ENVIRONMENT != Environment.LOCAL,
 )
 
 
