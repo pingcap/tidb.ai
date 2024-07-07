@@ -213,8 +213,8 @@ class ChatService:
             )
 
             if kg_config.using_intent_search:
-                with self._callback_manager.as_trace("retrieve_with_weight"):
-                    with self._callback_manager.event(
+                with Settings.callback_manager.as_trace("retrieve_with_weight"):
+                    with Settings.callback_manager.event(
                         MyCBEventType.RETRIEVE_FROM_GRAPH,
                         payload={
                             EventPayload.QUERY_STR: {
