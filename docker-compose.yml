@@ -1,13 +1,15 @@
-name: tidb.ai
+name: tidb-ai
 
 services:
   backend:
-    image: wangdi4zm/tidb.ai-py:latest
+    image: tidb.ai/backend:local
+    build:
+      context: ./backend
     restart: always
     ports:
       - "5000:80"
     env_file:
-      - .env
+      - ./backend/.env
     logging:
       driver: json-file
       options:
@@ -15,7 +17,9 @@ services:
         max-file: "6"
 
   frontend:
-    image: wangdi4zm/tidb.ai-py-fe:latest
+    image: tidb.ai/frontend:local
+    build:
+      context: ./frontend
     restart: always
     ports:
       - 3000:3000
@@ -34,14 +38,16 @@ services:
       - ./redis-data:/data
 
   background:
-    image: wangdi4zm/tidb.ai-py:latest
+    image: tidb.ai/backend:local
+    build:
+      context: ./backend
     restart: always
     depends_on:
       - redis
     ports:
       - "5555:5555"
     env_file:
-      - .env
+      - ./backend/.env
     command: /usr/bin/supervisord
     logging:
       driver: json-file
