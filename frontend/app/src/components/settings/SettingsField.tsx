@@ -7,6 +7,7 @@ import { getErrorMessage } from '@/lib/errors';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2Icon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { deepEqual } from 'fast-equals';
 import { cloneElement, type ReactElement, type ReactNode, useCallback, useMemo } from 'react';
 import { type ControllerRenderProps, useForm, useFormState, useWatch } from 'react-hook-form';
 import { z, type ZodType } from 'zod';
@@ -77,7 +78,7 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, chil
     },
   });
 
-  const Control = useCallback(({ ...props }: ControllerRenderProps) => {
+  const Control = useCallback(({ field: { ...props } }: { field: ControllerRenderProps }) => {
     let el: ReactNode;
 
     if (children) {
@@ -126,8 +127,8 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, chil
         className="space-y-2"
         onSubmit={handleSubmit}
         onReset={(e) => {
-          form.setValue('value', item.default, { shouldDirty: true });
-          void handleSubmit(e);
+          form.setValue('value', item.default, { shouldTouch: true, shouldDirty: true });
+          // void handleSubmit(e);
         }}
       >
         <FormField
@@ -135,7 +136,7 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, chil
           render={({ field }) => (
             <FormItem>
               <FormLabel>{item.description}</FormLabel>
-              <Control {...field} />
+              <Control field={field} />
               <FormMessage />
             </FormItem>
           )}
@@ -151,7 +152,7 @@ function Operations ({ defaultValue }: { defaultValue: any }) {
     name: 'value',
   });
   const { isDirty, isSubmitting, isSubmitted } = useFormState();
-  const notDefault = JSON.stringify(currentValue) !== JSON.stringify(defaultValue);
+  const notDefault = !deepEqual(currentValue, defaultValue);
 
   return (
     <div className="flex gap-2 items-center">
@@ -159,7 +160,7 @@ function Operations ({ defaultValue }: { defaultValue: any }) {
         {isSubmitting && <Loader2Icon className="size-4 animate-spin repeat-infinite" />}
         Save
       </Button>}
-      {(isDirty || notDefault) && <Button type="reset" variant="secondary" disabled={isSubmitting}>Reset</Button>}
+      {(isDirty || notDefault) && <Button type="reset" variant="secondary" disabled={isSubmitting || !notDefault}>Reset</Button>}
     </div>
   );
 }

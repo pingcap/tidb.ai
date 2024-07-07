@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useHref } from '@/components/use-href';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { ActivitySquareIcon, BotMessageSquareIcon, CogIcon, CommandIcon, FilesIcon, GaugeIcon, HomeIcon, MenuIcon, MessageCircleQuestionIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react';
+import { BotMessageSquareIcon, CogIcon, CommandIcon, FilesIcon, GaugeIcon, HomeIcon, MenuIcon, MessageCircleQuestionIcon, MessagesSquareIcon, PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
@@ -89,7 +89,7 @@ export function Nav () {
       groups.push({
         title: 'Admin',
         items: [
-          { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon, disabled: true },
+          // { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon, disabled: true },
           { href: '/feedbacks', title: 'Feedbacks', icon: MessageCircleQuestionIcon },
           { href: '/documents', title: 'Documents', icon: FilesIcon },
           { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon },

@@ -28,7 +28,7 @@ export default function SiteSettingsLayout ({ children }: { children: ReactNode 
           <TabsTrigger disabled={navigating} value="custom_js">JS Widget</TabsTrigger>
         </TabsList>
       </Tabs>
-      <div className="relative">
+      <div className="relative mt-4">
         <div className="pointer-events-none absolute left-0 top-0 w-full h-body">
           <Loader loading={navigating} />
         </div>
