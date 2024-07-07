@@ -96,6 +96,7 @@ class SiteSettingProxy:
                 data_type=default_setting.data_type,
                 description=default_setting.description,
                 group=default_setting.group,
+                client=default_setting.client,
             )
         return result
 
@@ -115,8 +116,13 @@ class SiteSettingProxy:
                     data_type=default_setting.data_type,
                     description=default_setting.description,
                     group=default_setting.group,
+                    client=default_setting.client,
                 )
         return result
+
+    def get_client_config(self) -> dict:
+        settings = self.get_all_settings()
+        return {k: s.value for k, s in settings.items() if s.client}
 
     def setting_exists(self, name: str) -> bool:
         return hasattr(default_settings, name)

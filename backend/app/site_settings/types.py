@@ -12,4 +12,6 @@ class SettingValue:
     data_type: str
     description: str
     group: str
+    # Whether the setting can be viewed by the client
+    client: bool = False
     value: SettingType = None
