@@ -29,13 +29,23 @@ def get_db_last_updated_at(session: Session):
     return result.timestamp() if result else 0
 
 
+type_mapping = {
+    "str": str,
+    "int": int,
+    "float": float,
+    "bool": bool,
+    "dict": dict,
+    "list": list,
+}
+
+
 class SiteSettingProxy:
     __db_cache: dict = {}
     __last_updated_at_ts: float = 0
     __last_checked_at_ts: float = 0
     __mutex = threading.Lock()
 
-    def update_db_cache(self):
+    def update_db_cache(self, force_check=False):
         with Session(engine) as session:
             # Check if we need to update the cache every 10 seconds,
             # so it means settings will not be updated in real-time
@@ -43,7 +53,7 @@ class SiteSettingProxy:
             # If we need real-time updates in the future, we can use
             # a message queue or a pub/sub system to notify the app.
             now = time.time()
-            if now - self.__last_checked_at_ts > 10:
+            if force_check or (now - self.__last_checked_at_ts > 10):
                 self.__last_checked_at_ts = now
                 last_updated_at_ts = get_db_last_updated_at(session)
 
@@ -89,8 +99,10 @@ class SiteSettingProxy:
             )
         return result
 
-    def get_all_settings(self) -> dict[str, SettingValue]:
-        self.update_db_cache()
+    def get_all_settings(
+        self, force_check_db_cache: bool = False
+    ) -> dict[str, SettingValue]:
+        self.update_db_cache(force_check_db_cache)
 
         result = {}
         for _, settings in default_settings.setting_groups.items():
@@ -106,8 +118,31 @@ class SiteSettingProxy:
                 )
         return result
 
+    def setting_exists(self, name: str) -> bool:
+        return hasattr(default_settings, name)
+
+    def update_setting(self, session: Session, name: str, value: SettingType):
+        if not self.setting_exists(name):
+            raise AttributeError(f"Setting {name} does not exist.")
+
+        _default_setting: SettingValue = getattr(default_settings, name)
+        if not isinstance(value, type_mapping[_default_setting.data_type]):
+            raise ValueError(f"{name} must be of type `{_default_setting.data_type}`.")
+
+        db_setting_obj = session.exec(
+            select(DBSiteSetting).filter(DBSiteSetting.name == name)
+        ).first()
+        if db_setting_obj:
+            db_setting_obj.value = value
+        else:
+            db_setting_obj = DBSiteSetting(
+                name=name, value=value, data_type=_default_setting.data_type
+            )
+            session.add(db_setting_obj)
+        session.commit()
+
 
 SiteSetting = SiteSettingProxy()
 
 
-__all__ = ["SiteSetting", "SettingValue"]
+__all__ = ["SiteSetting", "SettingValue", "SettingType"]
