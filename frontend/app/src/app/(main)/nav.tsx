@@ -94,7 +94,7 @@ export function Nav () {
           { href: '/documents', title: 'Documents', icon: FilesIcon },
           { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon },
           { href: '/index-progress', title: 'Index Progress', icon: GaugeIcon },
-          { href: '/settings', title: 'Settings', icon: CogIcon, disabled: true },
+          { href: '/site-settings', title: 'Settings', icon: CogIcon },
         ],
         sectionProps: { className: 'mt-auto mb-0' },
       });

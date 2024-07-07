@@ -15,9 +15,9 @@ import NextLink from 'next/link';
 import { useRouter } from 'next/navigation';
 
 export type SiteSocialsType = {
-  github?: string;
-  twitter?: string;
-  discord?: string;
+  github?: string | null;
+  twitter?: string | null;
+  discord?: string | null;
 };
 
 export function SiteNavFooter ({ className }: { className?: string }) {

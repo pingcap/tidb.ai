@@ -2,21 +2,23 @@
 
 import { Nav, NavDrawer } from '@/app/(main)/nav';
 import { Branding } from '@/components/branding';
-import { SiteNavActionBar, SiteNavFooter } from '@/components/site-nav-footer';
+import { SiteNavActionBar, SiteNavFooter, type SiteSocialsType } from '@/components/site-nav-footer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Toaster } from '@/components/ui/sonner';
-import { useSettingGroup } from '@/components/website-setting-provider';
+import { useSettingContext } from '@/components/website-setting-provider';
 import Link from 'next/link';
 import { ReactNode, useMemo } from 'react';
 
 export default function Layout ({ children }: {
   children: ReactNode
 }) {
-  const setting = useSettingGroup('website');
+  const setting = useSettingContext();
 
-  const socialMemo = useMemo(
+  const socialMemo: SiteSocialsType = useMemo(
     () => ({
-      ...setting?.social,
+      discord: setting.social_discord,
+      twitter: setting.social_twitter,
+      github: setting.social_github,
     }),
     [setting],
   );

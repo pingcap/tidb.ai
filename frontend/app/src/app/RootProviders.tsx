@@ -1,9 +1,9 @@
 'use client';
 
+import type { PublicWebsiteSettings } from '@/api/site-settings';
 import { getMe, type MeInfo } from '@/api/users';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { SettingProvider } from '@/components/website-setting-provider';
-import { defaultWebsiteSetting } from '@/core/schema/settings/website';
 import { ThemeProvider } from 'next-themes';
 import type { ReactNode } from 'react';
 import useSWR from 'swr';
@@ -11,11 +11,11 @@ import useSWR from 'swr';
 export interface RootProvidersProps {
   me: MeInfo | undefined;
   children: ReactNode;
+  settings: PublicWebsiteSettings;
 }
 
-export function RootProviders ({ me, children }: RootProvidersProps) {
+export function RootProviders ({ me, settings, children }: RootProvidersProps) {
   const { data, isValidating, isLoading } = useSWR('api.users.me', getMe, { fallbackData: me, revalidateOnMount: !me, revalidateOnFocus: false });
-
   return (
     <ThemeProvider
       attribute="class"
@@ -24,11 +24,7 @@ export function RootProviders ({ me, children }: RootProvidersProps) {
       disableTransitionOnChange
     >
       <SettingProvider
-        value={{
-          website: defaultWebsiteSetting,
-          security: {},
-          custom_js: {},
-        }}>
+        value={settings}>
         <AuthProvider me={data} isLoading={isLoading} isValidating={isValidating}>
           {children}
         </AuthProvider>

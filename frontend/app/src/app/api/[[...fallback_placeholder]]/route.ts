@@ -46,7 +46,7 @@ function originalUrl (request: NextRequest) {
   if (search) {
     return url.pathname + '?' + search;
   } else {
-    return url.hostname;
+    return url.pathname;
   }
 }
 
