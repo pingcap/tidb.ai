@@ -1,4 +1,8 @@
-from typing import List, Tuple
+import json
+from typing import List, Tuple, Mapping, Any
+
+from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
+from llama_index.core.base.embeddings.base import BaseEmbedding, Embedding
 
 # The configuration for the weight coefficient
 # format: ((min_weight, max_weight), coefficient)
@@ -61,3 +65,48 @@ def calculate_relationship_score(
     if with_degree:
         degree_score = get_degree_score(in_degree, out_degree, degree_coefficient)
     return alpha * (1 / embedding_distance) + weighted_score + degree_score
+
+
+def get_default_embed_model() -> BaseEmbedding:
+    return OpenAIEmbedding(model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL)
+
+
+def get_query_embedding(query: str, embed_model: BaseEmbedding = None) -> Embedding:
+    if not embed_model:
+        embed_model = get_default_embed_model()
+    return embed_model.get_query_embedding(query)
+
+
+def get_text_embedding(text: str, embed_model: BaseEmbedding = None) -> Embedding:
+    if not embed_model:
+        embed_model = get_default_embed_model()
+    return embed_model.get_text_embedding(text)
+
+
+def get_entity_description_embedding(
+    name: str, description: str, embed_model: BaseEmbedding = None
+) -> Embedding:
+    combined_text = f"{name}: {description}"
+    return get_text_embedding(combined_text, embed_model)
+
+
+def get_entity_metadata_embedding(
+    metadata: Mapping[str, Any], embed_model: BaseEmbedding = None
+) -> Embedding:
+    combined_text = json.dumps(metadata)
+    return get_text_embedding(combined_text, embed_model)
+
+
+def get_relationship_description_embedding(
+    source_entity_name: str,
+    source_entity_description,
+    target_entity_name: str,
+    target_entity_description: str,
+    relationship_desc: str,
+    embed_model: BaseEmbedding = None,
+):
+    combined_text = (
+        f"{source_entity_name}({source_entity_description}) -> "
+        f"{relationship_desc} -> {target_entity_name}({target_entity_description}) "
+    )
+    return get_text_embedding(combined_text, embed_model)

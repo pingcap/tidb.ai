@@ -26,6 +26,10 @@ from app.rag.knowledge_graph.graph_store.helpers import (
     DEFAULT_WEIGHT_COEFFICIENT_CONFIG,
     DEFAULT_RANGE_SEARCH_CONFIG,
     DEFAULT_DEGREE_COEFFICIENT,
+    get_query_embedding,
+    get_entity_description_embedding,
+    get_entity_metadata_embedding,
+    get_relationship_description_embedding,
 )
 
 logger = logging.getLogger(__name__)
@@ -123,7 +127,9 @@ class TiDBGraphStore(KnowledgeGraphStore):
         def _find_or_create_entity_for_relation(
             name: str, description: str
         ) -> DBEntity:
-            _embedding = self.get_entity_description_embedding(name, description)
+            _embedding = get_entity_description_embedding(
+                name, description, self._embed_model
+            )
             # Check entities_name_map first, if not found, then check the database
             for e in entities_name_map.get(name, []):
                 if (
@@ -172,12 +178,13 @@ class TiDBGraphStore(KnowledgeGraphStore):
             source_entity=source_entity,
             target_entity=target_entity,
             description=relationship.relationship_desc,
-            description_vec=self.get_relationship_description_embedding(
+            description_vec=get_relationship_description_embedding(
                 source_entity.name,
                 source_entity.description,
                 target_entity.name,
                 target_entity.description,
                 relationship.relationship_desc,
+                self._embed_model,
             ),
             meta=relationship_meatadata,
         )
@@ -192,8 +199,10 @@ class TiDBGraphStore(KnowledgeGraphStore):
             if isinstance(entity, SynopsisEntity)
             else EntityType.original
         )
-        entity_description_vec = self.get_entity_description_embedding(
-            entity.name, entity.description
+        entity_description_vec = get_entity_description_embedding(
+            entity.name,
+            entity.description,
+            self._embed_model,
         )
         result = (
             self._session.query(
@@ -239,10 +248,12 @@ class TiDBGraphStore(KnowledgeGraphStore):
                 if merged_entity is not None:
                     db_obj.description = merged_entity.description
                     db_obj.meta = merged_entity.metadata
-                    db_obj.description_vec = self.get_entity_description_embedding(
-                        db_obj.name, db_obj.description
+                    db_obj.description_vec = get_entity_description_embedding(
+                        db_obj.name, db_obj.description, self._embed_model
                     )
-                    db_obj.meta_vec = self.get_entity_metadata_embedding(db_obj.meta)
+                    db_obj.meta_vec = get_entity_metadata_embedding(
+                        db_obj.meta, self._embed_model
+                    )
                     self._session.commit()
                     self._session.refresh(db_obj)
                     return db_obj
@@ -258,7 +269,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
             description=entity.description,
             description_vec=entity_description_vec,
             meta=entity.metadata,
-            meta_vec=self.get_entity_metadata_embedding(entity.metadata),
+            meta_vec=get_entity_metadata_embedding(entity.metadata, self._embed_model),
             synopsis_info=synopsis_info_str,
             entity_type=entity_type,
         )
@@ -273,34 +284,6 @@ class TiDBGraphStore(KnowledgeGraphStore):
             pred = self.merge_entities_prog(entities=entities)
             return pred.merged_entity
 
-    def get_query_embedding(self, query: str):
-        return self._embed_model.get_query_embedding(query)
-
-    def get_text_embedding(self, text: str):
-        return self._embed_model.get_text_embedding(text)
-
-    def get_entity_description_embedding(self, name: str, description: str):
-        combined_text = f"{name}: {description}"
-        return self.get_text_embedding(combined_text)
-
-    def get_entity_metadata_embedding(self, metadata: Mapping[str, Any]):
-        combined_text = json.dumps(metadata)
-        return self.get_text_embedding(combined_text)
-
-    def get_relationship_description_embedding(
-        self,
-        source_entity_name: str,
-        source_entity_description,
-        target_entity_name: str,
-        target_entity_description: str,
-        relationship_desc: str,
-    ):
-        combined_text = (
-            f"{source_entity_name}({source_entity_description}) -> "
-            f"{relationship_desc} -> {target_entity_name}({target_entity_description}) "
-        )
-        return self.get_text_embedding(combined_text)
-
     def retrieve_with_weight(
         self,
         query: str,
@@ -314,7 +297,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
     ) -> Tuple[list, list, list]:
         if not embedding:
             assert query, "Either query or embedding must be provided"
-            embedding = self.get_query_embedding(query)
+            embedding = get_query_embedding(query, self._embed_model)
 
         relationships, entities = self.search_relationships_weight(
             embedding,
