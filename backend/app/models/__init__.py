@@ -9,6 +9,7 @@ from .knowledge_graph import (
 from .feedback import (
     Feedback,
     FeedbackType,
+    AdminFeedbackPublic,
 )
 from .semantic_cache import SemanticCache
 from .staff_action_log import StaffActionLog

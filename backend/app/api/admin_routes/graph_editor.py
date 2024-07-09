@@ -56,7 +56,9 @@ def get_entity_subgraph(session: SessionDep, entity_id: int) -> dict:
     }
 
 
-@router.get("/admin/graph/relationships/{relationship_id}", response_model=RelationshipPublic)
+@router.get(
+    "/admin/graph/relationships/{relationship_id}", response_model=RelationshipPublic
+)
 def get_relationship(session: SessionDep, relationship_id: int):
     relationship = editor.get_relationship(session, relationship_id)
     if relationship is None:
@@ -73,7 +75,9 @@ class RelationUpdate(BaseModel):
     weight: Optional[int] = None
 
 
-@router.put("/admin/graph/relationships/{relationship_id}", response_model=RelationshipPublic)
+@router.put(
+    "/admin/graph/relationships/{relationship_id}", response_model=RelationshipPublic
+)
 def update_relationship(
     session: SessionDep, relationship_id: int, relationship_update: RelationUpdate
 ):

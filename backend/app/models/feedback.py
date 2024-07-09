@@ -1,6 +1,7 @@
 import enum
 from uuid import UUID
 from typing import Optional
+from datetime import datetime
 
 from sqlmodel import (
     Field,
@@ -20,10 +21,16 @@ class FeedbackType(str, enum.Enum):
         return weights.get(feedback_type, 0)
 
 
-class Feedback(UpdatableBaseModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+class BaseFeedback(UpdatableBaseModel):
     feedback_type: FeedbackType = FeedbackType.LIKE
     comment: str = Field(max_length=500, default=None)
+    chat_id: UUID
+    chat_message_id: int
+    user_id: UUID
+
+
+class Feedback(BaseFeedback, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
     chat_id: UUID = Field(foreign_key="chats.id")
     chat: "Chat" = SQLRelationship(
         sa_relationship_kwargs={
@@ -47,3 +54,10 @@ class Feedback(UpdatableBaseModel, table=True):
     )
 
     __tablename__ = "feedbacks"
+
+
+class AdminFeedbackPublic(BaseFeedback):
+    id: int
+    chat_title: str
+    chat_message_content: str
+    user_email: str
