@@ -271,7 +271,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
             add_relationships(relationships)
 
         entities, relationships, _ = self._kg_store.retrieve_with_weight(
-            sub_query, [], depth, include_meta, with_chunks=False
+            query, [], depth, include_meta, with_chunks=False
         )
         result["queries"][query] = {
             "entities": entities,
