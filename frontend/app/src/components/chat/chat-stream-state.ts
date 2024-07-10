@@ -7,7 +7,8 @@
  *     GENERATE_ANSWER = 5
  *     FINISHED = 9
  */
-import type { ChatMessageSource } from '@/api/chats';
+import { Chat, ChatMessage, chatMessageSchema, ChatMessageSource, chatSchema } from '@/api/chats';
+import { z, type ZodType } from 'zod';
 
 export const enum AppChatStreamState {
   CONNECTING = 'CONNECTING', // only client side
@@ -19,13 +20,13 @@ export const enum AppChatStreamState {
   RERANKING = 'RERANKING',
   GENERATE_ANSWER = 'GENERATE_ANSWER',
   FINISHED = 'FINISHED',
+  FAILED = 'FAILED',
+  UNKNOWN = 'UNKNOWN',
 }
 
 export interface BaseAnnotation<S extends AppChatStreamState> {
   state: S;
   display: string;
-  chat_id: string;
-  message_id: number;
 }
 
 export interface TraceAnnotation extends BaseAnnotation<AppChatStreamState.TRACE> {
@@ -40,3 +41,25 @@ export type ChatMessageAnnotation =
   BaseAnnotation<Exclude<AppChatStreamState, AppChatStreamState.TRACE | AppChatStreamState.SOURCE_NODES>>
   | TraceAnnotation
   | SourceNodesAnnotation;
+
+export type ChatInitialData = {
+  chat: Chat;
+  user_message: ChatMessage;
+  assistant_message: ChatMessage;
+}
+
+// FIXME: Server will not return updated_at
+export function fixChatInitialData (data: any) {
+  if (data.assistant_message) {
+    if (!data.assistant_message.updated_at) {
+      data.assistant_message.updated_at = data.assistant_message.created_at;
+    }
+  }
+  return data as any;
+}
+
+export const chatDataPartSchema = z.object({
+  chat: chatSchema,
+  user_message: chatMessageSchema,
+  assistant_message: chatMessageSchema,
+}) satisfies ZodType<ChatInitialData, any, any>;

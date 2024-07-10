@@ -1,9 +1,11 @@
-import { __setMessage } from '@/components/chat/internal';
+import { useChats } from '@/components/chat/chat-controller-provider';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 
 export function useAsk (onFinish?: () => void) {
+  const { newChat } = useChats();
   const router = useRouter();
+  const [waiting, setWaiting] = useState(false);
   const [transition, startTransition] = useTransition();
   const [engine, setEngine] = useState<number>();
   const engineRef = useRef<number>();
@@ -12,18 +14,26 @@ export function useAsk (onFinish?: () => void) {
     engine?: number;
     headers?: Record<string, string>;
   }) => {
-    __setMessage(message);
+    setWaiting(true);
     startTransition(() => {
-      router.push(`/c/new`);
+      newChat(undefined, undefined, { content: message })
+        .once('created', chat => {
+          setWaiting(false);
+          startTransition(() => {
+            router.push(`/c/${chat.id}`);
+          });
+        })
+        .once('ongoing-message-error', error => {
+          console.error(error);
+        });
     });
-
   }, []);
 
   useEffect(() => {
-    if (!transition) {
+    if (!waiting && !transition) {
       onFinish?.();
     }
-  }, [transition]);
+  }, [waiting, transition]);
 
   return {
     ask,
@@ -32,7 +42,7 @@ export function useAsk (onFinish?: () => void) {
       engineRef.current = engine;
       setEngine(engine);
     },
-    loading: transition,
+    loading: waiting || transition,
   };
 }
 

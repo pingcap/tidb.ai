@@ -1,6 +1,6 @@
+import type { Chat } from '@/api/chats';
 import { ChatEngineOptionsDetails } from '@/components/chat-engine/chat-engine-options-details';
 import { KnowledgeGraphDebugInfo } from '@/components/chat/knowledge-graph-debug-info';
-import type { UseChatReturns } from '@/components/chat/use-chat';
 // import { MessageLangfuse } from '@/components/chat/message-langfuse';
 import type { MyConversationMessageGroup } from '@/components/chat/use-grouped-conversation-messages';
 import { Dialog, DialogContent, DialogHeader, DialogPortal, DialogTrigger } from '@/components/ui/dialog';
@@ -10,12 +10,12 @@ import 'react-json-view-lite/dist/index.css';
 
 export interface DebugInfoProps {
   group: MyConversationMessageGroup;
-  myChat: UseChatReturns;
+  chat: Chat | undefined;
 }
 
-export function DebugInfo ({ group, myChat }: DebugInfoProps) {
+export function DebugInfo ({ group, chat }: DebugInfoProps) {
+  const chatEngineOptions = chat?.engine_options;
   const traceURL = group.assistantMessage.trace_url;
-  const chatEngineOptions = myChat.engineOptions;
 
   return (
     <div className="my-2 p-4 space-y-4 bg-card border rounded text-xs">

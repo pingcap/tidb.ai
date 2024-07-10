@@ -67,7 +67,7 @@ const chatEngineSchema = z.object({
   deleted_at: zodJsonDate().nullable(),
   engine_options: chatEngineOptionsSchema,
   is_default: z.boolean(),
-}) satisfies ZodType<ChatEngine>;
+}) satisfies ZodType<ChatEngine, any, any>;
 
 export async function listChatEngines ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<ChatEngine>> {
   return await fetch(BASE_URL + '/api/v1/admin/chat-engines' + '?' + buildUrlParams({ page, size }), {

@@ -30,7 +30,7 @@ const documentSchema = z.object({
   source_uri: z.string(),
   index_status: z.string(),
   index_result: z.unknown(),
-}) satisfies ZodType<Document>;
+}) satisfies ZodType<Document, any, any>;
 
 export async function listDocuments ({ page = 1, size = 10, query }: PageParams & { query?: string } = {}): Promise<Page<Document>> {
   return await fetch(BASE_URL + '/api/v1/admin/documents' + '?' + buildUrlParams({ page, size, query }), {

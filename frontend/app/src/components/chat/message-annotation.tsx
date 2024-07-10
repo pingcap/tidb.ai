@@ -1,8 +1,8 @@
-import type { OngoingConversationMessageGroup } from '@/components/chat/use-grouped-conversation-messages';
+import type { OngoingState } from '@/components/chat/chat-controller';
 import { LoaderIcon } from 'lucide-react';
 
-export function MessageAnnotation ({ group }: { group: OngoingConversationMessageGroup }) {
-  let text: string | undefined = group.assistantMessage.display;
+export function MessageAnnotation ({ state }: { state: OngoingState }) {
+  let text: string | undefined = state.display;
 
   return (
     <div className="text-muted-foreground leading-tight">

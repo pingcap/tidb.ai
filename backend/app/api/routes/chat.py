@@ -52,7 +52,7 @@ def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest)
     if chat_request.stream:
         return StreamingResponse(
             chat_svc.chat(chat_request.messages, chat_request.chat_id),
-            media_type="text/event-stream",
+            media_type="text/x-ai-stream",
             headers={
                 "X-Content-Type-Options": "nosniff",
             },
@@ -61,7 +61,7 @@ def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest)
         trace, sources, content = None, [], ""
         chat_id, message_id = None, None
         for m in chat_svc.chat(chat_request.messages, chat_request.chat_id):
-            if m.event_type == ChatEventType.MESSAGE_PART:
+            if m.event_type == ChatEventType.MESSAGE_ANNOTATIONS_PART:
                 if m.payload.state == ChatMessageSate.SOURCE_NODES:
                     sources = m.payload.context
                 elif m.payload.state == ChatMessageSate.TRACE:

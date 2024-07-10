@@ -4,7 +4,9 @@ import { bufferedReadableStreamTransformer } from '@/lib/buffered-readable-strea
 import { BASE_URL, buildUrlParams, handleErrors, handleResponse, opaqueCookieHeader, type Page, type PageParams, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { parseStreamPart } from 'ai';
-import { z } from 'zod';
+import { z, type ZodType } from 'zod';
+
+const mockChat = !!process.env.NEXT_PUBLIC_MOCKING_CHAT;
 
 export interface Chat {
   title: string;
@@ -48,7 +50,7 @@ export interface ChatMessageSource {
   source_uri: string;
 }
 
-const chatSchema = z.object({
+export const chatSchema = z.object({
   title: z.string(),
   engine_id: z.number(),
   engine_options: z.string().transform(value => JSON.parse(value) as ChatEngineOptions),
@@ -57,7 +59,7 @@ const chatSchema = z.object({
   updated_at: zodJsonDate(),
   created_at: zodJsonDate(),
   id: z.string(),
-});
+}) satisfies ZodType<Chat, any, any>;
 
 const chatMessageSourceSchema = z.object({
   id: z.number(),
@@ -65,7 +67,7 @@ const chatMessageSourceSchema = z.object({
   source_uri: z.string(),
 });
 
-const chatMessageSchema = z.object({
+export const chatMessageSchema = z.object({
   id: z.number(),
   role: z.enum([ChatMessageRole.user, ChatMessageRole.assistant]),
   error: z.string().nullable(),
@@ -78,7 +80,7 @@ const chatMessageSchema = z.object({
   content: z.string(),
   sources: chatMessageSourceSchema.array(),
   chat_id: z.string(),
-});
+}) satisfies ZodType<ChatMessage, any, any>;
 
 const chatDetailSchema = z.object({
   chat: chatSchema,
@@ -137,6 +139,22 @@ export async function getChatMessageSubgraph (chatMessageId: number): Promise<Kn
 }
 
 export async function* chat ({ chat_id, chat_engine = 'default', content, headers: headersInit, signal }: PostChatParams, onResponse?: (response: Response) => void) {
+  if (mockChat) {
+    const res = await fetch('/chats.mock.txt');
+    const text = await res.text();
+    for (let line of text.split('\n')) {
+      if (line.startsWith('0:')) {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      } else {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      if (line) {
+        yield parseStreamPart(line + '\n');
+      }
+    }
+    return;
+  }
+
   const headers = new Headers(headersInit);
   headers.set('Content-Type', 'application/json');
 

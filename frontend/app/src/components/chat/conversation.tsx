@@ -1,39 +1,30 @@
 'use client';
 
 import type { Chat, ChatMessage } from '@/api/chats';
+import { ChatControllerProvider, type SubscribedChat, useSubscribeChat } from '@/components/chat/chat-controller-provider';
 import { ConversationMessageGroups } from '@/components/chat/conversation-message-groups';
-import { __useHandleInitialMessage } from '@/components/chat/internal';
 import { MessageInput } from '@/components/chat/message-input';
-import { useChat, type UseChatReturns } from '@/components/chat/use-chat';
 import { SecuritySettingContext, withReCaptcha } from '@/components/security-setting-provider';
 import { useSize } from '@/components/use-size';
 import { cn } from '@/lib/utils';
 import { type ChangeEvent, type FormEvent, type ReactNode, useContext, useState } from 'react';
 
 export interface ConversationProps {
+  chatId?: string;
+
   className?: string;
   open: boolean;
   chat: Chat | undefined;
   history: ChatMessage[];
 
   /* Only for widgets */
-  placeholder?: (myChat: UseChatReturns) => ReactNode;
+  placeholder?: (myChat: SubscribedChat) => ReactNode;
   preventMutateBrowserHistory?: boolean;
   preventShiftMessageInput?: boolean;
 }
 
-export function Conversation ({ open, chat, history, placeholder, preventMutateBrowserHistory = false, preventShiftMessageInput = false, className }: ConversationProps) {
-  const [waiting, setWaiting] = useState(false);
-  let myChat = useChat({
-    chat,
-    messages: history,
-    onChatCreated (id) {
-      if (!preventMutateBrowserHistory) {
-        window.history.replaceState(null, '', `/c/${id}`);
-      }
-    },
-  });
-  __useHandleInitialMessage(!chat, myChat, setWaiting);
+export function Conversation ({ open, chat, chatId, history, placeholder, preventMutateBrowserHistory = false, preventShiftMessageInput = false, className }: ConversationProps) {
+  const subscribedChat = useSubscribeChat(chatId, chat, history);
 
   const [input, setInput] = useState('');
   const handleInputChange = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -51,7 +42,7 @@ export function Conversation ({ open, chat, history, placeholder, preventMutateB
       siteKey: security?.google_recaptcha_site_key || '',
       mode: security?.google_recaptcha,
     }, ({ token, action }) => {
-      myChat.post({
+      subscribedChat.controller.post({
         content: input,
         headers: {
           'X-Recaptcha-Token': token,
@@ -62,21 +53,21 @@ export function Conversation ({ open, chat, history, placeholder, preventMutateB
     });
   };
 
-  myChat = { ...myChat, isLoading: waiting };
+  const disabled = !!subscribedChat.pendingPost || !!subscribedChat.ongoingMessageController;
 
   return (
-    <>
-      {!myChat.messages.length && !myChat.ongoingMessage && placeholder?.(myChat)}
+    <ChatControllerProvider controller={subscribedChat.controller}>
+      {!subscribedChat.messages.length && !subscribedChat.ongoingMessageController && placeholder?.(subscribedChat)}
       <div ref={ref} className={cn(
         'mx-auto space-y-4 transition-all relative md:max-w-screen-md md:min-h-screen md:p-body',
         className,
       )}>
-        <ConversationMessageGroups myChat={myChat} />
+        <ConversationMessageGroups subscribedChat={subscribedChat} />
         <div className="h-24"></div>
       </div>
       {size && open && <form className={cn('block h-max p-4 fixed bottom-0', preventShiftMessageInput && 'absolute pb-0')} onSubmit={submitWithReCaptcha} style={{ left: preventShiftMessageInput ? 0 : size.x, width: size.width }}>
-        <MessageInput className="w-full transition-all" disabled={myChat.isLoading || !!myChat.ongoingMessage} inputProps={{ value: input, onChange: handleInputChange, disabled: myChat.isLoading || !!myChat.ongoingMessage }} />
+        <MessageInput className="w-full transition-all" disabled={disabled} inputProps={{ value: input, onChange: handleInputChange, disabled }} />
       </form>}
-    </>
+    </ChatControllerProvider>
   );
 }

@@ -1,3 +1,5 @@
+import { type SubscribedChat, useChatMessage } from '@/components/chat/chat-controller-provider';
+import { AppChatStreamState } from '@/components/chat/chat-stream-state';
 import { DebugInfo } from '@/components/chat/debug-info';
 import { MessageAnnotation } from '@/components/chat/message-annotation';
 import { MessageContent } from '@/components/chat/message-content';
@@ -5,38 +7,65 @@ import { MessageContextSources } from '@/components/chat/message-content-sources
 import { MessageError } from '@/components/chat/message-error';
 import { MessageHeading } from '@/components/chat/message-heading';
 import { MessageOperations } from '@/components/chat/message-operations';
-import type { UseChatReturns } from '@/components/chat/use-chat';
 import { type MyConversationMessageGroup, useGroupedConversationMessages } from '@/components/chat/use-grouped-conversation-messages';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { getErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
-import { AlertTriangleIcon, InfoIcon } from 'lucide-react';
+import { InfoIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import './conversation-message-groups.scss';
 
+export function ConversationMessageGroups ({ subscribedChat }: { subscribedChat: SubscribedChat }) {
+  const groups = useGroupedConversationMessages(subscribedChat.messages);
 
-export function ConversationMessageGroups ({ myChat }: { myChat: UseChatReturns }) {
-  const { error } = myChat;
-  const groups = useGroupedConversationMessages(myChat);
+  useEffect(() => {
+    const scroll = () => {
+      window.scrollTo({
+        left: 0,
+        top: document.body.scrollHeight,
+        behavior: 'smooth',
+      });
+    };
+    if (subscribedChat.pendingPost) {
+      scroll();
+      return () => {
+        scroll();
+      };
+    }
+  }, [subscribedChat.pendingPost]);
 
   return (
-    <div className="space-y-8">
-      {groups.map(group => (
-        <ConversationMessageGroup key={group.id} group={group} myChat={myChat} />
+    <div className="space-y-8 pb-16">
+      {groups.map((group, index) => (
+        <ConversationMessageGroup
+          key={group.id}
+          group={group}
+          subscribedChat={subscribedChat}
+        />
       ))}
-      {!!error && <Alert variant="destructive">
-        <AlertTriangleIcon />
-        <AlertTitle>Fail to chat with TiDB.ai</AlertTitle>
-        <AlertDescription>{getErrorMessage(error)}</AlertDescription>
-      </Alert>}
+      {subscribedChat.pendingPost && (
+        <section
+          className={cn('opacity-50 pointer-events-none space-y-6 p-4 pt-12 border-b pb-10 last-of-type:border-b-0 last-of-type:border-pb-4')}
+        >
+          <div className="relative pr-12">
+            <h2 className="text-2xl font-normal">{subscribedChat.pendingPost.content}</h2>
+          </div>
+        </section>
+      )}
     </div>
   );
 }
 
-function ConversationMessageGroup ({ group, myChat }: { group: MyConversationMessageGroup, myChat: UseChatReturns }) {
+function ConversationMessageGroup ({ group, subscribedChat }: { group: MyConversationMessageGroup, subscribedChat: SubscribedChat }) {
   const enableDebug = !process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL && !!group.id;
+  const userMessage = useChatMessage(group.userMessage);
+  const assistantMessage = useChatMessage(group.assistantMessage);
+
+  group = {
+    ...group,
+    userMessage,
+    assistantMessage,
+  };
 
   const [debugInfoOpen, setDebugInfoOpen] = useState(false);
   const [highlight, setHighlight] = useState(false);
@@ -64,18 +93,21 @@ function ConversationMessageGroup ({ group, myChat }: { group: MyConversationMes
           </CollapsibleTrigger>}
         </div>
         <CollapsibleContent>
-          <DebugInfo group={group} myChat={myChat} />
+          <DebugInfo group={group} chat={subscribedChat.chat} />
         </CollapsibleContent>
       </Collapsible>
 
-      <MessageContextSources group={group} />
+      <MessageContextSources message={group.assistantMessage} />
       <section className="space-y-2">
         <MessageHeading />
-        <MessageError group={group} />
-        <MessageContent group={group} />
-        {!group.finished && <MessageAnnotation group={group} />}
+        {!group.finished && <MessageError message={group.assistantMessage} ongoing={group.ongoing} />}
+        <MessageContent message={group.assistantMessage} />
+        {!group.finished
+          && group.ongoing.state !== AppChatStreamState.UNKNOWN
+          && !assistantMessage.error
+          && <MessageAnnotation state={group.ongoing} />}
       </section>
-      <MessageOperations group={group} myChat={myChat} />
+      {group.finished && <MessageOperations message={group.assistantMessage} controller={subscribedChat.controller} />}
     </section>
   );
 }

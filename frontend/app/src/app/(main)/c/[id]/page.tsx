@@ -9,6 +9,8 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
 
+const mockChat = !!process.env.NEXT_PUBLIC_MOCKING_CHAT;
+
 const cachedGetChat = cache((id: string) => getChat(id)
   .then(res => {
     return res;
@@ -23,19 +25,16 @@ const cachedGetChat = cache((id: string) => getChat(id)
 
 export default async function ChatDetailPage ({ params }: { params: { id: string } }) {
   const id = params.id;
-
   const me = await auth();
 
   let chat: Chat | undefined;
   let messages: ChatMessage[];
 
-  if (id === 'new') {
+  if (mockChat && id === '00000000-0000-0000-0000-00000000000') {
     messages = [];
   } else {
     try {
-
       const detail = await cachedGetChat(id);
-
       chat = detail.chat;
       messages = detail.messages;
     } catch (error) {
@@ -71,6 +70,8 @@ export default async function ChatDetailPage ({ params }: { params: { id: string
   return (
     <div className="xl:pr-side">
       <Conversation
+        key={chat?.id}
+        chatId={id}
         open={!!me && me.id === chat?.user_id}
         chat={chat}
         history={messages}
@@ -80,9 +81,9 @@ export default async function ChatDetailPage ({ params }: { params: { id: string
 }
 
 export async function generateMetadata ({ params }: { params: { id: string } }): Promise<Metadata> {
-  if (params.id === 'new') {
+  if (mockChat && params.id === '00000000-0000-0000-0000-00000000000') {
     return {
-      title: 'Creating chat... | tidb.ai',
+      title: 'Mocking chat... | tidb.ai',
     };
   }
   try {

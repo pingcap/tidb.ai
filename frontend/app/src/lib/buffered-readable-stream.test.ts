@@ -20,7 +20,7 @@ test('stream error', async () => {
 
   try {
     await reader.read();
-    it.failing('should throws');
+    throw new Error('should failing');
   } catch (e) {
     expect(e).toEqual('reason');
   }

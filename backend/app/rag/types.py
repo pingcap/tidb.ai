@@ -71,8 +71,9 @@ class ChatEventType(int, enum.Enum):
     # Following vercel ai sdk's event type
     # https://github.com/vercel/ai/blob/84871281ab5a2c080e3f8e18d02cd09c7e1691c4/packages/ui-utils/src/stream-parts.ts#L368
     TEXT_PART = 0
+    DATA_PART = 2
     ERROR_PART = 3
-    MESSAGE_PART = 8
+    MESSAGE_ANNOTATIONS_PART = 8
 
 
 class ChatMessageSate(int, enum.Enum):

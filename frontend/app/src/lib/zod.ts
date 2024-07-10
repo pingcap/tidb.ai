@@ -1,5 +1,5 @@
 import { z } from 'zod';
 
 export function zodJsonDate (message?: string) {
-  return z.coerce.date();
+  return z.string().pipe(z.coerce.date());
 }

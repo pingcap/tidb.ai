@@ -1,12 +1,11 @@
-import type { ChatMessageSource } from '@/api/chats';
-import { type MyConversationMessageGroup } from '@/components/chat/use-grouped-conversation-messages';
+import type { ChatMessage, ChatMessageSource } from '@/api/chats';
 import { parseSource } from '@/components/chat/utils';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { LinkIcon, TextSearchIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
-export function MessageContextSources ({ group }: { group: MyConversationMessageGroup }) {
-  const { sources } = group.assistantMessage;
+export function MessageContextSources ({ message }: { message: ChatMessage }) {
+  const { sources } = message;
   if (!sources || sources.length === 0) {
     return null;
   }

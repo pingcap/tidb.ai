@@ -2,7 +2,6 @@ import json
 import logging
 from uuid import UUID
 from typing import List, Generator, Optional, Tuple
-from dataclasses import dataclass
 from datetime import datetime, UTC
 
 import jinja2
@@ -24,6 +23,7 @@ from app.models import (
     ChatMessage as DBChatMessage,
 )
 from app.core.config import settings
+from app.rag.chat_stream_protocol import ChatStreamMessagePayload, ChatStreamDataPayload, ChatEvent
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.knowledge_graph import KnowledgeGraphIndex
@@ -37,40 +37,6 @@ from app.rag.types import (
 from app.repositories import chat_repo
 
 logger = logging.getLogger(__name__)
-
-
-@dataclass
-class ChatStreamMessagePayload:
-    chat_id: Optional[UUID] = None
-    message_id: Optional[int] = None
-    state: ChatMessageSate = ChatMessageSate.TRACE
-    display: str = ""
-    context: dict | list | str = ""
-
-
-@dataclass
-class ChatEvent:
-    event_type: ChatEventType = ChatEventType.MESSAGE_PART
-    payload: ChatStreamMessagePayload | str | None = None
-
-    def encode(self, charset) -> bytes:
-        # fastapi will use this method in streaming response
-        if self.event_type in (ChatEventType.TEXT_PART, ChatEventType.ERROR_PART):
-            body = self.payload
-        else:
-            body = {
-                "chat_id": str(self.payload.chat_id),
-                "message_id": self.payload.message_id,
-                "state": self.payload.state.name,
-            }
-            if self.payload.display:
-                body["display"] = self.payload.display
-            if self.payload.context:
-                body["context"] = self.payload.context
-            body = [body]
-
-        body = json.dumps(body, separators=(",", ":"))
-        return f"{self.event_type.value}: {body}\n".encode(charset)
 
 
 class ChatService:
@@ -151,7 +117,7 @@ class ChatService:
         trace_id = observation.trace_id
         trace_url = observation.get_trace_url()
 
-        chat_repo.create_message(
+        db_user_message = chat_repo.create_message(
             session=self.db_session,
             chat=self.db_chat_obj,
             chat_message=DBChatMessage(
@@ -187,10 +153,16 @@ class ChatService:
             payload="",
         )
         yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_PART,
+            event_type=ChatEventType.DATA_PART,
+            payload=ChatStreamDataPayload(
+                chat=self.db_chat_obj,
+                user_message=db_user_message,
+                assistant_message=db_assistant_message,
+            )
+        )
+        yield ChatEvent(
+            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
-                chat_id=chat_id,
-                message_id=db_assistant_message.id,
                 state=ChatMessageSate.TRACE,
                 display="Start knowledge graph searching ...",
                 context={"langfuse_url": trace_url},
@@ -257,10 +229,8 @@ class ChatService:
 
         # 2. Refine the user question using graph information and chat history
         yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_PART,
+            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
-                chat_id=chat_id,
-                message_id=db_assistant_message.id,
                 state=ChatMessageSate.REFINE_QUESTION,
                 display="Refine the user question ...",
             ),
@@ -285,10 +255,8 @@ class ChatService:
         # 4. Rerank after the retrieval
         # 5. Generate a response using the refined question and related chunks
         yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_PART,
+            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
-                chat_id=chat_id,
-                message_id=db_assistant_message.id,
                 state=ChatMessageSate.SEARCH_RELATED_DOCUMENTS,
                 display="Search related documents ...",
             ),
@@ -319,10 +287,8 @@ class ChatService:
         source_documents = self._get_source_documents(response)
 
         yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_PART,
+            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
-                chat_id=chat_id,
-                message_id=db_assistant_message.id,
                 state=ChatMessageSate.SOURCE_NODES,
                 context=source_documents,
             ),
@@ -338,17 +304,25 @@ class ChatService:
 
         db_assistant_message.sources = source_documents
         db_assistant_message.content = response_text
+        db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_assistant_message)
         self.db_session.commit()
 
         yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_PART,
+            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
-                chat_id=chat_id,
-                message_id=db_assistant_message.id,
                 state=ChatMessageSate.FINISHED,
             ),
+        )
+
+        yield ChatEvent(
+            event_type=ChatEventType.DATA_PART,
+            payload=ChatStreamDataPayload(
+                chat=self.db_chat_obj,
+                user_message=db_user_message,
+                assistant_message=db_assistant_message,
+            )
         )
 
     def _parse_chat_messages(

@@ -1,6 +1,6 @@
+import type { ChatMessage } from '@/api/chats';
+import type { ChatController } from '@/components/chat/chat-controller';
 import { MessageFeedback } from '@/components/chat/message-feedback';
-import type { UseChatReturns } from '@/components/chat/use-chat';
-import type { MyConversationMessageGroup } from '@/components/chat/use-grouped-conversation-messages';
 import { useMessageFeedback } from '@/components/chat/use-message-feedback';
 import { Button } from '@/components/ui/button';
 import { TooltipProvider } from '@/components/ui/tooltip';
@@ -9,13 +9,9 @@ import copy from 'copy-to-clipboard';
 import { ClipboardCheckIcon, ClipboardIcon, MessageSquareHeartIcon, MessageSquarePlusIcon, RefreshCwIcon } from 'lucide-react';
 import { useState } from 'react';
 
-export function MessageOperations ({ group, myChat }: { group: MyConversationMessageGroup, myChat: UseChatReturns }) {
-  const { regenerate } = myChat;
-  const { feedbackData, feedback: callFeedback, disabled } = useMessageFeedback(group.assistantMessage.id, !!group.assistantMessage.trace_url);
+export function MessageOperations ({ message, controller }: { message: ChatMessage, controller: ChatController }) {
+  const { feedbackData, feedback: callFeedback, disabled } = useMessageFeedback(message.id, !!message.trace_url);
   const [copied, setCopied] = useState(false);
-  if (!group.finished) {
-    return;
-  }
   return (
     <TooltipProvider>
       <div className="flex items-center gap-2">
@@ -23,7 +19,7 @@ export function MessageOperations ({ group, myChat }: { group: MyConversationMes
           size="sm"
           className="gap-1 text-xs px-2 py-1 h-max"
           variant="ghost"
-          onClick={() => regenerate(group.assistantMessage.id)}
+          onClick={() => controller.regenerate(message.id)}
           disabled
         >
           <RefreshCwIcon size="1em" />
@@ -44,7 +40,7 @@ export function MessageOperations ({ group, myChat }: { group: MyConversationMes
           variant="ghost"
           className={cn('rounded-full w-7 h-7 transition-colors', copied && '!text-green-500 hover:bg-green-500/10')}
           onClick={() => {
-            setCopied(copy(group.assistantMessage.content));
+            setCopied(copy(message.content));
           }}
         >
           {copied

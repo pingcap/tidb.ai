@@ -1,8 +1,8 @@
 import { getChatMessageSubgraph } from '@/api/chats';
 import { useAuth } from '@/components/auth/AuthProvider';
+import type { OngoingState } from '@/components/chat/chat-controller';
 import { AppChatStreamState } from '@/components/chat/chat-stream-state';
-import type { PendingOngoingMessage } from '@/components/chat/use-chat';
-import { getStateOfMessage, type MyConversationMessageGroup } from '@/components/chat/use-grouped-conversation-messages';
+import { type MyConversationMessageGroup } from '@/components/chat/use-grouped-conversation-messages';
 import { NetworkViewer } from '@/components/graph/components/NetworkViewer';
 import { useNetwork } from '@/components/graph/useNetwork';
 import { useEffect } from 'react';
@@ -12,7 +12,7 @@ export function KnowledgeGraphDebugInfo ({ group }: { group: MyConversationMessa
   const auth = useAuth();
   const canEdit = !!auth.me?.is_superuser;
 
-  const shouldFetch = !!group.userMessage.id && (group.finished || group.assistantMessage.finished || couldFetchKnowledgeGraphDebugInfo(group.assistantMessage));
+  const shouldFetch = !!group.userMessage.id && (group.finished || group.ongoing.finished || couldFetchKnowledgeGraphDebugInfo(group.ongoing));
   const { data: span, isLoading, mutate } = useSWR(
     shouldFetch && `api.chats.get-message-subgraph?id=${group.userMessage.id}`,
     () => getChatMessageSubgraph(group.userMessage.id),
@@ -50,8 +50,8 @@ export function KnowledgeGraphDebugInfo ({ group }: { group: MyConversationMessa
   );
 }
 
-function couldFetchKnowledgeGraphDebugInfo (message: PendingOngoingMessage) {
-  switch (message.state) {
+function couldFetchKnowledgeGraphDebugInfo (state: OngoingState) {
+  switch (state.state) {
     case AppChatStreamState.GENERATE_ANSWER:
     case AppChatStreamState.FINISHED:
     case AppChatStreamState.RERANKING:
