@@ -52,7 +52,7 @@ def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest)
     if chat_request.stream:
         return StreamingResponse(
             chat_svc.chat(chat_request.messages, chat_request.chat_id),
-            media_type="text/x-ai-stream",
+            media_type="text/event-stream",
             headers={
                 "X-Content-Type-Options": "nosniff",
             },
