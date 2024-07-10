@@ -72,7 +72,7 @@ def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest)
                 content += m.payload
             elif m.event_type == ChatEventType.ERROR_PART:
                 raise HTTPException(
-                    status_code=HTTPStatus.BAD_REQUEST,
+                    status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
                     detail=m.payload,
                 )
             else:

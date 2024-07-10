@@ -1,5 +1,6 @@
 import json
 import logging
+import traceback
 from uuid import UUID
 from typing import List, Generator, Optional, Tuple
 from datetime import datetime, UTC
@@ -23,7 +24,11 @@ from app.models import (
     ChatMessage as DBChatMessage,
 )
 from app.core.config import settings
-from app.rag.chat_stream_protocol import ChatStreamMessagePayload, ChatStreamDataPayload, ChatEvent
+from app.rag.chat_stream_protocol import (
+    ChatStreamMessagePayload,
+    ChatStreamDataPayload,
+    ChatEvent,
+)
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.knowledge_graph import KnowledgeGraphIndex
@@ -58,6 +63,19 @@ class ChatService:
         self._reranker = self.chat_engine_config.get_reranker()
 
     def chat(
+        self, chat_messages: List[ChatMessage], chat_id: Optional[UUID] = None
+    ) -> Generator[ChatEvent, None, None]:
+        try:
+            for event in self._chat(chat_messages, chat_id):
+                yield event
+        except Exception:
+            logger.error(traceback.format_exc())
+            yield ChatEvent(
+                event_type=ChatEventType.ERROR_PART,
+                payload="Encountered an error while processing the chat. Please try again later.",
+            )
+
+    def _chat(
         self, chat_messages: List[ChatMessage], chat_id: Optional[UUID] = None
     ) -> Generator[ChatEvent, None, None]:
         user_question, chat_history = self._parse_chat_messages(chat_messages)
@@ -158,7 +176,7 @@ class ChatService:
                 chat=self.db_chat_obj,
                 user_message=db_user_message,
                 assistant_message=db_assistant_message,
-            )
+            ),
         )
         yield ChatEvent(
             event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
@@ -322,7 +340,7 @@ class ChatService:
                 chat=self.db_chat_obj,
                 user_message=db_user_message,
                 assistant_message=db_assistant_message,
-            )
+            ),
         )
 
     def _parse_chat_messages(

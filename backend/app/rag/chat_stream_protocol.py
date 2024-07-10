@@ -17,11 +17,13 @@ class ChatStreamDataPayload(ChatStreamPayload):
     assistant_message: ChatMessage
 
     def dump(self):
-        return [{
-            "chat": self.chat.model_dump(mode='json'),
-            "user_message": self.user_message.model_dump(mode='json'),
-            "assistant_message": self.assistant_message.model_dump(mode='json'),
-        }]
+        return [
+            {
+                "chat": self.chat.model_dump(mode="json"),
+                "user_message": self.user_message.model_dump(mode="json"),
+                "assistant_message": self.assistant_message.model_dump(mode="json"),
+            }
+        ]
 
 
 @dataclass
@@ -31,11 +33,13 @@ class ChatStreamMessagePayload(ChatStreamPayload):
     context: dict | list | str = ""
 
     def dump(self):
-        return [{
-            "state": self.state.name,
-            "display": self.display,
-            "context": self.context,
-        }]
+        return [
+            {
+                "state": self.state.name,
+                "display": self.display,
+                "context": self.context,
+            }
+        ]
 
 
 @dataclass
