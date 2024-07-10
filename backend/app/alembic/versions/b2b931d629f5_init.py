@@ -121,28 +121,6 @@ def upgrade():
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_table(
-        "options",
-        sa.Column(
-            "created_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=True,
-        ),
-        sa.Column(
-            "updated_at",
-            sa.DateTime(timezone=True),
-            server_default=sa.text("now()"),
-            nullable=True,
-        ),
-        sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("name", sqlmodel.sql.sqltypes.AutoString(length=256), nullable=False),
-        sa.Column(
-            "group_name", sqlmodel.sql.sqltypes.AutoString(length=256), nullable=False
-        ),
-        sa.Column("value", sa.JSON(), nullable=True),
-        sa.PrimaryKeyConstraint("id"),
-    )
-    op.create_table(
         "staff_action_logs",
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("action", sqlmodel.sql.sqltypes.AutoString(), nullable=False),
@@ -282,7 +260,6 @@ def downgrade():
     op.drop_index(op.f("ix_chats_id"), table_name="chats")
     op.drop_table("chats")
     op.drop_table("staff_action_logs")
-    op.drop_table("options")
     op.drop_table("feedbacks")
     op.drop_table("entities")
     op.drop_table("documents")

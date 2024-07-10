@@ -18,7 +18,6 @@ from .chat import Chat
 from .chat_message import ChatMessage
 from .document import Document, DocIndexTaskStatus
 from .chunk import Chunk, KgIndexStatus
-from .option import Option
 from .auth import User, UserSession
 from .api_key import ApiKey
 from .site_setting import SiteSetting
