@@ -66,10 +66,11 @@ def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest)
                     sources = m.payload.context
                 elif m.payload.state == ChatMessageSate.TRACE:
                     trace = m.payload.context
-                    chat_id = m.payload.chat_id
-                    message_id = m.payload.message_id
             elif m.event_type == ChatEventType.TEXT_PART:
                 content += m.payload
+            elif m.event_type == ChatEventType.DATA_PART:
+                chat_id = m.payload.chat.id
+                message_id = m.payload.assistant_message.id
             elif m.event_type == ChatEventType.ERROR_PART:
                 raise HTTPException(
                     status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
