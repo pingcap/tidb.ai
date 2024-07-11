@@ -39,6 +39,8 @@ You can even edit the Knowledge Graph to add more information or correct any ina
 - [DSPy](https://github.com/stanfordnlp/dspy) - The framework for programming—not prompting—foundation models
 - [TiDB Vector](https://tidb.cloud/ai) - Vector storage and search engine
 
+## Contect Us
+You can post topics on our [TiDB Community](https://ask.pingcap.com/) page.
 
 ## License
 TiDB.AI is open-source under the Apache License, Version 2.0. You can [find it here](/LICENSE.txt).
