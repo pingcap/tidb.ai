@@ -5,6 +5,7 @@
   "packageManager": "pnpm@9.4.0",
   "scripts": {
     "test": "pnpm run --filter '*' test",
+    "dev": "pnpm run --filter 'app' dev",
     "build:widget-react": "pnpm run --filter '@tidb.ai/react' build",
     "build:docker": "pnpm run --filter 'app' build:standalone",
     "build": "pnpm run --filter 'app' build",
