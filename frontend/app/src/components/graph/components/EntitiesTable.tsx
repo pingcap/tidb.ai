@@ -1,5 +1,5 @@
 import { metadataCell } from '@/components/cells/metadata';
-import type { Entity } from '@/components/graph/api';
+import type { Entity } from '@/components/graph/utils';
 import { Loader } from '@/components/loader';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Skeleton } from '@/components/ui/skeleton';

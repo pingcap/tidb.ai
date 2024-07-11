@@ -1,9 +1,9 @@
+import { getEntity } from '@/api/graph';
 import { Loader } from '@/components/loader';
 import { toastError, toastSuccess } from '@/lib/ui-error';
 import { cn } from '@/lib/utils';
 import { useContext, useEffect, useMemo, useState } from 'react';
-import type { Entity } from '../api';
-import { getEntity } from '../api';
+import type { Entity } from '../utils';
 import type { IdType } from '../network/Network';
 import { useRemote } from '../remote';
 import { useDirtyEntity } from '../useDirtyEntity';
@@ -31,7 +31,7 @@ export function NodeDetails ({
     return Array.from(network.nodeNeighborhoods(entity.id) ?? []).map(id => network.node(id)!);
   }, [network, entity.id]);
 
-  const latestData = useRemote(entity, getEntity, entity.id);
+  const latestData = useRemote(entity, getEntity, Number(entity.id));
   const dirtyEntity = useDirtyEntity(entity.id);
 
   // dirty set

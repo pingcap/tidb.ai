@@ -1,6 +1,7 @@
+import { updateEntity } from '@/api/graph';
 import { useRef } from 'react';
-import { editEntity, type Entity } from './api';
 import { useAction } from './action';
+import { type Entity } from './utils';
 import type { JsonFieldInstance } from './components/JsonField';
 
 export function useDirtyEntity (id: any) {
@@ -15,7 +16,7 @@ export function useDirtyEntity (id: any) {
       throw new Error('bad editor state');
     }
 
-    return await editEntity(id, current);
+    return await updateEntity(id, current);
   });
 
   const reset = (entity: Entity) => {

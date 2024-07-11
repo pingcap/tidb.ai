@@ -1,6 +1,7 @@
+import { updateRelationship } from '@/api/graph';
 import { useRef } from 'react';
 import { useAction } from './action';
-import { editRelationship, type Relationship } from './api';
+import { type Relationship } from './utils';
 import type { JsonFieldInstance } from './components/JsonField';
 
 export function useDirtyRelationship (id: any) {
@@ -15,7 +16,7 @@ export function useDirtyRelationship (id: any) {
       throw new Error('bad editor state');
     }
 
-    return await editRelationship(id, current);
+    return await updateRelationship(id, current);
   });
 
   const reset = (relationship: Relationship) => {

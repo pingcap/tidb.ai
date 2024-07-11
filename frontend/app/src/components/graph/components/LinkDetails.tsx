@@ -1,9 +1,9 @@
+import { getRelationship } from '@/api/graph';
 import { Loader } from '@/components/loader';
 import { toastError, toastSuccess } from '@/lib/ui-error';
 import { cn } from '@/lib/utils';
 import { useContext, useEffect, useMemo, useState } from 'react';
-import type { Relationship } from '../api';
-import { getRelationship } from '../api';
+import { handleServerRelationship, type Relationship } from '../utils';
 import type { IdType } from '../network/Network';
 import { useRemote } from '../remote';
 import { useDirtyRelationship } from '../useDirtyRelationship';
@@ -12,6 +12,8 @@ import { InputField } from './InputField';
 import { JsonField } from './JsonField';
 import { NetworkContext } from './NetworkContext';
 import { TextareaField } from './TextareaField';
+
+const loadRelationship = (id: number) => getRelationship(id).then(handleServerRelationship);
 
 export function LinkDetails ({
   relationship,
@@ -34,7 +36,7 @@ export function LinkDetails ({
   }, [network, relationship.source, relationship.target]);
 
   const [editing, setEditing] = useState(false);
-  const latestData = useRemote(relationship, getRelationship, relationship.id);
+  const latestData = useRemote(relationship, loadRelationship, Number(relationship.id));
   const dirtyRelationship = useDirtyRelationship(relationship.id);
 
   relationship = latestData.data;
@@ -71,7 +73,7 @@ export function LinkDetails ({
         <span className="text-sm text-muted-foreground font-normal ">
           <b>#{relationship.id}</b> relationship
         </span>
-        <EditingButton editing={editing} onStartEdit={() => setEditing(true)} onSave={handleSave} onReset={handleReset} busy={busy} onEnterSubgraph={() => onEnterSubgraph('document', relationship.meta.doc_id)} subGraphTitle='Document subgraph' />
+        <EditingButton editing={editing} onStartEdit={() => setEditing(true)} onSave={handleSave} onReset={handleReset} busy={busy} onEnterSubgraph={() => onEnterSubgraph('document', relationship.meta.doc_id)} subGraphTitle="Document subgraph" />
       </div>
       {relationship.meta.doc_id && <section>
         <h6 className="text-xs font-bold text-accent-foreground mb-1">Document URI</h6>

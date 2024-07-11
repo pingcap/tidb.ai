@@ -73,17 +73,6 @@ export class NetworkRenderer<Node extends NetworkNode, Link extends NetworkLink>
     private network: ReadonlyNetwork<Node, Link>,
     private options: NetworkRendererOptions<Node, Link>,
   ) {
-    const ref = 'font-weight: bold';
-    const normal = '';
-    console.log(`Rendering network: ${network.nodes().length} nodes, ${network.links().length} links`);
-    console.log(`Try:
-  network.node(%cnodeId%c): get node by id
-  network.link(%clinkId%c): get link by id
-  network.nodeNeighborhoods(%cnodeId%c): get node's neighborhoods`,
-      ref, normal,
-      ref, normal,
-      ref, normal,
-    );
     ;(window as any).network = network;
 
     this.compile(options);

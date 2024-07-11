@@ -1,7 +1,9 @@
+import { Loader } from '@/components/loader';
 import { Maximize2Icon } from 'lucide-react';
 import { editor } from 'monaco-editor';
-import { forwardRef, type ReactNode, useImperativeHandle, useMemo, useRef } from 'react';
-import { JsonEditor } from './JsonEditor';
+import { forwardRef, lazy, type ReactNode, Suspense, useImperativeHandle, useMemo, useRef } from 'react';
+
+const JsonEditor = lazy(() => import('./JsonEditor').then(res => ({ default: res.JsonEditor })));
 
 export interface JsonFieldProps {
   label: ReactNode;
@@ -50,12 +52,14 @@ export const JsonField = forwardRef<JsonFieldInstance, JsonFieldProps>(({
           <Maximize2Icon className="w-3 h-3" />
         </button>
       </h6>
-      <div ref={containerRef} className="bg-card p-1 border rounded w-full h-80 overflow-auto focus-within:outline outline-2 -outline-offset-1 outline-primary">
-        {<JsonEditor
-          ref={editorRef}
-          disabled={disabled}
-          defaultValue={defaultValueString}
-        />}
+      <div ref={containerRef} className="relative bg-card p-1 border rounded w-full h-80 overflow-auto focus-within:outline outline-2 -outline-offset-1 outline-primary">
+        <Suspense fallback={<Loader loading>Initializing JSON editor...</Loader>}>
+          <JsonEditor
+            ref={editorRef}
+            disabled={disabled}
+            defaultValue={defaultValueString}
+          />
+        </Suspense>
       </div>
     </section>
   );

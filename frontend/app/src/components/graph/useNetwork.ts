@@ -1,4 +1,4 @@
-import { type Entity, handleServerGraph, type Relationship, type ServerGraphData } from '@/components/graph/api';
+import { type Entity, handleServerGraph, type Relationship, type ServerGraphData } from '@/components/graph/utils';
 import { BaseNetwork } from '@/components/graph/network/Network';
 import { useMemo } from 'react';
 

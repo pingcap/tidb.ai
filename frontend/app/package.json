@@ -93,6 +93,7 @@
     "jest-environment-jsdom": "^29.7.0",
     "jest-transform-yaml": "^1.1.2",
     "monaco-editor": "^0.50.0",
+    "monaco-editor-webpack-plugin": "^7.1.0",
     "postcss": "^8",
     "react-json-view-lite": "^1.4.0",
     "react-lowlight": "^3.0.0",

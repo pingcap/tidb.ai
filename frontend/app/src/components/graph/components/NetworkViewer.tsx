@@ -1,7 +1,7 @@
 import { Loader } from '@/components/loader';
 import { cn } from '@/lib/utils';
 import { type FC, type ReactNode, useState } from 'react';
-import { type Entity, type Relationship } from '../api';
+import { type Entity, type Relationship } from '../utils';
 import { NetworkCanvas } from '../components/NetworkCanvas';
 import { NetworkContext } from '../components/NetworkContext';
 import { BaseNetwork, type IdType } from '../network/Network';
