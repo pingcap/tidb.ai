@@ -1,21 +1,19 @@
-import type { Chat } from '@/api/chats';
 import { ChatEngineOptionsDetails } from '@/components/chat-engine/chat-engine-options-details';
+import { type ChatMessageGroup, useChatInfo, useChatMessageField, useCurrentChatController } from '@/components/chat/chat-hooks';
 import { KnowledgeGraphDebugInfo } from '@/components/chat/knowledge-graph-debug-info';
 // import { MessageLangfuse } from '@/components/chat/message-langfuse';
-import type { MyConversationMessageGroup } from '@/components/chat/use-grouped-conversation-messages';
 import { Dialog, DialogContent, DialogHeader, DialogPortal, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { WorkflowIcon } from 'lucide-react';
 import 'react-json-view-lite/dist/index.css';
 
 export interface DebugInfoProps {
-  group: MyConversationMessageGroup;
-  chat: Chat | undefined;
+  group: ChatMessageGroup;
 }
 
-export function DebugInfo ({ group, chat }: DebugInfoProps) {
-  const chatEngineOptions = chat?.engine_options;
-  const traceURL = group.assistantMessage.trace_url;
+export function DebugInfo ({ group }: DebugInfoProps) {
+  const { engine_options: chatEngineOptions } = useChatInfo(useCurrentChatController()) ?? {};
+  const traceURL = useChatMessageField(group.assistant, 'trace_url');
 
   return (
     <div className="my-2 p-4 space-y-4 bg-card border rounded text-xs">

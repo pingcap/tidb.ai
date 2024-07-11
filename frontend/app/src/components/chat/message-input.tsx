@@ -67,8 +67,8 @@ export function MessageInput ({
         <SelectContent>
           {data?.items.map(item => (
             <SelectItem key={item.id} value={String(item.id)} textValue={item.name}>
-              <span className='flex items-center gap-2'>
-                {item.is_default ? <Badge variant='outline' className='text-green-500 border-green-500/50'>default</Badge> : item.name} {item.engine_options.knowledge_graph.enabled && <Badge>Knowledge graph enabled</Badge>}
+              <span className="flex items-center gap-2">
+                {item.is_default ? <Badge variant="outline" className="text-green-500 border-green-500/50">default</Badge> : item.name} {item.engine_options.knowledge_graph.enabled && <Badge>Knowledge graph enabled</Badge>}
               </span>
             </SelectItem>
           ))}

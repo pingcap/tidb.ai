@@ -1,4 +1,4 @@
-import { useChats } from '@/components/chat/chat-controller-provider';
+import { useChats } from '@/components/chat/chat-hooks';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 
@@ -22,9 +22,6 @@ export function useAsk (onFinish?: () => void) {
           startTransition(() => {
             router.push(`/c/${chat.id}`);
           });
-        })
-        .once('ongoing-message-error', error => {
-          console.error(error);
         });
     });
   }, []);

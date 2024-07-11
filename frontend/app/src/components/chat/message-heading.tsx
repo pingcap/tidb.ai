@@ -5,5 +5,5 @@ export function MessageHeading () {
       <img className="hidden dark:block h-4" src="/answer-white.svg" alt="logo" />
       Answer
     </div>
-  )
+  );
 }

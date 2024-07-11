@@ -1,12 +1,14 @@
-import type { ChatMessage } from '@/api/chats';
+import type { ChatMessageController } from '@/components/chat/chat-controller';
+import { useChatMessageField } from '@/components/chat/chat-hooks';
 import { RemarkContent } from '@/components/remark-content';
 import '@/components/chat/style.css';
 
-export function MessageContent ({ message }: { message: ChatMessage }) {
+export function MessageContent ({ message }: { message: ChatMessageController | undefined }) {
+  const content = useChatMessageField(message, 'content') ?? '';
   return (
     <article className="remark-content prose prose-sm prose-neutral dark:prose-invert overflow-x-hidden break-words max-w-[unset]">
       <RemarkContent>
-        {message.content}
+        {content}
       </RemarkContent>
     </article>
   );

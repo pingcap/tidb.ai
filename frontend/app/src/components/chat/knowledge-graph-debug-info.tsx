@@ -1,21 +1,22 @@
 import { getChatMessageSubgraph } from '@/api/chats';
 import { useAuth } from '@/components/auth/AuthProvider';
 import type { OngoingState } from '@/components/chat/chat-controller';
+import { type ChatMessageGroup, useChatMessageStreamState } from '@/components/chat/chat-hooks';
 import { AppChatStreamState } from '@/components/chat/chat-stream-state';
-import { type MyConversationMessageGroup } from '@/components/chat/use-grouped-conversation-messages';
 import { NetworkViewer } from '@/components/graph/components/NetworkViewer';
 import { useNetwork } from '@/components/graph/useNetwork';
 import { useEffect } from 'react';
 import useSWR from 'swr';
 
-export function KnowledgeGraphDebugInfo ({ group }: { group: MyConversationMessageGroup }) {
+export function KnowledgeGraphDebugInfo ({ group }: { group: ChatMessageGroup }) {
   const auth = useAuth();
+  const ongoing = useChatMessageStreamState(group.assistant);
   const canEdit = !!auth.me?.is_superuser;
 
-  const shouldFetch = !!group.userMessage.id && (group.finished || group.ongoing.finished || couldFetchKnowledgeGraphDebugInfo(group.ongoing));
+  const shouldFetch = (!ongoing || ongoing.finished || couldFetchKnowledgeGraphDebugInfo(ongoing));
   const { data: span, isLoading, mutate } = useSWR(
-    shouldFetch && `api.chats.get-message-subgraph?id=${group.userMessage.id}`,
-    () => getChatMessageSubgraph(group.userMessage.id),
+    shouldFetch && `api.chats.get-message-subgraph?id=${group.user.id}`,
+    () => getChatMessageSubgraph(group.user.id),
     {
       revalidateOnReconnect: false,
       revalidateOnFocus: false,

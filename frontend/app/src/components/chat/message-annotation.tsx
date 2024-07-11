@@ -1,13 +1,25 @@
-import type { OngoingState } from '@/components/chat/chat-controller';
+import { ChatMessageController } from '@/components/chat/chat-controller';
+import { useChatMessageStreamState } from '@/components/chat/chat-hooks';
+import { AppChatStreamState } from '@/components/chat/chat-stream-state';
 import { LoaderIcon } from 'lucide-react';
 
-export function MessageAnnotation ({ state }: { state: OngoingState }) {
-  let text: string | undefined = state.display;
+const excludedStates = [
+  AppChatStreamState.UNKNOWN,
+  AppChatStreamState.FINISHED,
+  AppChatStreamState.FAILED,
+];
+
+export function MessageAnnotation ({ message }: { message: ChatMessageController | undefined }) {
+  const state = useChatMessageStreamState(message);
+
+  if (!state || excludedStates.includes(state.state)) {
+    return null;
+  }
 
   return (
     <div className="text-muted-foreground leading-tight">
       <LoaderIcon className="inline-block animate-spin w-4 h-4 mr-2" />
-      <span className="text-xs">{text}</span>
+      <span className="text-xs">{state.display}</span>
     </div>
   );
 }

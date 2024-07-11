@@ -3,7 +3,7 @@
 import type { PublicWebsiteSettings } from '@/api/site-settings';
 import { getMe, type MeInfo } from '@/api/users';
 import { AuthProvider } from '@/components/auth/AuthProvider';
-import { ChatsProvider } from '@/components/chat/chat-controller-provider';
+import { ChatsProvider } from '@/components/chat/chat-hooks';
 import { SettingProvider } from '@/components/website-setting-provider';
 import { ThemeProvider } from 'next-themes';
 import type { ReactNode } from 'react';

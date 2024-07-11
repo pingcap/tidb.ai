@@ -1,11 +1,10 @@
-import * as path from 'node:path';
-import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react-swc';
+import * as path from 'node:path';
 import { visualizer } from 'rollup-plugin-visualizer';
+import { defineConfig } from 'vite';
 import injectCss from 'vite-plugin-css-injected-by-js';
 
 const overriding = [
-  'components/chat/internal',
   'components/chat/style.css',
 ];
 
@@ -54,6 +53,7 @@ export default defineConfig({
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     'process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL': 'false',
     'process.env.NEXT_PUBLIC_MOCKING_CHAT': 'false',
+    'process.env.NEXT_PUBLIC_IS_WIDGET': 'true',
   },
   server: {
     proxy: {

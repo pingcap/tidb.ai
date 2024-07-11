@@ -1,11 +1,13 @@
-import type { ChatMessage, ChatMessageSource } from '@/api/chats';
+import type { ChatMessageSource } from '@/api/chats';
+import type { ChatMessageController } from '@/components/chat/chat-controller';
+import { useChatMessageField } from '@/components/chat/chat-hooks';
 import { parseSource } from '@/components/chat/utils';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
 import { LinkIcon, TextSearchIcon } from 'lucide-react';
 import { useMemo } from 'react';
 
-export function MessageContextSources ({ message }: { message: ChatMessage }) {
-  const { sources } = message;
+export function MessageContextSources ({ message }: { message: ChatMessageController | undefined }) {
+  const sources = useChatMessageField(message, 'sources');
   if (!sources || sources.length === 0) {
     return null;
   }

@@ -1,4 +1,4 @@
-import { ChatsProvider } from '@/components/chat/chat-controller-provider';
+import { ChatsProvider } from '@/components/chat/chat-hooks';
 import { Conversation } from '@/components/chat/conversation';
 import { PortalProvider } from '@/components/portal-provider';
 import { Button } from '@/components/ui/button';
