@@ -21,3 +21,5 @@ from .chunk import Chunk, KgIndexStatus
 from .auth import User, UserSession
 from .api_key import ApiKey
 from .site_setting import SiteSetting
+from .upload import Upload
+from .data_source import DataSource, DataSourceType

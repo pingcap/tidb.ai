@@ -14,6 +14,8 @@ from app.api.admin_routes import (
     feedback as admin_feedback,
     site_setting as admin_site_settings,
     graph_editor as admin_graph_editor,
+    upload as admin_upload,
+    data_source as admin_data_source,
 )
 from app.auth.schemas import UserCreate, UserRead, UserUpdate
 from app.auth.users import auth_backend, fastapi_users
@@ -35,22 +37,24 @@ api_router.include_router(admin_site_settings.router, tags=["admin"])
 api_router.include_router(
     admin_graph_editor.router, tags=["admin"], dependencies=[Depends(current_superuser)]
 )
+api_router.include_router(admin_upload.router, tags=["admin"])
+api_router.include_router(admin_data_source.router, tags=["admin"])
 
 api_router.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth", tags=["auth"]
 )
-api_router.include_router(
-    fastapi_users.get_register_router(UserRead, UserCreate),
-    prefix="/auth",
-    tags=["auth"],
-)
-api_router.include_router(
-    fastapi_users.get_reset_password_router(),
-    prefix="/auth",
-    tags=["auth"],
-)
-api_router.include_router(
-    fastapi_users.get_verify_router(UserRead),
-    prefix="/auth",
-    tags=["auth"],
-)
+# api_router.include_router(
+#     fastapi_users.get_register_router(UserRead, UserCreate),
+#     prefix="/auth",
+#     tags=["auth"],
+# )
+# api_router.include_router(
+#     fastapi_users.get_reset_password_router(),
+#     prefix="/auth",
+#     tags=["auth"],
+# )
+# api_router.include_router(
+#     fastapi_users.get_verify_router(UserRead),
+#     prefix="/auth",
+#     tags=["auth"],
+# )

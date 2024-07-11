@@ -36,13 +36,6 @@ class BuildService:
     ):
         self._llm = llm
         self._dspy_lm = dspy_lm
-        self._transformations = [
-            MarkdownNodeParser(),
-            # SentenceSplitter(),
-            SummaryExtractor(llm=llm),
-            KeywordExtractor(llm=llm),
-            QuestionsAnsweredExtractor(llm=llm),
-        ]
         self._embed_model = OpenAIEmbedding(
             model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL
         )
@@ -50,6 +43,17 @@ class BuildService:
     def build_vector_index_from_document(
         self, session: Session, db_document: DBDocument
     ):
+        if db_document.mime_type.lower() == "text/markdown":
+            spliter = MarkdownNodeParser()
+        else:
+            spliter = SentenceSplitter()
+
+        _transformations = [
+            spliter,
+            SummaryExtractor(llm=self._llm),
+            KeywordExtractor(llm=self._llm),
+            QuestionsAnsweredExtractor(llm=self._llm),
+        ]
         """
         Build vector index and graph index from document.
         """
@@ -62,7 +66,7 @@ class BuildService:
         vector_index = VectorStoreIndex.from_vector_store(
             vector_store,
             embed_model=self._embed_model,
-            transformations=self._transformations,
+            transformations=_transformations,
         )
         document = db_document.to_llama_document()
         logger.info(f"Start building index for document {document.doc_id}")

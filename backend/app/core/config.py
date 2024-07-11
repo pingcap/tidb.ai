@@ -59,6 +59,8 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "TiDB.AI"
     SENTRY_DSN: HttpUrl | None = None
 
+    LOCAL_FILE_STORAGE_PATH: str = "/shared/data"
+
     TIDB_HOST: str
     TIDB_PORT: int = 4000
     TIDB_USER: str

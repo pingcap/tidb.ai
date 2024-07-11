@@ -3,6 +3,7 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 from sqlmodel import SQLModel
+from tidb_vector.sqlalchemy import VectorType
 
 from app.core.config import settings
 from app.models import *  # noqa
@@ -65,6 +66,7 @@ def run_migrations_online():
     )
 
     with connectable.connect() as connection:
+        connection.dialect.ischema_names["vector"] = VectorType
         context.configure(
             connection=connection, target_metadata=target_metadata, compare_type=True
         )

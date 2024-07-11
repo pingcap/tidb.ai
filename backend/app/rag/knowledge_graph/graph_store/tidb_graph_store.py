@@ -84,7 +84,9 @@ class TiDBGraphStore(KnowledgeGraphStore):
         if embed_model:
             self._embed_model = resolve_embed_model(embed_model)
         else:
-            self._embed_model = OpenAIEmbedding(model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL)
+            self._embed_model = OpenAIEmbedding(
+                model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL
+            )
 
         self.merge_entities_prog = MergeEntitiesProgram()
         self.description_cosine_distance_threshold = (

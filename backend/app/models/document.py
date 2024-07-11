@@ -35,6 +35,7 @@ class Document(UpdatableBaseModel, table=True):
     last_modified_at: Optional[datetime] = Field(sa_column=Column(DateTime))
     index_status: DocIndexTaskStatus = DocIndexTaskStatus.NOT_STARTED
     index_result: str = Field(sa_column=Column(Text, nullable=True))
+    data_source_id: int = Field(nullable=True)
 
     __tablename__ = "documents"
 
