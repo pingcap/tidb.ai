@@ -16,7 +16,7 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
     if isinstance(llama_llm, OpenAI):
         return dspy.OpenAI(
             model=llama_llm.model,
-            max_tokens=llama_llm.max_tokens,
+            max_tokens=llama_llm.max_tokens or 4096,
             api_key=llama_llm.api_key,
             # if you want to use another base url, uncomment the line below,
             # api_base=llama_llm.api_base,
@@ -26,7 +26,7 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
         # it has already been configured as `genai` by the llama_llm.
         return dspy.Google(
             model=llama_llm.model.split("models/")[1],
-            max_output_tokens=llama_llm.max_tokens,
+            max_output_tokens=llama_llm.max_tokens or 8192,
         )
     else:
         raise ValueError(f"Got unknown LLM provider: {llama_llm.__class__.__name__}")
