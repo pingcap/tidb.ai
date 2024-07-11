@@ -8,8 +8,38 @@ from app.models import (
     RelationshipPublic,
 )
 from app.rag.knowledge_graph.graph_store import tidb_graph_editor as editor
+from app.rag.knowledge_graph.graph_store import TiDBGraphStore
+
 
 router = APIRouter()
+
+
+class SearchRequest(BaseModel):
+    query: str
+    include_meta: bool = True
+    depth: int = 2
+    with_degree: bool = True
+
+
+@router.post("/admin/graph/search")
+def search_graph(session: SessionDep, request: SearchRequest):
+    graph_store = TiDBGraphStore(
+        dspy_lm=None,
+        session=session,
+    )
+    entities, relations, _ = graph_store.retrieve_with_weight(
+        request.query,
+        [],
+        request.depth,
+        request.include_meta,
+        request.with_degree,
+        False,
+        {},
+    )
+    return {
+        "entities": entities,
+        "relationships": relations,
+    }
 
 
 @router.get("/admin/graph/entities/{entity_id}", response_model=EntityPublic)

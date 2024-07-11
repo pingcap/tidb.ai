@@ -1,6 +1,5 @@
 import json
 import logging
-import traceback
 from uuid import UUID
 from typing import List, Generator, Optional, Tuple
 from datetime import datetime, UTC
@@ -68,8 +67,8 @@ class ChatService:
         try:
             for event in self._chat(chat_messages, chat_id):
                 yield event
-        except Exception:
-            logger.error(traceback.format_exc())
+        except Exception as e:
+            logger.exception(e)
             yield ChatEvent(
                 event_type=ChatEventType.ERROR_PART,
                 payload="Encountered an error while processing the chat. Please try again later.",

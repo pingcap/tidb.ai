@@ -122,7 +122,7 @@ def delete_chat(session: SessionDep, user: CurrentUserDep, chat_id: UUID):
 
 class SubgraphResponse(BaseModel):
     entities: List[dict]
-    relations: List[dict]
+    relationships: List[dict]
 
 
 @router.get(
@@ -139,4 +139,4 @@ def get_chat_subgraph(session: SessionDep, user: OptionalUserDep, chat_message_i
         raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Access denied")
 
     entities, relations = get_chat_message_subgraph(session, chat_message)
-    return SubgraphResponse(entities=entities, relations=relations)
+    return SubgraphResponse(entities=entities, relationships=relations)
