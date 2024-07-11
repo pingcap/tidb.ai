@@ -31,13 +31,13 @@ export type ServerGraphData = KnowledgeGraph
 
 export type GraphData = {
   entities: Entity[]
-  relations: Relationship[]
+  relationships: Relationship[]
   chunks?: unknown[]
 }
 
 export const EMPTY_GRAPH: GraphData = {
   entities: [],
-  relations: [],
+  relationships: [],
 };
 
 export async function createSynopsisEntity (data: { name: string, description: string, topic: string, meta: any, entities: number[] }): Promise<Entity> {
@@ -105,10 +105,10 @@ export function handleServerRelationship ({ source_entity_id, target_entity_id, 
   });
 }
 
-export const handleServerGraph = <T extends {}> ({ entities, relations, ...rest }: ServerGraphData & T): GraphData & T => {
+export const handleServerGraph = <T extends {}> ({ entities, relationships, ...rest }: ServerGraphData & T): GraphData & T => {
   return {
     ...rest,
-    relations: relations.map(handleServerRelationship),
+    relationships: relationships.map(handleServerRelationship),
     entities: entities.map(handleServerEntity),
   } as never;
 };

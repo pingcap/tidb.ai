@@ -2,7 +2,7 @@ import { z, type ZodType } from 'zod';
 
 export interface KnowledgeGraph {
   entities: KnowledgeGraphEntity[];
-  relations: KnowledgeGraphRelationship[];
+  relationships: KnowledgeGraphRelationship[];
 }
 
 export const enum KnowledgeGraphEntityType {
@@ -59,5 +59,5 @@ export const relationshipSchema = z.object({
 
 export const knowledgeGraphSchema = z.object({
   entities: entitySchema.array(),
-  relations: relationshipSchema.array(),
+  relationships: relationshipSchema.array(),
 }) satisfies ZodType<KnowledgeGraph>;

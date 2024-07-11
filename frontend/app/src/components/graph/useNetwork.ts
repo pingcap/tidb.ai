@@ -6,9 +6,9 @@ export function useNetwork (span: { output: ServerGraphData } | ServerGraphData 
   return useMemo(() => {
     const network = new BaseNetwork<Entity, Relationship>({ noDirection: false });
     if (span) {
-      const { entities, relations } = 'output' in span ? handleServerGraph(span.output) : handleServerGraph(span);
+      const { entities, relationships } = 'output' in span ? handleServerGraph(span.output) : handleServerGraph(span);
       entities.forEach((entity: any) => network.addNode(entity));
-      relations.forEach(({ source_entity_id, target_entity_id, ...rest }: any) => network.addLink({
+      relationships.forEach(({ source_entity_id, target_entity_id, ...rest }: any) => network.addLink({
         source: source_entity_id,
         target: target_entity_id,
         ...rest,
