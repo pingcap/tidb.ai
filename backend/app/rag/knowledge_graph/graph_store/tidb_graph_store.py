@@ -1,14 +1,13 @@
-import json
 import dspy
 import logging
 import numpy as np
 from dspy.functional import TypedPredictor
 from deepdiff import DeepDiff
-from typing import List, Optional, Mapping, Any, Tuple, Dict, Set
+from typing import List, Optional, Tuple, Dict, Set
 from collections import defaultdict
 
-from llama_index.core.settings import Settings
 from llama_index.core.embeddings.utils import EmbedType, resolve_embed_model
+from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
 from sqlmodel import Session, asc, func, select, text
 from sqlalchemy.orm import aliased, defer, joinedload
 
@@ -81,9 +80,12 @@ class TiDBGraphStore(KnowledgeGraphStore):
         if self._session is None:
             self._session = Session(engine)
         self._dspy_lm = dspy_lm
-        self._embed_model = (
-            resolve_embed_model(embed_model) if embed_model else Settings.embed_model
-        )
+
+        if embed_model:
+            self._embed_model = resolve_embed_model(embed_model)
+        else:
+            self._embed_model = OpenAIEmbedding(model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL)
+
         self.merge_entities_prog = MergeEntitiesProgram()
         self.description_cosine_distance_threshold = (
             1 - description_similarity_threshold
