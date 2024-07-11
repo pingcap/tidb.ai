@@ -414,11 +414,11 @@ class TiDBGraphStore(KnowledgeGraphStore):
             # Fetch out-degrees
             out_degree_query = (
                 self._session.query(
-                    Relationship.source_entity_id,
-                    func.count(Relationship.id).label("out_degree"),
+                    DBRelationship.source_entity_id,
+                    func.count(DBRelationship.id).label("out_degree"),
                 )
-                .filter(Relationship.source_entity_id.in_(entity_ids))
-                .group_by(Relationship.source_entity_id)
+                .filter(DBRelationship.source_entity_id.in_(entity_ids))
+                .group_by(DBRelationship.source_entity_id)
             ).all()
 
             for row in out_degree_query:
@@ -427,11 +427,11 @@ class TiDBGraphStore(KnowledgeGraphStore):
             # Fetch in-degrees
             in_degree_query = (
                 self._session.query(
-                    Relationship.target_entity_id,
-                    func.count(Relationship.id).label("in_degree"),
+                    DBRelationship.target_entity_id,
+                    func.count(DBRelationship.id).label("in_degree"),
                 )
-                .filter(Relationship.target_entity_id.in_(entity_ids))
-                .group_by(Relationship.target_entity_id)
+                .filter(DBRelationship.target_entity_id.in_(entity_ids))
+                .group_by(DBRelationship.target_entity_id)
             ).all()
 
             for row in in_degree_query:

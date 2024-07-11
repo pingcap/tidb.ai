@@ -14,32 +14,35 @@ from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 router = APIRouter()
 
 
-class SearchRequest(BaseModel):
-    query: str
-    include_meta: bool = True
-    depth: int = 2
-    with_degree: bool = True
+@router.get("/admin/graph/entities/search", response_model=List[EntityPublic])
+def search_similar_entities(session: SessionDep, query: str, top_k: int = 10):
+    return editor.search_similar_entities(session, query, top_k)
 
 
-@router.post("/admin/graph/search")
-def search_graph(session: SessionDep, request: SearchRequest):
-    graph_store = TiDBGraphStore(
-        dspy_lm=None,
-        session=session,
+class SynopsisEntityCreate(BaseModel):
+    name: str
+    description: str
+    topic: str
+    meta: dict
+    entities: List[int]
+
+    @model_validator(mode="after")
+    def validate_entities(self):
+        if len(self.entities) == 0:
+            raise ValueError("Entities list should not be empty")
+        return self
+
+
+@router.post("/admin/graph/entities/synopsis", response_model=EntityPublic)
+def create_synopsis_entity(session: SessionDep, request: SynopsisEntityCreate):
+    return editor.create_synopsis_entity(
+        session,
+        request.name,
+        request.description,
+        request.topic,
+        request.meta,
+        request.entities,
     )
-    entities, relations, _ = graph_store.retrieve_with_weight(
-        request.query,
-        [],
-        request.depth,
-        request.include_meta,
-        request.with_degree,
-        False,
-        {},
-    )
-    return {
-        "entities": entities,
-        "relationships": relations,
-    }
 
 
 @router.get("/admin/graph/entities/{entity_id}", response_model=EntityPublic)
@@ -123,32 +126,29 @@ def update_relationship(
     return relationship
 
 
-@router.get("/admin/graph/entities/search", response_model=List[EntityPublic])
-def search_similar_entities(session: SessionDep, query: str, top_k: int = 10):
-    return editor.search_similar_entities(session, query, top_k)
+class SearchRequest(BaseModel):
+    query: str
+    include_meta: bool = True
+    depth: int = 2
+    with_degree: bool = True
 
 
-class SynopsisEntityCreate(BaseModel):
-    name: str
-    description: str
-    topic: str
-    meta: dict
-    entities: List[int]
-
-    @model_validator(mode="after")
-    def validate_entities(self):
-        if len(self.entities) == 0:
-            raise ValueError("Entities list should not be empty")
-        return self
-
-
-@router.post("/admin/graph/entities/synopsis", response_model=EntityPublic)
-def create_synopsis_entity(session: SessionDep, request: SynopsisEntityCreate):
-    return editor.create_synopsis_entity(
-        session,
-        request.name,
-        request.description,
-        request.topic,
-        request.meta,
-        request.entities,
+@router.post("/admin/graph/search")
+def search_graph(session: SessionDep, request: SearchRequest):
+    graph_store = TiDBGraphStore(
+        dspy_lm=None,
+        session=session,
     )
+    entities, relations, _ = graph_store.retrieve_with_weight(
+        request.query,
+        [],
+        request.depth,
+        request.include_meta,
+        request.with_degree,
+        False,
+        {},
+    )
+    return {
+        "entities": entities,
+        "relationships": relations,
+    }
