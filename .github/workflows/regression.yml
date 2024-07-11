@@ -1,0 +1,42 @@
+name: Regression Test
+on:
+  workflow_dispatch:
+    inputs:
+      dataset:
+        description: 'Langfuse dataset to test'
+        required: true
+        default: 'regression'
+      tidbAIChatEngine:
+        description: 'TiDB AI Chat Engine to test'
+        required: true
+        default: 'default'
+      llmProvider:
+        description: 'llm provider'
+        required: true
+        default: 'openai'
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.lock
+    - name: Run tests
+      env:
+        LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
+        LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
+        LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+        TIDB_AI_API_KEY: ${{ secrets.TIDB_AI_API_KEY }}
+        GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      run: |
+        python main.py runeval --llm-provider ${{ inputs.llmProvider }} --dataset ${{ inputs.dataset }} --tidb-ai-chat-engine ${{ inputs.tidbAIChatEngine }}
