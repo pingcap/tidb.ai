@@ -14,6 +14,10 @@ on:
         description: 'llm provider'
         required: true
         default: 'openai'
+        type: choice
+        options:
+          - openai
+          - gemini
 
 jobs:
   build:
@@ -29,14 +33,20 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.lock
+        pip install -r backend/requirements.lock
     - name: Run tests
       env:
+        ENVIRONMENT: "production"
         LANGFUSE_HOST: ${{ secrets.LANGFUSE_HOST }}
         LANGFUSE_PUBLIC_KEY: ${{ secrets.LANGFUSE_PUBLIC_KEY }}
         LANGFUSE_SECRET_KEY: ${{ secrets.LANGFUSE_SECRET_KEY }}
+        TIDB_AI_CHAT_ENDPOINT: ${{ secrets.TIDB_AI_CHAT_ENDPOINT }}
         TIDB_AI_API_KEY: ${{ secrets.TIDB_AI_API_KEY }}
         GOOGLE_API_KEY: ${{ secrets.GOOGLE_API_KEY }}
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        TIDB_HOST: "127.0.0.1"
+        TIDB_USER: "root"
+        TIDB_PASSWORD: "fake"
+        TIDB_DATABASE: "test"
       run: |
-        python main.py runeval --llm-provider ${{ inputs.llmProvider }} --dataset ${{ inputs.dataset }} --tidb-ai-chat-engine ${{ inputs.tidbAIChatEngine }}
+        cd backend && python main.py runeval --llm-provider ${{ inputs.llmProvider }} --dataset ${{ inputs.dataset }} --tidb-ai-chat-engine ${{ inputs.tidbAIChatEngine }}
