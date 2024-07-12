@@ -41,23 +41,20 @@ const kgOptionsSchema = z.object({
   with_degree: z.boolean(),
 }) satisfies ZodType<ChatEngineKnowledgeGraphOptions>;
 
-const llmOptionsSchema = z.object({
+const llmOptionsSchema =
+  z.object({
   condense_question_prompt: z.string(),
   text_qa_prompt: z.string(),
   refine_prompt: z.string(),
   provider: z.string(),
   reranker_provider: z.string(),
   reranker_top_k: z.number(),
-}).and(
-  z.record(
-    z.string().regex(/^(.*)_chat_model$/) as ZodType<`${string}_chat_model`, any, any>,
-    z.string()),
-) satisfies ZodType<ChatEngineLLMOptions>;
+}).passthrough() as ZodType<ChatEngineLLMOptions, any, any>;
 
 const chatEngineOptionsSchema = z.object({
   knowledge_graph: kgOptionsSchema,
   llm: llmOptionsSchema,
-}) satisfies ZodType<ChatEngineOptions>;
+}) satisfies ZodType<ChatEngineOptions, any, any>;
 
 const chatEngineSchema = z.object({
   id: z.number(),
