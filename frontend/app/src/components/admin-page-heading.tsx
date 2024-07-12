@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Fragment, type ReactNode } from 'react';
 
 export interface BreadcrumbItem {
-  title: string;
+  title: ReactNode;
   url?: string;
 }
 
@@ -26,7 +26,9 @@ export function AdminPageHeading ({ title, description, actions, breadcrumbs }: 
                 <BreadcrumbItem>
                   {item.url
                     ? <BreadcrumbLink asChild><Link href={item.url}>{item.title}</Link></BreadcrumbLink>
-                    : <BreadcrumbPage>{item.title}</BreadcrumbPage>}
+                    : index === breadcrumbs.length - 1
+                      ? <BreadcrumbPage>{item.title}</BreadcrumbPage>
+                      : <span>{item.title}</span>}
                 </BreadcrumbItem>
               </Fragment>
             ))}

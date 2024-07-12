@@ -1,5 +1,5 @@
 import type { ChatEngineKnowledgeGraphOptions } from '@/api/chat-engines';
-import { OptionDetail } from '@/components/chat-engine/option-detail';
+import { OptionDetail } from '@/components/option-detail';
 
 export function ChatEngineKnowledgeGraphDetails ({ detailed, options }: { detailed: boolean, options: ChatEngineKnowledgeGraphOptions }) {
   return (

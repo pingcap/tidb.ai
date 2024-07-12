@@ -1,6 +1,6 @@
 import type { ChatEngine } from '@/api/chat-engines';
 import { ChatEngineOptionsDetails } from '@/components/chat-engine/chat-engine-options-details';
-import { OptionDetail } from '@/components/chat-engine/option-detail';
+import { OptionDetail } from '@/components/option-detail';
 import { Separator } from '@/components/ui/separator';
 import { format } from 'date-fns';
 

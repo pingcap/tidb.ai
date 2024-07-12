@@ -1,5 +1,5 @@
 import type { ChatEngineLLMOptions } from '@/api/chat-engines';
-import { OptionDetail } from '@/components/chat-engine/option-detail';
+import { OptionDetail } from '@/components/option-detail';
 import { PromptViewer } from '@/components/chat-engine/prompt-viewer';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';

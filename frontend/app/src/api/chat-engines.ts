@@ -24,17 +24,15 @@ export interface ChatEngineKnowledgeGraphOptions {
   with_degree: boolean;
 }
 
-export interface ChatEngineLLMOptions {
+export type ChatEngineLLMOptions = {
   condense_question_prompt: string;
   text_qa_prompt: string;
   refine_prompt: string;
 
-  gemini_chat_model: string;
-  openai_chat_model: string;
   provider: string;
   reranker_provider: string;
   reranker_top_k: number;
-}
+} & Record<`${string}_chat_model`, string | undefined>
 
 const kgOptionsSchema = z.object({
   depth: z.number(),
@@ -47,12 +45,14 @@ const llmOptionsSchema = z.object({
   condense_question_prompt: z.string(),
   text_qa_prompt: z.string(),
   refine_prompt: z.string(),
-  gemini_chat_model: z.string(),
-  openai_chat_model: z.string(),
   provider: z.string(),
   reranker_provider: z.string(),
   reranker_top_k: z.number(),
-}) satisfies ZodType<ChatEngineLLMOptions>;
+}).and(
+  z.record(
+    z.string().regex(/^(.*)_chat_model$/) as ZodType<`${string}_chat_model`, any, any>,
+    z.string()),
+) satisfies ZodType<ChatEngineLLMOptions>;
 
 const chatEngineOptionsSchema = z.object({
   knowledge_graph: kgOptionsSchema,
