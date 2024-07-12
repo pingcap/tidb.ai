@@ -66,6 +66,7 @@ export function DataTableRemote<TData, TValue> ({
     revalidateOnFocus: false,
     focusThrottleInterval: 1000,
     keepPreviousData: true,
+    onError: console.error
   });
 
   useEffect(() => {

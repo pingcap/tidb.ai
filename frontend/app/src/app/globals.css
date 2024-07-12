@@ -98,4 +98,22 @@
   }
 }
 
+@layer base {
+  :root {
+    --chart-1: 359 2% 90%;
+    --chart-2: 240 1% 74%;
+    --chart-3: 240 1% 58%;
+    --chart-4: 240 1% 42%;
+    --chart-5: 240 2% 26%;
+  }
+
+  .dark {
+    --chart-1: 359 2% 90%;
+    --chart-2: 240 1% 74%;
+    --chart-3: 240 1% 58%;
+    --chart-4: 240 1% 42%;
+    --chart-5: 240 2% 26%;
+  }
+}
+
 .grecaptcha-badge { visibility: hidden; }
