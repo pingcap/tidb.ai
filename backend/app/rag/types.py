@@ -6,6 +6,7 @@ from pydantic import BaseModel
 class LLMProvider(str, enum.Enum):
     OPENAI = "openai"
     GEMINI = "gemini"
+    VERTEX = "vertex"
 
 
 class OpenAIModel(str, enum.Enum):
@@ -16,6 +17,10 @@ class OpenAIModel(str, enum.Enum):
 class GeminiModel(str, enum.Enum):
     GEMINI_15_FLASH = "models/gemini-1.5-flash"
     GEMINI_15_PRO = "models/gemini-1.5-pro"
+
+
+class VertexModel(str, enum.Enum):
+    CLAUDE_35_SONNET = "claude-3-5-sonnet@20240620"
 
 
 class EmbeddingProvider(str, enum.Enum):

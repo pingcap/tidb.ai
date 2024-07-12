@@ -21,7 +21,9 @@ amqp==5.2.0
     # via kombu
 annotated-types==0.7.0
     # via pydantic
+anthropic==0.31.0
 anyio==4.4.0
+    # via anthropic
     # via httpx
     # via openai
     # via starlette
@@ -98,9 +100,12 @@ dirtyjson==1.0.8
     # via llama-index-core
     # via llama-index-legacy
 distro==1.9.0
+    # via anthropic
     # via openai
 dnspython==2.6.1
     # via email-validator
+docstring-parser==0.16
+    # via google-cloud-aiplatform
 dspy-ai==2.4.9
 email-validator==2.1.1
     # via fastapi
@@ -131,27 +136,59 @@ google-ai-generativelanguage==0.6.4
 google-api-core==2.19.1
     # via google-ai-generativelanguage
     # via google-api-python-client
+    # via google-cloud-aiplatform
+    # via google-cloud-bigquery
+    # via google-cloud-core
+    # via google-cloud-resource-manager
+    # via google-cloud-storage
     # via google-generativeai
 google-api-python-client==2.134.0
     # via google-generativeai
 google-auth==2.30.0
+    # via anthropic
     # via google-ai-generativelanguage
     # via google-api-core
     # via google-api-python-client
     # via google-auth-httplib2
+    # via google-cloud-aiplatform
+    # via google-cloud-bigquery
+    # via google-cloud-core
+    # via google-cloud-resource-manager
+    # via google-cloud-storage
     # via google-generativeai
 google-auth-httplib2==0.2.0
     # via google-api-python-client
+google-cloud-aiplatform==1.59.0
+google-cloud-bigquery==3.25.0
+    # via google-cloud-aiplatform
+google-cloud-core==2.4.1
+    # via google-cloud-bigquery
+    # via google-cloud-storage
+google-cloud-resource-manager==1.12.4
+    # via google-cloud-aiplatform
+google-cloud-storage==2.17.0
+    # via google-cloud-aiplatform
+google-crc32c==1.5.0
+    # via google-cloud-storage
+    # via google-resumable-media
 google-generativeai==0.5.4
     # via llama-index-llms-gemini
+google-resumable-media==2.7.1
+    # via google-cloud-bigquery
+    # via google-cloud-storage
 googleapis-common-protos==1.63.2
     # via google-api-core
+    # via grpc-google-iam-v1
     # via grpcio-status
 greenlet==3.0.3
     # via fastapi-users-db-sqlmodel
     # via sqlalchemy
+grpc-google-iam-v1==0.13.1
+    # via google-cloud-resource-manager
 grpcio==1.64.1
     # via google-api-core
+    # via googleapis-common-protos
+    # via grpc-google-iam-v1
     # via grpcio-status
 grpcio-status==1.62.2
     # via google-api-core
@@ -167,6 +204,7 @@ httplib2==0.22.0
 httptools==0.6.1
     # via uvicorn
 httpx==0.27.0
+    # via anthropic
     # via fastapi
     # via httpx-oauth
     # via langfuse
@@ -177,6 +215,7 @@ httpx==0.27.0
 httpx-oauth==0.14.1
 huggingface-hub==0.23.3
     # via datasets
+    # via tokenizers
 humanize==4.9.0
     # via flower
 idna==3.7
@@ -193,6 +232,8 @@ jedi==0.19.1
     # via ipython
 jinja2==3.1.4
     # via fastapi
+jiter==0.5.0
+    # via anthropic
 joblib==1.3.2
     # via dspy-ai
     # via nltk
@@ -297,6 +338,7 @@ numpy==1.26.4
     # via optuna
     # via pandas
     # via pyarrow
+    # via shapely
     # via tidb-vector
 openai==1.34.0
     # via dspy-ai
@@ -311,6 +353,8 @@ orjson==3.10.4
     # via fastapi
 packaging==23.2
     # via datasets
+    # via google-cloud-aiplatform
+    # via google-cloud-bigquery
     # via gunicorn
     # via huggingface-hub
     # via ipykernel
@@ -339,11 +383,16 @@ prompt-toolkit==3.0.47
 proto-plus==1.24.0
     # via google-ai-generativelanguage
     # via google-api-core
+    # via google-cloud-aiplatform
+    # via google-cloud-resource-manager
 protobuf==4.25.3
     # via google-ai-generativelanguage
     # via google-api-core
+    # via google-cloud-aiplatform
+    # via google-cloud-resource-manager
     # via google-generativeai
     # via googleapis-common-protos
+    # via grpc-google-iam-v1
     # via grpcio-status
     # via proto-plus
 psutil==6.0.0
@@ -354,7 +403,7 @@ pure-eval==0.2.2
     # via stack-data
 pwdlib==0.2.0
     # via fastapi-users
-pyarrow==16.1.0
+pyarrow==15.0.2
     # via datasets
 pyarrow-hotfix==0.6
     # via datasets
@@ -366,9 +415,11 @@ pyasn1-modules==0.4.0
 pycparser==2.22
     # via cffi
 pydantic==2.7.4
+    # via anthropic
     # via dspy-ai
     # via fastapi
     # via fastapi-pagination
+    # via google-cloud-aiplatform
     # via google-generativeai
     # via langfuse
     # via llamaindex-py-client
@@ -390,6 +441,7 @@ pypdf==4.2.0
     # via llama-index-readers-file
 python-dateutil==2.9.0.post0
     # via celery
+    # via google-cloud-bigquery
     # via jupyter-client
     # via pandas
 python-dotenv==1.0.1
@@ -420,6 +472,8 @@ requests==2.32.3
     # via dspy-ai
     # via fsspec
     # via google-api-core
+    # via google-cloud-bigquery
+    # via google-cloud-storage
     # via huggingface-hub
     # via llama-index-core
     # via llama-index-legacy
@@ -429,12 +483,15 @@ rich==13.7.1
 rsa==4.9
     # via google-auth
 sentry-sdk==2.5.1
+shapely==2.0.4
+    # via google-cloud-aiplatform
 shellingham==1.5.4
     # via typer
 six==1.16.0
     # via asttokens
     # via python-dateutil
 sniffio==1.3.1
+    # via anthropic
     # via anyio
     # via httpx
     # via openai
@@ -463,6 +520,8 @@ tidb-vector==0.0.9
 tiktoken==0.7.0
     # via llama-index-core
     # via llama-index-legacy
+tokenizers==0.19.1
+    # via anthropic
 tornado==6.4.1
     # via flower
     # via ipykernel
@@ -487,6 +546,7 @@ typer==0.12.3
     # via fastapi-cli
 typing-extensions==4.12.2
     # via alembic
+    # via anthropic
     # via fastapi
     # via fastapi-pagination
     # via google-generativeai

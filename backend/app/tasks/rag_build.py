@@ -30,7 +30,10 @@ def build_vector_index_from_document(document_id: int):
             logger.error(f"Document {document_id} not found")
             return
 
-        if db_document.index_status not in (DocIndexTaskStatus.PENDING, DocIndexTaskStatus.NOT_STARTED):
+        if db_document.index_status not in (
+            DocIndexTaskStatus.PENDING,
+            DocIndexTaskStatus.NOT_STARTED,
+        ):
             logger.info(f"Document {document_id} not in pending state")
             return
 
@@ -72,7 +75,6 @@ def build_vector_index_from_document(document_id: int):
         session.commit()
         logger.info(f"Document {document_id} indexed successfully")
 
-
         datasource = session.get(DataSource, db_document.data_source_id)
         if datasource and datasource.build_kg_index:
             for chunk in session.exec(
@@ -89,7 +91,10 @@ def build_kg_index_from_chunk(chunk_id: UUID):
             logger.error(f"Chunk {chunk_id} not found")
             return
 
-        if db_chunk.index_status not in (KgIndexStatus.PENDING, KgIndexStatus.NOT_STARTED):
+        if db_chunk.index_status not in (
+            KgIndexStatus.PENDING,
+            KgIndexStatus.NOT_STARTED,
+        ):
             logger.info(f"Chunk {chunk_id} not in pending state")
             return
 

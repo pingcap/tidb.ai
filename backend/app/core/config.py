@@ -75,6 +75,8 @@ class Settings(BaseSettings):
     TIDB_AI_API_KEY: SecretStr | None = None
     OPENAI_API_KEY: SecretStr | None = None
 
+    GOOGLE_APPLICATION_CREDENTIALS: str | None = None
+
     COMPLIED_INTENT_ANALYSIS_PROGRAM_PATH: str | None = None
 
     @computed_field  # type: ignore[misc]

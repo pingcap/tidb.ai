@@ -12,10 +12,12 @@ from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelT
 from llama_index.postprocessor.jinaai_rerank import JinaRerank
 from sqlmodel import Session
 
+from app.core.config import settings
 from app.rag.types import (
     LLMProvider,
     OpenAIModel,
     GeminiModel,
+    VertexModel,
     RerankerProvider,
 )
 from app.rag.default_prompt import (
@@ -27,6 +29,7 @@ from app.rag.default_prompt import (
 )
 from app.models import ChatEngine
 from app.repositories import chat_engine_repo
+from app.rag.llms.anthropic_vertex import AnthropicVertex
 from app.utils.dspy import get_dspy_lm_by_llama_llm
 
 logger = logging.getLogger(__name__)
@@ -36,6 +39,7 @@ class LLMOption(BaseModel):
     provider: LLMProvider = LLMProvider.OPENAI
     openai_chat_model: OpenAIModel = OpenAIModel.GPT_35_TURBO
     gemini_chat_model: GeminiModel = GeminiModel.GEMINI_15_FLASH
+    vertex_chat_model: VertexModel = VertexModel.CLAUDE_35_SONNET
 
     reranker_provider: RerankerProvider = RerankerProvider.JINAAI
     reranker_top_k: int = 10
@@ -89,6 +93,20 @@ class ChatEngineConfig(BaseModel):
             return OpenAI(model=self.llm.openai_chat_model.value)
         elif self.llm.provider == LLMProvider.GEMINI:
             return Gemini(model=self.llm.gemini_chat_model.value)
+        elif self.llm.provider == LLMProvider.VERTEX:
+            from google.oauth2 import service_account
+            from google.auth.transport.requests import Request
+
+            credentials: service_account.Credentials = (
+                service_account.Credentials.from_service_account_file(
+                    settings.GOOGLE_APPLICATION_CREDENTIALS,
+                    scopes=["https://www.googleapis.com/auth/cloud-platform"],
+                )
+            )
+            credentials.refresh(request=Request())
+            return AnthropicVertex(
+                model=self.llm.vertex_chat_model.value, credentials=credentials
+            )
         else:
             raise ValueError(f"Got unknown LLM provider: {self.llm.provider}")
 

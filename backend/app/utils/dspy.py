@@ -3,6 +3,7 @@ import dspy
 from llama_index.core.base.llms.base import BaseLLM
 from llama_index.llms.openai import OpenAI
 from llama_index.llms.gemini import Gemini
+from app.rag.llms.anthropic_vertex import AnthropicVertex
 
 
 def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
@@ -26,6 +27,11 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
         # it has already been configured as `genai` by the llama_llm.
         return dspy.Google(
             model=llama_llm.model.split("models/")[1],
+            max_output_tokens=llama_llm.max_tokens or 8192,
+        )
+    elif isinstance(llama_llm, AnthropicVertex):
+        return dspy.Google(
+            model="gemini-1.5-flash",
             max_output_tokens=llama_llm.max_tokens or 8192,
         )
     else:
