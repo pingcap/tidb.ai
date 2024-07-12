@@ -105,7 +105,9 @@ class ChatEngineConfig(BaseModel):
             )
             credentials.refresh(request=Request())
             return AnthropicVertex(
-                model=self.llm.vertex_chat_model.value, credentials=credentials
+                model=self.llm.vertex_chat_model.value,
+                credentials=credentials,
+                max_tokens=4096,
             )
         else:
             raise ValueError(f"Got unknown LLM provider: {self.llm.provider}")
