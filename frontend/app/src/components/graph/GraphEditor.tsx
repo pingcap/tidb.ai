@@ -1,3 +1,4 @@
+import { getChatMessageSubgraph } from '@/api/chats';
 import { getEntitySubgraph, type KnowledgeGraph, search } from '@/api/graph';
 import { LinkDetails } from '@/components/graph/components/LinkDetails';
 import { NetworkViewer, type NetworkViewerDetailsProps } from '@/components/graph/components/NetworkViewer';
@@ -93,6 +94,7 @@ function SubgraphSelector ({ query, onQueryChange }: { query: string | null, onQ
         <SelectContent>
           <SelectItem value="sample-question">Sample Question</SelectItem>
           <SelectItem value="entity">Entity ID</SelectItem>
+          <SelectItem value="message-subgraph">Message Subgraph</SelectItem>
           <SelectItem value="trace" disabled>Langfuse Trace ID (UUID)</SelectItem>
           <SelectItem value="document" disabled>Document URI</SelectItem>
         </SelectContent>
@@ -149,6 +151,8 @@ function getFetchInfo (query: string | null): [string | false, () => Promise<Kno
       return [`api.graph.entity-subgraph?id=${param}`, () => getEntitySubgraph(parseInt(param))];
     case 'sample-question':
       return [`api.graph.search?query=${param}`, () => search({ query: param })];
+    case 'message-subgraph':
+      return [`api.chats.get-message-subgraph?id=${param}`, () => getChatMessageSubgraph(parseInt(param))];
   }
 
   return [false, () => Promise.reject()];

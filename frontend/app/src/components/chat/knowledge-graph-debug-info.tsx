@@ -5,6 +5,8 @@ import { type ChatMessageGroup, useChatMessageStreamState } from '@/components/c
 import { AppChatStreamState } from '@/components/chat/chat-stream-state';
 import { NetworkViewer } from '@/components/graph/components/NetworkViewer';
 import { useNetwork } from '@/components/graph/useNetwork';
+import { PencilIcon } from 'lucide-react';
+import Link from 'next/link';
 import { useEffect } from 'react';
 import useSWR from 'swr';
 
@@ -38,15 +40,13 @@ export function KnowledgeGraphDebugInfo ({ group }: { group: ChatMessageGroup })
       loading={!shouldFetch || isLoading}
       loadingTitle={shouldFetch ? 'Loading knowledge graph...' : 'Waiting knowledge graph request...'}
       network={network}
-      Details={() =>
-        /*canEdit && traceUrl
-         ? (
-         <Link href={`/indexes/${index_id}/graph-editor?query=${encodeURIComponent(`trace:${getTraceId(traceUrl)}`)}`} className="absolute top-2 right-2 text-xs underline">
-         <PencilIcon className="w-3 h-3 mr-1 inline-block" />
-         Edit graph
-         </Link>
-         ) :*/ null
-      }
+      Details={() => canEdit
+        ? (
+          <Link href={`/knowledge-graph?query=${encodeURIComponent(`message-subgraph:${group.user.id}`)}`} className="absolute top-2 right-2 text-xs underline">
+            <PencilIcon className="w-3 h-3 mr-1 inline-block" />
+            Edit graph
+          </Link>
+        ) : null}
     />
   );
 }
