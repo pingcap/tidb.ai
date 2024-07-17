@@ -174,7 +174,6 @@ def parse_langfuse_trace_id_from_url(trace_url: str) -> str:
 
 
 def fetch_rag_data(langfuse_client: Langfuse, tracing_id: str):
-
     graph_context_key = "retrieve_from_graph"
     reranking_key = "reranking"
     refined_question_key = "condense_question"
