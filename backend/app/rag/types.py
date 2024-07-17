@@ -69,6 +69,8 @@ class MyCBEventType(str, enum.Enum):
     AGENT_STEP = "agent_step"
     CONDENSE_QUESTION = "condense_question"
     RETRIEVE_FROM_GRAPH = "retrieve_from_graph"
+    INTENT_DECOMPOSITION = "intent_decomposition"
+    GRAPH_SEMANTIC_SEARCH = "graph_semantic_search"
 
 
 # Chat stream response event types

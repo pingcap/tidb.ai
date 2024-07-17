@@ -209,6 +209,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
         depth: int = 2,
         include_meta: bool = False,
     ) -> Mapping[str, Any]:
+        chat_content = query
         if len(chat_history) > 0:
             chat_history_strings = [
                 f"{message.role.value}: {message.content}" for message in chat_history
@@ -218,10 +219,15 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
                 + "\n".join(chat_history_strings)
                 + "++++ Chat History ++++\n"
             )
-            query_with_history = query_with_history + "\n\nThen the user ask:\n" + query
-            intents = self._intents.analyze(query_with_history)
-        else:
-            intents = self._intents.analyze(query)
+            chat_content = query_with_history + "\n\nThen the user ask:\n" + query
+
+        with self._callback_manager.as_trace("intent_based_search"):
+            with self._callback_manager.event(
+                MyCBEventType.INTENT_DECOMPOSITION,
+                payload={EventPayload.QUERY_STR: chat_content},
+            ) as event:
+                intents = self._intents.analyze(chat_content)
+                event.on_end(payload=intents)
 
         result = {"queries": {}, "graph": None}
         all_entities = []
@@ -260,9 +266,21 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
                 f"{r.source_entity} -> {r.relationship_desc} -> {r.target_entity}"
             )
             logging.info(f"Searching for: {sub_query}")
-            entities, relationships, _ = self._kg_store.retrieve_with_weight(
-                sub_query, [], depth, include_meta, with_chunks=False
-            )
+            with self._callback_manager.as_trace("intent_based_search"):
+                with self._callback_manager.event(
+                    MyCBEventType.GRAPH_SEMANTIC_SEARCH,
+                    payload={EventPayload.QUERY_STR: sub_query},
+                ) as event:
+                    entities, relationships, _ = self._kg_store.retrieve_with_weight(
+                        sub_query, [], depth, include_meta, with_chunks=False
+                    )
+                    event.on_end(
+                        payload={
+                            "entities": entities,
+                            "relations": relationships,
+                        },
+                    )
+
             result["queries"][sub_query] = {
                 "entities": entities,
                 "relationships": relationships,
@@ -270,9 +288,21 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
             all_entities.extend(entities)
             add_relationships(relationships)
 
-        entities, relationships, _ = self._kg_store.retrieve_with_weight(
-            query, [], depth, include_meta, with_chunks=False
-        )
+        with self._callback_manager.as_trace("intent_based_search"):
+            with self._callback_manager.event(
+                MyCBEventType.GRAPH_SEMANTIC_SEARCH,
+                payload={EventPayload.QUERY_STR: sub_query},
+            ) as event:
+                entities, relationships, _ = self._kg_store.retrieve_with_weight(
+                    query, [], depth, include_meta, with_chunks=False
+                )
+                event.on_end(
+                    payload={
+                        "entities": entities,
+                        "relations": relationships,
+                    },
+                )
+
         result["queries"][query] = {
             "entities": entities,
             "relationships": relationships,
