@@ -291,7 +291,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
         with self._callback_manager.as_trace("intent_based_search"):
             with self._callback_manager.event(
                 MyCBEventType.GRAPH_SEMANTIC_SEARCH,
-                payload={EventPayload.QUERY_STR: sub_query},
+                payload={EventPayload.QUERY_STR: query},
             ) as event:
                 entities, relationships, _ = self._kg_store.retrieve_with_weight(
                     query, [], depth, include_meta, with_chunks=False
