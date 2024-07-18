@@ -138,7 +138,7 @@ export async function getChatMessageSubgraph (chatMessageId: number): Promise<Kn
     .then(handleResponse(knowledgeGraphSchema));
 }
 
-export async function* chat ({ chat_id, chat_engine = 'default', content, headers: headersInit, signal }: PostChatParams, onResponse?: (response: Response) => void) {
+export async function* chat ({ chat_id, chat_engine, content, headers: headersInit, signal }: PostChatParams, onResponse?: (response: Response) => void) {
   if (mockChat) {
     const res = await fetch('/chats.mock.txt');
     const text = await res.text();

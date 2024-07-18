@@ -11,12 +11,11 @@ export function useAsk (onFinish?: () => void) {
   const engineRef = useRef<string>();
 
   const ask = useCallback((message: string, options?: {
-    engine?: number;
     headers?: Record<string, string>;
   }) => {
     setWaiting(true);
     startTransition(() => {
-      newChat(undefined, undefined, { content: message })
+      newChat(undefined, undefined, { content: message, chat_engine: engineRef.current, headers: options?.headers })
         .once('created', chat => {
           setWaiting(false);
           startTransition(() => {

@@ -20,7 +20,6 @@ export function Ask ({ className, loading, ask, engine, setEngine }: { className
         }, ({ token, action, siteKey }) => {
           if (message.trim()) {
             ask(message, {
-              engine,
               headers: {
                 'X-Recaptcha-Token': token,
                 'X-Recaptcha-Action': action,
