@@ -1,0 +1,103 @@
+import { ArrowRightIcon, FormulaIcon, FileIcon, CloudIcon, CodeIcon, BoxIcon, GearIcon, RowsIcon, CardsIcon } from '@/components/icons'
+import { Callout, Card, Cards, Steps } from 'nextra/components'
+
+
+# How to read these docs
+
+Welcome to the TiDB.AI documentation! We've tried hard to make these docs approachable regardless of your experience level with TiDB, TiDB Serverless, RAG and generative AI in general.
+
+
+## Before you start
+
+**TiDB Serverless** is the serverless version of TiDB, which is a <u>MySQL compatible</u> but with <u>Vector Storage</u> support, <u>fully managed</u>, built-in <u>analytical engine</u>, with <u>25GiB storage free</u>!
+
+**TiDB.AI** is a xlab-level of site which currently is demostrating RAG demo built with TiDB Vector.
+
+
+<Callout>
+Note: Both TiDB Vector and TiDB.AI are still under development, you can join the waitlist by https://tidb.cloud/ai.
+</Callout>
+
+
+## Reading Path
+
+<Steps>
+### Play Live Demo!
+<Cards>
+  <Card
+    icon={<ArrowRightIcon />}
+    title="Click to Play Live Demo"
+    href="https://tidb.ai"
+    target="_blank"
+  />
+</Cards>
+
+### Learn The Basics - Optional
+<Cards>
+  <Card
+    icon={<ArrowRightIcon />}
+    title="What is TiDB.AI"
+    href="/docs"
+  />
+  <Card
+    icon={<ArrowRightIcon />}
+    title="What is TiDB"
+    href="https://tidb.cloud"
+    target="_blank"
+  />
+  <Card
+    icon={<ArrowRightIcon />}
+    title="What is RAG"
+    href="https://docs.llamaindex.ai/en/stable/getting_started/concepts/#retrieval-augmented-generation-rag"
+  />
+</Cards>
+
+### Deploy Your Own RAG / Chatbot
+<Cards>
+  <Card
+    icon={<CloudIcon />}
+    title="Deploy on EC2"
+    href="/docs/deploy-self-hosted"
+  />
+  <Card
+    icon={<ArrowRightIcon />}
+    title="Deploy to Vercel"
+    href="/docs/deploy-to-vercel"
+  />
+</Cards>
+
+### Customize RAG Workflow- Advanced
+<Cards>
+  <Card
+    icon={<GearIcon />}
+    title="Config Doc Loader"
+    href="/"
+  />
+  <Card
+    icon={<CardsIcon />}
+    title="Change Chunk Size"
+    href="/"
+  />
+  <Card
+    icon={<ArrowRightIcon />}
+    title="Choose Other LLM"
+    href="/"
+  />
+  <Card
+    icon={<ArrowRightIcon />}
+    title="Change Embedding API"
+    href="/"
+  />
+  <Card
+    icon={<ArrowRightIcon />}
+    title="Change Reranker"
+    href="/"
+  />
+  <Card
+    icon={<CodeIcon />}
+    title="Customize Prompt"
+    href="/"
+  />
+</Cards>
+
+</Steps>

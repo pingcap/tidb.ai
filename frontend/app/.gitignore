@@ -38,3 +38,7 @@ next-env.d.ts
 certificates
 
 public/widget.js
+
+public/robots.txt
+public/sitemap.xml
+public/sitemap-*.xml

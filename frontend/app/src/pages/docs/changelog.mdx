@@ -1,0 +1,37 @@
+# Changelog
+
+Latest updates and announcements.
+
+## May 29th, 2024 - Add Knowledge Graph as secondary set of corpus
+
+- **Core Enhancements:**
+  - Use LLM to extract knowledge graph data from the corpus.
+  - Use TiDB Serverless to store and manage the knowledge graph data.
+  - Knowledge Graph Integration: Added support for Knowledge Graph as a secondary set of corpus for the LlamaIndex's RAG process.
+  - Improved Search: Enhanced search results by combining the primary(LlamaIndex) and secondary(Knowledge Graph) corpus.
+
+## April 19th, 2024 - Add "Regenerate" Button
+
+- **User Experience:**
+  - Added a "Regenerate" button to the LlamaIndex RAG process to allow users to regenerate answers for a specific question.
+
+## April 16th, 2024 - Use LlamaIndex for RAG
+
+- **Core Enhancements:**
+  - LlamaIndex Integration: Revise the table structure to accommodate the requirements of the LlamaIndex's RAG process and successfully integrate LlamaIndex.
+  - Multiple LLM Support: Added support for multiple LLMs.
+
+## March 20th, 2024 - Initial MVP Version
+
+- **Core Enhancements:**
+  - Data Source Management: Upload and manage PDF, Markdown, CSV, and other document types. Automatically crawl and index sitemap.xml of domains.
+
+- **UI/UX Updates:**
+  - Conversational Search: Enhanced with chat history management post-login.
+  - Embeddable JS Widget: Easily integrate conversational search into any website.
+
+- **System Settings:**
+  - Overview Dashboard: New dashboard with statistics on chats and documents.
+  - Basic Info Customization: Set logo, site name, search titles, example questions, footer links, and social media links.
+  - OAuth Configurations: Added support for GitHub and Gmail.
+  - Advanced Settings: Customize prompt settings and RAG loader & splitter configurations (chunk size, overlap, etc.).

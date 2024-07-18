@@ -102,6 +102,11 @@ const config: Config = {
         'fade-in-right': 'fade-in-right 0.5s ease-out',
         'fade-in-left': 'fade-in-left 0.5s ease-out',
       },
+      backgroundImage: {
+        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
+        "gradient-conic":
+          "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
+      },
     },
   },
   plugins: [

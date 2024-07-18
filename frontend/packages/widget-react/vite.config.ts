@@ -54,6 +54,7 @@ export default defineConfig({
     'process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL': 'false',
     'process.env.NEXT_PUBLIC_MOCKING_CHAT': 'false',
     'process.env.NEXT_PUBLIC_IS_WIDGET': 'true',
+    'process.env.__NEXT_ROUTER_BASEPATH': '""',
   },
   server: {
     proxy: {

@@ -5,9 +5,9 @@ export function useSearchParam (key: string, defaultValue: string | null = null)
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  const state = searchParams.get(key);
+  const state = searchParams?.get(key);
   const setState = (newValue: string | null) => {
-    const usp = new URLSearchParams(searchParams);
+    const usp = new URLSearchParams(searchParams ?? {});
     if (newValue == null) {
       usp.delete(key);
     } else {

@@ -59,7 +59,7 @@ export interface SiteNavProps {
 }
 
 export function SiteNav ({ groups }: SiteNavProps) {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? '';
 
   return (
     <TooltipProvider>

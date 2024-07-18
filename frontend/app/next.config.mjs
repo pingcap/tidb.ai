@@ -1,5 +1,6 @@
 import withSvgr from 'next-plugin-svgr';
 import MonacoWebpackPlugin from "monaco-editor-webpack-plugin";
+import nextra from "nextra";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = withSvgr({
@@ -26,4 +27,13 @@ const nextConfig = withSvgr({
   },
 });
 
-export default nextConfig;
+const withNextra = nextra({
+  theme: 'nextra-theme-docs',
+  themeConfig: './theme.config.tsx',
+  flexsearch: {
+    codeblocks: false
+  },
+  defaultShowCopyCode: true,
+});
+
+export default withNextra(nextConfig);

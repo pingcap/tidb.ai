@@ -1,0 +1,29 @@
+{
+  "-- Getting Started": {
+    "type": "separator",
+    "title": "Getting Started"
+  },
+  "index": "Introduction",
+  "how-to-read-these-docs": {
+    "title": "How to read these docs",
+    "display": "hidden"
+  },
+  "changelog": "Changelog",
+  "faq": "FAQ",
+  "-- Deploy This RAG": {
+    "type": "separator",
+    "title": "Deployment"
+  },
+  "requirements": "Requirements",
+  "deploy-with-docker": {
+    "title": "Deploy with Docker",
+    "display": "hidden"
+  },
+  "javascript": {
+    "title": "Deploy with JavaScript",
+    "display": "hidden"
+  },
+  "README": {
+    "display": "hidden"
+  }
+}
