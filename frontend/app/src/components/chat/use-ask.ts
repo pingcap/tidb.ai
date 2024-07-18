@@ -7,8 +7,8 @@ export function useAsk (onFinish?: () => void) {
   const router = useRouter();
   const [waiting, setWaiting] = useState(false);
   const [transition, startTransition] = useTransition();
-  const [engine, setEngine] = useState<number>();
-  const engineRef = useRef<number>();
+  const [engine, setEngine] = useState<string>();
+  const engineRef = useRef<string>();
 
   const ask = useCallback((message: string, options?: {
     engine?: number;
@@ -35,7 +35,7 @@ export function useAsk (onFinish?: () => void) {
   return {
     ask,
     engine,
-    setEngine: (engine: number | undefined) => {
+    setEngine: (engine: string | undefined) => {
       engineRef.current = engine;
       setEngine(engine);
     },

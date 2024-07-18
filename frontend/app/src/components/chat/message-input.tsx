@@ -17,8 +17,8 @@ export interface MessageInputProps {
   disabled?: boolean,
   inputRef?: RefObject<HTMLTextAreaElement>,
   inputProps?: TextareaAutosizeProps,
-  engine?: number,
-  onEngineChange?: (id: number) => void,
+  engine?: string,
+  onEngineChange?: (name: string) => void,
 }
 
 export function MessageInput ({
@@ -60,13 +60,13 @@ export function MessageInput ({
         disabled={disabled || inputProps?.disabled}
         minRows={4}
       />
-      {showShowSelectChatEngine && <Select value={engine ? String(engine) : ''} onValueChange={value => onEngineChange?.(parseInt(value))}>
+      {showShowSelectChatEngine && <Select value={engine ?? ''} onValueChange={value => onEngineChange?.(value)}>
         <SelectTrigger className="w-max border-none h-max" disabled={isLoading}>
           <SelectValue placeholder="Select Chat Engine" />
         </SelectTrigger>
         <SelectContent>
           {data?.items.map(item => (
-            <SelectItem key={item.id} value={String(item.id)} textValue={item.name}>
+            <SelectItem key={item.name} value={String(item.name)} textValue={item.name}>
               <span className="flex items-center gap-2">
                 {item.is_default ? <Badge variant="outline" className="text-green-500 border-green-500/50">default</Badge> : item.name} {item.engine_options.knowledge_graph.enabled && <Badge>Knowledge graph enabled</Badge>}
               </span>
