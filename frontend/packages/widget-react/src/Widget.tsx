@@ -62,7 +62,7 @@ export function Widget ({ exampleQuestions, icon, buttonIcon, buttonLabel }: Wid
       <ChatsProvider>
         <Dialog>
           <DialogTrigger asChild>
-            <Button className="fixed right-8 bottom-8 flex gap-2 items-center">
+            <Button id="tidb-ai-widget" className="fixed right-8 bottom-8 flex gap-2 items-center">
               <img src={buttonIcon} alt="Logo" className="size-4" />
               <span>
               {buttonLabel}
@@ -102,8 +102,8 @@ export function Widget ({ exampleQuestions, icon, buttonIcon, buttonLabel }: Wid
                             <Button
                               key={index}
                               variant="secondary"
-                              disabled={!!myChat.ongoingMessageController || !!myChat.pendingPost}
-                              onClick={() => myChat.controller.post({ content: question })}>
+                              disabled={!!myChat.postState}
+                              onClick={() => myChat.post({ content: question })}>
                               {question}
                             </Button>
                           ))}

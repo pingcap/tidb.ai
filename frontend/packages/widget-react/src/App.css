@@ -6,3 +6,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+#tidb-ai-widget {
+  z-index: 9999;
+}
