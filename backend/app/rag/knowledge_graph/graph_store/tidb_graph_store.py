@@ -10,7 +10,6 @@ from llama_index.core.embeddings.utils import EmbedType, resolve_embed_model
 from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
 from sqlmodel import Session, asc, func, select, text
 from sqlalchemy.orm import aliased, defer, joinedload
-
 from app.core.db import engine
 from app.rag.knowledge_graph.base import KnowledgeGraphStore
 from app.rag.knowledge_graph.schema import Entity, Relationship, SynopsisEntity
@@ -298,6 +297,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         with_chunks: bool = True,
         # experimental feature to filter relationships based on meta, can be removed in the future
         relationship_meta_filters: Dict = {},
+        session: Optional[Session] = None,
     ) -> Tuple[list, list, list]:
         if not embedding:
             assert query, "Either query or embedding must be provided"
@@ -309,6 +309,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
             [],
             with_degree=with_degree,
             relationship_meta_filters=relationship_meta_filters,
+            session=session,
         )
 
         all_relationships = set(relationships)
@@ -347,6 +348,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
                     rank_n=expected_number,
                     with_degree=with_degree,
                     relationship_meta_filters=relationship_meta_filters,
+                    session=session,
                 )
 
                 all_relationships.update(new_relationships)
@@ -360,7 +362,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
                     progress += search_ratio
 
         synopsis_entities = self.fetch_similar_entities(
-            embedding, top_k=2, entity_type=EntityType.synopsis
+            embedding, top_k=2, entity_type=EntityType.synopsis, session=session
         )
         all_entities.update(synopsis_entities)
 
@@ -395,11 +397,12 @@ class TiDBGraphStore(KnowledgeGraphStore):
         ]
 
         chunks = []
+        session = session or self._session
         if with_chunks:
             chunks = [
                 # TODO: add last_modified_at
                 {"text": c[0], "link": c[1], "meta": c[2]}
-                for c in self._session.exec(
+                for c in session.exec(
                     select(DBChunk.text, DBChunk.document_id, DBChunk.meta).where(
                         DBChunk.id.in_(related_doc_ids)
                     )
@@ -409,15 +412,20 @@ class TiDBGraphStore(KnowledgeGraphStore):
         return entities, relationships, chunks
 
     # Function to fetch degrees for entities
-    def fetch_entity_degrees(self, entity_ids: List[int]) -> Dict[int, Dict[str, int]]:
+    def fetch_entity_degrees(
+        self,
+        entity_ids: List[int],
+        session: Optional[Session] = None,
+    ) -> Dict[int, Dict[str, int]]:
         degrees = {
             entity_id: {"in_degree": 0, "out_degree": 0} for entity_id in entity_ids
         }
+        session = session or self._session
 
         try:
             # Fetch out-degrees
             out_degree_query = (
-                self._session.query(
+                session.query(
                     DBRelationship.source_entity_id,
                     func.count(DBRelationship.id).label("out_degree"),
                 )
@@ -430,7 +438,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
 
             # Fetch in-degrees
             in_degree_query = (
-                self._session.query(
+                session.query(
                     DBRelationship.target_entity_id,
                     func.count(DBRelationship.id).label("in_degree"),
                 )
@@ -460,6 +468,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         degree_coefficient: float = DEFAULT_DEGREE_COEFFICIENT,
         with_degree: bool = False,
         relationship_meta_filters: Dict = {},
+        session: Optional[Session] = None,
     ) -> List[DBRelationship]:
         # select the relationships to rank
         subquery = (
@@ -511,7 +520,8 @@ class TiDBGraphStore(KnowledgeGraphStore):
         query = query.order_by(asc("embedding_distance")).limit(limit)
 
         # Order by embedding distance and apply limit
-        relationships = self._session.exec(query).all()
+        session = session or self._session
+        relationships = session.exec(query).all()
 
         if len(relationships) <= rank_n:
             relationship_set = set([rel for rel, _ in relationships])
@@ -527,7 +537,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
             for rel, _ in relationships:
                 entity_ids.add(rel.source_entity_id)
                 entity_ids.add(rel.target_entity_id)
-            degrees = self.fetch_entity_degrees(list(entity_ids))
+            degrees = self.fetch_entity_degrees(list(entity_ids), session=session)
         else:
             degrees = {}
 
@@ -571,11 +581,13 @@ class TiDBGraphStore(KnowledgeGraphStore):
         embedding: list,
         top_k: int = 5,
         entity_type: EntityType = EntityType.original,
+        session: Optional[Session] = None,
     ):
         new_entity_set = set()
 
         # Retrieve entities based on their ID and similarity to the embedding
-        for entity in self._session.exec(
+        session = session or self._session
+        for entity in session.exec(
             select(DBEntity)
             .where(DBEntity.entity_type == entity_type)
             .order_by(DBEntity.description_vec.cosine_distance(embedding))

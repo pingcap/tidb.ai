@@ -1,8 +1,11 @@
 import dspy
 import logging
+import traceback
 from abc import ABC, abstractmethod
 from typing import Any, Dict, List, Mapping, Optional, Sequence, Tuple
 from collections import defaultdict
+import concurrent.futures
+from sqlmodel import Session
 
 from llama_index.core.data_structs import IndexLPG
 from llama_index.core.callbacks import CallbackManager, trace_method
@@ -17,6 +20,7 @@ from app.rag.knowledge_graph.extractor import SimpleGraphExtractor
 from app.rag.knowledge_graph.intent import IntentAnalyzer
 from app.rag.types import MyCBEventType
 from app.core.config import settings
+from app.core.db import Scoped_Session
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +43,7 @@ class KnowledgeGraphStore(ABC):
         with_degree: bool = False,
         with_chunks: bool = True,
         relationship_meta_filters: Dict = {},
+        session: Optional[Session] = None,
     ) -> Tuple[list, list, list]:
         """Retrieve nodes and relationships with weights."""
         pass
@@ -179,7 +184,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
                 event.on_end(
                     payload={
                         "entities": entities,
-                        "relations": relations,
+                        "relationships": relations,
                         "chunks": chunks,
                     },
                 )
@@ -219,7 +224,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
                 + "\n".join(chat_history_strings)
                 + "++++ Chat History ++++\n"
             )
-            chat_content = query_with_history + "\n\nThen the user ask:\n" + query
+            chat_content = query_with_history + "\n\nThen the user asksq:\n" + query
 
         with self._callback_manager.as_trace("intent_based_search"):
             with self._callback_manager.event(
@@ -227,7 +232,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
                 payload={EventPayload.QUERY_STR: chat_content},
             ) as event:
                 intents = self._intents.analyze(chat_content)
-                event.on_end(payload=intents)
+                event.on_end(payload={"relationships": intents.relationships})
 
         result = {"queries": {}, "graph": None}
         all_entities = []
@@ -261,54 +266,61 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
                         }
                     )
 
-        for r in intents.relationships:
-            sub_query = (
-                f"{r.source_entity} -> {r.relationship_desc} -> {r.target_entity}"
-            )
-            logging.info(f"Searching for: {sub_query}")
-            with self._callback_manager.as_trace("intent_based_search"):
-                with self._callback_manager.event(
-                    MyCBEventType.GRAPH_SEMANTIC_SEARCH,
-                    payload={EventPayload.QUERY_STR: sub_query},
-                ) as event:
-                    entities, relationships, _ = self._kg_store.retrieve_with_weight(
-                        sub_query, [], depth, include_meta, with_chunks=False
-                    )
-                    event.on_end(
-                        payload={
-                            "entities": entities,
-                            "relations": relationships,
-                        },
-                    )
+        semantic_queries = [
+            f"{r.source_entity} -> {r.relationship_desc} -> {r.target_entity}"
+            for r in intents.relationships
+        ]
 
-            result["queries"][sub_query] = {
-                "entities": entities,
-                "relationships": relationships,
-            }
-            all_entities.extend(entities)
-            add_relationships(relationships)
-
-        with self._callback_manager.as_trace("intent_based_search"):
-            with self._callback_manager.event(
-                MyCBEventType.GRAPH_SEMANTIC_SEARCH,
-                payload={EventPayload.QUERY_STR: query},
-            ) as event:
+        def process_query(sub_query):
+            logger.info(f"Processing query: {sub_query}")
+            tmp_session = Scoped_Session()
+            try:
                 entities, relationships, _ = self._kg_store.retrieve_with_weight(
-                    query, [], depth, include_meta, with_chunks=False
+                    sub_query,
+                    [],
+                    depth,
+                    include_meta,
+                    with_chunks=False,
+                    session=tmp_session,
                 )
-                event.on_end(
-                    payload={
-                        "entities": entities,
-                        "relations": relationships,
-                    },
-                )
+            except Exception as exc:
+                tmp_session.rollback()
+                traceback.print_exc()
+                raise
+            finally:
+                tmp_session.close()
+                Scoped_Session.remove()
+            return sub_query, entities, relationships
 
-        result["queries"][query] = {
-            "entities": entities,
-            "relationships": relationships,
-        }
-        all_entities.extend(entities)
-        add_relationships(relationships)
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            future_to_query = {
+                executor.submit(process_query, sub_query): sub_query
+                for sub_query in semantic_queries
+            }
+            for future in concurrent.futures.as_completed(future_to_query):
+                sub_query = future_to_query[future]
+                try:
+                    # It can't record the real execution time of the sub_query
+                    with self._callback_manager.as_trace("intent_based_search"):
+                        with self._callback_manager.event(
+                            MyCBEventType.GRAPH_SEMANTIC_SEARCH,
+                            payload={EventPayload.QUERY_STR: sub_query},
+                        ) as event:
+                            sub_query, entities, relationships = future.result()
+                            event.on_end(
+                                payload={
+                                    "entities": entities,
+                                    "relationships": relationships,
+                                },
+                            )
+                    result["queries"][sub_query] = {
+                        "entities": entities,
+                        "relationships": relationships,
+                    }
+                    all_entities.extend(entities)
+                    add_relationships(relationships)
+                except Exception as exc:
+                    logger.error(f"{sub_query} generated an exception: {exc}")
 
         unique_entities = {e["id"]: e for e in all_entities}.values()
 
