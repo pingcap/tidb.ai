@@ -102,7 +102,7 @@ export function Widget ({ exampleQuestions, icon, buttonIcon, buttonLabel }: Wid
                             <Button
                               key={index}
                               variant="secondary"
-                              disabled={!!myChat.postState}
+                              disabled={!!myChat.postState.params}
                               onClick={() => myChat.post({ content: question })}>
                               {question}
                             </Button>
