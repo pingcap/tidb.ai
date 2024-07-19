@@ -4,6 +4,7 @@ import type { PublicWebsiteSettings } from '@/api/site-settings';
 import { getMe, type MeInfo } from '@/api/users';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ChatsProvider } from '@/components/chat/chat-hooks';
+import { Toaster } from '@/components/ui/sonner';
 import { SettingProvider } from '@/components/website-setting-provider';
 import { ThemeProvider } from 'next-themes';
 import type { ReactNode } from 'react';
@@ -29,6 +30,7 @@ export function RootProviders ({ me, settings, children }: RootProvidersProps) {
         <AuthProvider me={data} isLoading={isLoading} isValidating={isValidating}>
           <ChatsProvider>
             {children}
+            <Toaster />
           </ChatsProvider>
         </AuthProvider>
       </SettingProvider>

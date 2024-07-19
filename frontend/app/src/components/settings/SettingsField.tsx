@@ -5,11 +5,12 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { getErrorMessage } from '@/lib/errors';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { deepEqual } from 'fast-equals';
 import { Loader2Icon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { deepEqual } from 'fast-equals';
 import { cloneElement, type ReactElement, type ReactNode, useCallback, useMemo } from 'react';
 import { type ControllerRenderProps, useForm, useFormState, useWatch } from 'react-hook-form';
+import { toast } from 'sonner';
 import { z, type ZodType } from 'zod';
 
 export interface SettingsFieldProps {
@@ -115,6 +116,7 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, chil
       await updateSiteSetting(name, data.value);
       form.reset({ value: data.value });
       router.refresh();
+      toast.success(`Changes successfully saved.`);
     } catch (e) {
       form.setError('value', { type: 'value', message: getErrorMessage(e) });
       return Promise.reject(e);

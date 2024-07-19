@@ -49,7 +49,6 @@ export default function Layout ({ children }: {
         <main className="flex-1 md:ml-side md:w-content overflow-x-hidden">
           {children}
         </main>
-        <Toaster position="top-right" />
       </div>
     </>
   );
