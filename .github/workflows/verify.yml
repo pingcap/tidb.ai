@@ -35,4 +35,9 @@ jobs:
           cache-dependency-path: ./frontend
           cache: 'pnpm'
       - run: pnpm i --frozen-lockfile
+      - uses: actions/cache@v4
+        with:
+          path: |
+            ./frontend/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('frontend/**/pnpm-lock.yaml') }}-${{ hashFiles('frontend/**/*.js', 'frontend/**/*.jsx', 'frontend/**/*.ts', 'frontend/**/*.tsx') }}
       - run: pnpm run verify
