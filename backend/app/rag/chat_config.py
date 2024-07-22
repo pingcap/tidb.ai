@@ -116,13 +116,6 @@ class ChatEngineConfig(BaseModel):
         llama_llm = self.get_llama_llm()
         return get_dspy_lm_by_llama_llm(llama_llm)
 
-    def get_fast_llama_llm(self) -> Optional[LLM]:
-        return Gemini(model=self.llm.gemini_chat_model.value)
-
-    def get_fast_dspy_lm(self) -> Optional[dspy.LM]:
-        llama_llm = self.get_fast_llama_llm()
-        return get_dspy_lm_by_llama_llm(llama_llm)
-
     def get_embedding_model(self) -> BaseEmbedding:
         # The embedding model should remain the same for both building and chatting,
         # currently we do not support dynamic configuration of embedding model
