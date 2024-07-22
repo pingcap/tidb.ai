@@ -8,9 +8,8 @@
 ## Introduction
 A conversational search tool based on GraphRAG (Knowledge Graph) that built on top of [TiDB Vector](https://tidb.cloud/ai) and [LlamaIndex](https://github.com/run-llama/llama_index) and [DSPy](https://github.com/stanfordnlp/dspy).
 
-**Live Demo**: [TiDB.AI](https://tidb.cloud/?utm_source=github&utm_medium=tidb.ai)
-
-**Documentation**: [TiDB.AI Docs](https://tidb.ai/docs/?utm_source=github&utm_medium=tidb.ai)
+* **Live Demo**: [TiDB.AI](https://tidb.cloud/?utm_source=github&utm_medium=tidb.ai)
+* **Documentation**: [Docs](https://tidb.ai/docs/?utm_source=github&utm_medium=tidb.ai)
 
 ## Features
 1. **Perplexity-style Conversational Search page**: Our platform features an advanced built-in website crawler, designed to elevate your browsing experience. This crawler effortlessly navigates official and documentation sites, ensuring comprehensive coverage and streamlined search processes through sitemap URL scraping.
@@ -27,17 +26,11 @@ You can even edit the Knowledge Graph to add more information or correct any ina
 
 
 ## Tech Stack
-- [Next.js](https://nextjs.org/) – Framework
-- [TypeScript](https://www.typescriptlang.org/) – Language
-- [Tailwind](https://tailwindcss.com/) – CSS
-- [shadcn/ui](https://ui.shadcn.com/) - Design
-- [TiDB](https://tidb.cloud/) – Database to store chat history, vector, json, and analytic
-- [Kysely](https://kysely.dev/) - SQL query builder
-- [NextAuth.js](https://next-auth.js.org/) – Auth
-- [Vercel](https://vercel.com/) – Deployments
+- [TiDB](https://pingcap.com/ai/?utm_source=github&utm_medium=tidb.ai) – Database to store chat history, vector, json, and analytic
 - [LlamaIndex](https://www.llamaindex.ai/) - RAG framework
 - [DSPy](https://github.com/stanfordnlp/dspy) - The framework for programming—not prompting—foundation models
-- [TiDB Vector](https://tidb.cloud/ai) - Vector storage and search engine
+- [Next.js](https://nextjs.org/) – Framework
+- [shadcn/ui](https://ui.shadcn.com/) - Design
 
 ## Contect Us
 You can post topics on our [TiDB Community](https://ask.pingcap.com/) page.
