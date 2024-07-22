@@ -36,7 +36,8 @@ jobs:
           name: Build and push frontend
           uses: docker/build-push-action@v5
           with:
-            context: frontend
+            context: .
+            file: ./frontend/Dockerfile
             push: true
             tags: |
                 ${{ secrets.DOCKERHUB_USERNAME }}/tidb.ai-py-fe:latest
