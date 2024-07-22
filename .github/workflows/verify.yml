@@ -28,5 +28,11 @@ jobs:
         with:
           run_install: false
           package_json_file: ./frontend/package.json
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ./frontend/.nvmrc
+          cache-dependency-path: ./frontend
+          cache: 'pnpm'
       - run: pnpm i --frozen-lockfile
       - run: pnpm run verify
