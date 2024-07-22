@@ -7,7 +7,8 @@ on:
     workflow_dispatch:
 
 jobs:
-    build:
+    build-backend:
+      name: Build and Push Backend Image
       runs-on: ubuntu-latest
       steps:
         -
@@ -32,6 +33,22 @@ jobs:
                 ${{ secrets.DOCKERHUB_USERNAME }}/tidb.ai-py:latest
                 ${{ secrets.DOCKERHUB_USERNAME }}/tidb.ai-py:${{ github.sha }}
 
+    build-frontend:
+      name: Build and Push Frontend Image
+      runs-on: ubuntu-latest
+      steps:
+        -
+          name: Checkout
+          uses: actions/checkout@v4
+        -
+          name: Login to Docker Hub
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKERHUB_USERNAME }}
+            password: ${{ secrets.DOCKERHUB_TOKEN }}
+        -
+          name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v3
         -
           name: Build and push frontend
           uses: docker/build-push-action@v5
