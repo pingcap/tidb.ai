@@ -6,11 +6,13 @@ on:
       - main
     paths:
       - frontend/**
+      - README.md
   pull_request:
     branches:
       - main
     paths:
       - frontend/**
+      - README.md
 
 jobs:
   verify-frontend:
