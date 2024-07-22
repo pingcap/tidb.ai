@@ -56,10 +56,6 @@ class ChatService:
 
         self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
         self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
-        # self._llm = self.chat_engine_config.get_llama_llm()
-        self._dspy_lm = self.chat_engine_config.get_dspy_lm()
-        self._fast_dspy_lm = self.chat_engine_config.get_fast_dspy_lm()
-        # self._embed_model = self.chat_engine_config.get_embedding_model()
         self._reranker = self.chat_engine_config.get_reranker()
 
     def chat(
@@ -155,6 +151,7 @@ class ChatService:
 
         _llm = self.chat_engine_config.get_llama_llm()
         _embed_model = self.chat_engine_config.get_embedding_model()
+        _dspy_lm = self.chat_engine_config.get_dspy_lm()
 
         def _get_langfuse_callback_manager():
             # Why we don't use high-level decorator `observe()` as \
@@ -197,12 +194,12 @@ class ChatService:
         kg_config = self.chat_engine_config.knowledge_graph
         if kg_config.enabled:
             graph_store = TiDBGraphStore(
-                dspy_lm=self._fast_dspy_lm,
+                dspy_lm=_dspy_lm,
                 session=self.db_session,
                 embed_model=_embed_model,
             )
             graph_index: KnowledgeGraphIndex = KnowledgeGraphIndex.from_existing(
-                dspy_lm=self._fast_dspy_lm,
+                dspy_lm=_dspy_lm,
                 kg_store=graph_store,
                 callback_manager=callback_manager,
             )
