@@ -2,7 +2,7 @@
   "name": "tidb-ai-parent",
   "private": true,
   "version": "0.0.0",
-  "packageManager": "pnpm@9.4.0",
+  "packageManager": "pnpm@9.6.0",
   "license": "Apache-2.0",
   "scripts": {
     "test": "pnpm run --filter '*' test",
