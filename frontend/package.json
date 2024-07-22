@@ -8,7 +8,7 @@
     "test": "pnpm run --filter '*' test",
     "dev": "pnpm run --filter 'app' dev",
     "build:widget-react": "pnpm run --filter '@tidb.ai/react' build",
-    "build:docker": "pnpm run --filter 'app' build:standalone && pnpm run --filter 'www' build:standalone",
+    "build:docker": "pnpm run --filter 'app' build:standalone",
     "build": "pnpm run --filter 'app' build",
     "verify": "pnpm run test && pnpm run build && pnpm run build:widget-react"
   }
