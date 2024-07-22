@@ -2,7 +2,7 @@ import { useRouter } from 'next/router';
 import { useConfig, DocsThemeConfig, Link } from 'nextra-theme-docs';
 
 let themeConfig: DocsThemeConfig = {
-  docsRepositoryBase: 'https://github.com/pingcap/tidb.ai/tree/main/www',
+  docsRepositoryBase: 'https://github.com/pingcap/tidb.ai/tree/main/frontend/app',
   useNextSeoProps () {
     return {
       titleTemplate: '%s - RAG app by TiDB ',

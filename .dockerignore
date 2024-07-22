@@ -1,0 +1,6 @@
+# Frontend
+frontend/Dockerfile
+frontend/**/node_modules
+frontend/app/.next
+frontend/app/.swc
+frontend/packages/*/dist

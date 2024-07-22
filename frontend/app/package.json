@@ -5,7 +5,6 @@
   "scripts": {
     "dev": "next dev --experimental-https",
     "dev:local": "next dev",
-    "postinstall": "cp ../../README.md src/pages/docs/README.md",
     "build": "next build && next-sitemap",
     "build:standalone": "STANDALONE=1 next build --no-lint && next-sitemap",
     "start": "next start",

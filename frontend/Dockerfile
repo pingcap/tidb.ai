@@ -7,14 +7,17 @@ RUN apk add --no-cache libc6-compat
 
 WORKDIR /tidb.ai
 
-RUN mkdir app
-RUN mkdir -p packages/widget-react
+RUN mkdir -p frontend/app
+RUN mkdir -p frontend/packages/widget-react
 
 # Install dependencies based on the preferred package manager
-COPY package.json .
-COPY pnpm-*.yaml .
-COPY app/package.json ./app
-COPY packages/widget-react/package.json ./packages/widget-react
+COPY README.md .
+COPY frontend/package.json ./frontend
+COPY frontend/pnpm-*.yaml ./frontend
+COPY frontend/app/package.json ./frontend/app
+COPY frontend/packages/widget-react/package.json ./frontend/packages/widget-react
+
+WORKDIR /tidb.ai/frontend
 
 RUN corepack enable pnpm
 RUN pnpm i --frozen-lockfile
@@ -23,12 +26,16 @@ RUN pnpm i --frozen-lockfile
 # 2. Rebuild the source code only when needed
 FROM base AS builder
 WORKDIR /tidb.ai
-COPY --from=deps /tidb.ai/node_modules ./node_modules
-COPY --from=deps /tidb.ai/app/node_modules ./app/node_modules
-COPY --from=deps /tidb.ai/packages/widget-react/node_modules ./packages/widget-react/node_modules
+COPY --from=deps /tidb.ai/frontend/node_modules ./frontend/node_modules
+COPY --from=deps /tidb.ai/frontend/app/node_modules ./frontend/app/node_modules
+COPY --from=deps /tidb.ai/frontend/packages/widget-react/node_modules ./frontend/packages/widget-react/node_modules
+# For symbol link of root README.md
 COPY . .
+
 # This will do the trick, use the corresponding env file for each environment.
 #COPY .env.production.sample .env.production
+
+WORKDIR /tidb.ai/frontend
 
 ENV BASE_URL ""
 ENV NEXT_PUBLIC_BASE_URL ""
@@ -55,14 +62,12 @@ RUN adduser -S nextjs -u 1001
 
 # Automatically leverage output traces to reduce image size
 # https://nextjs.org/docs/advanced-features/output-file-tracing
-COPY --from=builder --chown=nextjs:nodejs /tidb.ai/app/.next/standalone .
-COPY --from=builder --chown=nextjs:nodejs /tidb.ai/app/.next/static app/.next/static
-
-COPY --from=builder /tidb.ai/app/public app/public
+COPY --from=builder --chown=nextjs:nodejs /tidb.ai/frontend/app/.next/standalone .
+COPY --from=builder --chown=nextjs:nodejs /tidb.ai/frontend/app/.next/static app/.next/static
+COPY --from=builder /tidb.ai/frontend/app/public frontend/app/public
 
 USER nextjs
 
 EXPOSE 3000
-
 
 CMD node app/server.js

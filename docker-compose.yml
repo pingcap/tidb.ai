@@ -19,7 +19,8 @@ services:
   frontend:
     image: tidb.ai/frontend:local
     build:
-      context: ./frontend
+      context: .
+      dockerfile: frontend/Dockerfile
     restart: always
     ports:
       - 3000:3000
