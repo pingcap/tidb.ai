@@ -64,7 +64,7 @@ RUN adduser -S nextjs -u 1001
 # https://nextjs.org/docs/advanced-features/output-file-tracing
 COPY --from=builder --chown=nextjs:nodejs /tidb.ai/frontend/app/.next/standalone .
 COPY --from=builder --chown=nextjs:nodejs /tidb.ai/frontend/app/.next/static app/.next/static
-COPY --from=builder /tidb.ai/frontend/app/public frontend/app/public
+COPY --from=builder /tidb.ai/frontend/app/public app/public
 
 USER nextjs
 
