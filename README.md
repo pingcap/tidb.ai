@@ -1,7 +1,7 @@
 <div align="center">
 <h1>TiDB.AI</h1>
   <a href='https://tidb.cloud/?utm_source=github&utm_medium=tidb.ai'>
-    <img src="https://raw.githubusercontent.com/pingcap/tidb.ai/main/www/public/nextra/icon-dark.svg" alt="TiDB.AI" width =100 height=100></img>
+    <img src="https://raw.githubusercontent.com/pingcap/tidb.ai/main/frontend/app/public/nextra/icon-dark.svg" alt="TiDB.AI" width =100 height=100></img>
   </a>
 </div>
 
