@@ -425,10 +425,7 @@ def get_chat_message_subgraph(
         return [], []
 
     chat: DBChat = chat_message.chat
-    chat_engine_config = ChatEngineConfig.model_validate(
-        # FIXME: store engine_options as dict in the database
-        json.loads(chat.engine_options)
-    )
+    chat_engine_config = ChatEngineConfig.load_from_db(session, chat.engine.name)
     kg_config = chat_engine_config.knowledge_graph
     graph_store = TiDBGraphStore(
         dspy_lm=chat_engine_config.get_fast_dspy_lm(session),
