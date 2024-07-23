@@ -31,7 +31,7 @@ from app.rag.chat_stream_protocol import (
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.knowledge_graph import KnowledgeGraphIndex
-from app.rag.chat_config import ChatEngineConfig
+from app.rag.chat_config import ChatEngineConfig, get_default_embedding_model
 from app.rag.types import (
     MyCBEventType,
     ChatMessageSate,
@@ -56,7 +56,7 @@ class ChatService:
 
         self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
         self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
-        self._reranker = self.chat_engine_config.get_reranker()
+        self._reranker = self.chat_engine_config.get_reranker(db_session)
 
     def chat(
         self, chat_messages: List[ChatMessage], chat_id: Optional[UUID] = None
@@ -149,9 +149,10 @@ class ChatService:
             ),
         )
 
-        _llm = self.chat_engine_config.get_llama_llm()
-        _embed_model = self.chat_engine_config.get_embedding_model()
-        _dspy_lm = self.chat_engine_config.get_dspy_lm()
+        _embed_model = get_default_embedding_model(self.db_session)
+        _llm = self.chat_engine_config.get_llama_llm(self.db_session)
+        _fast_llm = self.chat_engine_config.get_fast_llama_llm(self.db_session)
+        _fast_dspy_lm = self.chat_engine_config.get_fast_dspy_lm(self.db_session)
 
         def _get_langfuse_callback_manager():
             # Why we don't use high-level decorator `observe()` as \
@@ -164,6 +165,7 @@ class ChatService:
             langfuse_handler.set_root(observation)
             callback_manager = CallbackManager([langfuse_handler])
             _llm.callback_manager = callback_manager
+            _fast_llm.callback_manager = callback_manager
             _embed_model.callback_manager = callback_manager
             return callback_manager
 
@@ -194,12 +196,12 @@ class ChatService:
         kg_config = self.chat_engine_config.knowledge_graph
         if kg_config.enabled:
             graph_store = TiDBGraphStore(
-                dspy_lm=_dspy_lm,
+                dspy_lm=_fast_dspy_lm,
                 session=self.db_session,
                 embed_model=_embed_model,
             )
             graph_index: KnowledgeGraphIndex = KnowledgeGraphIndex.from_existing(
-                dspy_lm=_dspy_lm,
+                dspy_lm=_fast_dspy_lm,
                 kg_store=graph_store,
                 callback_manager=callback_manager,
             )
@@ -261,7 +263,7 @@ class ChatService:
                 MyCBEventType.CONDENSE_QUESTION,
                 payload={EventPayload.QUERY_STR: user_question},
             ) as event:
-                refined_question = _llm.predict(
+                refined_question = _fast_llm.predict(
                     get_prompt_by_jinja2_template(
                         self.chat_engine_config.llm.condense_question_prompt,
                         graph_knowledges=graph_knowledges_context,
