@@ -431,9 +431,9 @@ def get_chat_message_subgraph(
     )
     kg_config = chat_engine_config.knowledge_graph
     graph_store = TiDBGraphStore(
-        dspy_lm=chat_engine_config.get_dspy_lm(),
+        dspy_lm=chat_engine_config.get_fast_dspy_lm(session),
         session=session,
-        embed_model=chat_engine_config.get_embedding_model(),
+        embed_model=get_default_embedding_model(session),
     )
     entities, relations, _ = graph_store.retrieve_with_weight(
         chat_message.content,
