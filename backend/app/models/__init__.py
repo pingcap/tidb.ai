@@ -23,3 +23,5 @@ from .api_key import ApiKey
 from .site_setting import SiteSetting
 from .upload import Upload
 from .data_source import DataSource, DataSourceType
+from .llm import LLM
+from .embed_model import EmbeddingModel
