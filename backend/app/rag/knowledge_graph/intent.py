@@ -57,7 +57,7 @@ class DecomposeQueryModule(dspy.Module):
     def __init__(self, dspy_lm: dspy.LM):
         super().__init__()
         self.dspy_lm = dspy_lm
-        self.prog = TypedChainOfThought(DecomposeQuery)
+        self.prog = TypedPredictor(DecomposeQuery)
 
     def forward(self, query):
         with dspy.settings.context(lm=self.dspy_lm):
