@@ -27,6 +27,7 @@ anthropic==0.31.0
 anyio==4.4.0
     # via anthropic
     # via httpx
+    # via langfuse
     # via openai
     # via starlette
     # via watchfiles
@@ -266,7 +267,7 @@ langchain-openai==0.1.16
     # via ragas
 langchain-text-splitters==0.2.2
     # via langchain
-langfuse==2.36.2
+langfuse==2.39.3
 langsmith==0.1.88
     # via langchain
     # via langchain-community

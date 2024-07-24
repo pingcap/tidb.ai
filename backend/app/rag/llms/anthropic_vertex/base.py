@@ -289,7 +289,6 @@ class AnthropicVertex(FunctionCallingLLM):
                             },
                         ),
                         delta=content_delta,
-                        raw=r,
                     )
                 elif isinstance(r, ContentBlockStartEvent):
                     if isinstance(r.content_block, ToolUseBlock):
