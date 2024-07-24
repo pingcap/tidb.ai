@@ -1,4 +1,4 @@
-import { BASE_URL, buildUrlParams, handleResponse, opaqueCookieHeader, type Page, type PageParams, zodPage } from '@/lib/request';
+import { BASE_URL, buildUrlParams, handleErrors, handleResponse, opaqueCookieHeader, type Page, type PageParams, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
 
@@ -9,6 +9,8 @@ export interface ChatEngine {
   created_at: Date;
   deleted_at: Date | null;
   engine_options: ChatEngineOptions;
+  llm_id: number | null;
+  fast_llm_id: number | null;
   is_default: boolean;
 }
 
@@ -43,13 +45,13 @@ const kgOptionsSchema = z.object({
 
 const llmOptionsSchema =
   z.object({
-  condense_question_prompt: z.string(),
-  text_qa_prompt: z.string(),
-  refine_prompt: z.string(),
-  provider: z.string(),
-  reranker_provider: z.string(),
-  reranker_top_k: z.number(),
-}).passthrough() as ZodType<ChatEngineLLMOptions, any, any>;
+    condense_question_prompt: z.string(),
+    text_qa_prompt: z.string(),
+    refine_prompt: z.string(),
+    provider: z.string(),
+    reranker_provider: z.string(),
+    reranker_top_k: z.number(),
+  }).passthrough() as ZodType<ChatEngineLLMOptions, any, any>;
 
 const chatEngineOptionsSchema = z.object({
   knowledge_graph: kgOptionsSchema,
@@ -63,6 +65,8 @@ const chatEngineSchema = z.object({
   created_at: zodJsonDate(),
   deleted_at: zodJsonDate().nullable(),
   engine_options: chatEngineOptionsSchema,
+  llm_id: z.number().nullable(),
+  fast_llm_id: z.number().nullable(),
   is_default: z.boolean(),
 }) satisfies ZodType<ChatEngine, any, any>;
 
@@ -78,4 +82,16 @@ export async function getChatEngine (id: number): Promise<ChatEngine> {
     headers: await opaqueCookieHeader(),
   })
     .then(handleResponse(chatEngineSchema));
+}
+
+export async function updateChatEngine (id: number, partial: Partial<Pick<ChatEngine, 'name' | 'llm_id' | 'fast_llm_id' | 'engine_options' | 'is_default'>>): Promise<void> {
+  await fetch(BASE_URL + `/api/v1/admin/chat-engines/${id}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      ...await opaqueCookieHeader(),
+    },
+    body: JSON.stringify(partial),
+  })
+    .then(handleErrors);
 }
