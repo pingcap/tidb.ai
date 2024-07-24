@@ -31,6 +31,9 @@ export type ChatEngineLLMOptions = {
   text_qa_prompt: string;
   refine_prompt: string;
 
+  intent_graph_knowledge: string
+  normal_graph_knowledge: string
+
   provider: string;
   reranker_provider: string;
   reranker_top_k: number;
@@ -48,6 +51,8 @@ const llmOptionsSchema =
     condense_question_prompt: z.string(),
     text_qa_prompt: z.string(),
     refine_prompt: z.string(),
+    intent_graph_knowledge: z.string(),
+    normal_graph_knowledge: z.string(),
     provider: z.string(),
     reranker_provider: z.string(),
     reranker_top_k: z.number(),
@@ -92,6 +97,29 @@ export async function updateChatEngine (id: number, partial: Partial<Pick<ChatEn
       ...await opaqueCookieHeader(),
     },
     body: JSON.stringify(partial),
+  })
+    .then(handleErrors);
+}
+
+export async function createChatEngine (create: Pick<ChatEngine, 'name' | 'llm_id' | 'fast_llm_id' | 'engine_options'>) {
+  return await fetch(BASE_URL + `/api/v1/admin/chat-engines`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...await opaqueCookieHeader(),
+    },
+    body: JSON.stringify(create),
+  })
+    .then(handleResponse(chatEngineSchema));
+}
+
+
+export async function deleteChatEngine (id: number): Promise<void> {
+  await fetch(BASE_URL + `/api/v1/admin/chat-engines/${id}`, {
+    method: 'DELETE',
+    headers: {
+      ...await opaqueCookieHeader(),
+    },
   })
     .then(handleErrors);
 }

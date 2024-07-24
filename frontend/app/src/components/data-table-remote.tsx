@@ -15,7 +15,7 @@ import { type ReactNode, useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
 
 export interface PageApiOptions {
-  globalFilter: string
+  globalFilter: string;
 }
 
 interface DataTableRemoteProps<TData, TValue> {
@@ -66,7 +66,7 @@ export function DataTableRemote<TData, TValue> ({
     revalidateOnFocus: false,
     focusThrottleInterval: 1000,
     keepPreviousData: true,
-    onError: console.error
+    onError: console.error,
   });
 
   useEffect(() => {
@@ -135,7 +135,7 @@ export function DataTableRemote<TData, TValue> ({
   });
 
   return (
-    <DataTableProvider value={table}>
+    <DataTableProvider value={{ ...table, reload: () => { mutate(); } }}>
       {before}
       {toolbar ? toolbar(table) : null}
       <TooltipProvider>

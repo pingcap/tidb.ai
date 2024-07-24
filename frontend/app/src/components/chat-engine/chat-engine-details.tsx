@@ -21,7 +21,7 @@ export function ChatEngineDetails ({ chatEngine }: { chatEngine: ChatEngine }) {
         <OptionDetail title="Is default" value={chatEngine.is_default ? 'Yes' : 'No'} editPanel={<EditIsDefaultForm chatEngine={chatEngine} />} />
       </div>
       <Separator />
-      <ChatEngineOptionsDetails options={chatEngine.engine_options} />
+      <ChatEngineOptionsDetails options={chatEngine.engine_options} editable={chatEngine} />
     </div>
   );
 }
