@@ -39,7 +39,7 @@ def create_datasource(
 
 
 @router.get("/admin/datasources")
-def list_feedbacks(
+def list_datasources(
     session: SessionDep,
     user: CurrentSuperuserDep,
     params: Params = Depends(),

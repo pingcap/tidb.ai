@@ -16,6 +16,7 @@ from app.api.admin_routes import (
     graph_editor as admin_graph_editor,
     upload as admin_upload,
     data_source as admin_data_source,
+    llm as admin_llm,
 )
 from app.auth.schemas import UserCreate, UserRead, UserUpdate
 from app.auth.users import auth_backend, fastapi_users
@@ -39,6 +40,7 @@ api_router.include_router(
 )
 api_router.include_router(admin_upload.router, tags=["admin"])
 api_router.include_router(admin_data_source.router, tags=["admin"])
+api_router.include_router(admin_llm.router, tags=["admin"])
 
 api_router.include_router(
     fastapi_users.get_auth_router(auth_backend), prefix="/auth", tags=["auth"]

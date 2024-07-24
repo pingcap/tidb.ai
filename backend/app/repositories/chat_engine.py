@@ -1,14 +1,21 @@
-from typing import Optional, List
-from sqlmodel import select, Session
+from typing import Optional
+from datetime import datetime, UTC
+from sqlmodel import select, Session, update
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
+from sqlalchemy.orm.attributes import flag_modified
 
-from app.models import ChatEngine
+from app.models import ChatEngine, ChatEngineUpdate
 from app.repositories.base_repo import BaseRepo
 
 
 class ChatEngineRepo(BaseRepo):
     model_cls = ChatEngine
+
+    def get(self, session: Session, id: int) -> Optional[ChatEngine]:
+        return session.exec(
+            select(ChatEngine).where(ChatEngine.id == id, ChatEngine.deleted_at == None)
+        ).first()
 
     def paginate(
         self,
@@ -33,6 +40,45 @@ class ChatEngineRepo(BaseRepo):
                 ChatEngine.name == name, ChatEngine.deleted_at == None
             )
         ).first()
+
+    def create(self, session: Session, obj: ChatEngine):
+        if obj.is_default:
+            session.exec(
+                update(ChatEngine).where(ChatEngine.id != obj.id).values(is_default=False)
+            )
+        session.add(obj)
+        session.commit()
+        session.refresh(obj)
+        return obj
+
+    def update(
+        self,
+        session: Session,
+        chat_engine: ChatEngine,
+        chat_engine_in: ChatEngineUpdate,
+    ) -> ChatEngine:
+        update_data = chat_engine_in.model_dump()
+        set_default = update_data.pop("is_default", False)
+        for field, value in chat_engine_in.model_dump().items():
+            if value is not None:
+                setattr(chat_engine, field, value)
+                flag_modified(chat_engine, field)
+
+        if set_default:
+            session.exec(
+                update(ChatEngine)
+                .where(ChatEngine.id != chat_engine.id)
+                .values(is_default=False)
+            )
+        session.commit()
+        session.refresh(chat_engine)
+        return chat_engine
+
+    def delete(self, session: Session, chat_engine: ChatEngine) -> ChatEngine:
+        chat_engine.deleted_at = datetime.now(UTC)
+        session.commit()
+        session.refresh(chat_engine)
+        return chat_engine
 
 
 chat_engine_repo = ChatEngineRepo()
