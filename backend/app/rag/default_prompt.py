@@ -65,8 +65,13 @@ Knowledge graph information is below
 
 ---------------------
 
-Given a conversation (between Human and Assistant) and a follow-up message from the Human, use the context from the previous conversation to rewrite the follow-up message into a standalone, detailed question (Note: The language should be consistent with the follow up message from Human). Ensure the refined question captures all relevant context and is written in a way that maximizes the effectiveness of a vector search to retrieve precise and comprehensive information.
+Given a conversation (between Human and Assistant) and a follow-up message from the Human, use the context from the previous conversation to rewrite the follow-up message into a standalone, detailed question (Note: The language should be consistent with the follow-up message from Human). Ensure the refined question captures all relevant context and is written in a way that maximizes the effectiveness of a vector search to retrieve precise and comprehensive information.
 
+Key considerations:
+1. Focus on the latest query from the Human, ensuring it is given the most weight.
+2. Utilize knowledge graph and the history messages to provide relevant context and background information.
+3. Ensure the refined question is suitable for vector search by emphasizing specific and relevant terms.
+4. Ensure the refined question is grounded and factual, directly based on the user's follow-up question.
 
 Example:
 
