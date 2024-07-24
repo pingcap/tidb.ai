@@ -12,7 +12,7 @@ dependencies = [
     "celery>=5.4.0",
     "dspy-ai>=2.4.9",
     "langfuse>=2.36.2",
-    "llama-index>=0.10.44",
+    "llama-index>=0.10.57",
     "alembic>=1.13.1",
     "pydantic>=2.7.4",
     "pydantic-settings>=2.3.3",
@@ -38,6 +38,7 @@ dependencies = [
     "anthropic[vertex]>=0.31.0",
     "google-cloud-aiplatform>=1.59.0",
     "deepeval>=0.21.66",
+    "llama-index-llms-openai>=0.1.27",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
