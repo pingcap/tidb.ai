@@ -13,7 +13,7 @@ from .feedback import (
 )
 from .semantic_cache import SemanticCache
 from .staff_action_log import StaffActionLog
-from .chat_engine import ChatEngine
+from .chat_engine import ChatEngine, ChatEngineUpdate
 from .chat import Chat
 from .chat_message import ChatMessage
 from .document import Document, DocIndexTaskStatus
@@ -23,5 +23,5 @@ from .api_key import ApiKey
 from .site_setting import SiteSetting
 from .upload import Upload
 from .data_source import DataSource, DataSourceType
-from .llm import LLM
-from .embed_model import EmbeddingModel
+from .llm import LLM, AdminLLM
+from .embed_model import EmbeddingModel, AdminEmbeddingModel

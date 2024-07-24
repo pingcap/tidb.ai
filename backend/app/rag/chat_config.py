@@ -24,7 +24,7 @@ from app.rag.default_prompt import (
     DEFAULT_REFINE_PROMPT,
 )
 from app.models import (
-    ChatEngine,
+    ChatEngine as DBChatEngine,
     LLM as DBLLM,
     EmbeddingModel as DBEmbeddingModel,
 )
@@ -55,17 +55,12 @@ class ChatEngineConfig(BaseModel):
     llm: LLMOption = LLMOption()
     knowledge_graph: KnowledgeGraphOption = KnowledgeGraphOption()
 
-    __db_chat_engine: Optional[ChatEngine] = None
-    __db_llm: Optional[DBLLM] = None
-    __db_fast_llm: Optional[DBLLM] = None
+    _db_chat_engine: Optional[DBChatEngine] = None
+    _db_llm: Optional[DBLLM] = None
+    _db_fast_llm: Optional[DBLLM] = None
 
-    def set_db_chat_engine(self, db_chat_engine: ChatEngine):
-        self.__db_chat_engine = db_chat_engine
-        self.__db_llm = db_chat_engine.llm
-        self.__db_fast_llm = db_chat_engine.fast_llm
-
-    def get_db_chat_engine(self) -> Optional[ChatEngine]:
-        return self.__db_chat_engine
+    def get_db_chat_engine(self) -> Optional[DBChatEngine]:
+        return self._db_chat_engine
 
     @classmethod
     def load_from_db(cls, session: Session, engine_name: str) -> "ChatEngineConfig":
@@ -81,17 +76,19 @@ class ChatEngineConfig(BaseModel):
             return cls()
 
         obj = cls.model_validate(db_chat_engine.engine_options)
-        obj.set_db_chat_engine(db_chat_engine)
+        obj._db_chat_engine = db_chat_engine
+        obj._db_llm = db_chat_engine.llm
+        obj._db_fast_llm = db_chat_engine.fast_llm
         return obj
 
     def get_llama_llm(self, session: Session) -> LLM:
-        if not self.__db_llm:
+        if not self._db_llm:
             return get_default_llm(session)
         return get_llm(
-            self.__db_llm.provider,
-            self.__db_llm.model,
-            self.__db_llm.config,
-            self.__db_llm.credentials,
+            self._db_llm.provider,
+            self._db_llm.model,
+            self._db_llm.config,
+            self._db_llm.credentials,
         )
 
     def get_dspy_lm(self, session: Session) -> dspy.LM:
@@ -99,13 +96,13 @@ class ChatEngineConfig(BaseModel):
         return get_dspy_lm_by_llama_llm(llama_llm)
 
     def get_fast_llama_llm(self, session: Session) -> LLM:
-        if not self.__db_fast_llm:
+        if not self._db_fast_llm:
             return get_default_llm(session)
         return get_llm(
-            self.__db_fast_llm.provider,
-            self.__db_fast_llm.model,
-            self.__db_fast_llm.config,
-            self.__db_fast_llm.credentials,
+            self._db_fast_llm.provider,
+            self._db_fast_llm.model,
+            self._db_fast_llm.config,
+            self._db_fast_llm.credentials,
         )
 
     def get_fast_dspy_lm(self, session: Session) -> dspy.LM:

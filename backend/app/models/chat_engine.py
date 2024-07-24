@@ -1,4 +1,5 @@
 from typing import Optional, Dict
+from pydantic import BaseModel
 from datetime import datetime
 
 from sqlmodel import (
@@ -32,3 +33,11 @@ class ChatEngine(UpdatableBaseModel, table=True):
     deleted_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime))
 
     __tablename__ = "chat_engines"
+
+
+class ChatEngineUpdate(BaseModel):
+    name: Optional[str] = None
+    llm_id: Optional[int] = None
+    fast_llm_id: Optional[int] = None
+    engine_options: Optional[dict] = None
+    is_default: Optional[bool] = None
