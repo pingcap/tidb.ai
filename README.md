@@ -30,26 +30,26 @@ A conversational search tool based on GraphRAG (Knowledge Graph) that built on t
 
 > **Prerequisites:**
 >
-> 1. Setup [TiDB Serverless cluster](https://docs.pingcap.com/tidbcloud/tidb-cloud-quickstart).
+> 1. Set up a [TiDB Serverless cluster](https://docs.pingcap.com/tidbcloud/tidb-cloud-quickstart).
 > 2. Install [Docker Compose](https://docs.docker.com/compose/install/).
 > 3. Install [Python 3.11](https://www.python.org/downloads/release/python-3110/).
 > 4. Install [Rye](https://rye.astral.sh/guide/installation/).
 
-1. Clone code
+1. Clone the repository:
 
     ```bash
     git clone https://github.com/pingcap/tidb.ai.git
     cd tidb.ai
     ```
 
-2. Copy and edit the `./backend/.env` file
+2. Copy and edit the `.env` file in the `backend` directory:
 
     ```bash
     cp ./backend/.env.example ./backend/.env
-    vim ./backend/.env # or the other way to edit this file
+    vim ./backend/.env # or use another text editor to edit this file
     ```
 
-3. Migrate database schema
+3. Migrate the database schema:
 
     ```bash
     cd backend
@@ -58,7 +58,7 @@ A conversational search tool based on GraphRAG (Knowledge Graph) that built on t
     cd ..
     ```
 
-4. Start services via Docker Compose
+4. Start the services using Docker Compose:
 
     ```bash
     docker compose up
