@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD033 MD041 -->
+
 <div align="center">
 <h1>TiDB.AI</h1>
   <a href='https://tidb.cloud/?utm_source=github&utm_medium=tidb.ai'>
@@ -9,8 +11,8 @@
 
 A conversational search tool based on GraphRAG (Knowledge Graph) that built on top of [TiDB Vector](https://tidb.cloud/ai) and [LlamaIndex](https://github.com/run-llama/llama_index) and [DSPy](https://github.com/stanfordnlp/dspy).
 
-* **Live Demo**: [TiDB.AI](https://tidb.cloud/?utm_source=github&utm_medium=tidb.ai)
-* **Documentation**: [Docs](https://tidb.ai/docs/?utm_source=github&utm_medium=tidb.ai)
+- **Live Demo**: [TiDB.AI](https://tidb.cloud/?utm_source=github&utm_medium=tidb.ai)
+- **Documentation**: [Docs](https://tidb.ai/docs/?utm_source=github&utm_medium=tidb.ai)
 
 ## Features
 
