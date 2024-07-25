@@ -1,11 +1,19 @@
 name: tidb-ai
 
 services:
+  redis:
+    image: redis:6.0.16
+    restart: always
+    volumes:
+      - ./redis-data:/data
+
   backend:
     image: tidb.ai/backend:local
     build:
       context: ./backend
     restart: always
+    depends_on:
+      - redis
     ports:
       - "5000:80"
     env_file:
@@ -22,6 +30,8 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
     restart: always
+    depends_on:
+      - backend
     ports:
       - 3000:3000
     environment:
@@ -32,12 +42,6 @@ services:
         max-size: "50m"
         max-file: "6"
 
-  redis:
-    image: redis:6.0.16
-    restart: always
-    volumes:
-      - ./redis-data:/data
-
   background:
     image: tidb.ai/backend:local
     build:
@@ -45,6 +49,7 @@ services:
     restart: always
     depends_on:
       - redis
+      - backend
     ports:
       - "5555:5555"
     env_file:

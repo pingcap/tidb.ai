@@ -7,6 +7,7 @@
 #   all-features: false
 #   with-sources: false
 #   generate-hashes: false
+#   universal: false
 
 aiohttp==3.9.5
     # via datasets
@@ -33,6 +34,8 @@ anyio==4.4.0
     # via watchfiles
 appdirs==1.4.4
     # via ragas
+appnope==0.1.4
+    # via ipykernel
 argon2-cffi==23.1.0
     # via pwdlib
 argon2-cffi-bindings==21.2.0
