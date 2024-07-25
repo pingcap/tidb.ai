@@ -28,7 +28,6 @@ anthropic==0.31.0
 anyio==4.4.0
     # via anthropic
     # via httpx
-    # via langfuse
     # via openai
     # via starlette
     # via watchfiles
@@ -100,7 +99,7 @@ debugpy==1.8.2
 decorator==5.1.1
     # via ipython
 deepdiff==7.0.1
-deepeval==0.21.66
+deepeval==0.21.73
 deprecated==1.2.14
     # via llama-index-core
     # via llama-index-legacy
@@ -139,6 +138,7 @@ fastapi-users==13.0.0
 fastapi-users-db-sqlmodel==0.3.0
 filelock==3.15.1
     # via huggingface-hub
+    # via transformers
 flower==2.0.1
 frozenlist==1.4.1
     # via aiohttp
@@ -203,7 +203,8 @@ greenlet==3.0.3
     # via sqlalchemy
 grpc-google-iam-v1==0.13.1
     # via google-cloud-resource-manager
-grpcio==1.64.1
+grpcio==1.63.0
+    # via deepeval
     # via google-api-core
     # via googleapis-common-protos
     # via grpc-google-iam-v1
@@ -235,6 +236,7 @@ httpx-oauth==0.14.1
 huggingface-hub==0.23.3
     # via datasets
     # via tokenizers
+    # via transformers
 humanize==4.9.0
     # via flower
 idna==3.7
@@ -244,7 +246,7 @@ idna==3.7
     # via langfuse
     # via requests
     # via yarl
-importlib-metadata==7.1.0
+importlib-metadata==7.0.0
     # via deepeval
     # via opentelemetry-api
 iniconfig==2.0.0
@@ -290,7 +292,7 @@ langchain-openai==0.1.16
     # via ragas
 langchain-text-splitters==0.2.2
     # via langchain
-langfuse==2.39.3
+langfuse==2.36.2
 langsmith==0.1.88
     # via langchain
     # via langchain-community
@@ -311,6 +313,7 @@ llama-index-core==0.10.57
     # via llama-index-indices-managed-llama-cloud
     # via llama-index-llms-gemini
     # via llama-index-llms-openai
+    # via llama-index-llms-openai-like
     # via llama-index-multi-modal-llms-openai
     # via llama-index-postprocessor-jinaai-rerank
     # via llama-index-program-openai
@@ -330,9 +333,11 @@ llama-index-llms-openai==0.1.27
     # via llama-index
     # via llama-index-agent-openai
     # via llama-index-cli
+    # via llama-index-llms-openai-like
     # via llama-index-multi-modal-llms-openai
     # via llama-index-program-openai
     # via llama-index-question-gen-openai
+llama-index-llms-openai-like==0.1.3
 llama-index-multi-modal-llms-openai==0.1.6
     # via llama-index
 llama-index-postprocessor-jinaai-rerank==0.1.6
@@ -393,6 +398,7 @@ numpy==1.26.4
     # via ragas
     # via shapely
     # via tidb-vector
+    # via transformers
 openai==1.34.0
     # via dspy-ai
     # via langchain-openai
@@ -400,22 +406,21 @@ openai==1.34.0
     # via llama-index-core
     # via llama-index-legacy
     # via ragas
-opentelemetry-api==1.25.0
+opentelemetry-api==1.24.0
     # via deepeval
     # via opentelemetry-exporter-otlp-proto-grpc
     # via opentelemetry-sdk
-    # via opentelemetry-semantic-conventions
-opentelemetry-exporter-otlp-proto-common==1.25.0
+opentelemetry-exporter-otlp-proto-common==1.24.0
     # via opentelemetry-exporter-otlp-proto-grpc
-opentelemetry-exporter-otlp-proto-grpc==1.25.0
+opentelemetry-exporter-otlp-proto-grpc==1.24.0
     # via deepeval
-opentelemetry-proto==1.25.0
+opentelemetry-proto==1.24.0
     # via opentelemetry-exporter-otlp-proto-common
     # via opentelemetry-exporter-otlp-proto-grpc
-opentelemetry-sdk==1.25.0
+opentelemetry-sdk==1.24.0
     # via deepeval
     # via opentelemetry-exporter-otlp-proto-grpc
-opentelemetry-semantic-conventions==0.46b0
+opentelemetry-semantic-conventions==0.45b0
     # via opentelemetry-sdk
 optuna==3.6.1
     # via dspy-ai
@@ -436,6 +441,7 @@ packaging==23.2
     # via marshmallow
     # via optuna
     # via pytest
+    # via transformers
 pandas==2.2.2
     # via datasets
     # via dspy-ai
@@ -556,6 +562,7 @@ pyyaml==6.0.1
     # via langchain-core
     # via llama-index-core
     # via optuna
+    # via transformers
     # via uvicorn
 pyzmq==26.0.3
     # via ipykernel
@@ -567,6 +574,7 @@ regex==2024.5.15
     # via dspy-ai
     # via nltk
     # via tiktoken
+    # via transformers
 requests==2.32.3
     # via datasets
     # via deepeval
@@ -582,11 +590,14 @@ requests==2.32.3
     # via llama-index-core
     # via llama-index-legacy
     # via tiktoken
+    # via transformers
 rich==13.7.1
     # via deepeval
     # via typer
 rsa==4.9
     # via google-auth
+safetensors==0.4.3
+    # via transformers
 sentry-sdk==2.5.1
     # via deepeval
 shapely==2.0.4
@@ -623,7 +634,7 @@ structlog==24.2.0
     # via dspy-ai
 tabulate==0.9.0
     # via deepeval
-tenacity==8.2.3
+tenacity==8.4.2
     # via deepeval
     # via langchain
     # via langchain-community
@@ -638,6 +649,7 @@ tiktoken==0.7.0
     # via ragas
 tokenizers==0.19.1
     # via anthropic
+    # via transformers
 tornado==6.4.1
     # via flower
     # via ipykernel
@@ -652,6 +664,7 @@ tqdm==4.66.4
     # via nltk
     # via openai
     # via optuna
+    # via transformers
 traitlets==5.14.3
     # via comm
     # via ipykernel
@@ -659,6 +672,8 @@ traitlets==5.14.3
     # via jupyter-client
     # via jupyter-core
     # via matplotlib-inline
+transformers==4.43.2
+    # via llama-index-llms-openai-like
 typer==0.12.3
     # via deepeval
     # via fastapi-cli

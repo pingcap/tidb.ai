@@ -13,7 +13,6 @@ from dotenv import load_dotenv
 
 from app.api.main import api_router
 from app.core.config import settings, Environment
-from app.evaluation.evals import Evaluation, DEFAULT_TIDB_AI_CHAT_ENGINE
 from app.site_settings import SiteSetting
 
 dictConfig({
@@ -129,10 +128,12 @@ def runserver(host, port):
 @click.option("--run-name", default=None, help="Run name, default=None")
 @click.option(
     "--tidb-ai-chat-engine",
-    default=DEFAULT_TIDB_AI_CHAT_ENGINE,
-    help=f"TiDB AI chat engine, default={DEFAULT_TIDB_AI_CHAT_ENGINE}",
+    default="default",
+    help=f"TiDB AI chat engine, default=default",
 )
 def runeval(dataset, llm_provider, run_name, tidb_ai_chat_engine):
+    from app.evaluation.evals import Evaluation
+
     eval = Evaluation(
         dataset_name=dataset,
         llm_provider=llm_provider,

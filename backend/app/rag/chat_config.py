@@ -5,6 +5,7 @@ from typing import Optional
 import dspy
 from pydantic import BaseModel
 from llama_index.llms.openai import OpenAI
+from llama_index.llms.openai_like import OpenAILike
 from llama_index.llms.gemini import Gemini
 from llama_index.core.llms.llm import LLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
@@ -133,6 +134,8 @@ def get_llm(
     match provider:
         case LLMProvider.OPENAI:
             return OpenAI(model=model, api_key=credentials, **config)
+        case LLMProvider.OPENAI_LIKE:
+            return OpenAILike(model=model, api_key=credentials, **config)
         case LLMProvider.GEMINI:
             os.environ["GOOGLE_API_KEY"] = credentials
             return Gemini(model=model, api_key=credentials, **config)

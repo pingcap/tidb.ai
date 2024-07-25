@@ -2,6 +2,7 @@ import dspy
 
 from llama_index.core.base.llms.base import BaseLLM
 from llama_index.llms.openai import OpenAI
+from llama_index.llms.openai_like import OpenAILike
 from llama_index.llms.gemini import Gemini
 from app.rag.llms.anthropic_vertex import AnthropicVertex
 
@@ -14,13 +15,12 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
     This function can help us reduce the complexity of the code by converting the llama LLM to the dspy LLM.
     """
     # TODO: Implement this function
-    if isinstance(llama_llm, OpenAI):
+    if isinstance(llama_llm, (OpenAI, OpenAILike)):
         return dspy.OpenAI(
             model=llama_llm.model,
             max_tokens=llama_llm.max_tokens or 4096,
             api_key=llama_llm.api_key,
-            # if you want to use another base url, uncomment the line below,
-            # api_base=llama_llm.api_base,
+            api_base=llama_llm.api_base,
         )
     elif isinstance(llama_llm, Gemini):
         # Don't need to configure the api_key again,

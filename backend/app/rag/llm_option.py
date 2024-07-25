@@ -25,6 +25,15 @@ admin_llm_options: List[LLMOption] = [
         default_credentials="sk-****",
     ),
     LLMOption(
+        provider=LLMProvider.OPENAI_LIKE,
+        default_model="gpt-4o",
+        model_description="",
+        credentials_display_name="API Key",
+        credentials_description="The API key of the third-party OpenAI-like service, such as OpenRouter, you can find it in their official website",
+        credentials_type="str",
+        default_credentials="sk-****",
+    ),
+    LLMOption(
         provider=LLMProvider.GEMINI,
         default_model="models/gemini-1.5-flash",
         model_description="Find the model code at https://ai.google.dev/gemini-api/docs/models/gemini",
