@@ -15,6 +15,7 @@
     "title": "Deployment"
   },
   "requirements": "Requirements",
+  "quickstart": "Quick Start",
   "deploy-with-docker": {
     "title": "Deploy with Docker",
     "display": "hidden"
