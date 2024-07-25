@@ -20,7 +20,7 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
             model=llama_llm.model,
             max_tokens=llama_llm.max_tokens or 4096,
             api_key=llama_llm.api_key,
-            api_base=llama_llm.api_base,
+            api_base=enforce_trailing_slash(llama_llm.api_base),
         )
     elif isinstance(llama_llm, Gemini):
         # Don't need to configure the api_key again,
@@ -33,3 +33,9 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
         raise ValueError("AnthropicVertex is not supported by dspy.")
     else:
         raise ValueError(f"Got unknown LLM provider: {llama_llm.__class__.__name__}")
+
+
+def enforce_trailing_slash(url: str):
+    if url.endswith("/"):
+        return url
+    return url + "/"
