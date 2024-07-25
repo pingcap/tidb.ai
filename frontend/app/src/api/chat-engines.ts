@@ -24,6 +24,7 @@ export interface ChatEngineKnowledgeGraphOptions {
   enabled: boolean;
   include_meta: boolean;
   with_degree: boolean;
+  using_intent_search: boolean;
 }
 
 export type ChatEngineLLMOptions = {
@@ -34,9 +35,9 @@ export type ChatEngineLLMOptions = {
   intent_graph_knowledge: string
   normal_graph_knowledge: string
 
-  provider: string;
-  reranker_provider: string;
-  reranker_top_k: number;
+  // provider: string;
+  // reranker_provider: string;
+  // reranker_top_k: number;
 } & Record<`${string}_chat_model`, string | undefined>
 
 const kgOptionsSchema = z.object({
@@ -44,6 +45,7 @@ const kgOptionsSchema = z.object({
   enabled: z.boolean(),
   include_meta: z.boolean(),
   with_degree: z.boolean(),
+  using_intent_search: z.boolean(),
 }) satisfies ZodType<ChatEngineKnowledgeGraphOptions>;
 
 const llmOptionsSchema =
@@ -53,9 +55,9 @@ const llmOptionsSchema =
     refine_prompt: z.string(),
     intent_graph_knowledge: z.string(),
     normal_graph_knowledge: z.string(),
-    provider: z.string(),
-    reranker_provider: z.string(),
-    reranker_top_k: z.number(),
+    // provider: z.string(),
+    // reranker_provider: z.string(),
+    // reranker_top_k: z.number(),
   }).passthrough() as ZodType<ChatEngineLLMOptions, any, any>;
 
 const chatEngineOptionsSchema = z.object({

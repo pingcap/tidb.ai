@@ -64,7 +64,7 @@ export function EditNameForm ({ chatEngine }: EditNameFormProps) {
         </form>
       </Form>
       <DialogFooter>
-        <Button type="submit" form='update-form' disabled={form.formState.disabled || form.formState.isSubmitting || transitioning}>
+        <Button type="submit" form="update-form" disabled={form.formState.disabled || form.formState.isSubmitting || transitioning}>
           Update
         </Button>
       </DialogFooter>

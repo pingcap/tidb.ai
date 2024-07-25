@@ -5,7 +5,6 @@ import { useManagedDialog } from '@/components/managed-dialog';
 import { Button } from '@/components/ui/button';
 import { DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
@@ -68,7 +67,7 @@ export function EditOptionsLlmPromptForm ({ chatEngine, type }: EditOptionsLlmPr
               <FormItem>
                 <FormLabel>{type}</FormLabel>
                 <FormControl>
-                  <Textarea className='min-h-[50vh]' {...field} />
+                  <Textarea className="min-h-[50vh]" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

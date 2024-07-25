@@ -17,7 +17,7 @@ export function ChatEngineOptionsDetails ({
       <section className="space-y-2">
         <div className="text-base font-medium">Knowledge Graph</div>
         <div className="space-y-2 text-sm">
-          <ChatEngineKnowledgeGraphDetails detailed={detailed} options={options.knowledge_graph} />
+          <ChatEngineKnowledgeGraphDetails detailed={detailed} editable={editable} options={options.knowledge_graph} />
         </div>
       </section>
       <Separator />
