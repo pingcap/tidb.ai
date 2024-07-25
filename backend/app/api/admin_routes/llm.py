@@ -102,9 +102,7 @@ def delete_llm(
             status_code=status.HTTP_404_NOT_FOUND, detail="LLM not found"
         )
     session.exec(
-        update(ChatEngine)
-        .where(ChatEngine.llm_id == llm_id)
-        .values(llm_id=None)
+        update(ChatEngine).where(ChatEngine.llm_id == llm_id).values(llm_id=None)
     )
     session.exec(
         update(ChatEngine)

@@ -4,6 +4,7 @@ from typing import Optional
 
 import dspy
 from pydantic import BaseModel
+from llama_index.llms.openai.utils import DEFAULT_OPENAI_API_BASE
 from llama_index.llms.openai import OpenAI
 from llama_index.llms.openai_like import OpenAILike
 from llama_index.llms.gemini import Gemini
@@ -133,9 +134,16 @@ def get_llm(
 ) -> LLM:
     match provider:
         case LLMProvider.OPENAI:
-            return OpenAI(model=model, api_key=credentials, **config)
+            return OpenAI(
+                model=model,
+                api_base=DEFAULT_OPENAI_API_BASE,
+                api_key=credentials,
+                **config,
+            )
         case LLMProvider.OPENAI_LIKE:
-            return OpenAILike(model=model, api_key=credentials, **config)
+            llm = OpenAILike(model=model, api_key=credentials, **config)
+            llm.context_window = 200000
+            return llm
         case LLMProvider.GEMINI:
             os.environ["GOOGLE_API_KEY"] = credentials
             return Gemini(model=model, api_key=credentials, **config)
@@ -174,7 +182,12 @@ def get_embedding_model(
 ) -> BaseEmbedding:
     match provider:
         case EmbeddingProvider.OPENAI:
-            return OpenAIEmbedding(model=model, api_key=credentials, **config)
+            return OpenAIEmbedding(
+                model=model,
+                api_base=DEFAULT_OPENAI_API_BASE,
+                api_key=credentials,
+                **config,
+            )
         case _:
             raise ValueError(f"Got unknown embedding provider: {provider}")
 
