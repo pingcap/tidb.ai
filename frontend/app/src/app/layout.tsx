@@ -1,6 +1,7 @@
 import { getPublicSiteSettings } from '@/api/site-settings';
 import { RootProviders } from '@/app/RootProviders';
 import { auth } from '@/lib/auth';
+import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
@@ -39,6 +40,7 @@ export default async function RootLayout ({
     <RootProviders me={me} settings={settings}>
       {children}
     </RootProviders>
+    {settings.ga_id && <GoogleAnalytics gaId={settings.ga_id} />}
     <Script async src="/widget.js" />
     </body>
     </html>
