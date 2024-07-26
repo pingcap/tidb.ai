@@ -21,6 +21,7 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
             max_tokens=llama_llm.max_tokens or 4096,
             api_key=llama_llm.api_key,
             api_base=enforce_trailing_slash(llama_llm.api_base),
+            model_type="chat" if llama_llm.is_chat_model else "text",
         )
     elif isinstance(llama_llm, Gemini):
         # Don't need to configure the api_key again,
