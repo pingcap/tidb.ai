@@ -18,7 +18,7 @@ export interface Feedback {
   user_id: string | null;
   chat_title: string;
   chat_message_content: string;
-  user_email: string;
+  user_email: string | null;
 }
 
 const feedbackSchema = z.object({
@@ -30,9 +30,9 @@ const feedbackSchema = z.object({
   created_at: zodJsonDate(),
   updated_at: zodJsonDate(),
   user_id: z.string().nullable(),
+  user_email: z.string().nullable(),
   chat_title: z.string(),
   chat_message_content: z.string(),
-  user_email: z.string(),
 }) satisfies ZodType<Feedback, any, any>;
 
 export async function listFeedbacks ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<Feedback>> {
