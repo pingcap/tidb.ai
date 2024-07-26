@@ -77,7 +77,7 @@ export default function Page () {
             <FormItem>
               <FormLabel>URL</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input {...field} placeholder='https://example.com/' />
               </FormControl>
               <FormMessage />
             </FormItem>
