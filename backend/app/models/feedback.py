@@ -1,7 +1,6 @@
 import enum
 from uuid import UUID
 from typing import Optional
-from datetime import datetime
 
 from sqlmodel import (
     Field,
@@ -60,4 +59,5 @@ class AdminFeedbackPublic(BaseFeedback):
     id: int
     chat_title: str
     chat_message_content: str
-    user_email: str
+    user_id: Optional[UUID]
+    user_email: Optional[str]

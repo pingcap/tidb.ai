@@ -34,7 +34,7 @@ def create_datasource(
     session.add(data_source)
     session.commit()
     session.refresh(data_source)
-    # import_documents_from_datasource.delay(data_source.id)
+    import_documents_from_datasource.delay(data_source.id)
     return data_source
 
 
