@@ -11,9 +11,9 @@ let themeConfig: DocsThemeConfig = {
   project: {
     link: 'https://github.com/pingcap/tidb.ai',
   },
-  chat: {
-    link: 'https://tidb.ai/discord',
-  },
+  // chat: {
+  //   link: 'https://tidb.ai/discord',
+  // },
   navbar: {
     extraContent: (
       <>
@@ -42,8 +42,8 @@ let themeConfig: DocsThemeConfig = {
         <a
           style={{ padding: '0.5rem' }}
           target="_blank"
-          href="https://tidb.cloud"
-          aria-label="TiDB Cloud"
+          href="https://pingcap.com/ai?utm_source=tidb.ai&utm_medium=navbar"
+          aria-label="TiDB Vector"
           rel="nofollow noreferrer"
         >
           <svg
