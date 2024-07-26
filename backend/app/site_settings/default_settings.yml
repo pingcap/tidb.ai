@@ -58,6 +58,11 @@ website:
     data_type: str
     description: "The link to the discord"
     client: true
+  ga_id:
+    default: ""
+    data_type: str
+    description: "Google Analytics ID"
+    client: true
 
 custom_js:
   custom_js_example_questions:

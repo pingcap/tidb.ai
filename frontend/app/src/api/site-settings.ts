@@ -41,6 +41,7 @@ export interface PublicWebsiteSettings {
   'custom_js_button_label': string;
   'custom_js_button_img_src': string;
   'custom_js_logo_src': string;
+  'ga_id': string | null;
 }
 
 const settingsItemSchema = z.object({

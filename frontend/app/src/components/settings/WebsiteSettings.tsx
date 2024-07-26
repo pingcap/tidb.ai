@@ -35,6 +35,10 @@ export function WebsiteSettings ({ schema }: { schema: AllSettings }) {
         <SettingsField name="social_twitter" item={schema.social_twitter} />
         <SettingsField name="social_discord" item={schema.social_discord} />
       </section>
+      <section className="space-y-4">
+        <h2 className="text-lg font-medium">Analytics</h2>
+        <SettingsField name="ga_id" item={schema.ga_id} />
+      </section>
     </div>
   );
 }
