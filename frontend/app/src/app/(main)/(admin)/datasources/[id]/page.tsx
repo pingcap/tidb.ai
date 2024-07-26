@@ -1,18 +1,21 @@
 'use client';
 
-import { getDatasource } from '@/api/datasources';
+import { getDatasource, getDatasourceOverview } from '@/api/datasources';
 import { AdminPageHeading } from '@/components/admin-page-heading';
+import { IndexProgressChart } from '@/components/charts/IndexProgressChart';
+import { TotalCard } from '@/components/charts/TotalCard';
 import { DateFormat } from '@/components/date-format';
 import { OptionDetail } from '@/components/option-detail';
 import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Loader2Icon } from 'lucide-react';
+import { ArrowRightIcon, FileTextIcon, Loader2Icon, MapPinIcon, PuzzleIcon, RouteIcon } from 'lucide-react';
+import Link from 'next/link';
 import useSWR from 'swr';
 
 export default function DatasourcePage ({ params }: { params: { id: string } }) {
   const id = parseInt(params.id);
 
   const { data: datasource } = useSWR(`api.datasource.get?id=${id}`, () => getDatasource(id));
+  const { data: progress } = useSWR(`api.datasource.get-overview?id=${id}`, () => getDatasourceOverview(id));
 
   return (
     <div className="max-w-screen-md space-y-8">
@@ -25,6 +28,9 @@ export default function DatasourcePage ({ params }: { params: { id: string } }) 
       <div className="space-y-2 text-sm rounded p-4 border">
         <OptionDetail title="ID" value={id} />
         <OptionDetail title="Type" value={datasource?.data_source_type} />
+        {(datasource?.data_source_type === 'web_single_page' || datasource?.data_source_type === 'web_sitemap') && (
+          <OptionDetail title="URL" value={datasource?.config.url} />
+        )}
         <OptionDetail title="Name" value={datasource?.name} />
         <OptionDetail title="Description" value={datasource?.description} />
         <OptionDetail title="Created at" value={datasource?.created_at && <DateFormat date={datasource.created_at} />} />
@@ -32,12 +38,38 @@ export default function DatasourcePage ({ params }: { params: { id: string } }) 
         <OptionDetail title="User ID" value={datasource?.user_id} />
         <OptionDetail title="Build KnowledegeGraph Index" value={datasource?.build_kg_index ? 'Yes' : 'No'} valueClassName={datasource?.build_kg_index ? 'text-green-500' : 'text-muted-foreground'} />
       </div>
-      <section className='space-y-4'>
-        <h3 className='font-medium'>Files</h3>
+      {progress && (
+        <>
+          <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-4">
+            <TotalCard
+              title="Documents"
+              icon={<FileTextIcon className="h-4 w-4 text-muted-foreground" />}
+              total={progress.documents.total}
+            >
+              <Link className="flex gap-2 items-center" href="/documents">All documents <ArrowRightIcon className="size-3" /></Link>
+            </TotalCard>
+            <TotalCard title="Chunks" icon={<PuzzleIcon className="h-4 w-4 text-muted-foreground" />} total={progress.chunks.total} />
+            {datasource?.build_kg_index && progress.entities && <TotalCard
+              title="Entities"
+              icon={<MapPinIcon className="h-4 w-4 text-muted-foreground" />}
+              total={progress.entities.total}
+            >
+              <Link className="flex gap-2 items-center" href="/knowledge-graph">Graph Editor <ArrowRightIcon className="size-3" /></Link>
+            </TotalCard>}
+            {datasource?.build_kg_index && progress.relationships && <TotalCard title="Relationships" icon={<RouteIcon className="h-4 w-4 text-muted-foreground" />} total={progress.relationships.total} />}
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-4">
+            <IndexProgressChart title="Vector Index" data={progress.vector_index} />
+            {datasource?.build_kg_index && progress.kg_index && <IndexProgressChart title="Knowledge Graph Index" data={progress.kg_index} />}
+          </div>
+        </>
+      )}
+      {datasource?.data_source_type === 'file' && <section className="space-y-4">
+        <h3 className="font-medium">Files</h3>
         {datasource?.data_source_type === 'file' && (
           <div className="flex gap-2 flex-wrap">
             {datasource.config.map(file =>
-              <Badge key={file.file_id} variant="secondary" className='gap-1'>
+              <Badge key={file.file_id} variant="secondary" className="gap-1">
               <span>
                 {file.file_name}
               </span>
@@ -45,7 +77,7 @@ export default function DatasourcePage ({ params }: { params: { id: string } }) 
               </Badge>)}
           </div>
         )}
-      </section>
+      </section>}
     </div>
   );
 }

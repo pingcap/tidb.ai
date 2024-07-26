@@ -23,10 +23,10 @@ export default function Layout ({ children }: { children: ReactNode }) {
           <TabsTrigger value="file">
             File
           </TabsTrigger>
-          <TabsTrigger value="web-sitemap" disabled>
+          <TabsTrigger value="web-sitemap">
             Web Sitemap
           </TabsTrigger>
-          <TabsTrigger value="web-signlepage" disabled>
+          <TabsTrigger value="web-single-page">
             Web Single Page
           </TabsTrigger>
         </TabsList>

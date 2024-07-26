@@ -9,28 +9,24 @@ export type IndexProgress = {
   failed?: number
 }
 
+export type IndexTotalStats = {
+  total: number
+}
+
 export interface RagIndexProgress {
   kg_index: IndexProgress;
   vector_index: IndexProgress;
-  documents: {
-    total: number
-  };
-  chunks: {
-    total: number
-  };
-  entities: {
-    total: number
-  };
-  relationships: {
-    total: number
-  };
+  documents: IndexTotalStats;
+  chunks: IndexTotalStats;
+  entities: IndexTotalStats;
+  relationships: IndexTotalStats;
 }
 
-const totalSchema = z.object({
+export const totalSchema = z.object({
   total: z.number(),
-});
+}) satisfies ZodType<IndexTotalStats>;
 
-const indexSchema = z.object({
+export const indexSchema = z.object({
   not_started: z.number().optional(),
   pending: z.number().optional(),
   running: z.number().optional(),
