@@ -25,6 +25,7 @@ export default function SiteSettingsLayout ({ children }: { children: ReactNode 
       >
         <TabsList>
           <TabsTrigger disabled={navigating} value="website">Website</TabsTrigger>
+          <TabsTrigger disabled={navigating} value="security">Security</TabsTrigger>
           <TabsTrigger disabled={navigating} value="custom_js">JS Widget</TabsTrigger>
         </TabsList>
       </Tabs>

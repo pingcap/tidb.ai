@@ -99,6 +99,8 @@ export interface PostChatParams {
 
   headers?: HeadersInit;
   signal?: AbortSignal;
+
+  recaptchaToken?: string;
 }
 
 export async function listChats ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<Chat>> {
@@ -138,7 +140,7 @@ export async function getChatMessageSubgraph (chatMessageId: number): Promise<Kn
     .then(handleResponse(knowledgeGraphSchema));
 }
 
-export async function* chat ({ chat_id, chat_engine, content, headers: headersInit, signal }: PostChatParams, onResponse?: (response: Response) => void) {
+export async function* chat ({ chat_id, chat_engine, content, headers: headersInit, signal, recaptchaToken }: PostChatParams, onResponse?: (response: Response) => void) {
   if (mockChat) {
     const res = await fetch('/chats.mock.txt');
     const text = await res.text();
@@ -169,6 +171,8 @@ export async function* chat ({ chat_id, chat_engine, content, headers: headersIn
         'role': 'user',
         content,
       }],
+      recaptchaToken,
+      recaptchaAction: recaptchaToken ? 'chat' : undefined,
     }),
     signal,
   }).then(handleErrors);

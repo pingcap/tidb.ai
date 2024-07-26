@@ -88,3 +88,18 @@ custom_js:
     data_type: str
     description: "The logo on the custom_js."
     client: true
+
+security:
+  # TODO: recaptcha_site_secret?
+
+  recaptcha_site_key:
+    default: ""
+    data_type: str
+    description: "TODO"
+    client: true
+
+  recaptcha_enterprise_mode:
+    default: false
+    data_type: bool
+    description: "TODO"
+    client: true

@@ -29,6 +29,7 @@ class ChatRequest(BaseModel):
     chat_engine: str = "default"
     chat_id: Optional[UUID] = None
     stream: bool = True
+    recaptcha_token: Optional[str] = None
 
     @field_validator("messages")
     @classmethod
@@ -48,6 +49,9 @@ class ChatRequest(BaseModel):
 @router.post("/chats")
 def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest):
     chat_svc = ChatService(session, user, chat_request.chat_engine)
+
+    # TODO: verify chat_request.recaptcha_token if site_settings.recaptcha_site_key exists.
+    #       Check site_settings.recaptcha_site_enterprise_mode
 
     if chat_request.stream:
         return StreamingResponse(

@@ -1,6 +1,6 @@
-import {IWebsiteSettingResult} from "@/core/schema/settings/website";
+import type { PublicWebsiteSettings } from '@/api/site-settings';
 
-export function Branding ({ setting }: { setting: IWebsiteSettingResult }) {
+export function Branding ({ setting }: { setting: PublicWebsiteSettings }) {
   return (
     <span className="flex items-center gap-4">
       <img className="h-8 dark:hidden" src={setting.logo_in_light_mode} alt="logo" />

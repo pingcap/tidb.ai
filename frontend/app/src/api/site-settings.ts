@@ -42,6 +42,8 @@ export interface PublicWebsiteSettings {
   'custom_js_button_img_src': string;
   'custom_js_logo_src': string;
   'ga_id': string | null;
+  'recaptcha_site_key': string | null;
+  'recaptcha_enterprise_mode': boolean | null;
 }
 
 const settingsItemSchema = z.object({

@@ -1,4 +1,5 @@
 import { useChats } from '@/components/chat/chat-hooks';
+import { useRecaptchaExecute } from '@/components/recaptcha';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 
@@ -10,18 +11,22 @@ export function useAsk (onFinish?: () => void) {
   const [engine, setEngine] = useState<string>();
   const engineRef = useRef<string>();
 
-  const ask = useCallback((message: string, options?: {
-    headers?: Record<string, string>;
-  }) => {
+  const recaptchaExecute = useRecaptchaExecute();
+
+  const ask = useCallback((message: string) => {
     setWaiting(true);
-    startTransition(() => {
-      newChat(undefined, undefined, { content: message, chat_engine: engineRef.current, headers: options?.headers })
+    recaptchaExecute('chat').then(token => {
+      newChat(undefined, undefined, {
+        content: message,
+        chat_engine: engineRef.current,
+        recaptchaToken: token,
+      })
         .once('created', chat => {
           setWaiting(false);
           startTransition(() => {
             router.push(`/c/${chat.id}`);
           });
-        });
+        })
     });
   }, []);
 

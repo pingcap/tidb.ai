@@ -5,11 +5,10 @@ import type { ChatController } from '@/components/chat/chat-controller';
 import { ChatControllerProvider, useChatController, useChatMessageControllers, useChatMessageGroups, useChatPostState } from '@/components/chat/chat-hooks';
 import { ConversationMessageGroups } from '@/components/chat/conversation-message-groups';
 import { MessageInput } from '@/components/chat/message-input';
-import { SecuritySettingContext, withReCaptcha } from '@/components/security-setting-provider';
+import { useRecaptchaExecute } from '@/components/recaptcha';
 import { useSize } from '@/components/use-size';
 import { cn } from '@/lib/utils';
-import { type ChangeEvent, type FormEvent, type ReactNode, useContext, useEffect, useState } from 'react';
-
+import { type ChangeEvent, type FormEvent, type ReactNode, useEffect, useState } from 'react';
 
 export interface ConversationProps {
   chatId?: string;
@@ -37,24 +36,16 @@ export function Conversation ({ open, chat, chatId, history, placeholder, preven
 
   const { ref, size } = useSize();
 
-  const security = useContext(SecuritySettingContext);
+  const recaptchaExecute = useRecaptchaExecute();
 
   const submitWithReCaptcha = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    withReCaptcha({
-      action: 'chat',
-      siteKey: security?.google_recaptcha_site_key || '',
-      mode: security?.google_recaptcha,
-    }, ({ token, action }) => {
-      controller.post({
-        content: input,
-        headers: {
-          'X-Recaptcha-Token': token,
-          'X-Recaptcha-Action': action,
-        },
-      });
-      setInput('');
+    const recaptchaToken = await recaptchaExecute('chat');
+    await controller.post({
+      content: input,
+      recaptchaToken,
     });
+    setInput('');
   };
 
   const disabled = !!postState.params;
