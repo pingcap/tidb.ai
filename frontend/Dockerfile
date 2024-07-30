@@ -25,6 +25,8 @@ RUN pnpm i --frozen-lockfile
 
 # 2. Rebuild the source code only when needed
 FROM base AS builder
+# Need git client to fetch git revision info
+RUN apk add --no-cache git
 WORKDIR /tidb.ai
 COPY --from=deps /tidb.ai/frontend/node_modules ./frontend/node_modules
 COPY --from=deps /tidb.ai/frontend/app/node_modules ./frontend/app/node_modules
