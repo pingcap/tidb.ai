@@ -2,13 +2,10 @@ import { getIndexProgress } from '@/api/rag';
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { IndexProgressChart } from '@/components/charts/IndexProgressChart';
 import { TotalCard } from '@/components/charts/TotalCard';
-import { requireAuth } from '@/lib/auth';
 import { ArrowRightIcon, FileTextIcon, MapPinIcon, PuzzleIcon, RouteIcon } from 'lucide-react';
 import Link from 'next/link';
 
 export default async function IndexProgressPage () {
-  await requireAuth();
-
   const progress = await getIndexProgress();
 
   return (
