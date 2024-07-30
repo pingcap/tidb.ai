@@ -4,6 +4,7 @@ import { deleteLlm, getLlm } from '@/api/llms';
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { DangerousActionButton } from '@/components/dangerous-action-button';
 import { DateFormat } from '@/components/date-format';
+import { ConfigViewer } from '@/components/llm/config-viewer';
 import { OptionDetail } from '@/components/option-detail';
 import { Loader2Icon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -29,6 +30,7 @@ export default function Page ({ params }: { params: { id: string } }) {
           <OptionDetail title="Name" value={data?.name} />
           <OptionDetail title="Provider" value={data?.provider} />
           <OptionDetail title="Model" value={data?.model} />
+          <OptionDetail title="Config" value={data?.config && <ConfigViewer value={data.config}></ConfigViewer>} />
           <OptionDetail title="Is Default" value={data?.is_default ? 'Yes' : 'No'} valueClassName={data?.is_default ? 'text-green-500' : 'text-muted-foreground'} />
           <OptionDetail title="Created At" value={<DateFormat date={data?.created_at} />} />
           <OptionDetail title="Updated At" value={<DateFormat date={data?.updated_at} />} />
