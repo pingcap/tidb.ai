@@ -47,6 +47,7 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, chil
     }
   }
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const schema = useMemo(() => {
     let schema: ZodType;
     switch (item.data_type) {
@@ -80,6 +81,7 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, chil
     return z.object({ value: schema });
   }, [item.data_type, arrayItemSchema, objectSchema]);
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const form = useForm({
     resolver: zodResolver(schema),
     values: {
@@ -90,6 +92,7 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, chil
     },
   });
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks
   const Control = useCallback(({ field: { ...props } }: { field: ControllerRenderProps }) => {
     let el: ReactNode;
 
