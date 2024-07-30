@@ -1,6 +1,6 @@
 import { type SettingItem, updateSiteSetting } from '@/api/site-settings';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { getErrorMessage } from '@/lib/errors';
@@ -15,13 +15,14 @@ import { z, type ZodType } from 'zod';
 
 export interface SettingsFieldProps {
   name: string;
+  description?: ReactNode;
   item: SettingItem;
   arrayItemSchema?: ZodType;
   objectSchema?: ZodType;
   children?: (props: ControllerRenderProps) => ReactElement;
 }
 
-export function SettingsField ({ name, item, arrayItemSchema, objectSchema, children }: SettingsFieldProps) {
+export function SettingsField ({ name, item, description, arrayItemSchema, objectSchema, children }: SettingsFieldProps) {
   const router = useRouter();
 
   if (item.data_type === 'list') {
@@ -140,6 +141,7 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, chil
               <FormLabel>{item.description}</FormLabel>
               <Control field={field} />
               <FormMessage />
+              {description && <FormDescription>{description}</FormDescription>}
             </FormItem>
           )}
         />

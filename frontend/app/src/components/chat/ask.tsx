@@ -1,5 +1,6 @@
 import { MessageInput } from '@/components/chat/message-input';
 import { type UseAskReturns } from '@/components/chat/use-ask';
+import { ReCaptchaScript } from '@/components/recaptcha';
 import { useRef } from 'react';
 
 export function Ask ({ className, loading, ask, engine, setEngine }: { className?: string } & UseAskReturns) {
@@ -15,6 +16,7 @@ export function Ask ({ className, loading, ask, engine, setEngine }: { className
         setEngine(undefined);
       }}
     >
+      <ReCaptchaScript />
       <MessageInput className="w-full" disabled={loading} inputRef={ref} engine={engine} onEngineChange={setEngine} />
     </form>
   );

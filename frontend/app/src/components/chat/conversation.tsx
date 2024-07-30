@@ -5,7 +5,7 @@ import type { ChatController } from '@/components/chat/chat-controller';
 import { ChatControllerProvider, useChatController, useChatMessageControllers, useChatMessageGroups, useChatPostState } from '@/components/chat/chat-hooks';
 import { ConversationMessageGroups } from '@/components/chat/conversation-message-groups';
 import { MessageInput } from '@/components/chat/message-input';
-import { useRecaptchaExecute } from '@/components/recaptcha';
+import { ReCaptchaScript, useRecaptchaExecute } from '@/components/recaptcha';
 import { useSize } from '@/components/use-size';
 import { cn } from '@/lib/utils';
 import { type ChangeEvent, type FormEvent, type ReactNode, useEffect, useState } from 'react';
@@ -56,6 +56,7 @@ export function Conversation ({ open, chat, chatId, history, placeholder, preven
 
   return (
     <ChatControllerProvider controller={controller}>
+      <ReCaptchaScript />
       {!postState.params && !groups.length && placeholder?.(controller, postState)}
       <div ref={ref} className={cn(
         'mx-auto space-y-4 transition-all relative md:max-w-screen-md md:min-h-screen md:p-body',

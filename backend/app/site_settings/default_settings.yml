@@ -90,16 +90,26 @@ custom_js:
     client: true
 
 security:
-  # TODO: recaptcha_site_secret?
+  recaptcha_enabled:
+    default: false
+    data_type: bool
+    description: "Enable reCAPTCHA"
+    client: true
+
+  recaptcha_secret:
+    default: ""
+    data_type: str
+    description: "reCAPTCHA Secret"
 
   recaptcha_site_key:
     default: ""
     data_type: str
-    description: "TODO"
+    description: "reCAPTCHA Site Key"
     client: true
 
-  recaptcha_enterprise_mode:
-    default: false
-    data_type: bool
-    description: "TODO"
-    client: true
+  # # Will support in future?
+  # recaptcha_mode:
+  #   default: false
+  #   data_type: string // v3, enterprise?
+  #   description: "TODO"
+  #   client: true
