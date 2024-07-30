@@ -1,4 +1,5 @@
 import { type SettingItem, updateSiteSetting } from '@/api/site-settings';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -6,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { getErrorMessage } from '@/lib/errors';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { deepEqual } from 'fast-equals';
-import { Loader2Icon } from 'lucide-react';
+import { Loader2Icon, TriangleAlertIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { cloneElement, type ReactElement, type ReactNode, useCallback, useMemo } from 'react';
 import { type ControllerRenderProps, useForm, useFormState, useWatch } from 'react-hook-form';
@@ -23,6 +24,16 @@ export interface SettingsFieldProps {
 
 export function SettingsField ({ name, item, arrayItemSchema, objectSchema, children }: SettingsFieldProps) {
   const router = useRouter();
+
+  if (!item) {
+    return (
+      <Alert variant="warning">
+        <TriangleAlertIcon />
+        <AlertTitle>Failed to load <em>{name}</em></AlertTitle>
+        <AlertDescription>Frontend and backend services may be misconfigured, please check your deployments.</AlertDescription>
+      </Alert>
+    );
+  }
 
   if (item.data_type === 'list') {
     if (!arrayItemSchema) {
