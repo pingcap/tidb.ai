@@ -242,6 +242,9 @@ importers:
       filesize:
         specifier: ^10.1.4
         version: 10.1.4
+      git-revision-webpack-plugin:
+        specifier: ^5.0.0
+        version: 5.0.0(webpack@5.92.1(@swc/core@1.6.7))
       highlight.js:
         specifier: ^11.9.0
         version: 11.9.0
@@ -4358,6 +4361,12 @@ packages:
 
   get-tsconfig@4.7.5:
     resolution: {integrity: sha512-ZCuZCnlqNzjb4QprAzXKdpp/gh6KTxSJuw3IBsPnV/7fV4NxC9ckB+vPTt8w7fJA0TaSD7c55BR47JD6MEDyDw==}
+
+  git-revision-webpack-plugin@5.0.0:
+    resolution: {integrity: sha512-RptQN/4UKcEPkCBmRy8kLPo5i8MnF8+XfAgFYN9gbwmKLTLx4YHsQw726H+C5+sIGDixDkmGL3IxPA2gKo+u4w==}
+    engines: {node: '>=10'}
+    peerDependencies:
+      webpack: ^5.0.0
 
   git-up@7.0.0:
     resolution: {integrity: sha512-ONdIrbBCFusq1Oy0sC71F5azx8bVkvtZtMJAsv+a6lz5YAmbNnLD6HAB4gptHZVLPR8S2/kVN6Gab7lryq5+lQ==}
@@ -11665,6 +11674,10 @@ snapshots:
   get-tsconfig@4.7.5:
     dependencies:
       resolve-pkg-maps: 1.0.0
+
+  git-revision-webpack-plugin@5.0.0(webpack@5.92.1(@swc/core@1.6.7)):
+    dependencies:
+      webpack: 5.92.1(@swc/core@1.6.7)
 
   git-up@7.0.0:
     dependencies:
