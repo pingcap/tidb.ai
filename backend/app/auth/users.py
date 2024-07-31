@@ -1,4 +1,6 @@
+import logging
 import uuid
+import contextlib
 from http import HTTPStatus
 from typing import Optional
 
@@ -11,6 +13,7 @@ from fastapi_users.authentication import (
 from fastapi_users.authentication.strategy import DatabaseStrategy
 from fastapi_users_db_sqlmodel import SQLModelUserDatabaseAsync
 from fastapi_users_db_sqlmodel.access_token import SQLModelAccessTokenDatabaseAsync
+from fastapi_users.exceptions import UserAlreadyExists
 from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.config import settings, Environment
@@ -18,6 +21,9 @@ from app.core.db import get_db_async_session
 from app.models import User, UserSession
 from app.auth.db import get_user_db, get_user_session_db
 from app.auth.api_keys import api_key_manager
+from app.auth.schemas import UserCreate
+
+logger = logging.getLogger(__name__)
 
 
 class UserManager(UUIDIDMixin, BaseUserManager[User, uuid.UUID]):
@@ -121,3 +127,33 @@ async def optional_current_user(
 
     # check for an API key
     return await api_key_manager.get_active_user_from_request(session, request)
+
+
+get_user_db_context = contextlib.asynccontextmanager(get_user_db)
+get_user_manager_context = contextlib.asynccontextmanager(get_user_manager)
+
+
+async def create_user(
+    session: AsyncSession,
+    email: str,
+    password: str,
+    is_active: bool = True,
+    is_verified: bool = True,
+    is_superuser: bool = False
+) -> User:
+    try:
+        async with get_user_db_context(session) as user_db:
+            async with get_user_manager_context(user_db) as user_manager:
+                user = await user_manager.create(
+                    UserCreate(
+                        email=email,
+                        password=password,
+                        is_active=is_active,
+                        is_verified=is_verified,
+                        is_superuser=is_superuser,
+                    )
+                )
+                return user
+    except UserAlreadyExists:
+        logger.error(f"User {email} already exists")
+        raise

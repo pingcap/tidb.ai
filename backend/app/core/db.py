@@ -1,4 +1,5 @@
 import ssl
+import contextlib
 from typing import AsyncGenerator, Generator
 
 from sqlmodel import create_engine, Session
@@ -49,3 +50,6 @@ def get_db_session() -> Generator[Session, None, None]:
 async def get_db_async_session() -> AsyncGenerator[AsyncSession, None]:
     async with AsyncSession(async_engine, expire_on_commit=False) as session:
         yield session
+
+
+get_async_session_context = contextlib.asynccontextmanager(get_db_async_session)
