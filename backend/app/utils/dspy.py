@@ -14,8 +14,14 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
     In this project, we use both llama-index and dspy, both of them have their own LLM implementation.
     This function can help us reduce the complexity of the code by converting the llama LLM to the dspy LLM.
     """
-    # TODO: Implement this function
-    if isinstance(llama_llm, (OpenAI, OpenAILike)):
+    if isinstance(llama_llm, OpenAI):
+        return dspy.OpenAI(
+            model=llama_llm.model,
+            max_tokens=llama_llm.max_tokens or 4096,
+            api_key=llama_llm.api_key,
+            api_base=enforce_trailing_slash(llama_llm.api_base),
+        )
+    elif isinstance(llama_llm, OpenAILike):
         return dspy.OpenAI(
             model=llama_llm.model,
             max_tokens=llama_llm.max_tokens or 4096,
