@@ -581,7 +581,7 @@ sqlalchemy==2.0.30
     # via llama-index-legacy
     # via optuna
     # via sqlmodel
-sqlmodel==0.0.21
+sqlmodel==0.0.19
     # via fastapi-users-db-sqlmodel
 starlette==0.37.2
     # via fastapi
