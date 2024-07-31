@@ -10,7 +10,7 @@ import NextLink from 'next/link';
 const security: { google_recaptcha_site_key: string, google_recaptcha: 'v3' | 'enterprise' | '' } | null = null;
 
 export default function Page () {
-  const { loading, setEngine, ask, engine } = useAsk();
+  const { loading, disabled, setEngine, ask, engine } = useAsk();
   const { homepage_title, description, homepage_example_questions, homepage_footer_links } = useSettingContext();
 
   return (
@@ -22,7 +22,7 @@ export default function Page () {
         <p className="font-light dark:text-gray-300 text-gray-500 mb-4 w-4/5 md:w-auto text-center">
           {description || ''}
         </p>
-        <Ask className="px-4 w-full lg:w-2/3" loading={loading} ask={ask} engine={engine} setEngine={setEngine} />
+        <Ask className="px-4 w-full lg:w-2/3" disabled={disabled} loading={loading} ask={ask} engine={engine} setEngine={setEngine} />
         {homepage_example_questions && (<ul className="flex gap-2 flex-wrap px-4 w-full lg:w-2/3">
           {homepage_example_questions.map((item, index) => (
             <li key={index}>

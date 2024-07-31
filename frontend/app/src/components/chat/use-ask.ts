@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 
 export function useAsk (onFinish?: () => void) {
-  const { newChat } = useChats();
+  const { newChat, disabled } = useChats();
   const router = useRouter();
   const [waiting, setWaiting] = useState(false);
   const [transition, startTransition] = useTransition();
@@ -34,6 +34,7 @@ export function useAsk (onFinish?: () => void) {
   return {
     ask,
     engine,
+    disabled,
     setEngine: (engine: string | undefined) => {
       engineRef.current = engine;
       setEngine(engine);

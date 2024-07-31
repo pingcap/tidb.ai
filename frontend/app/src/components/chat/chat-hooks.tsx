@@ -1,11 +1,15 @@
 import { type Chat, type ChatMessage, ChatMessageRole, type PostChatParams } from '@/api/chats';
+import { isSystemCheckPassed } from '@/api/system';
 import { ChatController, ChatMessageController, type OngoingState } from '@/components/chat/chat-controller';
+import { useSystemCheck } from '@/components/system/SystemCheckProvider';
+import { useLatestRef } from '@/components/use-latest-ref';
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
 import { util } from 'zod';
 import Omit = util.Omit;
 
 export interface ChatsProviderValues {
   chats: Map<string, ChatController>;
+  disabled: boolean;
 
   newChat (...args: ConstructorParameters<typeof ChatController>): ChatController;
 
@@ -20,6 +24,7 @@ export interface ChatProviderValues {
 
 const ChatsContext = createContext<ChatsProviderValues>({
   chats: new Map(),
+  disabled: true,
   newChat (): ChatController {
     throw new Error('not in a chat context');
   },
@@ -31,9 +36,14 @@ const ChatsContext = createContext<ChatsProviderValues>({
 const ChatControllerContext = createContext<ChatController | null>(null);
 
 export function ChatsProvider ({ children }: { children: ReactNode }) {
+  const systemCheckRef = useLatestRef(useSystemCheck());
   const [chats, setChats] = useState(() => new Map<string, ChatController>);
 
   const newChat: ChatsProviderValues['newChat'] = (...args) => {
+    if (!isSystemCheckPassed(systemCheckRef.current)) {
+      throw new Error('System check not passed.');
+    }
+
     const controller = new ChatController(...args);
     controller.once('created', (chat) => {
       setChats(chats => new Map(chats).set(chat.id, controller));
@@ -51,7 +61,12 @@ export function ChatsProvider ({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ChatsContext.Provider value={{ chats, newChat, destroyChat }}>
+    <ChatsContext.Provider value={{
+      chats,
+      disabled: isSystemCheckPassed(systemCheckRef.current),
+      newChat,
+      destroyChat,
+    }}>
       {children}
     </ChatsContext.Provider>
   );

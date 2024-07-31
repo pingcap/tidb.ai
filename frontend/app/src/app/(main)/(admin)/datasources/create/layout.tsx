@@ -1,13 +1,17 @@
 'use client';
 
 import { AdminPageHeading } from '@/components/admin-page-heading';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DatasourceTypeTabs } from '@/components/datasource/DatasourceTypeTabs';
+import { isDatasourceType } from '@/components/datasource/types';
 import { capitalCase } from 'change-case-all';
-import { useRouter, useSelectedLayoutSegment } from 'next/navigation';
+import { notFound, useRouter, useSelectedLayoutSegment } from 'next/navigation';
 import type { ReactNode } from 'react';
 
 export default function Layout ({ children }: { children: ReactNode }) {
   const type = useSelectedLayoutSegment()!;
+  if (!isDatasourceType(type)) {
+    notFound();
+  }
   const router = useRouter();
 
   return (
@@ -18,19 +22,7 @@ export default function Layout ({ children }: { children: ReactNode }) {
           { title: `Create ${capitalCase(type)} Datasource` },
         ]}
       />
-      <Tabs value={type} onValueChange={value => router.push(`/datasources/create/${value}`)}>
-        <TabsList>
-          <TabsTrigger value="file">
-            File
-          </TabsTrigger>
-          <TabsTrigger value="web-sitemap">
-            Web Sitemap
-          </TabsTrigger>
-          <TabsTrigger value="web-single-page">
-            Web Single Page
-          </TabsTrigger>
-        </TabsList>
-      </Tabs>
+      <DatasourceTypeTabs type={type} onTypeChange={type => router.push(`/datasources/create/${type}`)} />
       {children}
     </>
   );

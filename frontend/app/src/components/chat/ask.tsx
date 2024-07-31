@@ -3,7 +3,7 @@ import { type UseAskReturns } from '@/components/chat/use-ask';
 import { SecuritySettingContext, withReCaptcha } from '@/components/security-setting-provider';
 import { useContext, useRef } from 'react';
 
-export function Ask ({ className, loading, ask, engine, setEngine }: { className?: string } & UseAskReturns) {
+export function Ask ({ className, loading, disabled, ask, engine, setEngine }: { className?: string } & UseAskReturns) {
   const ref = useRef<HTMLTextAreaElement>(null);
   const security = useContext(SecuritySettingContext);
 
@@ -30,7 +30,7 @@ export function Ask ({ className, loading, ask, engine, setEngine }: { className
         });
       }}
     >
-      <MessageInput className="w-full" disabled={loading} inputRef={ref} engine={engine} onEngineChange={setEngine} />
+      <MessageInput className="w-full" disabled={disabled || loading} inputRef={ref} engine={engine} onEngineChange={setEngine} />
     </form>
   );
 }

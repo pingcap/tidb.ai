@@ -1,6 +1,4 @@
-'use client';
-
-import { type BaseCreateDatasourceParams, createDatasource } from '@/api/datasources';
+import { type BaseCreateDatasourceParams, createDatasource, type Datasource } from '@/api/datasources';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
@@ -8,8 +6,6 @@ import { Separator } from '@/components/ui/separator';
 import { Switch } from '@/components/ui/switch';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2Icon } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z, type ZodType } from 'zod';
 
@@ -20,9 +16,12 @@ const schema = z.object({
   url: z.string().url(),
 }) satisfies ZodType<BaseCreateDatasourceParams, any, any>;
 
-export default function Page () {
-  const [navigating, startNavigation] = useTransition();
-  const router = useRouter();
+export interface CreateWebSinglePageDatasourceFormProps {
+  transitioning?: boolean;
+  onCreated?: (datasource: Datasource) => void;
+}
+
+export default function CreateWebSinglePageDatasourceForm ({ transitioning, onCreated }: CreateWebSinglePageDatasourceFormProps) {
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -39,9 +38,7 @@ export default function Page () {
       data_source_type: 'web_single_page',
       config: { url },
     });
-    startNavigation(() => {
-      router.push(`/datasources/${createdDatasource.id}`);
-    });
+    onCreated?.(createdDatasource);
   });
 
   return (
@@ -77,7 +74,7 @@ export default function Page () {
             <FormItem>
               <FormLabel>URL</FormLabel>
               <FormControl>
-                <Input {...field} placeholder='https://example.com/' />
+                <Input {...field} placeholder="https://example.com/" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -103,9 +100,9 @@ export default function Page () {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={navigating || form.formState.isSubmitting} className="gap-2" form="create-datasource-form">
-          {(navigating || form.formState.isSubmitting) && <Loader2Icon className="size-4 animate-spin repeat-infinite" />}
-          <span>Create</span>
+        <Button type="submit" disabled={transitioning || form.formState.isSubmitting} className="gap-2" form="create-datasource-form">
+          {(transitioning || form.formState.isSubmitting) && <Loader2Icon className="size-4 animate-spin repeat-infinite" />}
+          <span>Create Datasource</span>
         </Button>
       </div>
     </Form>
