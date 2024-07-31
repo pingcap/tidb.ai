@@ -2,11 +2,8 @@
 
 import { CreateDatasourceForm } from '@/components/datasource/CreateDatasourceForm';
 import { isDatasourceType } from '@/components/datasource/types';
-import { notFound } from 'next/navigation';
-import { useRouter } from 'next/router';
+import { notFound, useRouter } from 'next/navigation';
 import { useTransition } from 'react';
-
-const allowedTypes = ['file', 'web-sitemap', 'web-single-page'];
 
 export default function CreateDatasourcePage ({ params }: { params: { type: string } }) {
   const [transitioning, startTransition] = useTransition();
