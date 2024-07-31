@@ -163,7 +163,9 @@ def get_llm(
 
 
 def get_default_llm(session: Session) -> LLM:
-    db_llm = session.exec(select(DBLLM)).first()
+    db_llm = session.exec(
+        select(DBLLM).order_by(DBLLM.is_default.desc()).limit(1)
+    ).first()
     if not db_llm:
         raise ValueError("No default LLM found in DB")
     return get_llm(
@@ -182,9 +184,10 @@ def get_embedding_model(
 ) -> BaseEmbedding:
     match provider:
         case EmbeddingProvider.OPENAI:
+            api_base = config.pop("api_base", DEFAULT_OPENAI_API_BASE)
             return OpenAIEmbedding(
                 model=model,
-                api_base=DEFAULT_OPENAI_API_BASE,
+                api_base=api_base,
                 api_key=credentials,
                 **config,
             )
@@ -193,7 +196,9 @@ def get_embedding_model(
 
 
 def get_default_embedding_model(session: Session) -> BaseEmbedding:
-    db_embedding_model = session.exec(select(DBEmbeddingModel)).first()
+    db_embedding_model = session.exec(
+        select(DBEmbeddingModel).order_by(DBEmbeddingModel.is_default.desc()).limit(1)
+    ).first()
     if not db_embedding_model:
         raise ValueError("No default embedding model found in DB")
     return get_embedding_model(

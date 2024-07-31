@@ -73,11 +73,11 @@ class Settings(BaseSettings):
     # TODO: move below config to `option` table, it should be configurable by staff in console
     TIDB_AI_CHAT_ENDPOINT: str = "https://tidb.ai/api/v1/chats"
     TIDB_AI_API_KEY: SecretStr | None = None
-    OPENAI_API_KEY: SecretStr | None = None
-
-    GOOGLE_APPLICATION_CREDENTIALS: str | None = None
 
     COMPLIED_INTENT_ANALYSIS_PROGRAM_PATH: str | None = None
+
+    # Currently, we only support 1536 dims for the embedding model
+    EMBEDDOMG_DIMS: int = 1536
 
     @computed_field  # type: ignore[misc]
     @property

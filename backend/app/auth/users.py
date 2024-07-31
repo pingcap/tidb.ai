@@ -139,7 +139,7 @@ async def create_user(
     password: str,
     is_active: bool = True,
     is_verified: bool = True,
-    is_superuser: bool = False
+    is_superuser: bool = False,
 ) -> User:
     try:
         async with get_user_db_context(session) as user_db:
