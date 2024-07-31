@@ -1,11 +1,10 @@
-import json
 import logging
 from uuid import UUID
 from typing import List, Generator, Optional, Tuple
 from datetime import datetime, UTC
 
 import jinja2
-from sqlmodel import Session, select
+from sqlmodel import Session, select, func
 from llama_index.core import VectorStoreIndex, ServiceContext
 from llama_index.core.base.llms.base import ChatMessage
 from llama_index.core.prompts.base import PromptTemplate
@@ -21,6 +20,9 @@ from app.models import (
     Chunk,
     Chat as DBChat,
     ChatMessage as DBChatMessage,
+    LLM as DBLLM,
+    EmbeddingModel as DBEmbeddingModel,
+    DataSource as DBDataSource,
 )
 from app.core.config import settings
 from app.rag.chat_stream_protocol import (
@@ -441,3 +443,14 @@ def get_chat_message_subgraph(
         with_chunks=False,
     )
     return entities, relations
+
+
+def check_rag_required_config(session: Session) -> tuple[bool]:
+    # Check if llm, embedding model, and datasource are configured
+    # If any of them is missing, the rag can not work
+    has_default_llm = session.scalar(select(func.count(DBLLM.id))) > 0
+    has_default_embedding_model = (
+        session.scalar(select(func.count(DBEmbeddingModel.id))) > 0
+    )
+    has_datasource = session.scalar(select(func.count(DBDataSource.id))) > 0
+    return has_default_llm, has_default_embedding_model, has_datasource
