@@ -6,19 +6,19 @@ authors = [
     { name = "wd0517", email = "me@wangdi.ink" }
 ]
 dependencies = [
-    "fastapi>=0.111.0",
-    "sqlmodel>=0.0.19",
+    "fastapi>=0.111.1",
+    "sqlmodel>=0.0.21",
     "pymysql>=1.1.1",
     "celery>=5.4.0",
     "dspy-ai>=2.4.9",
     "langfuse==2.36.2",
     "llama-index>=0.10.57",
     "alembic>=1.13.1",
-    "pydantic>=2.7.4",
+    "pydantic>=2.8.2",
     "pydantic-settings>=2.3.3",
     "sentry-sdk>=2.5.1",
     "click>=8.1.7",
-    "uvicorn>=0.30.1",
+    "uvicorn>=0.30.3",
     "tenacity~=8.4.0",
     "redis>=5.0.5",
     "flower>=2.0.1",
