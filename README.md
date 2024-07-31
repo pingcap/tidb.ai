@@ -74,7 +74,7 @@ A conversational search tool based on GraphRAG (Knowledge Graph) that built on t
 - [Next.js](https://nextjs.org/) – Framework
 - [shadcn/ui](https://ui.shadcn.com/) - Design
 
-## Contect Us
+## Contact Us
 
 You can post topics on our [TiDB Community](https://ask.pingcap.com/) page.
 
