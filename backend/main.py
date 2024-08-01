@@ -6,7 +6,7 @@ from contextlib import asynccontextmanager
 import click
 import sentry_sdk
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, Response
 from fastapi.routing import APIRoute
 from starlette.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 from app.api.main import api_router
 from app.core.config import settings, Environment
 from app.site_settings import SiteSetting
+from app.utils.uuid6 import uuid7
 
 dictConfig({
     "version": 1,
@@ -97,6 +98,24 @@ if settings.BACKEND_CORS_ORIGINS:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+
+@app.middleware("http")
+async def identify_browser(request: Request, call_next):
+    browser_id = request.cookies.get(settings.BROWSER_ID_COOKIE_NAME)
+    has_browser_id = bool(browser_id)
+    if not browser_id:
+        browser_id = uuid7()
+    request.state.browser_id = browser_id
+    response: Response = await call_next(request)
+    if not has_browser_id:
+        response.set_cookie(
+            settings.BROWSER_ID_COOKIE_NAME,
+            browser_id,
+            max_age=settings.BROWSER_ID_COOKIE_MAX_AGE,
+        )
+    return response
+
 
 app.include_router(api_router, prefix=settings.API_V1_STR)
 

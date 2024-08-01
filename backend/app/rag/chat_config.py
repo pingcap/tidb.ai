@@ -48,7 +48,7 @@ class LLMOption(BaseModel):
 
 
 class VectorSearchOption(BaseModel):
-    metadata_post_filters: Optional[MetadataFilters] = None,
+    metadata_post_filters: Optional[MetadataFilters] = (None,)
 
 
 class KnowledgeGraphOption(BaseModel):
@@ -227,5 +227,7 @@ def get_default_reranker(session: Session) -> BaseNodePostprocessor:
     )
 
 
-def get_metadata_post_filter(filters: Optional[MetadataFilters] = None) -> BaseNodePostprocessor:
+def get_metadata_post_filter(
+    filters: Optional[MetadataFilters] = None,
+) -> BaseNodePostprocessor:
     return MetadataPostFilter(filters)

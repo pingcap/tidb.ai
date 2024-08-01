@@ -44,6 +44,9 @@ class Settings(BaseSettings):
     # 90 days
     SESSION_COOKIE_MAX_AGE: int = 3600 * 24 * 90
 
+    BROWSER_ID_COOKIE_NAME: str = "bid"
+    BROWSER_ID_COOKIE_MAX_AGE: int = 3600 * 24 * 365 * 2
+
     @computed_field  # type: ignore[misc]
     @property
     def server_host(self) -> str:

@@ -6,7 +6,7 @@ from pydantic import (
     BaseModel,
     field_validator,
 )
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import StreamingResponse
 from fastapi_pagination import Params, Page
 
@@ -46,8 +46,14 @@ class ChatRequest(BaseModel):
 
 
 @router.post("/chats")
-def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest):
-    chat_svc = ChatService(session, user, chat_request.chat_engine)
+def chats(
+    request: Request,
+    session: SessionDep,
+    user: OptionalUserDep,
+    chat_request: ChatRequest,
+):
+    browser_id = request.state.browser_id
+    chat_svc = ChatService(session, user, browser_id, chat_request.chat_engine)
 
     if chat_request.stream:
         return StreamingResponse(
@@ -89,9 +95,13 @@ def chats(session: SessionDep, user: OptionalUserDep, chat_request: ChatRequest)
 
 @router.get("/chats")
 def list_chats(
-    session: SessionDep, user: OptionalUserDep, params: Params = Depends()
+    request: Request,
+    session: SessionDep,
+    user: OptionalUserDep,
+    params: Params = Depends(),
 ) -> Page[Chat]:
-    return chat_repo.paginate(session, user, params)
+    browser_id = request.state.browser_id
+    return chat_repo.paginate(session, user, browser_id, params)
 
 
 @router.get("/chats/{chat_id}")

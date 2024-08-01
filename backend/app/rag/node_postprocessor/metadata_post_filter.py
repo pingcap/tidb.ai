@@ -68,11 +68,7 @@ _logger = logging.getLogger(__name__)
 class MetadataPostFilter(BaseNodePostprocessor):
     filters: Optional[MetadataFilters] = None
 
-    def __init__(
-        self,
-        filters: Optional[MetadataFilters] = None,
-        **kwargs: Any
-    ):
+    def __init__(self, filters: Optional[MetadataFilters] = None, **kwargs: Any):
         super().__init__(**kwargs)
         self.filters = filters
 

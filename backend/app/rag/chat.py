@@ -50,10 +50,12 @@ class ChatService:
         self,
         db_session: Session,
         user: User,
+        browser_id: str,
         engine_name: str = "default",
     ) -> None:
         self.db_session = db_session
         self.user = user
+        self.browser_id = browser_id
         self.engine_name = engine_name
 
         self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
@@ -102,6 +104,7 @@ class ChatService:
                     engine_id=self.db_chat_engine.id,
                     engine_options=self.chat_engine_config.screenshot(),
                     user_id=self.user.id if self.user else None,
+                    browser_id=self.browser_id,
                 ),
             )
             chat_id = self.db_chat_obj.id
