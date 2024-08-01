@@ -1,13 +1,18 @@
 'use client';
 
+import React, { useState } from 'react';
 import type { AllSettings } from '@/api/site-settings';
 import { LinkArrayField } from '@/components/settings/LinkArrayField';
 import { SettingsField } from '@/components/settings/SettingsField';
 import { StringArrayField } from '@/components/settings/StringArrayField';
 import { Separator } from '@/components/ui/separator';
 import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { createAPIKey } from '@/api/auth';
 
 export function WebsiteSettings ({ schema }: { schema: AllSettings }) {
+  const [stateVariable, setStateVariable] = useState({apiKey: ''});
+
   return (
     <div className="space-y-8 max-w-screen-md">
       <section className="space-y-4">
@@ -38,6 +43,21 @@ export function WebsiteSettings ({ schema }: { schema: AllSettings }) {
       <section className="space-y-4">
         <h2 className="text-lg font-medium">Analytics</h2>
         <SettingsField name="ga_id" item={schema.ga_id} />
+      </section>
+      <section className="space-y-4">
+        <h2 className="text-lg font-medium">API Key</h2>
+        <Button
+          className="g-recaptcha font-normal text-xs"
+          variant="secondary"
+          size="sm"
+          onClick={async () => {
+            const apiKeyResult = await createAPIKey();
+            setStateVariable({apiKey: apiKeyResult.api_key});
+          }}
+        >
+          Generate an API Key
+        </Button>
+        {stateVariable.apiKey !== '' && <div> API Key will only appear once, please save it carefully: {stateVariable.apiKey}</div>}
       </section>
     </div>
   );
