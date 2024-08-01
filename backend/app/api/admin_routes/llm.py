@@ -150,7 +150,7 @@ def test_embedding_model(
 
 
 @router.get("/admin/embedding-model")
-def get_embedding_model(
+def get_embedding_model_detail(
     session: SessionDep,
     user: CurrentSuperuserDep,
 ) -> AdminEmbeddingModel:
