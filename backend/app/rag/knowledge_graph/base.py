@@ -213,6 +213,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
         chat_history: list = [],
         depth: int = 2,
         include_meta: bool = False,
+        relationship_meta_filters: Dict = {},
     ) -> Mapping[str, Any]:
         chat_content = query
         if len(chat_history) > 0:
@@ -281,6 +282,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
                     depth,
                     include_meta,
                     with_chunks=False,
+                    relationship_meta_filters=relationship_meta_filters,
                     session=tmp_session,
                 )
             except Exception as exc:

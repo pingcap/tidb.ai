@@ -113,7 +113,7 @@ def runserver(host, port):
     warnings.warn(
         "This command will start the server in development mode, do not use it in production."
     )
-    uvicorn.run("main:app", host=host, port=port, reload=True, log_level="debug")
+    uvicorn.run("main:app", host=host, port=port, reload=True, log_level="info")
 
 
 @cli.command()
