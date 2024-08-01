@@ -5,6 +5,19 @@ export function zodJsonDate (message?: string) {
   return z.string().pipe(d);
 }
 
+export function zodJsonText () {
+  return z.string()
+    .refine(val => {
+      try {
+        JSON.parse(val);
+        return true;
+      } catch {
+        return false;
+      }
+    }, { message: 'Invalid JSON' })
+    .transform(value => JSON.parse(value));
+}
+
 const d = z
   .custom<string>(data => {
     if (typeof data !== 'string') {

@@ -5,6 +5,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { CreateDatasourceForm } from '@/components/datasource/CreateDatasourceForm';
 import { DatasourceTypeTabs } from '@/components/datasource/DatasourceTypeTabs';
 import type { DatasourceType } from '@/components/datasource/types';
+import { CreateEmbeddingModelForm } from '@/components/embedding-model/CreateEmbeddingModelForm';
 import { CreateLLMForm } from '@/components/llm/CreateLLMForm';
 import { useSystemCheck } from '@/components/system/SystemCheckProvider';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -83,6 +84,16 @@ export function SystemWizardDialog () {
                     Setup default Embedding Model
                   </span>
               </AccordionTrigger>
+              {!sc.has_default_embedding_model && <AccordionContent className="px-4">
+                <CreateEmbeddingModelForm
+                  transitioning={transitioning}
+                  onCreated={() => {
+                    startTransition(() => {
+                      router.refresh();
+                    });
+                  }}
+                />
+              </AccordionContent>}
             </AccordionItem>
             <AccordionItem value="has_datasource">
               <AccordionTrigger disabled={sc.has_datasource}>

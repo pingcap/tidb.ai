@@ -15,8 +15,8 @@ export interface LLM {
 
 export interface LlmOption {
   provider: string;
-  default_model: string;
-  model_description: string;
+  default_llm_model: string;
+  llm_model_description: string;
   credentials_display_name: string;
   credentials_description: string;
   credentials_type: 'str' | 'dict';
@@ -45,8 +45,8 @@ const llmSchema = z.object({
 
 const llmOptionSchema = z.object({
   provider: z.string(),
-  default_model: z.string(),
-  model_description: z.string(),
+  default_llm_model: z.string(),
+  llm_model_description: z.string(),
   credentials_display_name: z.string(),
   credentials_description: z.string(),
 }).and(z.discriminatedUnion('credentials_type', [
@@ -61,7 +61,7 @@ const llmOptionSchema = z.object({
 ])) satisfies ZodType<LlmOption>;
 
 export async function listLlmOptions () {
-  return await fetch(`${BASE_URL}/api/v1/admin/llm-options`, {
+  return await fetch(`${BASE_URL}/api/v1/admin/llms/options`, {
     headers: {
       ...await opaqueCookieHeader(),
     },

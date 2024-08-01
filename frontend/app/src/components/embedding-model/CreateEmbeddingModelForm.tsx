@@ -1,8 +1,8 @@
 'use client';
 
-import { createLlm, listLlmOptions, type LLM, type LlmOption, testLlm } from '@/api/llms';
-import { FormInput, FormSwitch } from '@/components/form/control-widget';
-import { FormFieldBasicLayout, FormFieldContainedLayout } from '@/components/form/field-layout';
+import { createEmbeddingModel, type EmbeddingModel, type EmbeddingModelOption, listEmbeddingModelOptions, testEmbeddingModel } from '@/api/embedding-model';
+import { FormInput } from '@/components/form/control-widget';
+import { FormFieldBasicLayout } from '@/components/form/field-layout';
 import { FormRootError } from '@/components/form/root-error';
 import { CodeInput } from '@/components/form/widgets/CodeInput';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -14,7 +14,7 @@ import { zodJsonText } from '@/lib/zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2Icon } from 'lucide-react';
 import { type ReactNode, useEffect, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useForm, useFormContext, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import useSWR from 'swr';
 import { z } from 'zod';
@@ -33,11 +33,11 @@ const strCredentialForm = unsetForm.extend({
 
 const dictCredentialForm = unsetForm.extend({
   model: z.string().min(1, 'Must not empty'),
-  credentials: zodJsonText(),
+  credentials: z.object({}).passthrough(),
 });
 
-export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: boolean, onCreated?: (llm: LLM) => void }) {
-  const [provider, setProvider] = useState<LlmOption>();
+export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transitioning?: boolean, onCreated?: (embeddingModel: EmbeddingModel) => void }) {
+  const [provider, setProvider] = useState<EmbeddingModelOption>();
 
   const form = useForm<any>({
     resolver: zodResolver(
@@ -53,8 +53,7 @@ export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: b
       provider: '',
       model: '',
       credentials: '',
-      is_default: false,
-      config: '{}',
+      is_default: true,
     },
   });
 
@@ -62,9 +61,8 @@ export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: b
     if (provider) {
       form.reset({
         ...form.getValues(),
-        model: provider.default_llm_model,
+        model: provider.default_embedding_model,
         credentials: provider.credentials_type === 'dict' ? undefined : '',
-        config: '{}',
       });
     } else {
       const { name, is_default } = form.getValues();
@@ -74,21 +72,20 @@ export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: b
         provider: '',
         credentials: '',
         model: '',
-        config: '{}',
       });
     }
   }, [provider]);
 
   const handleSubmit = form.handleSubmit(async (values) => {
-    const { error, success } = await testLlm(values);
+    const { error, success } = await testEmbeddingModel(values);
     if (!success) {
       form.setError('root', { message: error || 'Unknown error' });
       return;
     }
     try {
-      const llm = await createLlm(values);
-      toast('LLM successfully created.');
-      onCreated?.(llm);
+      const embeddingModel = await createEmbeddingModel(values);
+      toast('Embedding Model successfully created.');
+      onCreated?.(embeddingModel);
     } catch (error) {
       form.setError('root', { message: getErrorMessage(error) });
     }
@@ -101,14 +98,11 @@ export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: b
           <FormFieldBasicLayout name="name" label="Name">
             <FormInput />
           </FormFieldBasicLayout>
-          <LlmFields onSelectProvider={setProvider} />
-          <FormFieldContainedLayout name="is_default" label="Is Default LLM" description="Enable will unset original default LLM.">
-            <FormSwitch />
-          </FormFieldContainedLayout>
-          <FormRootError title="Failed to create LLM" />
+          <EmbeddingModelFields onSelectProvider={setProvider} />
+          <FormRootError title="Failed to create Embedding Model" />
           <Button disabled={form.formState.disabled || !provider || form.formState.isSubmitting || transitioning}>
             {(form.formState.isSubmitting || transitioning) && <Loader2Icon className="size-4 mr-1 animate-spin repeat-infinite" />}
-            Create LLM
+            Create Embedding Model
           </Button>
         </form>
       </Form>
@@ -116,26 +110,28 @@ export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: b
   );
 }
 
-function useLlmOptions () {
-  const { data: options } = useSWR('api.llms.list-options', listLlmOptions);
+function useEmbeddingModelOptions () {
+  const { data: options } = useSWR('api.embedding-models.list-options', listEmbeddingModelOptions);
 
   return options;
 }
 
-function LlmFields ({ onSelectProvider }: { onSelectProvider: (llmOption: LlmOption | undefined) => void }) {
-  const providerOptions = useLlmOptions();
+function EmbeddingModelFields ({ onSelectProvider }: { onSelectProvider: (embeddingModelOption: EmbeddingModelOption | undefined) => void }) {
+  const providerOptions = useEmbeddingModelOptions();
   const provider = useWatch<{ provider: string }>({ name: 'provider' });
 
   const providerOption = providerOptions?.find(o => o.provider === provider);
 
   let fields: ReactNode;
 
+  const form = useFormContext();
+
   if (!providerOption) {
     fields = <div className="border rounded-lg bg-muted p-8 text-muted-foreground font-bold text-center text-lg">Select provider...</div>;
   } else {
     fields = (
       <>
-        <FormFieldBasicLayout name="model" label="Model" description={providerOption.llm_model_description}>
+        <FormFieldBasicLayout name="model" label="Model" description={providerOption.embedding_model_description}>
           <FormInput />
         </FormFieldBasicLayout>
         <FormFieldBasicLayout name="credentials" label={providerOption.credentials_display_name} description={providerOption.credentials_description}>

@@ -63,6 +63,26 @@ export function handleResponse<S extends ZodType> (schema: S): ((responseOrPromi
   };
 }
 
+export function handleNullableResponse<S extends ZodType> (schema: S): ((responseOrPromise: Response | PromiseLike<Response>) => Promise<z.infer<S> | null>) {
+  return async (responseOrPromise) => {
+    const response = await responseOrPromise;
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    await handleErrors(response);
+    const body = await response.json();
+
+    try {
+      return schema.parse(body);
+    } catch (e) {
+      console.error(`Cannot parse response json data for ${response.url} ${response.status}, check your frontend and backend versions.`);
+      throw e;
+    }
+  };
+}
+
 export class ServerError extends Error {
   constructor (readonly response: Response, message: string) {
     if (response.headers.get('Content-Type')?.includes('text/html') || message.trimStart().startsWith('<!DOCTYPE') || message.trimStart().startsWith('<html')) {

@@ -4,7 +4,7 @@ import { deleteLlm, getLlm } from '@/api/llms';
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { DangerousActionButton } from '@/components/dangerous-action-button';
 import { DateFormat } from '@/components/date-format';
-import { ConfigViewer } from '@/components/llm/config-viewer';
+import { ConfigViewer } from '@/components/config-viewer';
 import { OptionDetail } from '@/components/option-detail';
 import { Loader2Icon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
