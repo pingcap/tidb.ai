@@ -8,7 +8,6 @@ export interface EmbeddingModel {
   provider: string;
   model: string;
   config?: any;
-  is_default: boolean;
   created_at: Date | null;
   updated_at: Date | null;
 }
@@ -28,7 +27,6 @@ export interface CreateEmbeddingModel {
   provider: string;
   model: string;
   config?: any;
-  is_default?: boolean;
   credentials: string | object;
 }
 
@@ -38,7 +36,6 @@ const embeddingModelSchema = z.object({
   provider: z.string(),
   model: z.string(),
   config: z.any(),
-  is_default: z.boolean(),
   created_at: zodJsonDate().nullable(),
   updated_at: zodJsonDate().nullable(),
 }) satisfies ZodType<EmbeddingModel, ZodTypeDef, any>;

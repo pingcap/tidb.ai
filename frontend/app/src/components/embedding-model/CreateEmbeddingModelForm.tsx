@@ -23,7 +23,6 @@ const unsetForm = z.object({
   name: z.string().min(1, 'Must not empty'),
   provider: z.string().min(1, 'Must not empty'),
   config: zodJsonText().optional(),
-  is_default: z.boolean().optional(),
 });
 
 const strCredentialForm = unsetForm.extend({
@@ -53,7 +52,6 @@ export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transi
       provider: '',
       model: '',
       credentials: '',
-      is_default: true,
     },
   });
 
@@ -65,10 +63,9 @@ export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transi
         credentials: provider.credentials_type === 'dict' ? undefined : '',
       });
     } else {
-      const { name, is_default } = form.getValues();
+      const { name } = form.getValues();
       form.reset({
         name,
-        is_default,
         provider: '',
         credentials: '',
         model: '',
