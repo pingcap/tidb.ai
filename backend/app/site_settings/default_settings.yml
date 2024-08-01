@@ -88,3 +88,28 @@ custom_js:
     data_type: str
     description: "The logo on the custom_js."
     client: true
+
+security:
+  recaptcha_enabled:
+    default: false
+    data_type: bool
+    description: "Enable reCAPTCHA"
+    client: true
+
+  recaptcha_secret:
+    default: ""
+    data_type: str
+    description: "reCAPTCHA Secret"
+
+  recaptcha_site_key:
+    default: ""
+    data_type: str
+    description: "reCAPTCHA Site Key"
+    client: true
+
+  # # Will support in future?
+  # recaptcha_mode:
+  #   default: false
+  #   data_type: string // v3, enterprise?
+  #   description: "TODO"
+  #   client: true

@@ -2,12 +2,9 @@
 
 import { Ask } from '@/components/chat/ask';
 import { useAsk } from '@/components/chat/use-ask';
-import { withReCaptcha } from '@/components/security-setting-provider';
 import { Button } from '@/components/ui/button';
 import { useSettingContext } from '@/components/website-setting-provider';
 import NextLink from 'next/link';
-
-const security: { google_recaptcha_site_key: string, google_recaptcha: 'v3' | 'enterprise' | '' } | null = null;
 
 export default function Page () {
   const { loading, setEngine, ask, engine } = useAsk();
@@ -31,20 +28,7 @@ export default function Page () {
                 disabled={loading}
                 variant="secondary"
                 size="sm"
-                onClick={() => {
-                  withReCaptcha({
-                    action: 'ask',
-                    siteKey: security?.google_recaptcha_site_key || '',
-                    mode: security?.google_recaptcha,
-                  }, ({ token, action }) => {
-                    ask(item, {
-                      headers: {
-                        'X-Recaptcha-Token': token,
-                        'X-Recaptcha-Action': action,
-                      },
-                    });
-                  });
-                }}
+                onClick={() => ask(item)}
               >
                 {item}
               </Button>

@@ -4,7 +4,6 @@ import { Nav, NavDrawer } from '@/app/(main)/nav';
 import { Branding } from '@/components/branding';
 import { SiteNavActionBar, SiteNavFooter, type SiteSocialsType } from '@/components/site-nav-footer';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Toaster } from '@/components/ui/sonner';
 import { useSettingContext } from '@/components/website-setting-provider';
 import Link from 'next/link';
 import { ReactNode, useMemo } from 'react';
