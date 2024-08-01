@@ -1,3 +1,4 @@
+import logging
 from enum import Enum
 from typing import List, Optional, Any, Union, Annotated
 
@@ -61,6 +62,9 @@ class MetadataFilters(BaseModel):
     condition: Optional[FilterCondition] = FilterCondition.AND
 
 
+_logger = logging.getLogger(__name__)
+
+
 class MetadataPostFilter(BaseNodePostprocessor):
     filters: Optional[MetadataFilters] = None
 
@@ -88,22 +92,26 @@ class MetadataPostFilter(BaseNodePostprocessor):
         return filtered_nodes
 
     def match_all_filters(self, node: Any) -> bool:
-        if self.filters is None:
+        if self.filters is None or not isinstance(node, MetadataFilters):
             return True
 
         if self.filters.condition != FilterCondition.AND:
-            raise NotImplementedError(
-                f"Filter condition {self.filters.condition} is not supported yet."
+            _logger.warning(
+                f"Advanced filtering is not supported yet. "
+                f"Filter condition {self.filters.condition} is ignored."
             )
+            return True
 
         for f in self.filters.filters:
             if f.key not in node.extra_info:
                 return False
 
             if f.operator is not None and f.operator != FilterOperator.EQ:
-                raise NotImplementedError(
-                    f"Filter operator {f.operator} is not supported yet."
+                _logger.warning(
+                    f"Advanced filtering is not supported yet. "
+                    f"Filter operator {f.operator} is ignored."
                 )
+                return True
 
             value = node.extra_info[f.key]
             if f.value != value:
