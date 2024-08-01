@@ -6,8 +6,8 @@ from app.types import LLMProvider
 
 class LLMOption(BaseModel):
     provider: LLMProvider
-    default_model: str
-    model_description: str
+    default_llm_model: str
+    llm_model_description: str
     default_credentials: str | dict = ""
     credentials_display_name: str
     credentials_description: str
@@ -17,8 +17,8 @@ class LLMOption(BaseModel):
 admin_llm_options: List[LLMOption] = [
     LLMOption(
         provider=LLMProvider.OPENAI,
-        default_model="gpt-4o",
-        model_description="",
+        default_llm_model="gpt-4o",
+        llm_model_description="",
         credentials_display_name="OpenAI API Key",
         credentials_description="The API key of OpenAI, you can find it in https://platform.openai.com/api-keys",
         credentials_type="str",
@@ -26,8 +26,8 @@ admin_llm_options: List[LLMOption] = [
     ),
     LLMOption(
         provider=LLMProvider.OPENAI_LIKE,
-        default_model="gpt-4o",
-        model_description="",
+        default_llm_model="gpt-4o",
+        llm_model_description="",
         credentials_display_name="API Key",
         credentials_description="The API key of the third-party OpenAI-like service, such as OpenRouter, you can find it in their official website",
         credentials_type="str",
@@ -35,8 +35,8 @@ admin_llm_options: List[LLMOption] = [
     ),
     LLMOption(
         provider=LLMProvider.GEMINI,
-        default_model="models/gemini-1.5-flash",
-        model_description="Find the model code at https://ai.google.dev/gemini-api/docs/models/gemini",
+        default_llm_model="models/gemini-1.5-flash",
+        llm_model_description="Find the model code at https://ai.google.dev/gemini-api/docs/models/gemini",
         credentials_display_name="Google API Key",
         credentials_description="The API key of Google AI Studio, you can find it in https://aistudio.google.com/app/apikey",
         credentials_type="str",
@@ -44,8 +44,8 @@ admin_llm_options: List[LLMOption] = [
     ),
     LLMOption(
         provider=LLMProvider.ANTHROPIC_VERTEX,
-        default_model="claude-3-5-sonnet@20240620",
-        model_description="",
+        default_llm_model="claude-3-5-sonnet@20240620",
+        llm_model_description="",
         credentials_display_name="Google Credentials JSON",
         credentials_description="The JSON Object of Google Credentials, refer to https://cloud.google.com/docs/authentication/provide-credentials-adc#on-prem",
         credentials_type="dict",

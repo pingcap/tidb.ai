@@ -22,7 +22,7 @@ from app.models import (
 router = APIRouter()
 
 
-@router.get("/admin/llm-options")
+@router.get("/admin/llms/options")
 def get_llm_options(user: CurrentSuperuserDep) -> List[LLMOption]:
     return admin_llm_options
 
