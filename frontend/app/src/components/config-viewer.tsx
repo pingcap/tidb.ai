@@ -3,7 +3,7 @@
 import Highlight from 'highlight.js/lib/core';
 import json from 'highlight.js/lib/languages/json';
 import { useEffect, useState } from 'react';
-import '../code-theme.scss';
+import './code-theme.scss';
 
 Highlight.registerLanguage('json', json);
 

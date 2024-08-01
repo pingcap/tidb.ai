@@ -51,11 +51,35 @@ export async function handleErrors (responseOrPromise: Response | PromiseLike<Re
 
 export function handleResponse<S extends ZodType> (schema: S): ((responseOrPromise: Response | PromiseLike<Response>) => Promise<z.infer<S>>) {
   return async (responseOrPromise) => {
-    const body = await Promise.resolve(responseOrPromise)
-      .then(handleErrors)
-      .then(res => res.json());
+    const response = await Promise.resolve(responseOrPromise).then(handleErrors);
+    const body = await response.json();
 
-    return schema.parse(body);
+    try {
+      return schema.parse(body);
+    } catch (e) {
+      console.error(`Cannot parse response json data for ${response.url} ${response.status}, check your frontend and backend versions.`);
+      throw e;
+    }
+  };
+}
+
+export function handleNullableResponse<S extends ZodType> (schema: S): ((responseOrPromise: Response | PromiseLike<Response>) => Promise<z.infer<S> | null>) {
+  return async (responseOrPromise) => {
+    const response = await responseOrPromise;
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    await handleErrors(response);
+    const body = await response.json();
+
+    try {
+      return schema.parse(body);
+    } catch (e) {
+      console.error(`Cannot parse response json data for ${response.url} ${response.status}, check your frontend and backend versions.`);
+      throw e;
+    }
   };
 }
 

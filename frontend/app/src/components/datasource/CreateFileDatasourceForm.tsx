@@ -1,6 +1,4 @@
-'use client';
-
-import { type BaseCreateDatasourceParams, createDatasource, uploadFiles } from '@/api/datasources';
+import { type BaseCreateDatasourceParams, createDatasource, type Datasource, uploadFiles } from '@/api/datasources';
 import { DataTable } from '@/components/data-table';
 import { DataTableHeading } from '@/components/data-table-heading';
 import { Button } from '@/components/ui/button';
@@ -13,8 +11,7 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { filesize } from 'filesize';
 import { Loader2Icon } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { type ChangeEvent, type Dispatch, type SetStateAction, useMemo, useState, useTransition } from 'react';
+import { type ChangeEvent, type Dispatch, type SetStateAction, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z, type ZodType } from 'zod';
 
@@ -26,9 +23,12 @@ const schema = z.object({
   build_kg_index: z.boolean(),
 }) satisfies ZodType<BaseCreateDatasourceParams, any, any>;
 
-export default function Page () {
-  const [navigating, startNavigation] = useTransition();
-  const router = useRouter();
+export interface CreateFileDatasourceFormProps {
+  transitioning?: boolean;
+  onCreated?: (datasource: Datasource) => void;
+}
+
+export default function CreateFileDatasourceForm ({ transitioning, onCreated }: CreateFileDatasourceFormProps) {
   const form = useForm({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -49,9 +49,7 @@ export default function Page () {
         file_id: file.id,
       })),
     });
-    startNavigation(() => {
-      router.push(`/datasources/${createdDatasource.id}`);
-    })
+    onCreated?.(createdDatasource);
   });
 
   return (
@@ -102,9 +100,9 @@ export default function Page () {
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={files.length === 0 || navigating || form.formState.isSubmitting} className="gap-2" form="create-datasource-form">
-          {(navigating || form.formState.isSubmitting) && <Loader2Icon className="size-4 animate-spin repeat-infinite" />}
-          <span>Create</span>
+        <Button type="submit" disabled={files.length === 0 || transitioning || form.formState.isSubmitting} className="gap-2" form="create-datasource-form">
+          {(transitioning || form.formState.isSubmitting) && <Loader2Icon className="size-4 animate-spin repeat-infinite" />}
+          <span>Create Datasource</span>
         </Button>
       </div>
     </Form>

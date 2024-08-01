@@ -1,5 +1,8 @@
 import { getPublicSiteSettings } from '@/api/site-settings';
+import { getSystemCheck } from '@/api/system';
 import { RootProviders } from '@/app/RootProviders';
+import { SystemWizardDialog } from '@/components/system/SystemWizardDialog';
+import { Toaster } from '@/components/ui/sonner';
 import { auth } from '@/lib/auth';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata } from 'next';
@@ -29,16 +32,19 @@ export default async function RootLayout ({
   const [
     me,
     settings,
+    systemCheck,
   ] = await Promise.all([
     auth(),
     cachedGetSettings(),
+    getSystemCheck(),
   ]);
 
   return (
     <html lang="en" suppressHydrationWarning>
     <body className={inter.className}>
-    <RootProviders me={me} settings={settings}>
+    <RootProviders me={me} settings={settings} systemCheck={systemCheck}>
       {children}
+      <SystemWizardDialog />
     </RootProviders>
     {settings.ga_id && <GoogleAnalytics gaId={settings.ga_id} />}
     <Script async src="/widget.js" />

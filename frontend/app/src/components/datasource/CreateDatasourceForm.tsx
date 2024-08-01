@@ -1,0 +1,29 @@
+import type { Datasource } from '@/api/datasources';
+import { type ComponentType } from 'react';
+import CreateFileDatasourceForm from './CreateFileDatasourceForm';
+import CreateWebSinglePageDatasourceForm from './CreateWebSinglePageDatasourceForm';
+import CreateWebSitemapDatasourceForm from './CreateWebSitemapDatasourceForm';
+
+export interface CreateDatasourceFormProps {
+  type: 'file' | 'web-single-page' | 'web-sitemap';
+  onCreated?: (datasource: Datasource) => void;
+  transitioning?: boolean;
+}
+
+export function CreateDatasourceForm ({ type, onCreated, transitioning }: CreateDatasourceFormProps) {
+  let FormComponent: ComponentType<{ onCreated?: (datasource: Datasource) => void, transitioning?: boolean }>;
+
+  switch (type) {
+    case 'file':
+      FormComponent = CreateFileDatasourceForm;
+      break;
+    case 'web-sitemap':
+      FormComponent = CreateWebSitemapDatasourceForm;
+      break;
+    case 'web-single-page':
+      FormComponent = CreateWebSinglePageDatasourceForm;
+      break;
+  }
+
+  return <FormComponent key={type} onCreated={onCreated} transitioning={transitioning} />;
+}

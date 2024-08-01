@@ -59,10 +59,6 @@ export function Conversation ({ open, chat, chatId, history, placeholder, preven
 
   const disabled = !!postState.params;
 
-  useEffect(() => {
-
-  }, []);
-
   return (
     <ChatControllerProvider controller={controller}>
       {!postState.params && !groups.length && placeholder?.(controller, postState)}
