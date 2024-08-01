@@ -12,7 +12,7 @@ dependencies = [
     "celery>=5.4.0",
     "dspy-ai>=2.4.9",
     "langfuse==2.36.2",
-    "llama-index>=0.10.57",
+    "llama-index>=0.10.59",
     "alembic>=1.13.1",
     "pydantic>=2.8.2",
     "pydantic-settings>=2.3.3",

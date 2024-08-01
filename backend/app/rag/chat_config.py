@@ -17,6 +17,8 @@ from sqlmodel import Session, select
 from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 
+from app.rag.node_postprocessor import MetadataPostFilter
+from app.rag.node_postprocessor.metadata_post_filter import MetadataFilters
 from app.types import LLMProvider, EmbeddingProvider
 from app.rag.default_prompt import (
     DEFAULT_INTENT_GRAPH_KNOWLEDGE,
@@ -45,17 +47,23 @@ class LLMOption(BaseModel):
     refine_prompt: str = DEFAULT_REFINE_PROMPT
 
 
+class VectorSearchOption(BaseModel):
+    metadata_post_filters: Optional[MetadataFilters] = None,
+
+
 class KnowledgeGraphOption(BaseModel):
     enabled: bool = True
     depth: int = 2
     include_meta: bool = True
     with_degree: bool = False
     using_intent_search: bool = True
+    relationship_meta_filters: Optional[dict] = None
 
 
 class ChatEngineConfig(BaseModel):
     llm: LLMOption = LLMOption()
     knowledge_graph: KnowledgeGraphOption = KnowledgeGraphOption()
+    vector_search: VectorSearchOption = VectorSearchOption()
 
     _db_chat_engine: Optional[DBChatEngine] = None
     _db_llm: Optional[DBLLM] = None
@@ -113,6 +121,9 @@ class ChatEngineConfig(BaseModel):
 
     def get_reranker(self, session: Session) -> BaseNodePostprocessor:
         return get_default_reranker(session)
+
+    def get_metadata_filter(self) -> BaseNodePostprocessor:
+        return get_metadata_post_filter(self.vector_search.metadata_post_filters)
 
     def screenshot(self) -> dict:
         return self.model_dump_json(
@@ -214,3 +225,7 @@ def get_default_reranker(session: Session) -> BaseNodePostprocessor:
         model="jina-reranker-v2-base-multilingual",
         top_n=10,
     )
+
+
+def get_metadata_post_filter(filters: Optional[MetadataFilters] = None) -> BaseNodePostprocessor:
+    return MetadataPostFilter(filters)
