@@ -92,7 +92,7 @@ class MetadataPostFilter(BaseNodePostprocessor):
         return filtered_nodes
 
     def match_all_filters(self, node: Any) -> bool:
-        if self.filters is None or not isinstance(node, MetadataFilters):
+        if self.filters is None or not isinstance(self.filters, MetadataFilters):
             return True
 
         if self.filters.condition != FilterCondition.AND:
