@@ -14,6 +14,7 @@ export interface Chat {
   engine_options: ChatEngineOptions;
   deleted_at: Date | null;
   user_id: string | null;
+  browser_id: string | null;
   updated_at: Date;
   created_at: Date;
   id: string;
@@ -56,6 +57,7 @@ export const chatSchema = z.object({
   engine_options: z.string().transform(value => JSON.parse(value) as ChatEngineOptions),
   deleted_at: zodJsonDate().nullable(),
   user_id: z.string().nullable(),
+  browser_id: z.string().nullable(),
   updated_at: zodJsonDate(),
   created_at: zodJsonDate(),
   id: z.string(),

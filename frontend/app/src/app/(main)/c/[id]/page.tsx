@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { auth } from '@/lib/auth';
 import { isServerError } from '@/lib/request';
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
@@ -26,6 +27,7 @@ const cachedGetChat = cache((id: string) => getChat(id)
 export default async function ChatDetailPage ({ params }: { params: { id: string } }) {
   const id = params.id;
   const me = await auth();
+  const bid = cookies().get('bid')?.value;
 
   let chat: Chat | undefined;
   let messages: ChatMessage[];
@@ -67,12 +69,16 @@ export default async function ChatDetailPage ({ params }: { params: { id: string
     }
   }
 
+  const shouldOpen = me
+    ? me.id === chat?.user_id
+    : bid === chat?.browser_id;
+
   return (
     <div className="xl:pr-side">
       <Conversation
         key={chat?.id}
         chatId={id}
-        open={!!me && me.id === chat?.user_id}
+        open={shouldOpen}
         chat={chat}
         history={messages}
       />
