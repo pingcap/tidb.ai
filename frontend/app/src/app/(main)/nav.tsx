@@ -35,11 +35,7 @@ export function Nav () {
   });
 
   useEffect(() => {
-    if (user?.id) {
-      void mutate();
-    } else {
-      void mutate(undefined, { revalidate: false });
-    }
+    void mutate();
   }, [user?.id]);
 
   useEffect(() => {

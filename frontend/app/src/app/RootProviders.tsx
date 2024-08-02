@@ -20,7 +20,12 @@ export interface RootProvidersProps {
 }
 
 export function RootProviders ({ me, settings, systemCheck, children }: RootProvidersProps) {
-  const { data, isValidating, isLoading } = useSWR('api.users.me', getMe, { fallbackData: me, revalidateOnMount: !me, revalidateOnFocus: false });
+  const { data, isValidating, isLoading } = useSWR('api.users.me', getMe, {
+    fallbackData: me,
+    revalidateOnMount: !me,
+    revalidateOnFocus: false,
+    errorRetryCount: 0,
+  });
 
   return (
     <SystemCheckProvider systemCheck={systemCheck}>
