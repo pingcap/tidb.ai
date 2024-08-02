@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useHref } from '@/components/use-href';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, CommandIcon, FilesIcon, GaugeIcon, HomeIcon, LibraryIcon, MenuIcon, MessageCircleQuestionIcon, MessagesSquareIcon, PlusIcon, WaypointsIcon } from 'lucide-react';
+import { BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, CommandIcon, FilesIcon, GaugeIcon, HomeIcon, KeyRoundIcon, LibraryIcon, MenuIcon, MessageCircleQuestionIcon, MessagesSquareIcon, PlusIcon, WaypointsIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import useSWR from 'swr';
@@ -101,6 +101,15 @@ export function Nav () {
           { href: '/site-settings', title: 'Settings', icon: CogIcon },
         ],
         sectionProps: { className: 'mt-auto mb-0' },
+      });
+    }
+
+    if (user?.is_superuser) {
+      groups.push({
+        title: 'Account',
+        items: [
+          { href: '/api-keys', title: 'API Keys', icon: KeyRoundIcon },
+        ],
       });
     }
 
