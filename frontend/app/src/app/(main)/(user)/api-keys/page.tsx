@@ -48,7 +48,7 @@ export default function ChatEnginesPage () {
           <CircleCheckIcon />
           <AlertTitle>API Key created</AlertTitle>
           <AlertDescription>
-            Please note that your API key will only be shown once. Make sure to save it in a secure location as it won't be displayed again. Not storing your key safely may result in you needing to generate a new API key.
+            Please note that your API key will only be shown once. Make sure to save it in a secure location as it won&#39;t be displayed again. Not storing your key safely may result in you needing to generate a new API key.
           </AlertDescription>
           <div className="my-2">
             <p className="px-1 py-0.5 rounded bg-accent text-xs flex items-center">
