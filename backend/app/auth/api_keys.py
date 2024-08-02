@@ -7,6 +7,8 @@ from typing import Optional, Tuple
 from fastapi import Request
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
+from fastapi_pagination import Params, Page
+from fastapi_pagination.ext.sqlmodel import paginate
 
 from app.models import ApiKey, User
 
@@ -86,6 +88,31 @@ class ApiKeyManager:
     ) -> Optional[User]:
         api_key = get_api_key_from_request(request)
         return await self.get_active_user_by_raw_api_key(session, api_key)
+
+    async def list_api_keys(
+        self, session: AsyncSession, user: User, params: Params
+    ) -> Page[ApiKey]:
+        api_keys = await paginate(
+            session,
+            select(ApiKey)
+            .where(ApiKey.user == user, ApiKey.is_active == True)
+            .order_by(ApiKey.created_at.desc()),
+            params,
+        )
+        return api_keys
+
+    async def delete_api_key(self, session: AsyncSession, user: User, api_key_id: int):
+        result = await session.exec(
+            select(ApiKey).where(
+                ApiKey.id == api_key_id,
+                ApiKey.user_id == user.id,
+                ApiKey.is_active == True,
+            )
+        )
+        api_key = result.first()
+        if api_key:
+            api_key.is_active = False
+            await session.commit()
 
 
 api_key_manager = ApiKeyManager()

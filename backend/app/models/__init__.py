@@ -19,7 +19,7 @@ from .chat_message import ChatMessage
 from .document import Document, DocIndexTaskStatus
 from .chunk import Chunk, KgIndexStatus
 from .auth import User, UserSession
-from .api_key import ApiKey
+from .api_key import ApiKey, PublicApiKey
 from .site_setting import SiteSetting
 from .upload import Upload
 from .data_source import DataSource, DataSourceType

@@ -9,13 +9,16 @@ from sqlmodel import (
 from app.models.base import UpdatableBaseModel
 
 
-class ApiKey(UpdatableBaseModel, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
+class BaseApiKey(UpdatableBaseModel):
     description: str = Field(max_length=100)
-    hashed_secret: str = Field(max_length=255, unique=True)
     api_key_display: str = Field(max_length=100)
     is_active: bool = True
     user_id: UUID = Field(foreign_key="users.id", nullable=False)
+
+
+class ApiKey(BaseApiKey, table=True):
+    id: Optional[int] = Field(default=None, primary_key=True)
+    hashed_secret: str = Field(max_length=255, unique=True)
     user: "User" = SQLRelationship(
         sa_relationship_kwargs={
             "lazy": "joined",
@@ -24,3 +27,8 @@ class ApiKey(UpdatableBaseModel, table=True):
     )
 
     __tablename__ = "api_keys"
+
+
+class PublicApiKey(BaseApiKey):
+    id: int
+    user_id: UUID
