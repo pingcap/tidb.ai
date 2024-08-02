@@ -63,7 +63,7 @@ export function ChatsProvider ({ children }: { children: ReactNode }) {
   return (
     <ChatsContext.Provider value={{
       chats,
-      disabled: isSystemCheckPassed(systemCheckRef.current),
+      disabled: !isSystemCheckPassed(systemCheckRef.current),
       newChat,
       destroyChat,
     }}>

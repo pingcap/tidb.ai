@@ -50,15 +50,18 @@ class ChatService:
         self,
         db_session: Session,
         user: User,
+        browser_id: str,
         engine_name: str = "default",
     ) -> None:
         self.db_session = db_session
         self.user = user
+        self.browser_id = browser_id
         self.engine_name = engine_name
 
         self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
         self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
         self._reranker = self.chat_engine_config.get_reranker(db_session)
+        self._metadata_filter = self.chat_engine_config.get_metadata_filter()
 
     def chat(
         self, chat_messages: List[ChatMessage], chat_id: Optional[UUID] = None
@@ -101,6 +104,7 @@ class ChatService:
                     engine_id=self.db_chat_engine.id,
                     engine_options=self.chat_engine_config.screenshot(),
                     user_id=self.user.id if self.user else None,
+                    browser_id=self.browser_id,
                 ),
             )
             chat_id = self.db_chat_obj.id
@@ -220,7 +224,10 @@ class ChatService:
                         },
                     ) as event:
                         result = graph_index.intent_based_search(
-                            user_question, chat_history, include_meta=True
+                            user_question,
+                            chat_history,
+                            include_meta=True,
+                            relationship_meta_filters=kg_config.relationship_meta_filters,
                         )
                         event.on_end(payload={"graph": result["queries"]})
 
@@ -239,6 +246,7 @@ class ChatService:
                     depth=kg_config.depth,
                     include_meta=kg_config.include_meta,
                     with_degree=kg_config.with_degree,
+                    relationship_meta_filters=kg_config.relationship_meta_filters,
                     with_chunks=False,
                 )
                 graph_knowledges = get_prompt_by_jinja2_template(
@@ -306,7 +314,7 @@ class ChatService:
         )
         query_engine = vector_index.as_query_engine(
             llm=_llm,
-            node_postprocessors=[self._reranker],
+            node_postprocessors=[self._metadata_filter, self._reranker],
             streaming=True,
             text_qa_template=text_qa_template,
             refine_template=refine_template,

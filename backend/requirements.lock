@@ -279,13 +279,13 @@ langsmith==0.1.88
     # via langchain-core
 llama-cloud==0.0.10
     # via llama-index-indices-managed-llama-cloud
-llama-index==0.10.57
+llama-index==0.10.59
 llama-index-agent-openai==0.2.7
     # via llama-index
     # via llama-index-program-openai
 llama-index-cli==0.1.12
     # via llama-index
-llama-index-core==0.10.57
+llama-index-core==0.10.59
     # via llama-index
     # via llama-index-agent-openai
     # via llama-index-cli

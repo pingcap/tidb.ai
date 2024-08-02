@@ -2,7 +2,7 @@ from uuid import UUID
 from typing import Optional, List
 from datetime import datetime, UTC
 
-from sqlmodel import select, Session
+from sqlmodel import select, Session, or_
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
@@ -17,15 +17,17 @@ class ChatRepo(BaseRepo):
         self,
         session: Session,
         user: User | None,
+        browser_id: str | None,
         params: Params | None = Params(),
     ) -> Page[Chat]:
         query = select(Chat).where(Chat.deleted_at == None)
         if user:
             if not user.is_superuser:
-                query = query.where(Chat.user_id == user.id)
+                query = query.where(
+                    or_(Chat.user_id == user.id, Chat.browser_id == browser_id)
+                )
         else:
-            # Anonymouse user can't list chats
-            query = query.where(False)
+            query = query.where(Chat.browser_id == browser_id)
         query = query.order_by(Chat.created_at.desc())
         return paginate(session, query, params)
 
