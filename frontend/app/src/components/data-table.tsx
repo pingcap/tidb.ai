@@ -12,12 +12,14 @@ interface DataTableProps<TData, TValue> {
   className?: string;
   before?: ReactNode;
   after?: ReactNode;
+  hideHeader?: boolean;
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
 }
 
 export function DataTable<TData, TValue> ({
   className,
+  hideHeader,
   columns,
   data,
   before,
@@ -34,7 +36,7 @@ export function DataTable<TData, TValue> ({
       {before}
       <div className={cn('rounded-md border', className)}>
         <Table className='text-xs whitespace-nowrap'>
-          <TableHeader>
+          {!hideHeader && <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
@@ -51,7 +53,7 @@ export function DataTable<TData, TValue> ({
                 })}
               </TableRow>
             ))}
-          </TableHeader>
+          </TableHeader>}
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (

@@ -1,9 +1,9 @@
 import { type BaseCreateDatasourceParams, createDatasource, type Datasource } from '@/api/datasources';
+import { FormInput, FormSwitch, FormTextarea } from '@/components/form/control-widget';
+import { FormFieldBasicLayout, FormFieldContainedLayout } from '@/components/form/field-layout';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { Form } from '@/components/ui/form';
 import { Separator } from '@/components/ui/separator';
-import { Switch } from '@/components/ui/switch';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
@@ -44,67 +44,24 @@ export default function CreateWebSitemapDatasourceForm ({ onCreated, transitioni
   return (
     <Form {...form}>
       <form id="create-datasource-form" className="space-y-4" onSubmit={handleSubmit}>
-        <FormField
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Name</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>Description</FormLabel>
-              <FormControl>
-                <Input {...field} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-        <FormField
-          name="url"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel>URL</FormLabel>
-              <FormControl>
-                <Input {...field} placeholder="https://example.com/sitemap.xml" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-      </form>
-      <div className="mt-4 space-y-4">
+        <FormFieldBasicLayout name="name" label="Name">
+          <FormInput />
+        </FormFieldBasicLayout>
+        <FormFieldBasicLayout name="description" label="Description">
+          <FormTextarea />
+        </FormFieldBasicLayout>
+        <FormFieldBasicLayout name="url" label="Sitemap URL">
+          <FormInput placeholder="https://example.com/sitemap.xml" />
+        </FormFieldBasicLayout>
         <Separator />
-        <FormField
-          name="build_kg_index"
-          render={({ field }) => (
-            <FormItem className="rounded-lg border p-4 flex items-center justify-between text-sky-500 bg-sky-500/5 border-sky-500/30">
-              <div className="space-y-2">
-                <FormLabel>Build KnowledgeGraph Index</FormLabel>
-                <FormDescription className="text-sky-500/70">
-                  Enable to build knowledge graph index.
-                </FormDescription>
-              </div>
-              <FormControl>
-                <Switch {...field} onChange={undefined} checked={field.value} onCheckedChange={field.onChange} />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+        <FormFieldContainedLayout name="build_kg_index" label="Build KnowledgeGraph Index" description="Enable to build knowledge graph index.">
+          <FormSwitch />
+        </FormFieldContainedLayout>
         <Button type="submit" disabled={transitioning || form.formState.isSubmitting} className="gap-2" form="create-datasource-form">
           {(transitioning || form.formState.isSubmitting) && <Loader2Icon className="size-4 animate-spin repeat-infinite" />}
           <span>Create Datasource</span>
         </Button>
-      </div>
+      </form>
     </Form>
   );
 }

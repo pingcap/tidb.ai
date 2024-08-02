@@ -18,6 +18,10 @@ export function zodJsonText () {
     .transform(value => JSON.parse(value));
 }
 
+export function zodFile () {
+  return z.custom<File>(value => value instanceof File);
+}
+
 const d = z
   .custom<string>(data => {
     if (typeof data !== 'string') {

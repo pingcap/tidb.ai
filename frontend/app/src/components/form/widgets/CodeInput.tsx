@@ -1,5 +1,6 @@
 import type { FormControlWidgetProps } from '@/components/form/control-widget';
 import { cn } from '@/lib/utils';
+import { Loader2Icon } from 'lucide-react';
 import mergeRefs from 'merge-refs';
 import type * as monaco from 'monaco-editor';
 import { useTheme } from 'next-themes';
@@ -185,11 +186,12 @@ export const CodeInput = forwardRef<any, CodeInputProps>(({
     <>
       <div
         id={id}
-        className={cn('border rounded w-full min-h-48', className)}
+        className={cn('border rounded w-full min-h-48', className, !editor && 'hidden')}
         ref={mergeRefs(ref, forwardedRef)}
         aria-describedby={ariaDescribedBy}
         aria-invalid={ariaInvalid}
       />
+      {!editor && <div className="flex text-xs text-muted-foreground">Initializing code editor... <Loader2Icon className="size-4 animate-spin repeat-infinite" /></div>}
       <input className="hidden" value={value} readOnly name={name} />
     </>
   );

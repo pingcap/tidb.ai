@@ -23,7 +23,9 @@ export default function Layout ({ children }: { children: ReactNode }) {
         ]}
       />
       <DatasourceTypeTabs type={type} onTypeChange={type => router.push(`/datasources/create/${type}`)} />
-      {children}
+      <div className='max-w-screen-sm'>
+        {children}
+      </div>
     </>
   );
 }

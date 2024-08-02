@@ -1,20 +1,19 @@
 'use client';
 
 import { createLlm, listLlmOptions, type LLM, type LlmOption, testLlm } from '@/api/llms';
-import { FormInput, FormSwitch } from '@/components/form/control-widget';
+import { FormInput, FormSelect, type FormSelectConfig, FormSwitch } from '@/components/form/control-widget';
 import { FormFieldBasicLayout, FormFieldContainedLayout } from '@/components/form/field-layout';
 import { FormRootError } from '@/components/form/root-error';
 import { CodeInput } from '@/components/form/widgets/CodeInput';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { getErrorMessage } from '@/lib/errors';
 import { zodJsonText } from '@/lib/zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Loader2Icon } from 'lucide-react';
-import { type ReactNode, useEffect, useState } from 'react';
-import { useForm, useWatch } from 'react-hook-form';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import useSWR from 'swr';
 import { z } from 'zod';
@@ -37,17 +36,21 @@ const dictCredentialForm = unsetForm.extend({
 });
 
 export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: boolean, onCreated?: (llm: LLM) => void }) {
-  const [provider, setProvider] = useState<LlmOption>();
+  const { data: options, isLoading, error } = useSWR('api.llms.list-options', listLlmOptions);
 
   const form = useForm<any>({
-    resolver: zodResolver(
-      provider
-        ? provider.credentials_type === 'str'
-          ? strCredentialForm
-          : provider.credentials_type === 'dict'
-            ? dictCredentialForm
-            : unsetForm
-        : unsetForm),
+    resolver: (values, context, opts) => {
+      const provider = options?.find(option => option.provider === values.provider);
+
+      return zodResolver(
+        provider
+          ? provider.credentials_type === 'str'
+            ? strCredentialForm
+            : provider.credentials_type === 'dict'
+              ? dictCredentialForm
+              : unsetForm
+          : unsetForm)(values, context, opts);
+    },
     defaultValues: {
       name: '',
       provider: '',
@@ -57,6 +60,9 @@ export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: b
       config: '{}',
     },
   });
+
+  const providerName = form.watch('provider');
+  const provider = options?.find(option => option.provider === providerName);
 
   useEffect(() => {
     if (provider) {
@@ -101,7 +107,42 @@ export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: b
           <FormFieldBasicLayout name="name" label="Name">
             <FormInput />
           </FormFieldBasicLayout>
-          <LlmFields onSelectProvider={setProvider} />
+          <FormFieldBasicLayout name="provider" label="Provider">
+            <FormSelect
+              config={({
+                options: options ?? [],
+                key: 'provider',
+                loading: isLoading,
+                error,
+                renderOption: (option) => option.provider,
+              }) satisfies FormSelectConfig<LlmOption>}
+            />
+          </FormFieldBasicLayout>
+          {provider && (
+            <>
+              <FormFieldBasicLayout name="model" label="Model" description={provider.llm_model_description}>
+                <FormInput />
+              </FormFieldBasicLayout>
+              <FormFieldBasicLayout name="credentials" label={provider.credentials_display_name} description={provider.credentials_description}>
+                {provider.credentials_type === 'str'
+                  ? <FormInput placeholder={provider.default_credentials} />
+                  : <CodeInput language="json" placeholder={JSON.stringify(provider.default_credentials, undefined, 2)} />
+                }
+              </FormFieldBasicLayout>
+              <Accordion type="multiple">
+                <AccordionItem value="advanced-settings">
+                  <AccordionTrigger>
+                    Advanced Settings
+                  </AccordionTrigger>
+                  <AccordionContent className="px-4">
+                    <FormFieldBasicLayout name="config" label="Config">
+                      <CodeInput language="json" />
+                    </FormFieldBasicLayout>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </>
+          )}
           <FormFieldContainedLayout name="is_default" label="Is Default LLM" description="Enable will unset original default LLM.">
             <FormSwitch />
           </FormFieldContainedLayout>
@@ -112,81 +153,6 @@ export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: b
           </Button>
         </form>
       </Form>
-    </>
-  );
-}
-
-function useLlmOptions () {
-  const { data: options } = useSWR('api.llms.list-options', listLlmOptions);
-
-  return options;
-}
-
-function LlmFields ({ onSelectProvider }: { onSelectProvider: (llmOption: LlmOption | undefined) => void }) {
-  const providerOptions = useLlmOptions();
-  const provider = useWatch<{ provider: string }>({ name: 'provider' });
-
-  const providerOption = providerOptions?.find(o => o.provider === provider);
-
-  let fields: ReactNode;
-
-  if (!providerOption) {
-    fields = <div className="border rounded-lg bg-muted p-8 text-muted-foreground font-bold text-center text-lg">Select provider...</div>;
-  } else {
-    fields = (
-      <>
-        <FormFieldBasicLayout name="model" label="Model" description={providerOption.llm_model_description}>
-          <FormInput />
-        </FormFieldBasicLayout>
-        <FormFieldBasicLayout name="credentials" label={providerOption.credentials_display_name} description={providerOption.credentials_description}>
-          {providerOption.credentials_type === 'str'
-            ? <FormInput placeholder={providerOption.default_credentials} />
-            : <CodeInput language="json" placeholder={JSON.stringify(providerOption.default_credentials, undefined, 2)} />
-          }
-        </FormFieldBasicLayout>
-        <Accordion type="multiple">
-          <AccordionItem value="advanced-settings">
-            <AccordionTrigger>
-              Advanced Settings
-            </AccordionTrigger>
-            <AccordionContent className="px-4">
-              <FormFieldBasicLayout name="config" label="Config">
-                <CodeInput language="json" />
-              </FormFieldBasicLayout>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      </>
-    );
-  }
-
-  return (
-    <>
-      <FormFieldBasicLayout name="provider" label="Provider">
-        {field => (
-          <Select
-            value={field.value}
-            onValueChange={value => {
-              field.onChange(value);
-              onSelectProvider(providerOptions?.find(o => o.provider === value));
-            }}
-            name={field.name}
-            disabled={!providerOptions || field.disabled}
-          >
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {providerOptions?.map(option => (
-                <SelectItem key={option.provider} value={option.provider}>
-                  {option.provider}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        )}
-      </FormFieldBasicLayout>
-      {fields}
     </>
   );
 }

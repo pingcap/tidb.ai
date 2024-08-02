@@ -1,7 +1,12 @@
-import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
+import { getErrorMessage } from '@/lib/errors';
+import { cn } from '@/lib/utils';
+import * as SelectPrimitive from '@radix-ui/react-select';
 import type { SwitchProps } from '@radix-ui/react-switch';
-import { forwardRef } from 'react';
+import { ChevronDown, Loader2Icon, TriangleAlertIcon } from 'lucide-react';
+import * as React from 'react';
+import { forwardRef, type ReactElement, type ReactNode } from 'react';
 import { ControllerRenderProps, FieldPath, FieldValues } from 'react-hook-form';
 
 export interface FormControlWidgetProps<
@@ -33,5 +38,64 @@ export const FormSwitch = forwardRef<any, FormSwitchProps>(({ value, onChange, .
 
 FormSwitch.displayName = 'FormSwitch';
 
-export { CodeInput as FormJsonInput, type CodeInputProps as FormJsonInputProps } from './widgets/CodeInput';
+export type FormSelectConfig<T extends object> = {
+  loading?: boolean
+  error?: unknown
+  options: T[]
+  key: keyof T
+  renderOption: (option: T) => ReactNode;
+}
 
+export interface FormSelectProps extends FormControlWidgetProps {
+  children?: ReactElement;
+  placeholder?: string;
+  config: FormSelectConfig<any>;
+}
+
+export const FormSelect = forwardRef<any, FormSelectProps>(({ config, placeholder, value, onChange, name, disabled, children, ...props }, ref) => {
+  const isConfigReady = !config.loading && !config.error;
+  const current = config.options.find(option => option[config.key] === value);
+
+  return (
+    <Select
+      value={value}
+      onValueChange={onChange}
+      name={name}
+      disabled={disabled || !isConfigReady}
+    >
+      <SelectPrimitive.Trigger
+        ref={ref}
+        disabled={disabled || !isConfigReady}
+        {...props}
+        className={cn(
+          'flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+          (props as any).className,
+        )}
+        asChild={!!children}
+      >
+        {config.loading
+          ? <span></span>
+          : !!config.error
+            ? <span className="text-destructive">{getErrorMessage(config.error)}</span>
+            : (children ? children : current ? config.renderOption(current) : <span className="text-muted-foreground">{placeholder}</span>)
+        }
+        <SelectPrimitive.Icon asChild>
+          {config.loading
+            ? <Loader2Icon className="size-4 opacity-50 animate-spin repeat-infinite" />
+            : config.error
+              ? <TriangleAlertIcon className="size-4 text-destructive opacity-50" />
+              : <ChevronDown className="h-4 w-4 opacity-50" />}
+        </SelectPrimitive.Icon>
+      </SelectPrimitive.Trigger>
+      <SelectContent>
+        {config.options.map(option => (
+          <SelectItem value={option[config.key]} key={option[config.key]}>
+            {config.renderOption(option)}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  );
+});
+
+FormSelect.displayName = 'FormSelect';
