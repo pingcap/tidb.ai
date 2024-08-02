@@ -1,7 +1,6 @@
 from typing import Optional, List
 
 from fastapi import APIRouter
-from pydantic import BaseModel
 from app.models import Document
 from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.rag.retrieve import RetrieveService
