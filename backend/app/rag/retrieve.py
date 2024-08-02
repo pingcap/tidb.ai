@@ -67,9 +67,7 @@ class RetrieveService:
             )
 
             if kg_config.using_intent_search:
-                result = graph_index.intent_based_search(
-                    question, include_meta=True
-                )
+                result = graph_index.intent_based_search(question, include_meta=True)
 
                 graph_knowledges = get_prompt_by_jinja2_template(
                     self.chat_engine_config.llm.intent_graph_knowledge,
