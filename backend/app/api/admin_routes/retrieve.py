@@ -14,7 +14,7 @@ async def retrieve_documents(
     user: CurrentSuperuserDep,
     question: str,
     chat_engine: str = "default",
-    top_k: Optional[int] = None,
+    top_k: Optional[int] = 5,
 ) -> List[Document]:
     retrieve_service = RetrieveService(session, chat_engine)
     return retrieve_service.retrieve(question, top_k=top_k)
