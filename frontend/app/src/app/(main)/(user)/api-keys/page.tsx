@@ -23,11 +23,10 @@ const helper = createColumnHelper<ApiKey>();
 const mono = (cell: CellContext<any, any>) => <span className="font-mono">{cell.getValue()}</span>;
 
 const columns = [
-  helper.accessor('description', {}),
-  helper.accessor('api_key_display', { cell: mono }),
-  helper.accessor('is_active', { cell: (ctx) => ctx.getValue() ? 'Yes' : 'No' }),
-  helper.accessor('created_at', { cell: datetime }),
-  helper.accessor('updated_at', { cell: datetime }),
+  helper.accessor('api_key_display', { header: 'API Key', cell: mono }),
+  helper.accessor('description', { header: 'Description' }),
+  helper.accessor('created_at', { header: 'Created At', cell: datetime }),
+  helper.accessor('updated_at', { header: 'Updated At', cell: datetime }),
   helper.display({
     header: 'Actions',
     cell: ({ row }) => (
