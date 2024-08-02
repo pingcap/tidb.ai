@@ -13,6 +13,7 @@ from app.rag.knowledge_graph.graph_store.helpers import (
 )
 from app.rag.knowledge_graph.graph_store.tidb_graph_store import TiDBGraphStore
 from app.rag.knowledge_graph.schema import Relationship as RelationshipAIModel
+from app.rag.chat_config import get_default_embedding_model
 from app.staff_action import create_staff_action_log
 
 
@@ -26,10 +27,11 @@ def update_entity(session: Session, entity: Entity, new_entity: dict) -> Entity:
         if value is not None:
             setattr(entity, key, value)
             flag_modified(entity, key)
+    embed_model = get_default_embedding_model(session)
     entity.description_vec = get_entity_description_embedding(
-        entity.name, entity.description
+        entity.name, entity.description, embed_model
     )
-    entity.meta_vec = get_entity_metadata_embedding(entity.meta)
+    entity.meta_vec = get_entity_metadata_embedding(entity.meta, embed_model)
     for relationship in session.exec(
         select(Relationship)
         .options(
@@ -47,6 +49,7 @@ def update_entity(session: Session, entity: Entity, new_entity: dict) -> Entity:
             relationship.target_entity.name,
             relationship.target_entity.description,
             relationship.description,
+            embed_model,
         )
         session.add(relationship)
     session.commit()
@@ -99,12 +102,14 @@ def update_relationship(
         if value is not None:
             setattr(relationship, key, value)
             flag_modified(relationship, key)
+    embed_model = get_default_embedding_model(session)
     relationship.description_vec = get_relationship_description_embedding(
         relationship.source_entity.name,
         relationship.source_entity.description,
         relationship.target_entity.name,
         relationship.target_entity.description,
         relationship.description,
+        embed_model,
     )
     session.commit()
     session.refresh(relationship)
@@ -121,7 +126,8 @@ def update_relationship(
 
 
 def search_similar_entities(session: Session, query: str, top_k: int = 10) -> list:
-    embedding = get_query_embedding(query)
+    embed_model = get_default_embedding_model(session)
+    embedding = get_query_embedding(query, embed_model)
     return session.exec(
         select(Entity)
         .where(Entity.entity_type == EntityType.original)
@@ -138,13 +144,16 @@ def create_synopsis_entity(
     meta: dict,
     related_entities_ids: List[int],
 ) -> Entity:
+    embed_model = get_default_embedding_model(session)
     with session.begin():
         synopsis_entity = Entity(
             name=name,
             description=description,
-            description_vec=get_entity_description_embedding(name, description),
+            description_vec=get_entity_description_embedding(
+                name, description, embed_model
+            ),
             meta=meta,
-            meta_vec=get_entity_metadata_embedding(meta),
+            meta_vec=get_entity_metadata_embedding(meta, embed_model),
             entity_type=EntityType.synopsis,
             synopsis_info={
                 "entities": related_entities_ids,

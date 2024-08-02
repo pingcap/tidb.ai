@@ -27,7 +27,7 @@ class ChatRepo(BaseRepo):
                     or_(Chat.user_id == user.id, Chat.browser_id == browser_id)
                 )
         else:
-            query = query.where(Chat.browser_id == browser_id)
+            query = query.where(Chat.browser_id == browser_id, Chat.user_id == None)
         query = query.order_by(Chat.created_at.desc())
         return paginate(session, query, params)
 

@@ -48,7 +48,7 @@ class LLMOption(BaseModel):
 
 
 class VectorSearchOption(BaseModel):
-    metadata_post_filters: Optional[MetadataFilters] = (None,)
+    metadata_post_filters: Optional[MetadataFilters] = None
 
 
 class KnowledgeGraphOption(BaseModel):

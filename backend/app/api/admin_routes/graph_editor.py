@@ -9,6 +9,7 @@ from app.models import (
 )
 from app.rag.knowledge_graph.graph_store import tidb_graph_editor as editor
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
+from app.rag.chat_config import get_default_embedding_model
 
 
 router = APIRouter()
@@ -138,6 +139,7 @@ def search_graph(session: SessionDep, request: SearchRequest):
     graph_store = TiDBGraphStore(
         dspy_lm=None,
         session=session,
+        embed_model=get_default_embedding_model(session),
     )
     entities, relations, _ = graph_store.retrieve_with_weight(
         request.query,

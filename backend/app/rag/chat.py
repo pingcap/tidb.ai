@@ -123,7 +123,7 @@ class ChatService:
         langfuse = Langfuse()
         observation = langfuse.trace(
             name="chat",
-            user_id=self.user.email if self.user else "anonymous",
+            user_id=self.user.email if self.user else f"anonymous-{self.browser_id}",
             metadata={
                 "chat_engine_config": self.chat_engine_config.screenshot(),
             },
