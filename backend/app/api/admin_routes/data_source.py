@@ -98,8 +98,8 @@ def get_datasource_overview(
         .group_by(Document.index_status)
         .order_by(Document.index_status)
     )
-    status = session.exec(statement).all()
-    vector_index_status = {s: c for s, c in status}
+    results = session.exec(statement).all()
+    vector_index_status = {s: c for s, c in results}
 
     if data_source.build_kg_index:
         statement = (
@@ -108,8 +108,8 @@ def get_datasource_overview(
             .group_by(Chunk.index_status)
             .order_by(Chunk.index_status)
         )
-        status = session.exec(statement).all()
-        kg_index_status = {s: c for s, c in status}
+        results = session.exec(statement).all()
+        kg_index_status = {s: c for s, c in results}
     else:
         kg_index_status = {}
 
