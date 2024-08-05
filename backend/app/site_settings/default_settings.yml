@@ -88,3 +88,20 @@ custom_js:
     data_type: str
     description: "The logo on the custom_js."
     client: true
+
+chat:
+  langfuse_secret_key:
+    default: ""
+    data_type: str
+    description: "The secret key of Langfuse."
+    client: false
+  langfuse_public_key:
+    default: ""
+    data_type: str
+    description: "The public key of Langfuse."
+    client: false
+  langfuse_host:
+    default: "https://us.cloud.langfuse.com"
+    data_type: str
+    description: "The host of Langfuse."
+    client: false

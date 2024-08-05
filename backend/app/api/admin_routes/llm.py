@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlmodel import select, update
+from langfuse import Langfuse
 
 from app.core.config import settings
 from app.api.deps import SessionDep, CurrentSuperuserDep
@@ -18,6 +19,7 @@ from app.models import (
     EmbeddingModel,
     AdminEmbeddingModel,
 )
+from app.site_settings import SiteSetting
 
 router = APIRouter()
 
@@ -178,3 +180,36 @@ def create_embedding_model(
     session.commit()
     session.refresh(embed_model)
     return embed_model
+
+
+class LangfuseSetting(BaseModel):
+    host: str = "https://us.cloud.langfuse.com"
+    public_key: str
+    secret_key: str
+
+
+class LangfuseTestResult(BaseModel):
+    success: bool
+    error: str = ""
+
+
+@router.post("/admin/langfuse/test")
+def test_langfuse(
+    user: CurrentSuperuserDep,
+    request: LangfuseSetting,
+) -> LangfuseTestResult:
+    try:
+        lf = Langfuse(
+            host=request.host,
+            secret_key=request.secret_key,
+            public_key=request.public_key,
+        )
+        success = lf.auth_check()
+        if not success:
+            error = "Langfuse authentication failed, please check public_key, secret_key and host."
+        else:
+            error = ""
+    except Exception as e:
+        success = False
+        error = str(e)
+    return LangfuseTestResult(success=success, error=error)

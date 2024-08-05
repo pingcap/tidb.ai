@@ -41,6 +41,7 @@ from app.rag.types import (
     MessageRole,
 )
 from app.repositories import chat_repo
+from app.site_settings import SiteSetting
 
 logger = logging.getLogger(__name__)
 
@@ -62,6 +63,13 @@ class ChatService:
         self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
         self._reranker = self.chat_engine_config.get_reranker(db_session)
         self._metadata_filter = self.chat_engine_config.get_metadata_filter()
+
+        self.langfuse_host = SiteSetting.langfuse_host
+        self.langfuse_secret_key = SiteSetting.langfuse_secret_key
+        self.langfuse_public_key = SiteSetting.langfuse_public_key
+        self.enable_langfuse = (
+            self.langfuse_host and self.langfuse_secret_key and self.langfuse_public_key
+        )
 
     def chat(
         self, chat_messages: List[ChatMessage], chat_id: Optional[UUID] = None
@@ -120,22 +128,32 @@ class ChatService:
                     ),
                 )
 
-        langfuse = Langfuse()
-        observation = langfuse.trace(
-            name="chat",
-            user_id=self.user.email if self.user else f"anonymous-{self.browser_id}",
-            metadata={
-                "chat_engine_config": self.chat_engine_config.screenshot(),
-            },
-            tags=[f"chat_engine:{self.engine_name}"],
-            release=settings.ENVIRONMENT,
-            input={
-                "user_question": user_question,
-                "chat_history": chat_history,
-            },
-        )
-        trace_id = observation.trace_id
-        trace_url = observation.get_trace_url()
+        if self.enable_langfuse:
+            langfuse = Langfuse(
+                host=self.langfuse_host,
+                secret_key=self.langfuse_secret_key,
+                public_key=self.langfuse_public_key,
+            )
+            observation = langfuse.trace(
+                name="chat",
+                user_id=self.user.email
+                if self.user
+                else f"anonymous-{self.browser_id}",
+                metadata={
+                    "chat_engine_config": self.chat_engine_config.screenshot(),
+                },
+                tags=[f"chat_engine:{self.engine_name}"],
+                release=settings.ENVIRONMENT,
+                input={
+                    "user_question": user_question,
+                    "chat_history": chat_history,
+                },
+            )
+            trace_id = observation.trace_id
+            trace_url = observation.get_trace_url()
+        else:
+            trace_id = ""
+            trace_url = ""
 
         db_user_message = chat_repo.create_message(
             session=self.db_session,
@@ -160,16 +178,19 @@ class ChatService:
         _fast_llm = self.chat_engine_config.get_fast_llama_llm(self.db_session)
         _fast_dspy_lm = self.chat_engine_config.get_fast_dspy_lm(self.db_session)
 
-        def _get_langfuse_callback_manager():
+        def _get_llamaindex_callback_manager():
             # Why we don't use high-level decorator `observe()` as \
             #   `https://langfuse.com/docs/integrations/llama-index/get-started` suggested?
             # track:
             #   - https://github.com/langfuse/langfuse/issues/2015
             #   - https://langfuse.com/blog/2024-04-python-decorator
-            observation = langfuse.trace(id=trace_id)
-            langfuse_handler = LlamaIndexCallbackHandler()
-            langfuse_handler.set_root(observation)
-            callback_manager = CallbackManager([langfuse_handler])
+            if self.enable_langfuse:
+                observation = langfuse.trace(id=trace_id)
+                langfuse_handler = LlamaIndexCallbackHandler()
+                langfuse_handler.set_root(observation)
+                callback_manager = CallbackManager([langfuse_handler])
+            else:
+                callback_manager = CallbackManager([])
             _llm.callback_manager = callback_manager
             _fast_llm.callback_manager = callback_manager
             _embed_model.callback_manager = callback_manager
@@ -198,7 +219,7 @@ class ChatService:
         )
 
         # 1. Retrieve entities, relations, and chunks from the knowledge graph
-        callback_manager = _get_langfuse_callback_manager()
+        callback_manager = _get_llamaindex_callback_manager()
         kg_config = self.chat_engine_config.knowledge_graph
         if kg_config.enabled:
             graph_store = TiDBGraphStore(
@@ -267,7 +288,7 @@ class ChatService:
                 display="Refine the user question ...",
             ),
         )
-        callback_manager = _get_langfuse_callback_manager()
+        callback_manager = _get_llamaindex_callback_manager()
         with callback_manager.as_trace("condense_question"):
             with callback_manager.event(
                 MyCBEventType.CONDENSE_QUESTION,
@@ -293,7 +314,7 @@ class ChatService:
                 display="Search related documents ...",
             ),
         )
-        callback_manager = _get_langfuse_callback_manager()
+        callback_manager = _get_llamaindex_callback_manager()
         text_qa_template = get_prompt_by_jinja2_template(
             self.chat_engine_config.llm.text_qa_prompt,
             graph_knowledges=graph_knowledges_context,

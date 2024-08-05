@@ -20,19 +20,37 @@ def site_config() -> dict:
     return SiteSetting.get_client_settings()
 
 
-class SystemCheckResponse(BaseModel):
-    has_default_llm: bool
-    has_default_embedding_model: bool
-    has_datasource: bool
+class RequiredConfigStatus(BaseModel):
+    default_llm: bool
+    default_embedding_model: bool
+    datasource: bool
 
 
-@router.get("/system/check")
-def system_check(session: SessionDep) -> SystemCheckResponse:
+class OptionalConfigStatus(BaseModel):
+    langfuse: bool
+
+
+class SystemConfigStatusResponse(BaseModel):
+    required: RequiredConfigStatus
+    optional: OptionalConfigStatus
+
+
+@router.get("/system/bootstrap-status")
+def system_bootstrap_status(session: SessionDep) -> SystemConfigStatusResponse:
     has_default_llm, has_default_embedding_model, has_datasource = (
         check_rag_required_config(session)
     )
-    return SystemCheckResponse(
-        has_default_llm=has_default_llm,
-        has_default_embedding_model=has_default_embedding_model,
-        has_datasource=has_datasource,
+    return SystemConfigStatusResponse(
+        required=RequiredConfigStatus(
+            default_llm=has_default_llm,
+            default_embedding_model=has_default_embedding_model,
+            datasource=has_datasource,
+        ),
+        optional=OptionalConfigStatus(
+            langfuse=bool(
+                SiteSetting.langfuse_host
+                and SiteSetting.langfuse_secret_key
+                and SiteSetting.langfuse_public_key
+            )
+        ),
     )
