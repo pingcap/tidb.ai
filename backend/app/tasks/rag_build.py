@@ -10,16 +10,35 @@ from app.core.db import engine
 from app.models import (
     Document as DBDocument,
     Chunk as DBChunk,
+    LLM as DBLLM,
     DataSource,
     DocIndexTaskStatus,
     KgIndexStatus,
 )
 from app.rag.build import BuildService
+from app.rag.chat_config import get_llm, get_default_embedding_model
 from app.rag.types import OpenAIModel, GeminiModel
 from app.utils.dspy import get_dspy_lm_by_llama_llm
 
 
 logger = get_task_logger(__name__)
+
+
+def get_llm_by_data_source_id(session: Session, data_source_id: int) -> Gemini:
+    datasource = session.get(DataSource, data_source_id)
+    if datasource is None:
+        raise ValueError(f"DataSource {data_source_id} not found")
+
+    if datasource.llm_id is None:
+        return get_default_embedding_model(session)
+
+    llm = session.get(DBLLM, datasource.llm_id)
+    return get_llm(
+        provider=llm.provider,
+        model=llm.model,
+        config=llm.config,
+        credentials=llm.credentials,
+    )
 
 
 @celery_app.task
@@ -37,6 +56,8 @@ def build_vector_index_from_document(document_id: int):
             logger.info(f"Document {document_id} not in pending state")
             return
 
+        llm = get_llm_by_data_source_id(session, db_document.data_source_id)
+
         db_document.index_status = DocIndexTaskStatus.RUNNING
         session.commit()
 
@@ -51,9 +72,6 @@ def build_vector_index_from_document(document_id: int):
 
     try:
         with Session(engine) as index_session:
-            # TODO: user should be able to choose the chat engine
-            llm = Gemini(model=GeminiModel.GEMINI_15_FLASH)
-            # llm = OpenAI(model=OpenAIModel.GPT_35_TURBO)
             build_service = BuildService(
                 llm=llm,
                 dspy_lm=get_dspy_lm_by_llama_llm(llm),
@@ -98,12 +116,13 @@ def build_kg_index_from_chunk(chunk_id: UUID):
             logger.info(f"Chunk {chunk_id} not in pending state")
             return
 
+        llm = get_llm_by_data_source_id(session, db_chunk.document.data_source_id)
+
         db_chunk.index_status = KgIndexStatus.RUNNING
         session.commit()
 
     try:
         with Session(engine) as index_session:
-            llm = Gemini(model=GeminiModel.GEMINI_15_FLASH)
             build_service = BuildService(
                 llm=llm,
                 dspy_lm=get_dspy_lm_by_llama_llm(llm),

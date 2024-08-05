@@ -47,7 +47,7 @@ class WebSitemapDataSource(BaseDataSource):
         WebSitemapConfig.model_validate(self.config)
 
     def load_documents(self) -> Generator[Document, None, None]:
-        sitemap_url = self.config.url
+        sitemap_url = self.config["url"]
         urls = extract_urls_from_sitemap(sitemap_url)
 
         with sync_playwright() as p:
@@ -55,7 +55,7 @@ class WebSitemapDataSource(BaseDataSource):
             for url in urls:
                 page = browser.new_page()
                 response = page.goto(url)
-                if response.status() >= 400:
+                if response.status >= 400:
                     logger.error(
                         f"Failed to load page: {url}, response status: {response.status()}, skipping"
                     )

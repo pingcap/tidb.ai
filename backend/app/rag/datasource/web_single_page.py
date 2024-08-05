@@ -22,12 +22,12 @@ class WebSinglePageDataSource(BaseDataSource):
         WebSinglePageConfig.model_validate(self.config)
 
     def load_documents(self) -> Generator[Document, None, None]:
-        url = self.config.url
+        url = self.config["url"]
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
             page = browser.new_page()
             response = page.goto(url)
-            if response.status() >= 400:
+            if response.status >= 400:
                 logger.error(f"Failed to load page: {url}")
                 return
             soup = BeautifulSoup(page.content(), "html.parser")

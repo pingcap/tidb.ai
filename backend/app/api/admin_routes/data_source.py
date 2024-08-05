@@ -22,6 +22,7 @@ class DataSourceCreate(BaseModel):
     data_source_type: DataSourceType
     config: dict | list
     build_kg_index: bool = False
+    llm_id: int | None = None
 
 
 @router.post("/admin/datasources")
@@ -35,6 +36,7 @@ def create_datasource(
         config=request.config,
         build_kg_index=request.build_kg_index,
         user_id=user.id,
+        llm_id=request.llm_id,
     )
     session.add(data_source)
     session.commit()

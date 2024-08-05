@@ -22,7 +22,7 @@ class FileDataSource(BaseDataSource):
 
     def load_documents(self) -> Generator[Document, None, None]:
         for f_config in self.config:
-            upload_id = f_config.file_id
+            upload_id = f_config["file_id"]
             upload = self.session.get(Upload, upload_id)
             if upload is None:
                 logger.error(f"Upload with id {upload_id} not found")

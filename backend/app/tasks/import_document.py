@@ -13,7 +13,7 @@ logger = get_task_logger(__name__)
 
 @celery_app.task
 def import_documents_from_datasource(datasource_id: int):
-    with Session(engine, autocommit=True) as session:
+    with Session(engine) as session:
         datasource = session.get(DataSource, datasource_id)
         if datasource is None:
             logger.error(f"Data source with id {datasource_id} not found")

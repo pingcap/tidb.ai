@@ -32,5 +32,11 @@ class DataSource(UpdatableBaseModel, table=True):
             "primaryjoin": "DataSource.user_id == User.id",
         },
     )
+    llm_id: Optional[int] = Field(foreign_key="llms.id", nullable=True)
+    llm: "LLM" = SQLRelationship(
+        sa_relationship_kwargs={
+            "foreign_keys": "DataSource.llm_id",
+        },
+    )
 
     __tablename__ = "data_sources"

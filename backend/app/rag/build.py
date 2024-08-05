@@ -16,6 +16,7 @@ from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.knowledge_graph import KnowledgeGraphIndex
 from app.rag.node_parser import MarkdownNodeParser
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
+from app.rag.chat_config import get_default_embedding_model
 from app.models import (
     Document as DBDocument,
     Chunk as DBChunk,
@@ -36,13 +37,12 @@ class BuildService:
     ):
         self._llm = llm
         self._dspy_lm = dspy_lm
-        self._embed_model = OpenAIEmbedding(
-            model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL
-        )
 
     def build_vector_index_from_document(
         self, session: Session, db_document: DBDocument
     ):
+        embed_mode = get_default_embedding_model(session)
+
         if db_document.mime_type.lower() == "text/markdown":
             spliter = MarkdownNodeParser()
         else:
@@ -65,7 +65,7 @@ class BuildService:
         vector_store = TiDBVectorStore(session=session)
         vector_index = VectorStoreIndex.from_vector_store(
             vector_store,
-            embed_model=self._embed_model,
+            embed_model=embed_mode,
             transformations=_transformations,
         )
         document = db_document.to_llama_document()
@@ -76,12 +76,14 @@ class BuildService:
         return
 
     def build_kg_index_from_chunk(self, session: Session, db_chunk: DBChunk):
+        embed_mode = get_default_embedding_model(session)
+
         # Build graph index will do the following:
         # 1. load TextNode from `chunks` table.
         # 2. extract entities and relations from TextNode.
         # 3. insert entities and relations into `entities` and `relations` table.
         graph_store = TiDBGraphStore(
-            session=session, dspy_lm=self._dspy_lm, embed_model=self._embed_model
+            session=session, dspy_lm=self._dspy_lm, embed_model=embed_mode
         )
         graph_index: KnowledgeGraphIndex = KnowledgeGraphIndex.from_existing(
             dspy_lm=self._dspy_lm, kg_store=graph_store
