@@ -36,16 +36,7 @@ export async function getBootstrapStatus (): Promise<BootstrapStatus> {
     headers: {
       ...await opaqueCookieHeader(),
     },
-  }).then(handleResponse(bootstrapStatusSchema)).then(() => ({
-    required: {
-      datasource: false,
-      default_llm: false,
-      default_embedding_model: false,
-    },
-    optional: {
-      langfuse: false,
-    },
-  }));
+  }).then(handleResponse(bootstrapStatusSchema));
 }
 
 export function isBootstrapStatusPassed (bootstrapStatus: BootstrapStatus): boolean {
