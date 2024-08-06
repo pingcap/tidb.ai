@@ -44,27 +44,45 @@ A conversational search tool based on GraphRAG (Knowledge Graph) that built on t
     cd tidb.ai
     ```
 
-2. Copy and edit the `.env` file in the `backend` directory:
+2. Copy and edit the `.env` file:
 
     ```bash
-    cp ./backend/.env.example ./backend/.env
-    vim ./backend/.env # or use another text editor to edit this file
+    cp .env.example .env
+    vim .env # or use another text editor to edit this file
     ```
 
-3. Migrate the database schema:
+    Replace the following placeholders with your own values:
+    - `SECRET_KEY`: you can generate a random secret key using `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`
+    - `JINAAI_API_KEY`: get one from [Jina AI](https://jina.ai/reranker/)
+    - `TIDB_HOST`, `TIDB_USER`, `TIDB_PASSWORD` and `TIDB_DATABASE`: get them from your [TiDB Serverless cluster](https://tidbcloud.com/)
+
+3. Build docker images:
 
     ```bash
-    cd backend
-    rye sync
-    make migrate
-    cd ..
+    docker compose build
     ```
 
-4. Start the services using Docker Compose:
+4. Migrate the database schema:
+
+    ```bash
+    docker compose run backend /bin/sh -c "alembic upgrade head"
+    ```
+
+5. Bootstrap the database with initial data:
+
+    ```bash
+    docker compose run backend /bin/sh -c "python bootstrap.py"
+    ```
+
+    Running the bootstrap script creates an admin user. You can find the username and password in the output.
+
+6. Start the services:
 
     ```bash
     docker compose up
     ```
+
+7. Open your browser and visit `http://localhost:3000` to access the web interface.
 
 ## Tech Stack
 

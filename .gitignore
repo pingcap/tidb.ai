@@ -2,4 +2,5 @@
 .env
 
 redis-data
+data
 venv

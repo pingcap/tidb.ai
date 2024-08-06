@@ -17,7 +17,9 @@ services:
     ports:
       - "5000:80"
     env_file:
-      - ./backend/.env
+      - .env
+    volumes:
+      - ./data:/shared/data
     logging:
       driver: json-file
       options:
@@ -49,11 +51,12 @@ services:
     restart: always
     depends_on:
       - redis
-      - backend
     ports:
       - "5555:5555"
     env_file:
-      - ./backend/.env
+      - .env
+    volumes:
+      - ./data:/shared/data
     command: /usr/bin/supervisord
     logging:
       driver: json-file
