@@ -66,6 +66,7 @@ export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transi
         ...form.getValues(),
         model: provider.default_embedding_model,
         credentials: provider.credentials_type === 'dict' ? undefined : '',
+        config: '{}'
       });
     } else {
       const { name } = form.getValues();
@@ -74,6 +75,7 @@ export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transi
         provider: '',
         credentials: '',
         model: '',
+        config: '{}'
       });
     }
   }, [provider]);

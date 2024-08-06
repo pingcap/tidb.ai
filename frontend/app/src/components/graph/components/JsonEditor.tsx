@@ -40,7 +40,9 @@ export const JsonEditor = forwardRef<monaco.editor.IStandaloneCodeEditor | undef
 
   useEffect(() => {
     if (editor) {
-      editor.setValue(defaultValue);
+      if (defaultValue != null) {
+        editor.setValue(defaultValue);
+      }
     }
   }, [editor, defaultValue]);
 

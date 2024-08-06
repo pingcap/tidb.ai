@@ -94,8 +94,9 @@ export const CodeInput = forwardRef<any, CodeInputProps>(({
 
   useEffect(() => {
     if (editor) {
-      if (value !== editor.getValue()) {
-        editor.setValue(value);
+      const rValue = value || '';
+      if (rValue !== editor.getValue()) {
+        editor.setValue(rValue);
       }
     }
   }, [editor, value]);
