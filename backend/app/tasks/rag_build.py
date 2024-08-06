@@ -2,8 +2,7 @@ import traceback
 from uuid import UUID
 from sqlmodel import Session, select
 from celery.utils.log import get_task_logger
-from llama_index.llms.openai import OpenAI
-from llama_index.llms.gemini import Gemini
+from llama_index.core.llms.llm import LLM
 
 from app.celery import app as celery_app
 from app.core.db import engine
@@ -17,14 +16,13 @@ from app.models import (
 )
 from app.rag.build import BuildService
 from app.rag.chat_config import get_llm, get_default_llm
-from app.rag.types import OpenAIModel, GeminiModel
 from app.utils.dspy import get_dspy_lm_by_llama_llm
 
 
 logger = get_task_logger(__name__)
 
 
-def get_llm_by_data_source_id(session: Session, data_source_id: int) -> Gemini:
+def get_llm_by_data_source_id(session: Session, data_source_id: int) -> LLM:
     datasource = session.get(DataSource, data_source_id)
     if datasource is None:
         raise ValueError(f"DataSource {data_source_id} not found")
@@ -60,7 +58,9 @@ def build_vector_index_from_document(document_id: int):
             llm = get_llm_by_data_source_id(session, db_document.data_source_id)
         except ValueError as e:
             # LLM may not be available yet(eg. bootstrapping), retry after specified time
-            logger.warning(f"Error while getting LLM for document {document_id}: {e}, task will be retried after 1 minutes")
+            logger.warning(
+                f"Error while getting LLM for document {document_id}: {e}, task will be retried after 1 minutes"
+            )
             raise build_vector_index_from_document.retry(countdown=60)
 
         db_document.index_status = DocIndexTaskStatus.RUNNING
