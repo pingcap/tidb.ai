@@ -22,11 +22,13 @@ async def ensure_admin_user(session: AsyncSession) -> None:
             is_verified=True,
             is_superuser=True,
         )
+        print("\n" + "!" * 80)
         print(
             "[IMPORTANT] Admin user created with email: "
             f"{admin_email} and password: {admin_password}, "
             "please change the password after login"
         )
+        print("!" * 80 + "\n")
 
 
 async def ensure_default_chat_engine(session: AsyncSession) -> None:
