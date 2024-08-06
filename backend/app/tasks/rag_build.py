@@ -16,7 +16,7 @@ from app.models import (
     KgIndexStatus,
 )
 from app.rag.build import BuildService
-from app.rag.chat_config import get_llm, get_default_embedding_model
+from app.rag.chat_config import get_llm, get_default_llm
 from app.rag.types import OpenAIModel, GeminiModel
 from app.utils.dspy import get_dspy_lm_by_llama_llm
 
@@ -30,7 +30,7 @@ def get_llm_by_data_source_id(session: Session, data_source_id: int) -> Gemini:
         raise ValueError(f"DataSource {data_source_id} not found")
 
     if datasource.llm_id is None:
-        return get_default_embedding_model(session)
+        return get_default_llm(session)
 
     llm = session.get(DBLLM, datasource.llm_id)
     return get_llm(
