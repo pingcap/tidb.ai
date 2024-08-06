@@ -11,7 +11,7 @@ dependencies = [
     "pymysql>=1.1.1",
     "celery>=5.4.0",
     "dspy-ai>=2.4.9",
-    "langfuse==2.36.2",
+    "langfuse>=2.42.0",
     "llama-index>=0.10.59",
     "alembic>=1.13.1",
     "pydantic>=2.8.2",
