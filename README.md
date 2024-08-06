@@ -34,8 +34,7 @@ A conversational search tool based on GraphRAG (Knowledge Graph) that built on t
 >
 > 1. Set up a [TiDB Serverless cluster](https://docs.pingcap.com/tidbcloud/tidb-cloud-quickstart).
 > 2. Install [Docker Compose](https://docs.docker.com/compose/install/).
-> 3. Install [Python 3.11](https://www.python.org/downloads/release/python-3110/).
-> 4. Install [Rye](https://rye.astral.sh/guide/installation/).
+> 3. Jina AI API key, get one from [Jina AI](https://jina.ai/reranker/).
 
 1. Clone the repository:
 
