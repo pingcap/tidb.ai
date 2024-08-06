@@ -111,6 +111,7 @@ export function SystemWizardDialog () {
                 <AccordionContent className="px-4">
                   <DatasourceTypeTabs className="mb-4" type={datasourceType} onTypeChange={setDatasourceType} />
                   <CreateDatasourceForm
+                    excludesLLM
                     type={datasourceType}
                     transitioning={transitioning}
                     onCreated={() => {
@@ -126,7 +127,7 @@ export function SystemWizardDialog () {
               <AccordionTrigger>
                   <span>
                     <StatusIcon flag={bootstrapStatus.optional.langfuse} optional />
-                    <span className='text-accent-foreground'>{'[Optional] '}</span>
+                    <span className="text-accent-foreground">{'[Optional] '}</span>
                     Setup Langfuse
                   </span>
               </AccordionTrigger>

@@ -44,6 +44,7 @@ export type FormSelectConfig<T extends object> = {
   options: T[]
   key: keyof T
   renderOption: (option: T) => ReactNode;
+  renderValue?: (option: T) => ReactNode;
 }
 
 export interface FormSelectProps extends FormControlWidgetProps {
@@ -58,8 +59,13 @@ export const FormSelect = forwardRef<any, FormSelectProps>(({ config, placeholde
 
   return (
     <Select
-      value={value}
-      onValueChange={onChange}
+      value={value == null ? '' : String(value)}
+      onValueChange={value => {
+        const item = config.options.find(option => String(option[config.key]) === value);
+        if (item) {
+          onChange?.(item[config.key]);
+        }
+      }}
       name={name}
       disabled={disabled || !isConfigReady}
     >
@@ -77,7 +83,7 @@ export const FormSelect = forwardRef<any, FormSelectProps>(({ config, placeholde
           ? <span></span>
           : !!config.error
             ? <span className="text-destructive">{getErrorMessage(config.error)}</span>
-            : (children ? children : current ? config.renderOption(current) : <span className="text-muted-foreground">{placeholder}</span>)
+            : (children ? children : current ? (config.renderValue ?? config.renderOption)(current) : <span className="text-muted-foreground">{placeholder}</span>)
         }
         <SelectPrimitive.Icon asChild>
           {config.loading
@@ -89,7 +95,7 @@ export const FormSelect = forwardRef<any, FormSelectProps>(({ config, placeholde
       </SelectPrimitive.Trigger>
       <SelectContent>
         {config.options.map(option => (
-          <SelectItem value={option[config.key]} key={option[config.key]}>
+          <SelectItem value={String(option[config.key])} key={option[config.key]}>
             {config.renderOption(option)}
           </SelectItem>
         ))}

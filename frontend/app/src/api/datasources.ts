@@ -11,6 +11,7 @@ interface DatasourceBase {
   updated_at: Date;
   user_id: string;
   build_kg_index: boolean;
+  llm_id: number | null
 }
 
 export type Datasource = DatasourceBase & ({
@@ -34,6 +35,7 @@ export interface BaseCreateDatasourceParams {
   name: string;
   description: string;
   build_kg_index: boolean;
+  llm_id: number | null;
 }
 
 export type CreateDatasourceParams = BaseCreateDatasourceParams & ({
@@ -63,6 +65,7 @@ const baseDatasourceSchema = z.object({
   updated_at: zodJsonDate(),
   user_id: z.string(),
   build_kg_index: z.boolean(),
+  llm_id: z.number().nullable()
 });
 
 const datasourceSchema = baseDatasourceSchema

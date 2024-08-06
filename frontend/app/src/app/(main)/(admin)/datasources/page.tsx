@@ -4,6 +4,7 @@ import { type Datasource, listDataSources } from '@/api/datasources';
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
+import { LlmInfo } from '@/components/llm/LlmInfo';
 import { buttonVariants } from '@/components/ui/button';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
@@ -20,6 +21,7 @@ const columns = [
     ),
   }),
   helper.accessor('data_source_type', {}),
+  helper.accessor('llm_id', { cell: (ctx) => <LlmInfo reverse id={ctx.getValue()} /> }),
   helper.accessor('build_kg_index', {}),
   helper.accessor('user_id', {}),
 ] as ColumnDef<Datasource>[];

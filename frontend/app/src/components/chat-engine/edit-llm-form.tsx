@@ -2,6 +2,8 @@
 
 import { type ChatEngine, updateChatEngine } from '@/api/chat-engines';
 import { listLlms } from '@/api/llms';
+import { LLMSelect } from '@/components/form/biz';
+import { FormFieldBasicLayout } from '@/components/form/field-layout';
 import { LlmInfo } from '@/components/llm/LlmInfo';
 import { useManagedDialog } from '@/components/managed-dialog';
 import { Button } from '@/components/ui/button';
@@ -56,36 +58,9 @@ export function EditLlmForm ({ type, chatEngine }: EditLlmFormProps) {
       </DialogHeader>
       <Form {...form}>
         <form id="update-form" className="space-y-4" onSubmit={handleSubmit}>
-          <FormField
-            name="llm"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{type === 'llm' ? 'LLM' : 'Fast LLM'}</FormLabel>
-                <FormControl>
-                  <Select
-                    name={field.name}
-                    disabled={!llms || field.disabled}
-                    value={String(field.value)}
-                    onValueChange={value => field.onChange(parseInt(value))}
-                  >
-                    <SelectTrigger>
-                      <span>
-                        <LlmInfo reverse id={field.value} />
-                      </span>
-                    </SelectTrigger>
-                    <SelectContent>
-                      {llms?.items.map(llm => (
-                        <SelectItem value={String(llm.id)} key={llm.id}>
-                          {llm.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <FormFieldBasicLayout name="llm" label={type === 'llm' ? 'LLM' : 'Fast LLM'}>
+            <LLMSelect />
+          </FormFieldBasicLayout>
         </form>
       </Form>
       <DialogFooter>

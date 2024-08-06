@@ -8,10 +8,11 @@ export interface CreateDatasourceFormProps {
   type: 'file' | 'web-single-page' | 'web-sitemap';
   onCreated?: (datasource: Datasource) => void;
   transitioning?: boolean;
+  excludesLLM?: boolean;
 }
 
-export function CreateDatasourceForm ({ type, onCreated, transitioning }: CreateDatasourceFormProps) {
-  let FormComponent: ComponentType<{ onCreated?: (datasource: Datasource) => void, transitioning?: boolean }>;
+export function CreateDatasourceForm ({ type, excludesLLM, onCreated, transitioning }: CreateDatasourceFormProps) {
+  let FormComponent: ComponentType<{ onCreated?: (datasource: Datasource) => void, transitioning?: boolean, excludesLLM?: boolean }>;
 
   switch (type) {
     case 'file':
@@ -25,5 +26,5 @@ export function CreateDatasourceForm ({ type, onCreated, transitioning }: Create
       break;
   }
 
-  return <FormComponent key={type} onCreated={onCreated} transitioning={transitioning} />;
+  return <FormComponent key={type} onCreated={onCreated} transitioning={transitioning} excludesLLM={excludesLLM} />;
 }

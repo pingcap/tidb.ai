@@ -5,6 +5,7 @@ import { AdminPageHeading } from '@/components/admin-page-heading';
 import { IndexProgressChart } from '@/components/charts/IndexProgressChart';
 import { TotalCard } from '@/components/charts/TotalCard';
 import { DateFormat } from '@/components/date-format';
+import { LlmInfo } from '@/components/llm/LlmInfo';
 import { OptionDetail } from '@/components/option-detail';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRightIcon, FileTextIcon, Loader2Icon, MapPinIcon, PuzzleIcon, RouteIcon } from 'lucide-react';
@@ -36,6 +37,7 @@ export default function DatasourcePage ({ params }: { params: { id: string } }) 
         <OptionDetail title="Created at" value={datasource?.created_at && <DateFormat date={datasource.created_at} />} />
         <OptionDetail title="Updated at" value={datasource?.updated_at && <DateFormat date={datasource.created_at} />} />
         <OptionDetail title="User ID" value={datasource?.user_id} />
+        <OptionDetail title="LLM" value={<LlmInfo id={datasource?.llm_id} />} />
         <OptionDetail title="Build KnowledegeGraph Index" value={datasource?.build_kg_index ? 'Yes' : 'No'} valueClassName={datasource?.build_kg_index ? 'text-green-500' : 'text-muted-foreground'} />
       </div>
       {progress && (

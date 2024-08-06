@@ -14,7 +14,7 @@ export function LlmInfo ({ reverse = false, id }: { reverse?: boolean, id: numbe
   }
 
   if (!llm) {
-    return <span>N/A</span>;
+    return <span className='text-muted-foreground'>--</span>;
   }
 
   return (
