@@ -1,11 +1,11 @@
 'use client';
 
 import type { PublicWebsiteSettings } from '@/api/site-settings';
-import type { SystemCheck } from '@/api/system';
+import type { BootstrapStatus, RequiredBootstrapStatus } from '@/api/system';
 import { getMe, type MeInfo } from '@/api/users';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ChatsProvider } from '@/components/chat/chat-hooks';
-import { SystemCheckProvider } from '@/components/system/SystemCheckProvider';
+import { BootstrapStatusProvider } from '@/components/system/BootstrapStatusProvider';
 import { Toaster } from '@/components/ui/sonner';
 import { SettingProvider } from '@/components/website-setting-provider';
 import { ThemeProvider } from 'next-themes';
@@ -16,10 +16,10 @@ export interface RootProvidersProps {
   me: MeInfo | undefined;
   children: ReactNode;
   settings: PublicWebsiteSettings;
-  systemCheck: SystemCheck;
+  bootstrapStatus: BootstrapStatus;
 }
 
-export function RootProviders ({ me, settings, systemCheck, children }: RootProvidersProps) {
+export function RootProviders ({ me, settings, bootstrapStatus, children }: RootProvidersProps) {
   const { data, isValidating, isLoading } = useSWR('api.users.me', getMe, {
     fallbackData: me,
     revalidateOnMount: !me,
@@ -28,7 +28,7 @@ export function RootProviders ({ me, settings, systemCheck, children }: RootProv
   });
 
   return (
-    <SystemCheckProvider systemCheck={systemCheck}>
+    <BootstrapStatusProvider bootstrapStatus={bootstrapStatus}>
       <ThemeProvider
         attribute="class"
         defaultTheme="dark"
@@ -45,6 +45,6 @@ export function RootProviders ({ me, settings, systemCheck, children }: RootProv
           </AuthProvider>
         </SettingProvider>
       </ThemeProvider>
-    </SystemCheckProvider>
+    </BootstrapStatusProvider>
   );
 }

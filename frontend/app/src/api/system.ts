@@ -1,26 +1,53 @@
 import { BASE_URL, handleResponse, opaqueCookieHeader } from '@/lib/request';
 import { z } from 'zod';
 
-export interface SystemCheck {
-  has_default_llm: boolean;
-  has_default_embedding_model: boolean;
-  has_datasource: boolean;
+export interface RequiredBootstrapStatus {
+  default_llm: boolean;
+  default_embedding_model: boolean;
+  datasource: boolean;
 }
 
-const systemCheckSchema = z.object({
-  has_default_llm: z.boolean(),
-  has_default_embedding_model: z.boolean(),
-  has_datasource: z.boolean(),
+export interface OptionalBootstrapStatus {
+  langfuse: boolean;
+}
+
+export interface BootstrapStatus {
+  required: RequiredBootstrapStatus;
+  optional: OptionalBootstrapStatus;
+}
+
+const requiredBootstrapStatusSchema = z.object({
+  default_llm: z.boolean(),
+  default_embedding_model: z.boolean(),
+  datasource: z.boolean(),
 });
 
-export async function getSystemCheck (): Promise<SystemCheck> {
-  return await fetch(`${BASE_URL}/api/v1/system/check`, {
+const optionalBootstrapStatusSchema = z.object({
+  langfuse: z.boolean(),
+});
+
+const bootstrapStatusSchema = z.object({
+  required: requiredBootstrapStatusSchema,
+  optional: optionalBootstrapStatusSchema,
+});
+
+export async function getBootstrapStatus (): Promise<BootstrapStatus> {
+  return await fetch(`${BASE_URL}/api/v1/system/bootstrap-status`, {
     headers: {
       ...await opaqueCookieHeader(),
     },
-  }).then(handleResponse(systemCheckSchema));
+  }).then(handleResponse(bootstrapStatusSchema)).then(() => ({
+    required: {
+      datasource: false,
+      default_llm: false,
+      default_embedding_model: false,
+    },
+    optional: {
+      langfuse: false,
+    },
+  }));
 }
 
-export function isSystemCheckPassed (systemCheck: SystemCheck): boolean {
-  return Object.values(systemCheck).reduce((res, flag) => res && flag, true);
+export function isBootstrapStatusPassed (bootstrapStatus: BootstrapStatus): boolean {
+  return Object.values(bootstrapStatus.required).reduce((res, flag) => res && flag, true);
 }

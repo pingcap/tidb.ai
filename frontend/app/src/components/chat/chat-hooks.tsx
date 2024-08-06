@@ -1,7 +1,7 @@
 import { type Chat, type ChatMessage, ChatMessageRole, type PostChatParams } from '@/api/chats';
-import { isSystemCheckPassed } from '@/api/system';
+import { isBootstrapStatusPassed } from '@/api/system';
 import { ChatController, ChatMessageController, type OngoingState } from '@/components/chat/chat-controller';
-import { useSystemCheck } from '@/components/system/SystemCheckProvider';
+import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { useLatestRef } from '@/components/use-latest-ref';
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
 import { util } from 'zod';
@@ -36,11 +36,11 @@ const ChatsContext = createContext<ChatsProviderValues>({
 const ChatControllerContext = createContext<ChatController | null>(null);
 
 export function ChatsProvider ({ children }: { children: ReactNode }) {
-  const systemCheckRef = useLatestRef(useSystemCheck());
+  const bootstrapStatusRef = useLatestRef(useBootstrapStatus());
   const [chats, setChats] = useState(() => new Map<string, ChatController>);
 
   const newChat: ChatsProviderValues['newChat'] = (...args) => {
-    if (!isSystemCheckPassed(systemCheckRef.current)) {
+    if (!isBootstrapStatusPassed(bootstrapStatusRef.current)) {
       throw new Error('System check not passed.');
     }
 
@@ -63,7 +63,7 @@ export function ChatsProvider ({ children }: { children: ReactNode }) {
   return (
     <ChatsContext.Provider value={{
       chats,
-      disabled: !isSystemCheckPassed(systemCheckRef.current),
+      disabled: !isBootstrapStatusPassed(bootstrapStatusRef.current),
       newChat,
       destroyChat,
     }}>

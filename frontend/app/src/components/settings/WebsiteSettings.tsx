@@ -10,7 +10,7 @@ import { z } from 'zod';
 export function WebsiteSettings ({ schema }: { schema: AllSettings }) {
   return (
     <div className="space-y-8 max-w-screen-md">
-      <section className="space-y-4">
+      <section className="space-y-6">
         <h2 className="text-lg font-medium">Basic Settings</h2>
         <SettingsField name="title" item={schema.title} />
         <SettingsField name="description" item={schema.description} />
@@ -18,7 +18,7 @@ export function WebsiteSettings ({ schema }: { schema: AllSettings }) {
         <SettingsField name="logo_in_light_mode" item={schema.logo_in_light_mode} />
       </section>
       <Separator />
-      <section className="space-y-4">
+      <section className="space-y-6">
         <h2 className="text-lg font-medium">Homepage Settings</h2>
         <SettingsField name="homepage_title" item={schema.homepage_title} />
         <SettingsField name="homepage_example_questions" item={schema.homepage_example_questions} arrayItemSchema={z.string()}>
@@ -29,13 +29,13 @@ export function WebsiteSettings ({ schema }: { schema: AllSettings }) {
         </SettingsField>
       </section>
       <Separator />
-      <section className="space-y-4">
+      <section className="space-y-6">
         <h2 className="text-lg font-medium">Social links</h2>
         <SettingsField name="social_github" item={schema.social_github} />
         <SettingsField name="social_twitter" item={schema.social_twitter} />
         <SettingsField name="social_discord" item={schema.social_discord} />
       </section>
-      <section className="space-y-4">
+      <section className="space-y-6">
         <h2 className="text-lg font-medium">Analytics</h2>
         <SettingsField name="ga_id" item={schema.ga_id} />
       </section>

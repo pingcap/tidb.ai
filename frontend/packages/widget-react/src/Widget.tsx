@@ -1,8 +1,8 @@
-import type { SystemCheck } from '@/api/system';
+import type { BootstrapStatus } from '@/api/system';
 import { ChatsProvider } from '@/components/chat/chat-hooks';
 import { Conversation } from '@/components/chat/conversation';
 import { PortalProvider } from '@/components/portal-provider';
-import { SystemCheckProvider } from '@/components/system/SystemCheckProvider';
+import { BootstrapStatusProvider } from '@/components/system/BootstrapStatusProvider';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogDescription, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -10,14 +10,14 @@ import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { useEffect, useRef, useState } from 'react';
 
 export interface WidgetProps {
-  systemCheck: SystemCheck;
+  bootstrapStatus: BootstrapStatus;
   exampleQuestions: string[];
   buttonLabel: string;
   buttonIcon: string;
   icon: string;
 }
 
-export function Widget ({ systemCheck, exampleQuestions, icon, buttonIcon, buttonLabel }: WidgetProps) {
+export function Widget ({ bootstrapStatus, exampleQuestions, icon, buttonIcon, buttonLabel }: WidgetProps) {
   const [_, setDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches);
   const container = useRef<HTMLDivElement>();
   if (!container.current) {
@@ -62,7 +62,7 @@ export function Widget ({ systemCheck, exampleQuestions, icon, buttonIcon, butto
 
   return (
     <PortalProvider container={container.current}>
-      <SystemCheckProvider systemCheck={systemCheck}>
+      <BootstrapStatusProvider bootstrapStatus={bootstrapStatus}>
         <ChatsProvider>
           <Dialog>
             <DialogTrigger asChild>
@@ -124,7 +124,7 @@ export function Widget ({ systemCheck, exampleQuestions, icon, buttonIcon, butto
             </DialogPortal>
           </Dialog>
         </ChatsProvider>
-      </SystemCheckProvider>
+      </BootstrapStatusProvider>
     </PortalProvider>
   );
 }

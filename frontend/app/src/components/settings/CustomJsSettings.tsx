@@ -8,7 +8,7 @@ import { z } from 'zod';
 export function CustomJsSettings ({ schema }: { schema: AllSettings }) {
   return (
     <div className="space-y-8 max-w-screen-md">
-      <section className="space-y-4">
+      <section className="space-y-6">
         <SettingsField name="custom_js_logo_src" item={schema.custom_js_logo_src} />
         <SettingsField name="custom_js_button_label" item={schema.custom_js_button_label} />
         <SettingsField name="custom_js_button_img_src" item={schema.custom_js_button_img_src} />

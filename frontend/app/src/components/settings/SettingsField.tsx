@@ -1,11 +1,12 @@
 import { type SettingItem, updateSiteSetting } from '@/api/site-settings';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { getErrorMessage } from '@/lib/errors';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { capitalCase } from 'change-case-all';
 import { deepEqual } from 'fast-equals';
 import { Loader2Icon, TriangleAlertIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -19,10 +20,12 @@ export interface SettingsFieldProps {
   item: SettingItem;
   arrayItemSchema?: ZodType;
   objectSchema?: ZodType;
+  onChanged?: () => void;
+  disabled?: boolean;
   children?: (props: ControllerRenderProps) => ReactElement;
 }
 
-export function SettingsField ({ name, item, arrayItemSchema, objectSchema, children }: SettingsFieldProps) {
+export function SettingsField ({ name, item, arrayItemSchema, objectSchema, onChanged, disabled, children }: SettingsFieldProps) {
   const router = useRouter();
 
   if (!item) {
@@ -84,6 +87,7 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, chil
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const form = useForm({
     resolver: zodResolver(schema),
+    disabled,
     values: {
       value: item.value,
     },
@@ -130,6 +134,7 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, chil
       await updateSiteSetting(name, data.value);
       form.reset({ value: data.value });
       router.refresh();
+      onChanged?.();
       toast.success(`Changes successfully saved.`);
     } catch (e) {
       form.setError('value', { type: 'value', message: getErrorMessage(e) });
@@ -151,8 +156,9 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, chil
           name="value"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{item.description}</FormLabel>
+              <FormLabel>{capitalCase(item.name)}</FormLabel>
               <Control field={field} />
+              <FormDescription>{item.description}</FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -167,16 +173,16 @@ function Operations ({ defaultValue }: { defaultValue: any }) {
   const currentValue = useWatch({
     name: 'value',
   });
-  const { isDirty, isSubmitting, isSubmitted } = useFormState();
+  const { isDirty, isSubmitting, disabled, isSubmitted } = useFormState();
   const notDefault = !deepEqual(currentValue, defaultValue);
 
   return (
     <div className="flex gap-2 items-center">
-      {isDirty && <Button className="gap-2 items-center" type="submit" disabled={isSubmitting}>
+      {isDirty && <Button className="gap-2 items-center" type="submit" disabled={isSubmitting || disabled}>
         {isSubmitting && <Loader2Icon className="size-4 animate-spin repeat-infinite" />}
         Save
       </Button>}
-      {(isDirty || notDefault) && <Button type="reset" variant="secondary" disabled={isSubmitting || !notDefault}>Reset</Button>}
+      {(isDirty || notDefault) && <Button type="reset" variant="secondary" disabled={isSubmitting || !notDefault || disabled}>Reset</Button>}
     </div>
   );
 }

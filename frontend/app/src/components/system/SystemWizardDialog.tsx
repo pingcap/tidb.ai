@@ -1,34 +1,39 @@
 'use client';
 
-import { isSystemCheckPassed } from '@/api/system';
+import { getAllSiteSettings } from '@/api/site-settings';
+import { isBootstrapStatusPassed } from '@/api/system';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { CreateDatasourceForm } from '@/components/datasource/CreateDatasourceForm';
 import { DatasourceTypeTabs } from '@/components/datasource/DatasourceTypeTabs';
 import type { DatasourceType } from '@/components/datasource/types';
 import { CreateEmbeddingModelForm } from '@/components/embedding-model/CreateEmbeddingModelForm';
 import { CreateLLMForm } from '@/components/llm/CreateLLMForm';
-import { useSystemCheck } from '@/components/system/SystemCheckProvider';
+import { LangfuseSettings } from '@/components/settings/IntegrationsSettings';
+import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogDescription, DialogFooter, DialogHeader, DialogOverlay, DialogPortal, DialogTitle } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { ArrowRightIcon, CircleAlertIcon, CircleCheckIcon } from 'lucide-react';
 import { usePathname, useRouter } from 'next/navigation';
 import * as React from 'react';
 import { type ReactElement, useState, useTransition } from 'react';
+import useSWR from 'swr';
 
 export function SystemWizardDialog () {
   const pathname = usePathname();
-  const sc = useSystemCheck();
-  const [open, setOpen] = useState(() => !isSystemCheckPassed(sc));
+  const bootstrapStatus = useBootstrapStatus();
+  const [open, setOpen] = useState(() => !isBootstrapStatusPassed(bootstrapStatus));
   const router = useRouter();
   const [transitioning, startTransition] = useTransition();
   const [datasourceType, setDatasourceType] = useState<DatasourceType>('file');
   const { me } = useAuth();
 
-  const configured = isSystemCheckPassed(sc);
+  const configured = isBootstrapStatusPassed(bootstrapStatus);
+  const { data: siteSettings, isLoading: isSiteSettingsLoading, isValidating: isSiteSettingsValidating, mutate: mutateSiteSettings } = useSWR(me && 'api.site-settings.get-all', () => getAllSiteSettings(), { revalidateOnFocus: false });
 
   let el: ReactElement;
 
@@ -59,14 +64,14 @@ export function SystemWizardDialog () {
               : 'Your app is not fully configured yet. Please complete the setup process.'}
           </DialogDescription>
           <Accordion type="single" collapsible>
-            <AccordionItem value="has_default_llm">
-              <AccordionTrigger disabled={sc.has_default_llm}>
+            <AccordionItem value="required.default_llm">
+              <AccordionTrigger disabled={bootstrapStatus.required.default_llm}>
                   <span>
-                    <StatusIcon flag={sc.has_default_llm} />
+                    <StatusIcon flag={bootstrapStatus.required.default_llm} />
                     Setup default LLM
                   </span>
               </AccordionTrigger>
-              {!sc.has_default_llm && <AccordionContent className="px-4">
+              {!bootstrapStatus.required.default_llm && <AccordionContent className="px-4">
                 <CreateLLMForm
                   transitioning={transitioning}
                   onCreated={() => {
@@ -77,14 +82,14 @@ export function SystemWizardDialog () {
                 />
               </AccordionContent>}
             </AccordionItem>
-            <AccordionItem value="has_default_embedding_model">
-              <AccordionTrigger disabled={sc.has_default_embedding_model}>
+            <AccordionItem value="required.default_embedding_model">
+              <AccordionTrigger disabled={bootstrapStatus.required.default_embedding_model}>
                   <span>
-                    <StatusIcon flag={sc.has_default_embedding_model} />
+                    <StatusIcon flag={bootstrapStatus.required.default_embedding_model} />
                     Setup default Embedding Model
                   </span>
               </AccordionTrigger>
-              {!sc.has_default_embedding_model && <AccordionContent className="px-4">
+              {!bootstrapStatus.required.default_embedding_model && <AccordionContent className="px-4">
                 <CreateEmbeddingModelForm
                   transitioning={transitioning}
                   onCreated={() => {
@@ -95,14 +100,14 @@ export function SystemWizardDialog () {
                 />
               </AccordionContent>}
             </AccordionItem>
-            <AccordionItem value="has_datasource">
-              <AccordionTrigger disabled={sc.has_datasource}>
+            <AccordionItem value="required.datasource">
+              <AccordionTrigger disabled={bootstrapStatus.required.datasource}>
                   <span>
-                    <StatusIcon flag={sc.has_datasource} />
+                    <StatusIcon flag={bootstrapStatus.required.datasource} />
                     Setup Datasource
                   </span>
               </AccordionTrigger>
-              {!sc.has_datasource && (
+              {!bootstrapStatus.required.datasource && (
                 <AccordionContent className="px-4">
                   <DatasourceTypeTabs className="mb-4" type={datasourceType} onTypeChange={setDatasourceType} />
                   <CreateDatasourceForm
@@ -116,6 +121,25 @@ export function SystemWizardDialog () {
                   />
                 </AccordionContent>
               )}
+            </AccordionItem>
+            <AccordionItem value="optional.langfuse">
+              <AccordionTrigger>
+                  <span>
+                    <StatusIcon flag={bootstrapStatus.optional.langfuse} optional />
+                    <span className='text-accent-foreground'>{'[Optional] '}</span>
+                    Setup Langfuse
+                  </span>
+              </AccordionTrigger>
+              <AccordionContent className="px-4">
+                {isSiteSettingsLoading && (
+                  <div className="space-y-2">
+                    <Skeleton className="w-[70%] h-4" />
+                    <Skeleton className="w-[30%] h-4" />
+                    <Skeleton className="w-[50%] h-4" />
+                  </div>
+                )}
+                {siteSettings && <LangfuseSettings schema={siteSettings} hideTitle disabled={isSiteSettingsLoading || isSiteSettingsValidating} onChanged={() => mutateSiteSettings()} />}
+              </AccordionContent>
             </AccordionItem>
           </Accordion>
         </DialogHeader>
@@ -156,9 +180,11 @@ export function SystemWizardDialog () {
   );
 }
 
-function StatusIcon ({ flag }: { flag: boolean }) {
+function StatusIcon ({ flag, optional }: { flag: boolean, optional?: boolean }) {
   if (flag) {
     return (<CircleCheckIcon className="inline-block size-4 mr-2 text-green-500" />);
+  } else if (optional) {
+    return (<CircleAlertIcon className="inline-block size-4 mr-2 text-accent-foreground" />);
   } else {
     return (<CircleAlertIcon className="inline-block size-4 mr-2 text-yellow-500" />);
   }

@@ -1,5 +1,5 @@
 import { getPublicSiteSettings } from '@/api/site-settings';
-import { getSystemCheck } from '@/api/system';
+import { getBootstrapStatus } from '@/api/system';
 import { RootProviders } from '@/app/RootProviders';
 import { SystemWizardDialog } from '@/components/system/SystemWizardDialog';
 import { Toaster } from '@/components/ui/sonner';
@@ -32,17 +32,17 @@ export default async function RootLayout ({
   const [
     me,
     settings,
-    systemCheck,
+    bootstrapStatus,
   ] = await Promise.all([
     auth(),
     cachedGetSettings(),
-    getSystemCheck(),
+    getBootstrapStatus(),
   ]);
 
   return (
     <html lang="en" suppressHydrationWarning>
     <body className={inter.className}>
-    <RootProviders me={me} settings={settings} systemCheck={systemCheck}>
+    <RootProviders me={me} settings={settings} bootstrapStatus={bootstrapStatus}>
       {children}
       <SystemWizardDialog />
     </RootProviders>
