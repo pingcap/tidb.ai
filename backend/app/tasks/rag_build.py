@@ -56,7 +56,12 @@ def build_vector_index_from_document(document_id: int):
             logger.info(f"Document {document_id} not in pending state")
             return
 
-        llm = get_llm_by_data_source_id(session, db_document.data_source_id)
+        try:
+            llm = get_llm_by_data_source_id(session, db_document.data_source_id)
+        except ValueError as e:
+            # LLM may not be available yet(eg. bootstrapping), retry after specified time
+            logger.warning(f"Error while getting LLM for document {document_id}: {e}, task will be retried after 1 minutes")
+            raise build_vector_index_from_document.retry(countdown=60)
 
         db_document.index_status = DocIndexTaskStatus.RUNNING
         session.commit()
