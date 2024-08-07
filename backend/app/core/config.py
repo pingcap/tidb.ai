@@ -43,6 +43,7 @@ class Settings(BaseSettings):
     SESSION_COOKIE_NAME: str = "session"
     # 90 days
     SESSION_COOKIE_MAX_AGE: int = 3600 * 24 * 90
+    SESSION_COOKIE_SECURE: bool = False
 
     BROWSER_ID_COOKIE_NAME: str = "bid"
     BROWSER_ID_COOKIE_MAX_AGE: int = 3600 * 24 * 365 * 2

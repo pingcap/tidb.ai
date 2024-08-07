@@ -51,7 +51,7 @@ async def get_user_manager(user_db: SQLModelUserDatabaseAsync = Depends(get_user
 cookie_transport = CookieTransport(
     cookie_name=settings.SESSION_COOKIE_NAME,
     cookie_max_age=settings.SESSION_COOKIE_MAX_AGE,
-    cookie_secure=settings.ENVIRONMENT != Environment.LOCAL,
+    cookie_secure=settings.SESSION_COOKIE_SECURE,
 )
 
 
