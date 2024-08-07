@@ -55,6 +55,8 @@ A conversational search tool based on GraphRAG (Knowledge Graph) that built on t
     - `JINAAI_API_KEY`: get one from [Jina AI](https://jina.ai/reranker/)
     - `TIDB_HOST`, `TIDB_USER`, `TIDB_PASSWORD` and `TIDB_DATABASE`: get them from your [TiDB Serverless cluster](https://tidbcloud.com/)
 
+      - Note: TiDB Serverless will provide a default database name called `test`, if you want to use another database name, you need to create a new database in the TiDB Serverless console.
+
 3. Build docker images:
 
     ```bash
