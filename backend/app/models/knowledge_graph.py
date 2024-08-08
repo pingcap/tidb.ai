@@ -63,7 +63,8 @@ class RelationshipBase(SQLModel):
     source_entity_id: int = Field(foreign_key="entities.id")
     target_entity_id: int = Field(foreign_key="entities.id")
     last_modified_at: Optional[datetime] = Field(sa_column=Column(DateTime))
-    chunk_id: Optional[UUID] = Field(default=None)
+    document_id: Optional[int] = Field(default=None, nullable=True)
+    chunk_id: Optional[UUID] = Field(default=None, nullable=True)
 
 
 class Relationship(RelationshipBase, table=True):
