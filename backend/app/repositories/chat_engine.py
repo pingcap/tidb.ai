@@ -59,12 +59,10 @@ class ChatEngineRepo(BaseRepo):
         chat_engine: ChatEngine,
         chat_engine_in: ChatEngineUpdate,
     ) -> ChatEngine:
-        update_data = chat_engine_in.model_dump()
-        set_default = update_data.pop("is_default", False)
-        for field, value in chat_engine_in.model_dump().items():
-            if value is not None:
-                setattr(chat_engine, field, value)
-                flag_modified(chat_engine, field)
+        set_default = chat_engine_in.is_default
+        for field, value in chat_engine_in.model_dump(exclude_unset=True).items():
+            setattr(chat_engine, field, value)
+            flag_modified(chat_engine, field)
 
         if set_default:
             session.exec(
