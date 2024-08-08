@@ -50,6 +50,32 @@ export function FormFieldBasicLayout<
   );
 }
 
+
+export function FormFieldInlineLayout<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+> ({
+  name,
+  description,
+  children,
+}: Omit<FormFieldLayoutProps<TFieldValues, TName>, 'label'>) {
+  return (
+    <FormField<TFieldValues, TName>
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormControl>
+            {renderWidget(children, field)}
+          </FormControl>
+          {description && <FormDescription>{description}</FormDescription>}
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+}
+
+
 export function FormFieldContainedLayout<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>

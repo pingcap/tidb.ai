@@ -6,7 +6,7 @@ import { RerankerInfo } from '@/components/reranker/RerankerInfo';
 import { forwardRef } from 'react';
 import useSWR from 'swr';
 
-export const LLMSelect = forwardRef<any, Omit<FormSelectProps, 'config'>>((props, ref) => {
+export const LLMSelect = forwardRef<any, Omit<FormSelectProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
   const { data: llms, isLoading, error } = useSWR('api.llms.list-all', () => listLlms({ size: 100 }));
 
   return (
@@ -17,7 +17,7 @@ export const LLMSelect = forwardRef<any, Omit<FormSelectProps, 'config'>>((props
         options: llms?.items ?? [],
         loading: isLoading,
         error,
-        renderOption: option => (<span><LlmInfo reverse id={option.id} /></span>),
+        renderOption: option => (<span><LlmInfo reverse={reverse} id={option.id} /></span>),
         key: 'id',
       } satisfies FormSelectConfig<LLM>}
     />
@@ -26,7 +26,7 @@ export const LLMSelect = forwardRef<any, Omit<FormSelectProps, 'config'>>((props
 
 LLMSelect.displayName = 'LLMSelect';
 
-export const RerankerSelect = forwardRef<any, Omit<FormSelectProps, 'config'>>((props, ref) => {
+export const RerankerSelect = forwardRef<any, Omit<FormSelectProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
   const { data: rerankers, isLoading, error } = useSWR('api.rerankers.list-all', () => listRerankers({ size: 100 }));
 
   return (
@@ -37,7 +37,7 @@ export const RerankerSelect = forwardRef<any, Omit<FormSelectProps, 'config'>>((
         options: rerankers?.items ?? [],
         loading: isLoading,
         error,
-        renderOption: option => (<span><RerankerInfo reverse id={option.id} /></span>),
+        renderOption: option => (<span><RerankerInfo reverse={reverse} id={option.id} /></span>),
         key: 'id',
       } satisfies FormSelectConfig<Reranker>}
     />

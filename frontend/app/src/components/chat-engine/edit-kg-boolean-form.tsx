@@ -1,6 +1,6 @@
 'use client';
 
-import { type ChatEngine, updateChatEngine } from '@/api/chat-engines';
+import { type ChatEngine, type ChatEngineOptions, updateChatEngine } from '@/api/chat-engines';
 import { EditPropertyForm } from '@/components/chat-engine/edit-property-form';
 import { FormSwitch } from '@/components/form/control-widget';
 import { useRouter } from 'next/navigation';
@@ -14,10 +14,10 @@ type KeyOfType<T, Value> = keyof { [P in keyof T as T[P] extends Value ? P : nev
 
 export interface EditBooleanFormProps {
   chatEngine: ChatEngine;
-  type: KeyOfType<ChatEngine, boolean>;
+  type: KeyOfType<ChatEngine['engine_options']['knowledge_graph'], boolean>;
 }
 
-export function EditBooleanForm ({ type, chatEngine }: EditBooleanFormProps) {
+export function EditKgBooleanForm ({ type, chatEngine }: EditBooleanFormProps) {
   const router = useRouter();
   const [transitioning, startTransition] = useTransition();
 
@@ -25,11 +25,20 @@ export function EditBooleanForm ({ type, chatEngine }: EditBooleanFormProps) {
     <>
       <EditPropertyForm
         inline
-        object={chatEngine}
+        object={chatEngine.engine_options.knowledge_graph}
         property={type}
         schema={booleanSchema}
         onSubmit={async (data) => {
-          await updateChatEngine(chatEngine.id, data);
+          const options: ChatEngineOptions = {
+            knowledge_graph: {
+              ...chatEngine.engine_options.knowledge_graph,
+              ...data,
+            },
+            llm: { ...chatEngine.engine_options.llm },
+          };
+          await updateChatEngine(chatEngine.id, {
+            engine_options: options,
+          });
           startTransition(() => {
             router.refresh();
           });

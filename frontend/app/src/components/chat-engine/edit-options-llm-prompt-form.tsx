@@ -1,21 +1,12 @@
 'use client';
 
 import { type ChatEngine, updateChatEngine } from '@/api/chat-engines';
-import { useManagedDialog } from '@/components/managed-dialog';
-import { Button } from '@/components/ui/button';
-import { DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Textarea } from '@/components/ui/textarea';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { EditPropertyForm } from '@/components/chat-engine/edit-property-form';
+import { FormTextarea } from '@/components/form/control-widget';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
-import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
-
-const schema = z.object({
-  prompt: z.string().min(1),
-});
 
 export interface EditOptionsLlmPromptFormProps {
   chatEngine: ChatEngine;
@@ -26,60 +17,37 @@ export interface EditOptionsLlmPromptFormProps {
     | 'text_qa_prompt';
 }
 
+const schema = z.string().min(1);
+
 export function EditOptionsLlmPromptForm ({ chatEngine, type }: EditOptionsLlmPromptFormProps) {
   const router = useRouter();
   const [transitioning, startTransition] = useTransition();
-  const { setOpen } = useManagedDialog();
-
-  const form = useForm<{ prompt: string }>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      prompt: chatEngine.engine_options.llm[type],
-    },
-  });
-
-  const handleSubmit = form.handleSubmit(async (data) => {
-    const chatEngineOptions = {
-      ...chatEngine.engine_options,
-      llm: {
-        ...chatEngine.engine_options.llm,
-        [type]: data.prompt,
-      },
-    };
-    await updateChatEngine(chatEngine.id, { engine_options: chatEngineOptions });
-    startTransition(() => {
-      router.refresh();
-    });
-    toast(`ChatEngine's ${type} successfully updated.`);
-    setOpen(false);
-  });
 
   return (
     <>
-      <DialogHeader>
-        <DialogTitle>Update chat engine&#39;s {type}</DialogTitle>
-      </DialogHeader>
-      <Form {...form}>
-        <form id="update-form" className="space-y-4" onSubmit={handleSubmit}>
-          <FormField
-            name="prompt"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{type}</FormLabel>
-                <FormControl>
-                  <Textarea className="min-h-[50vh]" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </form>
-      </Form>
-      <DialogFooter>
-        <Button type="submit" form="update-form" disabled={form.formState.disabled || form.formState.isSubmitting || transitioning}>
-          Update
-        </Button>
-      </DialogFooter>
+      <EditPropertyForm
+        className='w-full'
+        object={chatEngine.engine_options.llm}
+        property={type}
+        schema={schema}
+        onSubmit={async data => {
+          const chatEngineOptions = {
+            ...chatEngine.engine_options,
+            llm: {
+              ...chatEngine.engine_options.llm,
+              ...data,
+            },
+          };
+          await updateChatEngine(chatEngine.id, { engine_options: chatEngineOptions });
+          startTransition(() => {
+            router.refresh();
+          });
+          toast(`ChatEngine successfully updated.`);
+        }}
+        disabled={transitioning}
+      >
+        <FormTextarea className='min-h-64' />
+      </EditPropertyForm>
     </>
   );
 }
