@@ -278,7 +278,7 @@ def list_reranker_models(
     session: SessionDep,
     user: CurrentSuperuserDep,
     params: Params = Depends(),
-) -> Page[AdminLLM]:
+) -> Page[AdminRerankerModel]:
     return paginate(
         session,
         select(RerankerModel).order_by(RerankerModel.created_at.desc()),
