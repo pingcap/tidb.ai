@@ -11,6 +11,7 @@ const BootstrapStatusContext = createContext<BootstrapStatus>({
   },
   optional: {
     langfuse: false,
+    default_reranker: false,
   },
 });
 

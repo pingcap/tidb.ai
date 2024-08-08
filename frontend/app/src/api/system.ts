@@ -9,6 +9,7 @@ export interface RequiredBootstrapStatus {
 
 export interface OptionalBootstrapStatus {
   langfuse: boolean;
+  default_reranker: boolean;
 }
 
 export interface BootstrapStatus {
@@ -24,6 +25,7 @@ const requiredBootstrapStatusSchema = z.object({
 
 const optionalBootstrapStatusSchema = z.object({
   langfuse: z.boolean(),
+  default_reranker: z.boolean(),
 });
 
 const bootstrapStatusSchema = z.object({

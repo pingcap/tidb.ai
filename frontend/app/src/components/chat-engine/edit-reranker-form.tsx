@@ -1,8 +1,8 @@
 'use client';
 
 import { type ChatEngine, updateChatEngine } from '@/api/chat-engines';
-import { listLlms } from '@/api/llms';
-import { LLMSelect } from '@/components/form/biz';
+import { listRerankers } from '@/api/rerankers';
+import { RerankerSelect } from '@/components/form/biz';
 import { FormFieldBasicLayout } from '@/components/form/field-layout';
 import { useManagedDialog } from '@/components/managed-dialog';
 import { Button } from '@/components/ui/button';
@@ -17,47 +17,46 @@ import useSWR from 'swr';
 import { z } from 'zod';
 
 const schema = z.object({
-  llm: z.number(),
+  reranker: z.number(),
 });
 
-export interface EditLlmFormProps {
+export interface EditRerankerFormProps {
   chatEngine: ChatEngine;
-  type: 'llm' | 'fast_llm';
 }
 
-export function EditLlmForm ({ type, chatEngine }: EditLlmFormProps) {
+export function EditRerankerForm ({ chatEngine }: EditRerankerFormProps) {
   const router = useRouter();
   const [transitioning, startTransition] = useTransition();
   const { setOpen } = useManagedDialog();
-  const { data: llms } = useSWR('api.llms.list-all', () => listLlms({ size: 100 }));
+  const { data: rerankers } = useSWR('api.rerankers.list-all', () => listRerankers({ size: 100 }));
 
-  const form = useForm<{ llm: number }>({
+  const form = useForm<{ reranker: number }>({
     resolver: zodResolver(schema),
     defaultValues: {
-      llm: (type === 'llm' ? chatEngine.llm_id : chatEngine.fast_llm_id) ?? undefined,
+      reranker: chatEngine.reranker_id ?? undefined,
     },
   });
 
   const handleSubmit = form.handleSubmit(async (data) => {
     await updateChatEngine(chatEngine.id, {
-      [type === 'llm' ? 'llm_id' : 'fast_llm_id']: data.llm,
+      reranker_id: data.reranker,
     });
     startTransition(() => {
       router.refresh();
     });
-    toast(`ChatEngine's ${type} successfully updated.`);
+    toast(`ChatEngine's reranker successfully updated.`);
     setOpen(false);
   });
 
   return (
     <>
       <DialogHeader>
-        <DialogTitle>Update chat engine&#39;s {type}</DialogTitle>
+        <DialogTitle>Update chat engine&#39;s Reranker</DialogTitle>
       </DialogHeader>
       <Form {...form}>
         <form id="update-form" className="space-y-4" onSubmit={handleSubmit}>
-          <FormFieldBasicLayout name="llm" label={type === 'llm' ? 'LLM' : 'Fast LLM'}>
-            <LLMSelect />
+          <FormFieldBasicLayout name="reranker" label="Reranker">
+            <RerankerSelect />
           </FormFieldBasicLayout>
         </form>
       </Form>

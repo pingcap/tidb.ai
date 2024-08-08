@@ -11,6 +11,7 @@ export interface ChatEngine {
   engine_options: ChatEngineOptions;
   llm_id: number | null;
   fast_llm_id: number | null;
+  reranker_id: number | null;
   is_default: boolean;
 }
 
@@ -74,6 +75,7 @@ const chatEngineSchema = z.object({
   engine_options: chatEngineOptionsSchema,
   llm_id: z.number().nullable(),
   fast_llm_id: z.number().nullable(),
+  reranker_id: z.number().nullable(),
   is_default: z.boolean(),
 }) satisfies ZodType<ChatEngine, any, any>;
 
@@ -91,7 +93,7 @@ export async function getChatEngine (id: number): Promise<ChatEngine> {
     .then(handleResponse(chatEngineSchema));
 }
 
-export async function updateChatEngine (id: number, partial: Partial<Pick<ChatEngine, 'name' | 'llm_id' | 'fast_llm_id' | 'engine_options' | 'is_default'>>): Promise<void> {
+export async function updateChatEngine (id: number, partial: Partial<Pick<ChatEngine, 'name' | 'llm_id' | 'fast_llm_id' | 'reranker_id' | 'engine_options' | 'is_default'>>): Promise<void> {
   await fetch(BASE_URL + `/api/v1/admin/chat-engines/${id}`, {
     method: 'PUT',
     headers: {
@@ -114,7 +116,6 @@ export async function createChatEngine (create: Pick<ChatEngine, 'name' | 'llm_i
   })
     .then(handleResponse(chatEngineSchema));
 }
-
 
 export async function deleteChatEngine (id: number): Promise<void> {
   await fetch(BASE_URL + `/api/v1/admin/chat-engines/${id}`, {

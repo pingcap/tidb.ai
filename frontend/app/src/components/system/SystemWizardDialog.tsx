@@ -8,6 +8,7 @@ import { DatasourceTypeTabs } from '@/components/datasource/DatasourceTypeTabs';
 import type { DatasourceType } from '@/components/datasource/types';
 import { CreateEmbeddingModelForm } from '@/components/embedding-model/CreateEmbeddingModelForm';
 import { CreateLLMForm } from '@/components/llm/CreateLLMForm';
+import { CreateRerankerForm } from '@/components/reranker/CreateRerankerForm';
 import { LangfuseSettings } from '@/components/settings/IntegrationsSettings';
 import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
@@ -127,8 +128,7 @@ export function SystemWizardDialog () {
               <AccordionTrigger>
                   <span>
                     <StatusIcon flag={bootstrapStatus.optional.langfuse} optional />
-                    <span className="text-accent-foreground">{'[Optional] '}</span>
-                    Setup Langfuse
+                    [Optional] Setup Langfuse
                   </span>
               </AccordionTrigger>
               <AccordionContent className="px-4">
@@ -141,6 +141,24 @@ export function SystemWizardDialog () {
                 )}
                 {siteSettings && <LangfuseSettings schema={siteSettings} hideTitle disabled={isSiteSettingsLoading || isSiteSettingsValidating} onChanged={() => mutateSiteSettings()} />}
               </AccordionContent>
+            </AccordionItem>
+            <AccordionItem value="optional.default_reranker">
+              <AccordionTrigger disabled={bootstrapStatus.optional.default_reranker}>
+                  <span>
+                    <StatusIcon flag={bootstrapStatus.optional.default_reranker} optional />
+                    [Optional] Setup default Reranker
+                  </span>
+              </AccordionTrigger>
+              {!bootstrapStatus.optional.default_reranker && <AccordionContent className="px-4">
+                <CreateRerankerForm
+                  transitioning={transitioning}
+                  onCreated={() => {
+                    startTransition(() => {
+                      router.refresh();
+                    });
+                  }}
+                />
+              </AccordionContent>}
             </AccordionItem>
           </Accordion>
         </DialogHeader>
