@@ -1,3 +1,4 @@
+import logging
 from typing import List
 from pydantic import BaseModel
 
@@ -81,6 +82,7 @@ def test_llm(
         success = True
         error = ""
     except Exception as e:
+        logging.exception(e)
         success = False
         error = str(e)
     return LLMTestResult(success=success, error=error)

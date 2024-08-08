@@ -7,6 +7,7 @@
 #   all-features: false
 #   with-sources: false
 #   generate-hashes: false
+#   universal: true
 
 aiohttp==3.9.5
     # via datasets
@@ -23,7 +24,8 @@ amqp==5.2.0
     # via kombu
 annotated-types==0.7.0
     # via pydantic
-anthropic==0.31.0
+anthropic==0.28.1
+    # via llama-index-llms-anthropic
 anyio==4.4.0
     # via anthropic
     # via httpx
@@ -52,6 +54,7 @@ billiard==4.2.0
     # via celery
 boto3==1.34.156
     # via cohere
+    # via llama-index-llms-bedrock
 botocore==1.34.156
     # via boto3
     # via s3transfer
@@ -85,6 +88,12 @@ click-repl==0.3.0
     # via celery
 cohere==5.6.2
     # via llama-index-postprocessor-cohere-rerank
+colorama==0.4.6 ; platform_system == 'Windows' or sys_platform == 'win32'
+    # via click
+    # via colorlog
+    # via pytest
+    # via tqdm
+    # via uvicorn
 colorlog==6.8.2
     # via optuna
 cryptography==42.0.8
@@ -306,6 +315,8 @@ llama-index-core==0.10.59
     # via llama-index-cli
     # via llama-index-embeddings-openai
     # via llama-index-indices-managed-llama-cloud
+    # via llama-index-llms-anthropic
+    # via llama-index-llms-bedrock
     # via llama-index-llms-gemini
     # via llama-index-llms-openai
     # via llama-index-llms-openai-like
@@ -324,6 +335,9 @@ llama-index-indices-managed-llama-cloud==0.2.5
     # via llama-index
 llama-index-legacy==0.9.48
     # via llama-index
+llama-index-llms-anthropic==0.1.16
+    # via llama-index-llms-bedrock
+llama-index-llms-bedrock==0.1.12
 llama-index-llms-gemini==0.1.11
 llama-index-llms-openai==0.1.27
     # via llama-index
@@ -538,6 +552,8 @@ python-multipart==0.0.9
 pytz==2024.1
     # via flower
     # via pandas
+pywin32==306 ; platform_system == 'Windows'
+    # via portalocker
 pyyaml==6.0.1
     # via datasets
     # via huggingface-hub
@@ -689,7 +705,7 @@ urllib3==2.2.1
     # via types-requests
 uvicorn==0.30.3
     # via fastapi
-uvloop==0.19.0
+uvloop==0.19.0 ; platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'
     # via uvicorn
 vine==5.1.0
     # via amqp

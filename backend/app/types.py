@@ -6,6 +6,7 @@ class LLMProvider(str, enum.Enum):
     GEMINI = "gemini"
     ANTHROPIC_VERTEX = "anthropic_vertex"
     OPENAI_LIKE = "openai_like"
+    BEDROCK = "bedrock"
 
 
 class EmbeddingProvider(str, enum.Enum):

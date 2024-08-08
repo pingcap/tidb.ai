@@ -8,6 +8,7 @@ from llama_index.llms.openai.utils import DEFAULT_OPENAI_API_BASE
 from llama_index.llms.openai import OpenAI
 from llama_index.llms.openai_like import OpenAILike
 from llama_index.llms.gemini import Gemini
+from llama_index.llms.bedrock import Bedrock
 from llama_index.core.llms.llm import LLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
@@ -170,6 +171,21 @@ def get_llm(
         case LLMProvider.GEMINI:
             os.environ["GOOGLE_API_KEY"] = credentials
             return Gemini(model=model, api_key=credentials, **config)
+        case LLMProvider.BEDROCK:
+            access_key_id = credentials["aws_access_key_id"]
+            secret_access_key = credentials["aws_secret_access_key"]
+            region_name = credentials["aws_region_name"]
+            os.environ["AWS_ACCESS_KEY_ID"] = access_key_id
+            os.environ["AWS_SECRET_ACCESS_KEY"] = secret_access_key
+            os.environ["AWS_REGION_NAME"] = region_name
+            llm = Bedrock(
+                model=model,
+                aws_access_key_id=access_key_id,
+                aws_secret_access_key=secret_access_key,
+                region_name=region_name
+            )
+            llm.region_name=region_name
+            return llm
         case LLMProvider.ANTHROPIC_VERTEX:
             google_creds: service_account.Credentials = (
                 service_account.Credentials.from_service_account_info(
