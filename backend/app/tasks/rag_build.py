@@ -17,31 +17,32 @@ from app.models import (
 from app.rag.build import BuildService
 from app.rag.chat_config import get_llm, get_default_llm
 from app.utils.dspy import get_dspy_lm_by_llama_llm
+from app.repositories import data_source_repo
 
 
 logger = get_task_logger(__name__)
 
 
-def get_llm_by_data_source_id(session: Session, data_source_id: int) -> LLM:
-    datasource = session.get(DataSource, data_source_id)
-    if datasource is None:
-        raise ValueError(f"DataSource {data_source_id} not found")
-
-    if datasource.llm_id is None:
+def get_llm_by_data_source(session: Session, data_source: DataSource) -> LLM:
+    if data_source.llm_id is None:
         return get_default_llm(session)
 
-    llm = session.get(DBLLM, datasource.llm_id)
     return get_llm(
-        provider=llm.provider,
-        model=llm.model,
-        config=llm.config,
-        credentials=llm.credentials,
+        provider=data_source.llm.provider,
+        model=data_source.llm.model,
+        config=data_source.llm.config,
+        credentials=data_source.llm.credentials,
     )
 
 
-@celery_app.task
-def build_vector_index_from_document(document_id: int):
+@celery_app.task(bind=True)
+def build_vector_index_from_document(self, data_source_id: int, document_id: int):
     with Session(engine, expire_on_commit=False) as session:
+        data_source = data_source_repo.get(session, data_source_id)
+        if data_source is None:
+            logger.error(f"Data source with id {data_source_id} not found")
+            return
+
         db_document = session.get(DBDocument, document_id)
         if db_document is None:
             logger.error(f"Document {document_id} not found")
@@ -55,15 +56,16 @@ def build_vector_index_from_document(document_id: int):
             return
 
         try:
-            llm = get_llm_by_data_source_id(session, db_document.data_source_id)
+            llm = get_llm_by_data_source(session, data_source)
         except ValueError as e:
             # LLM may not be available yet(eg. bootstrapping), retry after specified time
             logger.warning(
                 f"Error while getting LLM for document {document_id}: {e}, task will be retried after 1 minutes"
             )
-            raise build_vector_index_from_document.retry(countdown=60)
+            raise self.retry(countdown=60)
 
         db_document.index_status = DocIndexTaskStatus.RUNNING
+        session.add(db_document)
         session.commit()
 
         if (
@@ -89,6 +91,7 @@ def build_vector_index_from_document(document_id: int):
             logger.error(f"Error while indexing document {document_id}: {error_msg}")
             db_document.index_status = DocIndexTaskStatus.FAILED
             db_document.index_result = error_msg
+            session.add(db_document)
             session.commit()
             return
 
@@ -98,17 +101,22 @@ def build_vector_index_from_document(document_id: int):
         session.commit()
         logger.info(f"Document {document_id} indexed successfully")
 
-        datasource = session.get(DataSource, db_document.data_source_id)
-        if datasource and datasource.build_kg_index:
+        data_source = data_source_repo.get(session, data_source_id)
+        if data_source and data_source.build_kg_index:
             for chunk in session.exec(
                 select(DBChunk).where(DBChunk.document_id == document_id)
             ):
-                build_kg_index_from_chunk.delay(chunk.id)
+                build_kg_index_from_chunk.delay(data_source_id, document_id, chunk.id)
 
 
 @celery_app.task
-def build_kg_index_from_chunk(chunk_id: UUID):
+def build_kg_index_from_chunk(data_source_id: int, document_id: int, chunk_id: UUID):
     with Session(engine, expire_on_commit=False) as session:
+        data_source = data_source_repo.get(session, data_source_id)
+        if data_source is None:
+            logger.error(f"Data source with id {data_source_id} not found")
+            return
+
         db_chunk = session.get(DBChunk, chunk_id)
         if db_chunk is None:
             logger.error(f"Chunk {chunk_id} not found")
@@ -121,9 +129,10 @@ def build_kg_index_from_chunk(chunk_id: UUID):
             logger.info(f"Chunk {chunk_id} not in pending state")
             return
 
-        llm = get_llm_by_data_source_id(session, db_chunk.document.data_source_id)
+        llm = get_llm_by_data_source(session, data_source)
 
         db_chunk.index_status = KgIndexStatus.RUNNING
+        session.add(db_chunk)
         session.commit()
 
     try:
@@ -139,6 +148,7 @@ def build_kg_index_from_chunk(chunk_id: UUID):
             logger.error(f"Error while indexing chunk {chunk_id}: {error_msg}")
             db_chunk.index_status = KgIndexStatus.FAILED
             db_chunk.index_result = error_msg
+            session.add(db_chunk)
             session.commit()
             return
 

@@ -7,7 +7,10 @@ from app.models import (
     DataSource,
     DataSourceType,
 )
-from app.tasks import import_documents_from_datasource
+from app.tasks import (
+    import_documents_from_datasource,
+    purge_datasource_related_resources,
+)
 from app.repositories import data_source_repo
 
 router = APIRouter()
@@ -76,7 +79,8 @@ def delete_datasource(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Data source not found",
         )
-    return data_source_repo.delete(session, data_source)
+    data_source_repo.delete(session, data_source)
+    purge_datasource_related_resources.apply_async(args=[data_source_id], countdown=5)
 
 
 @router.get("/admin/datasources/{data_source_id}/overview")

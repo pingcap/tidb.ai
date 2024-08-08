@@ -190,6 +190,8 @@ class TiDBGraphStore(KnowledgeGraphStore):
                 self._embed_model,
             ),
             meta=relationship_meatadata,
+            document_id=relationship_meatadata.get("document_id"),
+            chunk_id=relationship_meatadata.get("chunk_id"),
         )
         self._session.add(relationshipObject)
         if commit:

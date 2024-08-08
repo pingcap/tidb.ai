@@ -136,7 +136,6 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
     def _build_index_from_nodes(self, nodes: Optional[Sequence[BaseNode]]) -> IndexLPG:
         """Build index from nodes."""
         nodes = self._insert_nodes(nodes or [])
-        # this isn't really used or needed
         return IndexLPG()
 
     def as_retriever(self, **kwargs: Any):
