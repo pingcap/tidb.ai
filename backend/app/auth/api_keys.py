@@ -72,7 +72,10 @@ class ApiKeyManager:
             return None
         hashed_api_key = encrypt_api_key(api_key)
         results = await session.exec(
-            select(ApiKey).where(ApiKey.hashed_secret == hashed_api_key)
+            select(ApiKey).where(
+                ApiKey.is_active == True,
+                ApiKey.hashed_secret == hashed_api_key,
+            )
         )
         api_key_obj = results.first()
         if not api_key_obj:
