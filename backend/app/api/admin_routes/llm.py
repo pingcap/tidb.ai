@@ -228,43 +228,6 @@ def get_reranker_model_options(
     return admin_reranker_model_options
 
 
-@router.get("/admin/reranker-models")
-def list_reranker_models(
-    session: SessionDep,
-    user: CurrentSuperuserDep,
-    params: Params = Depends(),
-) -> Page[AdminLLM]:
-    return paginate(
-        session,
-        select(RerankerModel).order_by(RerankerModel.created_at.desc()),
-        params,
-    )
-
-
-@router.post("/admin/reranker-models")
-def create_reranker_model(
-    reranker_model: RerankerModel,
-    session: SessionDep,
-    user: CurrentSuperuserDep,
-) -> AdminRerankerModel:
-    session.add(reranker_model)
-    session.commit()
-    session.refresh(reranker_model)
-    return reranker_model
-
-
-@router.delete("/admin/reranker-models/{reranker_model_id}")
-def delete_reranker_model(
-    reranker_model_id: int,
-    session: SessionDep,
-    user: CurrentSuperuserDep,
-) -> AdminRerankerModel:
-    reranker_model = session.get(RerankerModel, reranker_model_id)
-    session.delete(reranker_model)
-    session.commit()
-    return reranker_model
-
-
 @router.post("/admin/reranker-models/test")
 def test_reranker_model(
     db_reranker_model: RerankerModel,
@@ -308,6 +271,31 @@ def test_reranker_model(
         success = False
         error = str(e)
     return LLMTestResult(success=success, error=error)
+
+
+@router.get("/admin/reranker-models")
+def list_reranker_models(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    params: Params = Depends(),
+) -> Page[AdminLLM]:
+    return paginate(
+        session,
+        select(RerankerModel).order_by(RerankerModel.created_at.desc()),
+        params,
+    )
+
+
+@router.post("/admin/reranker-models")
+def create_reranker_model(
+    reranker_model: RerankerModel,
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+) -> AdminRerankerModel:
+    session.add(reranker_model)
+    session.commit()
+    session.refresh(reranker_model)
+    return reranker_model
 
 
 @router.get("/admin/reranker-models/{reranker_model_id}")
