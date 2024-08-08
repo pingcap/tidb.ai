@@ -45,5 +45,6 @@ class ChatEngineUpdate(BaseModel):
     name: Optional[str] = None
     llm_id: Optional[int] = None
     fast_llm_id: Optional[int] = None
+    reranker_id: Optional[int] = None
     engine_options: Optional[dict] = None
     is_default: Optional[bool] = None
