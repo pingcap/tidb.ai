@@ -12,6 +12,7 @@ export const LLMSelect = forwardRef<any, Omit<FormSelectProps, 'config'>>((props
   return (
     <FormSelect
       {...props}
+      placeholder="Default LLM"
       config={{
         options: llms?.items ?? [],
         loading: isLoading,
@@ -31,6 +32,7 @@ export const RerankerSelect = forwardRef<any, Omit<FormSelectProps, 'config'>>((
   return (
     <FormSelect
       {...props}
+      placeholder="Default Reranker Model"
       config={{
         options: rerankers?.items ?? [],
         loading: isLoading,

@@ -10,16 +10,16 @@ export function LlmInfo ({ reverse = false, id }: { reverse?: boolean, id: numbe
   const { llm, isLoading } = useLlm(id);
 
   if (isLoading) {
-    return <Loader2Icon className='size-4 animate-spin repeat-infinite'/>
+    return <Loader2Icon className="size-4 animate-spin repeat-infinite" />;
   }
 
   if (!llm) {
-    return <span className='text-muted-foreground'>--</span>;
+    return <Badge variant='outline' className="text-muted-foreground">Default LLM</Badge>;
   }
 
   return (
     <span className={cn('flex gap-1 items-center', reverse && 'flex-row-reverse')}>
-      <Badge variant="secondary"><span className='font-bold'>{llm.provider}</span>:<span className='opacity-50'>{llm.model}</span></Badge>
+      <Badge variant="secondary"><span className="font-bold">{llm.provider}</span>:<span className="opacity-50">{llm.model}</span></Badge>
       <Link className={badgeVariants()} href={`/llms/${llm.id}`}>{llm.name}</Link>
     </span>
   );

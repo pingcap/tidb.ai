@@ -14,7 +14,7 @@ export function RerankerInfo ({ reverse = false, id }: { reverse?: boolean, id: 
   }
 
   if (!reranker) {
-    return <span className="text-muted-foreground">--</span>;
+    return <Badge variant='outline' className="text-muted-foreground">Default Reranker Model</Badge>;
   }
 
   return (
