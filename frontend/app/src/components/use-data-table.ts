@@ -7,6 +7,8 @@ const DataTableContext = createContext<Table<any> & { reload?: () => void } | nu
 
 export const DataTableProvider = DataTableContext.Provider;
 
+export const DataTableConsumer = DataTableContext.Consumer;
+
 export function useDataTable () {
   const table = useContext(DataTableContext);
 

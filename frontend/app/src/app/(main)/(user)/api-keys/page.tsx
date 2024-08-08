@@ -12,7 +12,7 @@ import { ManagedDialogClose } from '@/components/managed-dialog-close';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useDataTable } from '@/components/use-data-table';
+import { DataTableConsumer, useDataTable } from '@/components/use-data-table';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { CircleCheckIcon, PlusIcon, TrashIcon } from 'lucide-react';
@@ -70,16 +70,21 @@ export default function ChatEnginesPage () {
               <DialogHeader>
                 <DialogTitle>Create API Key</DialogTitle>
               </DialogHeader>
-              <ManagedDialogClose>
-                {close => (
-                  <CreateApiKeyForm
-                    onCreated={data => {
-                      close();
-                      setRecentlyCreated(data);
-                    }}
-                  />
+              <DataTableConsumer>
+                {(table) => (
+                  <ManagedDialogClose>
+                    {close => (
+                      <CreateApiKeyForm
+                        onCreated={data => {
+                          close();
+                          setRecentlyCreated(data);
+                          table?.reload?.();
+                        }}
+                      />
+                    )}
+                  </ManagedDialogClose>
                 )}
-              </ManagedDialogClose>
+              </DataTableConsumer>
             </DialogContent>
           </ManagedDialog>
         )}
