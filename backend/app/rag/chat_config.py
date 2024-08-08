@@ -13,13 +13,14 @@ from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.embeddings.openai import OpenAIEmbedding
 from llama_index.postprocessor.jinaai_rerank import JinaRerank
+from llama_index.postprocessor.cohere_rerank import CohereRerank
 from sqlmodel import Session, select
 from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 
 from app.rag.node_postprocessor import MetadataPostFilter
 from app.rag.node_postprocessor.metadata_post_filter import MetadataFilters
-from app.types import LLMProvider, EmbeddingProvider
+from app.types import LLMProvider, EmbeddingProvider, RerankerProvider
 from app.rag.default_prompt import (
     DEFAULT_INTENT_GRAPH_KNOWLEDGE,
     DEFAULT_NORMAL_GRAPH_KNOWLEDGE,
@@ -31,6 +32,7 @@ from app.models import (
     ChatEngine as DBChatEngine,
     LLM as DBLLM,
     EmbeddingModel as DBEmbeddingModel,
+    RerankerModel as DBRerankerModel,
 )
 from app.repositories import chat_engine_repo
 from app.rag.llms.anthropic_vertex import AnthropicVertex
@@ -68,6 +70,7 @@ class ChatEngineConfig(BaseModel):
     _db_chat_engine: Optional[DBChatEngine] = None
     _db_llm: Optional[DBLLM] = None
     _db_fast_llm: Optional[DBLLM] = None
+    _db_reranker: Optional[DBRerankerModel] = None
 
     def get_db_chat_engine(self) -> Optional[DBChatEngine]:
         return self._db_chat_engine
@@ -89,6 +92,7 @@ class ChatEngineConfig(BaseModel):
         obj._db_chat_engine = db_chat_engine
         obj._db_llm = db_chat_engine.llm
         obj._db_fast_llm = db_chat_engine.fast_llm
+        obj._db_reranker = db_chat_engine.reranker
         return obj
 
     def get_llama_llm(self, session: Session) -> LLM:
@@ -119,8 +123,16 @@ class ChatEngineConfig(BaseModel):
         llama_llm = self.get_fast_llama_llm(session)
         return get_dspy_lm_by_llama_llm(llama_llm)
 
-    def get_reranker(self, session: Session) -> BaseNodePostprocessor:
-        return get_default_reranker(session)
+    def get_reranker(self, session: Session) -> Optional[BaseNodePostprocessor]:
+        if not self._db_reranker:
+            return get_default_reranker_model(session)
+        return get_reranker_model(
+            self._db_reranker.provider,
+            self._db_reranker.model,
+            self._db_reranker.top_n,
+            self._db_reranker.config,
+            self._db_reranker.credentials,
+        )
 
     def get_metadata_filter(self) -> BaseNodePostprocessor:
         return get_metadata_post_filter(self.vector_search.metadata_post_filters)
@@ -220,10 +232,42 @@ def get_default_embedding_model(session: Session) -> BaseEmbedding:
     )
 
 
-def get_default_reranker(session: Session) -> BaseNodePostprocessor:
-    return JinaRerank(
-        model="jina-reranker-v2-base-multilingual",
-        top_n=10,
+def get_reranker_model(
+    provider: RerankerProvider,
+    model: str,
+    top_n: int,
+    config: dict,
+    credentials: str | list | dict | None,
+) -> BaseNodePostprocessor:
+    match provider:
+        case RerankerProvider.JINA:
+            return JinaRerank(
+                model=model,
+                top_n=top_n,
+                api_key=credentials,
+            )
+        case RerankerProvider.COHERE:
+            return CohereRerank(
+                model=model,
+                top_n=top_n,
+                api_key=credentials,
+            )
+        case _:
+            raise ValueError(f"Got unknown reranker provider: {provider}")
+
+
+def get_default_reranker_model(session: Session) -> Optional[BaseNodePostprocessor]:
+    db_reranker = session.exec(
+        select(DBRerankerModel).order_by(DBRerankerModel.is_default.desc()).limit(1)
+    ).first()
+    if not db_reranker:
+        return None
+    return get_reranker_model(
+        db_reranker.provider,
+        db_reranker.model,
+        db_reranker.top_n,
+        db_reranker.config,
+        db_reranker.credentials,
     )
 
 

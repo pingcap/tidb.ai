@@ -4,7 +4,7 @@ from sqlmodel import text
 
 from app.api.deps import SessionDep
 from app.site_settings import SiteSetting
-from app.rag.chat import check_rag_required_config
+from app.rag.chat import check_rag_required_config, check_rag_optional_config
 
 router = APIRouter()
 
@@ -28,6 +28,7 @@ class RequiredConfigStatus(BaseModel):
 
 class OptionalConfigStatus(BaseModel):
     langfuse: bool
+    default_reranker: bool
 
 
 class SystemConfigStatusResponse(BaseModel):
@@ -40,6 +41,7 @@ def system_bootstrap_status(session: SessionDep) -> SystemConfigStatusResponse:
     has_default_llm, has_default_embedding_model, has_datasource = (
         check_rag_required_config(session)
     )
+    langfuse, default_reranker = check_rag_optional_config(session)
     return SystemConfigStatusResponse(
         required=RequiredConfigStatus(
             default_llm=has_default_llm,
@@ -47,10 +49,7 @@ def system_bootstrap_status(session: SessionDep) -> SystemConfigStatusResponse:
             datasource=has_datasource,
         ),
         optional=OptionalConfigStatus(
-            langfuse=bool(
-                SiteSetting.langfuse_host
-                and SiteSetting.langfuse_secret_key
-                and SiteSetting.langfuse_public_key
-            )
+            langfuse=langfuse,
+            default_reranker=default_reranker,
         ),
     )

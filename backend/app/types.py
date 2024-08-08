@@ -10,3 +10,8 @@ class LLMProvider(str, enum.Enum):
 
 class EmbeddingProvider(str, enum.Enum):
     OPENAI = "openai"
+
+
+class RerankerProvider(str, enum.Enum):
+    JINA = "jina"
+    COHERE = "cohere"

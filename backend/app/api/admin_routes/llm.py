@@ -6,20 +6,26 @@ from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlmodel import select, update
 from langfuse import Langfuse
+from llama_index.core.schema import NodeWithScore, TextNode
 
 from app.core.config import settings
 from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.rag.llm_option import admin_llm_options, LLMOption
 from app.rag.embed_model_option import admin_embed_model_options, EmbeddingModelOption
-from app.rag.chat_config import get_llm, get_embedding_model
+from app.rag.reranker_model_option import (
+    admin_reranker_model_options,
+    RerankerModelOption,
+)
+from app.rag.chat_config import get_llm, get_embedding_model, get_reranker_model
 from app.models import (
     ChatEngine,
     LLM,
     AdminLLM,
     EmbeddingModel,
     AdminEmbeddingModel,
+    RerankerModel,
+    AdminRerankerModel,
 )
-from app.site_settings import SiteSetting
 
 router = APIRouter()
 
@@ -213,3 +219,114 @@ def test_langfuse(
         success = False
         error = str(e)
     return LangfuseTestResult(success=success, error=error)
+
+
+@router.get("/admin/reranker-models/options")
+def get_reranker_model_options(
+    user: CurrentSuperuserDep,
+) -> List[RerankerModelOption]:
+    return admin_reranker_model_options
+
+
+@router.post("/admin/reranker-models/test")
+def test_reranker_model(
+    db_reranker_model: RerankerModel,
+    user: CurrentSuperuserDep,
+) -> LLMTestResult:
+    try:
+        reranker = get_reranker_model(
+            provider=db_reranker_model.provider,
+            model=db_reranker_model.model,
+            # for testing purpose, we only rerank 2 nodes
+            top_n=2,
+            config=db_reranker_model.config,
+            credentials=db_reranker_model.credentials,
+        )
+        nodes = reranker.postprocess_nodes(
+            nodes=[
+                NodeWithScore(
+                    node=TextNode(
+                        text="TiDB is a distributed SQL database.",
+                    ),
+                    score=0.8,
+                ),
+                NodeWithScore(
+                    node=TextNode(
+                        text="TiDB is compatible with MySQL protocol.",
+                    ),
+                    score=0.6,
+                ),
+                NodeWithScore(
+                    node=TextNode(
+                        text="TiFlash is a columnar storage engine.",
+                    ),
+                    score=0.4,
+                ),
+            ],
+            query_str="What is TiDB?",
+        )
+        success = True
+        error = ""
+    except Exception as e:
+        success = False
+        error = str(e)
+    return LLMTestResult(success=success, error=error)
+
+
+@router.get("/admin/reranker-models")
+def list_reranker_models(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    params: Params = Depends(),
+) -> Page[AdminRerankerModel]:
+    return paginate(
+        session,
+        select(RerankerModel).order_by(RerankerModel.created_at.desc()),
+        params,
+    )
+
+
+@router.post("/admin/reranker-models")
+def create_reranker_model(
+    reranker_model: RerankerModel,
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+) -> AdminRerankerModel:
+    session.add(reranker_model)
+    session.commit()
+    session.refresh(reranker_model)
+    return reranker_model
+
+
+@router.get("/admin/reranker-models/{reranker_model_id}")
+def get_reranker_model_detail(
+    reranker_model_id: int,
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+) -> AdminRerankerModel:
+    reranker_model = session.get(RerankerModel, reranker_model_id)
+    if reranker_model is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Reranker model not found"
+        )
+    return reranker_model
+
+
+@router.delete("/admin/reranker-models/{reranker_model_id}")
+def delete_reranker_model(
+    reranker_id: int,
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+):
+    reranker_model = session.get(RerankerModel, reranker_id)
+    if reranker_model is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Reranker model not found"
+        )
+    session.exec(
+        update(ChatEngine)
+        .where(ChatEngine.reranker_id == reranker_id)
+        .values(reranker_id=None)
+    )
+    session.delete(reranker_model)
+    session.commit()

@@ -25,3 +25,4 @@ from .upload import Upload
 from .data_source import DataSource, DataSourceType
 from .llm import LLM, AdminLLM
 from .embed_model import EmbeddingModel, AdminEmbeddingModel
+from .reranker_model import RerankerModel, AdminRerankerModel
