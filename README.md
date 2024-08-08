@@ -34,7 +34,6 @@ A conversational search tool based on GraphRAG (Knowledge Graph) that built on t
 >
 > 1. Set up a [TiDB Serverless cluster](https://docs.pingcap.com/tidbcloud/tidb-cloud-quickstart).
 > 2. Install [Docker Compose](https://docs.docker.com/compose/install/).
-> 3. Jina AI API key, get one from [Jina AI](https://jina.ai/reranker/).
 
 1. Clone the repository:
 
@@ -52,7 +51,6 @@ A conversational search tool based on GraphRAG (Knowledge Graph) that built on t
 
     Replace the following placeholders with your own values:
     - `SECRET_KEY`: you can generate a random secret key using `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`
-    - `JINAAI_API_KEY`: get one from [Jina AI](https://jina.ai/reranker/)
     - `TIDB_HOST`, `TIDB_USER`, `TIDB_PASSWORD` and `TIDB_DATABASE`: get them from your [TiDB Serverless cluster](https://tidbcloud.com/)
 
       - Note: TiDB Serverless will provide a default database name called `test`, if you want to use another database name, you need to create a new database in the TiDB Serverless console.

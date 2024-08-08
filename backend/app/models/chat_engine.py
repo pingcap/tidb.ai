@@ -29,6 +29,12 @@ class ChatEngine(UpdatableBaseModel, table=True):
             "foreign_keys": "ChatEngine.fast_llm_id",
         },
     )
+    reranker_id: Optional[int] = Field(foreign_key="reranker_models.id", nullable=True)
+    reranker: "RerankerModel" = SQLRelationship(
+        sa_relationship_kwargs={
+            "foreign_keys": "ChatEngine.reranker_id",
+        },
+    )
     is_default: bool = Field(default=False)
     deleted_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime))
 

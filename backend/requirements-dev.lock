@@ -50,6 +50,11 @@ beautifulsoup4==4.12.3
     # via markdownify
 billiard==4.2.0
     # via celery
+boto3==1.34.156
+    # via cohere
+botocore==1.34.156
+    # via boto3
+    # via s3transfer
 cachetools==5.3.3
     # via google-auth
 celery==5.4.0
@@ -78,6 +83,8 @@ click-plugins==1.1.1
     # via celery
 click-repl==0.3.0
     # via celery
+cohere==5.6.2
+    # via llama-index-postprocessor-cohere-rerank
 colorlog==6.8.2
     # via optuna
 cryptography==42.0.8
@@ -125,6 +132,8 @@ fastapi-pagination==0.12.25
 fastapi-users==13.0.0
     # via fastapi-users-db-sqlmodel
 fastapi-users-db-sqlmodel==0.3.0
+fastavro==1.9.5
+    # via cohere
 filelock==3.15.1
     # via huggingface-hub
     # via transformers
@@ -215,6 +224,7 @@ httptools==0.6.1
     # via uvicorn
 httpx==0.27.0
     # via anthropic
+    # via cohere
     # via fastapi
     # via httpx-oauth
     # via langfuse
@@ -223,6 +233,8 @@ httpx==0.27.0
     # via llama-index-legacy
     # via openai
 httpx-oauth==0.14.1
+httpx-sse==0.4.0
+    # via cohere
 huggingface-hub==0.23.3
     # via datasets
     # via tokenizers
@@ -245,6 +257,9 @@ jinja2==3.1.4
     # via fastapi
 jiter==0.5.0
     # via anthropic
+jmespath==1.0.1
+    # via boto3
+    # via botocore
 joblib==1.3.2
     # via dspy-ai
     # via nltk
@@ -295,6 +310,7 @@ llama-index-core==0.10.59
     # via llama-index-llms-openai
     # via llama-index-llms-openai-like
     # via llama-index-multi-modal-llms-openai
+    # via llama-index-postprocessor-cohere-rerank
     # via llama-index-postprocessor-jinaai-rerank
     # via llama-index-program-openai
     # via llama-index-question-gen-openai
@@ -320,6 +336,7 @@ llama-index-llms-openai==0.1.27
 llama-index-llms-openai-like==0.1.3
 llama-index-multi-modal-llms-openai==0.1.6
     # via llama-index
+llama-index-postprocessor-cohere-rerank==0.1.7
 llama-index-postprocessor-jinaai-rerank==0.1.6
 llama-index-program-openai==0.1.6
     # via llama-index
@@ -422,6 +439,8 @@ pandas==2.2.2
     # via dspy-ai
     # via llama-index-core
     # via llama-index-legacy
+parameterized==0.9.0
+    # via cohere
 pillow==10.3.0
     # via llama-index-core
     # via llama-index-llms-gemini
@@ -466,6 +485,7 @@ pycparser==2.22
     # via cffi
 pydantic==2.8.2
     # via anthropic
+    # via cohere
     # via deepeval
     # via dspy-ai
     # via fastapi
@@ -505,6 +525,7 @@ pytest-repeat==0.9.3
 pytest-xdist==3.6.1
     # via deepeval
 python-dateutil==2.9.0.post0
+    # via botocore
     # via celery
     # via google-cloud-bigquery
     # via pandas
@@ -536,6 +557,7 @@ regex==2024.5.15
     # via tiktoken
     # via transformers
 requests==2.32.3
+    # via cohere
     # via datasets
     # via deepeval
     # via dspy-ai
@@ -556,6 +578,8 @@ rich==13.7.1
     # via typer
 rsa==4.9
     # via google-auth
+s3transfer==0.10.2
+    # via boto3
 safetensors==0.4.3
     # via transformers
 sentry-sdk==2.5.1
@@ -607,6 +631,7 @@ tiktoken==0.7.0
     # via ragas
 tokenizers==0.19.1
     # via anthropic
+    # via cohere
     # via transformers
 tornado==6.4.1
     # via flower
@@ -626,9 +651,12 @@ transformers==4.43.2
 typer==0.12.3
     # via deepeval
     # via fastapi-cli
+types-requests==2.32.0.20240712
+    # via cohere
 typing-extensions==4.12.2
     # via alembic
     # via anthropic
+    # via cohere
     # via fastapi
     # via fastapi-pagination
     # via google-generativeai
@@ -655,8 +683,10 @@ ujson==5.10.0
 uritemplate==4.1.1
     # via google-api-python-client
 urllib3==2.2.1
+    # via botocore
     # via requests
     # via sentry-sdk
+    # via types-requests
 uvicorn==0.30.3
     # via fastapi
 uvloop==0.19.0

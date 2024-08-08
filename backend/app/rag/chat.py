@@ -23,6 +23,7 @@ from app.models import (
     LLM as DBLLM,
     EmbeddingModel as DBEmbeddingModel,
     DataSource as DBDataSource,
+    RerankerModel as DBRerankerModel,
 )
 from app.core.config import settings
 from app.rag.chat_stream_protocol import (
@@ -63,6 +64,14 @@ class ChatService:
         self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
         self._reranker = self.chat_engine_config.get_reranker(db_session)
         self._metadata_filter = self.chat_engine_config.get_metadata_filter()
+        if self._reranker:
+            self._node_postprocessors = [self._metadata_filter, self._reranker]
+            # Set initial similarity_top_k to a large number,
+            # reranker will filter out irrelevant nodes after the retrieval
+            self._similarity_top_k = 100
+        else:
+            self._node_postprocessors = [self._metadata_filter]
+            self._similarity_top_k = 10
 
         self.langfuse_host = SiteSetting.langfuse_host
         self.langfuse_secret_key = SiteSetting.langfuse_secret_key
@@ -335,11 +344,11 @@ class ChatService:
         )
         query_engine = vector_index.as_query_engine(
             llm=_llm,
-            node_postprocessors=[self._metadata_filter, self._reranker],
+            node_postprocessors=self._node_postprocessors,
             streaming=True,
             text_qa_template=text_qa_template,
             refine_template=refine_template,
-            similarity_top_k=100,
+            similarity_top_k=self._similarity_top_k,
             service_context=service_context,
         )
         response: StreamingResponse = query_engine.query(refined_question)
@@ -483,3 +492,13 @@ def check_rag_required_config(session: Session) -> tuple[bool]:
     )
     has_datasource = session.scalar(select(func.count(DBDataSource.id))) > 0
     return has_default_llm, has_default_embedding_model, has_datasource
+
+
+def check_rag_optional_config(session: Session) -> tuple[bool]:
+    langfuse = bool(
+        SiteSetting.langfuse_host
+        and SiteSetting.langfuse_secret_key
+        and SiteSetting.langfuse_public_key
+    )
+    default_reranker = session.scalar(select(func.count(DBRerankerModel.id))) > 0
+    return langfuse, default_reranker
