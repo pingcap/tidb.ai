@@ -1,4 +1,5 @@
 import enum
+from uuid import UUID
 from typing import Optional, Any, List, Dict
 from datetime import datetime
 
@@ -81,6 +82,7 @@ class Relationship(RelationshipBase, table=True):
             "lazy": "joined",
         },
     )
+    chunk_id: UUID = Field(nullable=True)
 
     __tablename__ = "relationships"
 

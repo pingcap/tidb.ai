@@ -29,7 +29,7 @@ class Document(UpdatableBaseModel, table=True):
     name: str = Field(max_length=256)
     content: str = Field(sa_column=Column(MEDIUMTEXT))
     mime_type: str = Field(max_length=64)
-    source_uri: str = Field(max_length=512, unique=True)
+    source_uri: str = Field(max_length=512)
     meta: dict | list = Field(default={}, sa_column=Column(JSON))
     # the last time the document was modified in the source system
     last_modified_at: Optional[datetime] = Field(sa_column=Column(DateTime))

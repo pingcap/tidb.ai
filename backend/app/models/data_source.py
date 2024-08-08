@@ -1,11 +1,13 @@
 from enum import Enum
 from uuid import UUID
 from typing import Optional
+from datetime import datetime
 
 from sqlmodel import (
     Column,
     Field,
     JSON,
+    DateTime,
     Relationship as SQLRelationship,
 )
 
@@ -37,6 +39,10 @@ class DataSource(UpdatableBaseModel, table=True):
         sa_relationship_kwargs={
             "foreign_keys": "DataSource.llm_id",
         },
+    )
+    deleted_at: Optional[datetime] = Field(
+        default=None,
+        sa_column=Column(DateTime),
     )
 
     __tablename__ = "data_sources"
