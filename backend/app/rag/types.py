@@ -21,7 +21,7 @@ class GeminiModel(str, enum.Enum):
 
 
 class VertexModel(str, enum.Enum):
-    CLAUDE_35_SONNET = "anthropic.claude-3-5-sonnet-20240620-v1:0"
+    CLAUDE_35_SONNET = "claude-3-5-sonnet@20240620"
 
 
 # Reference: https://us-west-2.console.aws.amazon.com/bedrock/home?region=us-west-2#/models

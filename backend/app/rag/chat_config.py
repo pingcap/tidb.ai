@@ -3,6 +3,7 @@ import logging
 from typing import Optional
 
 import dspy
+from llama_index.llms.bedrock.utils import BEDROCK_FOUNDATION_LLMS
 from pydantic import BaseModel
 from llama_index.llms.openai.utils import DEFAULT_OPENAI_API_BASE
 from llama_index.llms.openai import OpenAI
@@ -178,11 +179,17 @@ def get_llm(
             os.environ["AWS_ACCESS_KEY_ID"] = access_key_id
             os.environ["AWS_SECRET_ACCESS_KEY"] = secret_access_key
             os.environ["AWS_REGION_NAME"] = region_name
+
+            context_size = None
+            if model not in BEDROCK_FOUNDATION_LLMS:
+                context_size = 200000
+
             llm = Bedrock(
                 model=model,
                 aws_access_key_id=access_key_id,
                 aws_secret_access_key=secret_access_key,
-                region_name=region_name
+                region_name=region_name,
+                context_size=context_size
             )
             llm.region_name=region_name
             return llm
