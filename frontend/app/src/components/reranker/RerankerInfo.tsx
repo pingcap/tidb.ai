@@ -20,7 +20,7 @@ export function RerankerInfo ({ reverse = false, id }: { reverse?: boolean, id: 
   return (
     <span className={cn('flex gap-1 items-center', reverse && 'flex-row-reverse')}>
       <Badge variant="secondary"><span className="font-bold">{reranker.provider}</span>:<span className="opacity-50">{reranker.model}</span></Badge>
-      <Link className={badgeVariants()} href={`/llms/${reranker.id}`}>{reranker.name}</Link>
+      <Link className={badgeVariants()} href={`/reranker-models/${reranker.id}`}>{reranker.name}</Link>
     </span>
   );
 }
