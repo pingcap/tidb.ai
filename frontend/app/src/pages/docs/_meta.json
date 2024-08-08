@@ -26,5 +26,9 @@
   },
   "README": {
     "display": "hidden"
-  }
+  },
+  "--": {
+    "type": "separator"
+  },
+  "releases": "Releases"
 }
