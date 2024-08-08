@@ -1,5 +1,5 @@
 import { type IndexProgress, indexSchema, type IndexTotalStats, totalSchema } from '@/api/rag';
-import { BASE_URL, buildUrlParams, handleResponse, opaqueCookieHeader, type Page, type PageParams, zodPage } from '@/lib/request';
+import { BASE_URL, buildUrlParams, handleErrors, handleResponse, opaqueCookieHeader, type Page, type PageParams, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
 
@@ -11,7 +11,7 @@ interface DatasourceBase {
   updated_at: Date;
   user_id: string;
   build_kg_index: boolean;
-  llm_id: number | null
+  llm_id: number | null;
 }
 
 export type Datasource = DatasourceBase & ({
@@ -65,7 +65,7 @@ const baseDatasourceSchema = z.object({
   updated_at: zodJsonDate(),
   user_id: z.string(),
   build_kg_index: z.boolean(),
-  llm_id: z.number().nullable()
+  llm_id: z.number().nullable(),
 });
 
 const datasourceSchema = baseDatasourceSchema
@@ -110,6 +110,13 @@ export async function getDatasource (id: number): Promise<Datasource> {
   return fetch(`${BASE_URL}/api/v1/admin/datasources/${id}`, {
     headers: await opaqueCookieHeader(),
   }).then(handleResponse(datasourceSchema));
+}
+
+export async function deleteDatasource (id: number): Promise<void> {
+  await fetch(`${BASE_URL}/api/v1/admin/datasources/${id}`, {
+    method: 'DELETE',
+    headers: await opaqueCookieHeader(),
+  }).then(handleErrors);
 }
 
 export async function getDatasourceOverview (id: number): Promise<DataSourceIndexProgress> {

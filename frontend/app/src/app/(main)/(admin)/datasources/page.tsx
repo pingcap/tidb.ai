@@ -1,14 +1,16 @@
 'use client';
 
-import { type Datasource, listDataSources } from '@/api/datasources';
+import { type Datasource, deleteDatasource, listDataSources } from '@/api/datasources';
 import { AdminPageHeading } from '@/components/admin-page-heading';
+import { DangerousActionButton } from '@/components/dangerous-action-button';
 import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { LlmInfo } from '@/components/llm/LlmInfo';
 import { buttonVariants } from '@/components/ui/button';
+import { useDataTable } from '@/components/use-data-table';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
-import { PlusIcon } from 'lucide-react';
+import { PlusIcon, TrashIcon } from 'lucide-react';
 import Link from 'next/link';
 
 const helper = createColumnHelper<Datasource>();
@@ -21,9 +23,17 @@ const columns = [
     ),
   }),
   helper.accessor('data_source_type', {}),
-  helper.accessor('llm_id', { cell: (ctx) => <LlmInfo reverse id={ctx.getValue()} /> }),
+  helper.accessor('llm_id', { cell: (ctx) => <LlmInfo className="justify-end" reverse id={ctx.getValue()} /> }),
   helper.accessor('build_kg_index', {}),
   helper.accessor('user_id', {}),
+  helper.display({
+    header: 'Actions',
+    cell: ({ row }) => (
+      <span className="flex gap-2 items-center">
+        <DeleteButton datasource={row.original} />
+      </span>
+    ),
+  }),
 ] as ColumnDef<Datasource>[];
 
 export default function ChatEnginesPage () {
@@ -47,5 +57,23 @@ export default function ChatEnginesPage () {
         idColumn="id"
       />
     </>
+  );
+}
+
+function DeleteButton ({ datasource }: { datasource: Datasource }) {
+  const { reload } = useDataTable();
+
+  return (
+    <DangerousActionButton
+      action={async () => {
+        await deleteDatasource(datasource.id);
+        reload?.();
+      }}
+      variant="ghost"
+      className="text-xs text-destructive hover:text-destructive hover:bg-destructive/20"
+    >
+      <TrashIcon className="w-3 mr-1" />
+      Delete
+    </DangerousActionButton>
   );
 }
