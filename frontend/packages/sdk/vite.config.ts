@@ -3,7 +3,9 @@ import { visualizer } from 'rollup-plugin-visualizer';
 import { defineConfig } from 'vite';
 import pkg from './package.json';
 
-const overriding: string[] = [];
+const overriding: string[] = [
+  'lib/request',
+];
 
 const overridingPackages = [
   'next/headers',
@@ -26,6 +28,7 @@ export default defineConfig({
       },
       external: Object.keys(pkg.dependencies),
     },
+    sourcemap: true,
   },
   resolve: {
     alias: [
@@ -45,6 +48,7 @@ export default defineConfig({
   },
   define: {
     'process.env.BASE_URL': 'process.env.TIDBAI_BASE_URL',
+    'process.env.TIDBAI_API_KEY': 'process.env.TIDBAI_API_KEY',
     'process.env.NEXT_PUBLIC_BASE_URL': '""',
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     'process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL': 'false',
