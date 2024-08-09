@@ -4,7 +4,7 @@ import { Button, type ButtonProps } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import copy from 'copy-to-clipboard';
 import { ClipboardCheckIcon, ClipboardIcon } from 'lucide-react';
-import { useEffect, useLayoutEffect, useState } from 'react';
+import { useLayoutEffect, useState } from 'react';
 
 export interface CopyButtonProps extends Omit<ButtonProps, 'children' | 'type'> {
   text: string;

@@ -15,15 +15,6 @@ export interface UseMessageFeedbackReturns {
   // deleteFeedback (): Promise<void>;
 }
 
-export type ContentSource = {
-  query: string
-  markdownSources: {
-    kgRelationshipUrls: string[]
-    restUrls: string[]
-  }
-  kgSources: Record<string, any>
-}
-
 export function useMessageFeedback (messageId: number | undefined, enabled: boolean): UseMessageFeedbackReturns {
   const [feedback, setFeedback] = useState<FeedbackParams>();
   const isLoading = false;

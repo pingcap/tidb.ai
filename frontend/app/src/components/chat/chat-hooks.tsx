@@ -1,11 +1,10 @@
-import { type Chat, type ChatMessage, ChatMessageRole, type PostChatParams } from '@/api/chats';
+import { type Chat, type ChatMessage, ChatMessageRole } from '@/api/chats';
 import { isBootstrapStatusPassed } from '@/api/system';
 import { ChatController, ChatMessageController, type OngoingState } from '@/components/chat/chat-controller';
 import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { useLatestRef } from '@/components/use-latest-ref';
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
 import { util } from 'zod';
-import Omit = util.Omit;
 
 export interface ChatsProviderValues {
   chats: Map<string, ChatController>;
@@ -14,12 +13,6 @@ export interface ChatsProviderValues {
   newChat (...args: ConstructorParameters<typeof ChatController>): ChatController;
 
   destroyChat (id: string): void;
-}
-
-export interface ChatProviderValues {
-  controller: ChatController | null;
-
-  post (postParams: Omit<PostChatParams, 'chat_id'>): Promise<void>;
 }
 
 const ChatsContext = createContext<ChatsProviderValues>({

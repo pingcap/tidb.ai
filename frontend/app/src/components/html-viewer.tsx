@@ -1,14 +1,9 @@
-'use client'
+'use client';
 
 import Highlight from 'highlight.js/lib/core';
 import html from 'highlight.js/lib/languages/xml';
 import { useEffect, useState } from 'react';
 import './code-theme.scss';
-
-export interface HtmlViewerProps {
-  content: string;
-  mime: string;
-}
 
 Highlight.registerLanguage('html', html);
 
