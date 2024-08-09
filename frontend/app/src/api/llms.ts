@@ -1,7 +1,6 @@
 import { type ProviderOption, providerOptionSchema } from '@/api/providers';
 import { BASE_URL, buildUrlParams, handleErrors, handleResponse, opaqueCookieHeader, type Page, type PageParams, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
-import { capitalCase } from 'change-case-all';
 import { z, type ZodType, type ZodTypeDef } from 'zod';
 
 export interface LLM {
@@ -51,13 +50,7 @@ export async function listLlmOptions () {
       ...await opaqueCookieHeader(),
     },
   })
-    .then(handleResponse(llmOptionSchema.array()))
-    .then(data => data.map(item => ({
-      ...item,
-      provider_display_name: capitalCase(item.provider),
-      provider_description: capitalCase(item.provider).repeat(30),
-      provider_url: 'https://www.baidu.com',
-    })));
+    .then(handleResponse(llmOptionSchema.array()));
 }
 
 export async function listLlms ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<LLM>> {
