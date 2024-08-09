@@ -6,6 +6,9 @@ from app.types import LLMProvider
 
 class LLMOption(BaseModel):
     provider: LLMProvider
+    provider_display_name: str | None = None
+    provider_description: str | None = None
+    provider_url: str | None = None
     default_llm_model: str
     llm_model_description: str
     default_credentials: str | dict = ""
@@ -17,6 +20,9 @@ class LLMOption(BaseModel):
 admin_llm_options: List[LLMOption] = [
     LLMOption(
         provider=LLMProvider.OPENAI,
+        provider_display_name="OpenAI",
+        provider_description="The OpenAI API provides a simple interface for developers to create an intelligence layer in their applications, powered by OpenAI's state of the art models.",
+        provider_url="https://platform.openai.com",
         default_llm_model="gpt-4o",
         llm_model_description="",
         credentials_display_name="OpenAI API Key",
@@ -26,6 +32,7 @@ admin_llm_options: List[LLMOption] = [
     ),
     LLMOption(
         provider=LLMProvider.OPENAI_LIKE,
+        provider_display_name="OpenAI Like",
         default_llm_model="gpt-4o",
         llm_model_description="",
         credentials_display_name="API Key",
@@ -35,6 +42,9 @@ admin_llm_options: List[LLMOption] = [
     ),
     LLMOption(
         provider=LLMProvider.GEMINI,
+        provider_display_name="Gemini",
+        provider_description="The Gemini API and Google AI Studio help you start working with Google's latest models. Access the whole Gemini model family and turn your ideas into real applications that scale.",
+        provider_url="https://ai.google.dev/gemini-api",
         default_llm_model="models/gemini-1.5-flash",
         llm_model_description="Find the model code at https://ai.google.dev/gemini-api/docs/models/gemini",
         credentials_display_name="Google API Key",
@@ -44,6 +54,9 @@ admin_llm_options: List[LLMOption] = [
     ),
     LLMOption(
         provider=LLMProvider.ANTHROPIC_VERTEX,
+        provider_display_name="Anthropic Vertex AI",
+        provider_description = "Anthropic’s Claude models are now generally available through Vertex AI.",
+        provider_url = "https://docs.anthropic.com/en/api/claude-on-vertex-ai",
         default_llm_model="claude-3-5-sonnet@20240620",
         llm_model_description="",
         credentials_display_name="Google Credentials JSON",

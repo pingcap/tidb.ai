@@ -1,3 +1,4 @@
+import { type ProviderOption, providerOptionSchema } from '@/api/providers';
 import { BASE_URL, buildUrlParams, handleErrors, handleResponse, opaqueCookieHeader, type Page, type PageParams, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType, type ZodTypeDef } from 'zod';
@@ -14,14 +15,9 @@ export interface Reranker {
   updated_at: Date | null;
 }
 
-export interface RerankerOption {
-  provider: string;
+export interface RerankerOption extends ProviderOption {
   default_reranker_model: string;
   reranker_model_description: string;
-  credentials_display_name: string;
-  credentials_description: string;
-  credentials_type: 'str' | 'dict';
-  default_credentials: any;
   default_top_n: number;
 }
 
@@ -47,23 +43,11 @@ const rerankerSchema = z.object({
   updated_at: zodJsonDate().nullable(),
 }) satisfies ZodType<Reranker, ZodTypeDef, any>;
 
-const rerankerOptionSchema = z.object({
-  provider: z.string(),
+const rerankerOptionSchema = providerOptionSchema.and(z.object({
   default_top_n: z.number(),
   default_reranker_model: z.string(),
   reranker_model_description: z.string(),
-  credentials_display_name: z.string(),
-  credentials_description: z.string(),
-}).and(z.discriminatedUnion('credentials_type', [
-  z.object({
-    credentials_type: z.literal('str'),
-    default_credentials: z.string(),
-  }),
-  z.object({
-    credentials_type: z.literal('dict'),
-    default_credentials: z.object({}).passthrough(),
-  }),
-])) satisfies ZodType<RerankerOption>;
+})) satisfies ZodType<RerankerOption, any, any>;
 
 export async function listRerankerOptions () {
   return await fetch(`${BASE_URL}/api/v1/admin/reranker-models/options`, {

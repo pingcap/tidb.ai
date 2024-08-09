@@ -1,10 +1,12 @@
 'use client';
 
-import { createReranker, listRerankerOptions, type Reranker, type RerankerOption, testReranker } from '@/api/rerankers';
-import { FormInput, FormSelect, type FormSelectConfig, FormSwitch } from '@/components/form/control-widget';
+import { createReranker, listRerankerOptions, type Reranker, testReranker } from '@/api/rerankers';
+import { ProviderSelect } from '@/components/form/biz';
+import { FormInput, FormSwitch } from '@/components/form/control-widget';
 import { FormFieldBasicLayout, FormFieldContainedLayout } from '@/components/form/field-layout';
 import { FormRootError } from '@/components/form/root-error';
 import { CodeInput } from '@/components/form/widgets/CodeInput';
+import { ProviderDescription } from '@/components/provider-description';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -111,16 +113,8 @@ export function CreateRerankerForm ({ transitioning, onCreated }: { transitionin
           <FormFieldBasicLayout name="name" label="Name">
             <FormInput />
           </FormFieldBasicLayout>
-          <FormFieldBasicLayout name="provider" label="Provider">
-            <FormSelect
-              config={({
-                options: options ?? [],
-                key: 'provider',
-                loading: isLoading,
-                error,
-                renderOption: (option) => option.provider,
-              }) satisfies FormSelectConfig<RerankerOption>}
-            />
+          <FormFieldBasicLayout name="provider" label="Provider" description={provider && <ProviderDescription provider={provider} />}>
+            <ProviderSelect options={options} isLoading={isLoading} error={error} />
           </FormFieldBasicLayout>
           {provider && (
             <>

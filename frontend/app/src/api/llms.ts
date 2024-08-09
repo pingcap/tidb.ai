@@ -1,3 +1,4 @@
+import { type ProviderOption, providerOptionSchema } from '@/api/providers';
 import { BASE_URL, buildUrlParams, handleErrors, handleResponse, opaqueCookieHeader, type Page, type PageParams, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType, type ZodTypeDef } from 'zod';
@@ -13,14 +14,9 @@ export interface LLM {
   updated_at: Date | null;
 }
 
-export interface LlmOption {
-  provider: string;
+export interface LlmOption extends ProviderOption {
   default_llm_model: string;
   llm_model_description: string;
-  credentials_display_name: string;
-  credentials_description: string;
-  credentials_type: 'str' | 'dict';
-  default_credentials: any;
 }
 
 export interface CreateLLM {
@@ -43,22 +39,10 @@ const llmSchema = z.object({
   updated_at: zodJsonDate().nullable(),
 }) satisfies ZodType<LLM, ZodTypeDef, any>;
 
-const llmOptionSchema = z.object({
-  provider: z.string(),
+const llmOptionSchema = providerOptionSchema.and(z.object({
   default_llm_model: z.string(),
   llm_model_description: z.string(),
-  credentials_display_name: z.string(),
-  credentials_description: z.string(),
-}).and(z.discriminatedUnion('credentials_type', [
-  z.object({
-    credentials_type: z.literal('str'),
-    default_credentials: z.string(),
-  }),
-  z.object({
-    credentials_type: z.literal('dict'),
-    default_credentials: z.object({}).passthrough(),
-  }),
-])) satisfies ZodType<LlmOption>;
+})) satisfies ZodType<LlmOption, any, any>;
 
 export async function listLlmOptions () {
   return await fetch(`${BASE_URL}/api/v1/admin/llms/options`, {
