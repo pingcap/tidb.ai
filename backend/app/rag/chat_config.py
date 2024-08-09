@@ -188,6 +188,9 @@ def get_llm(
                 region_name=region_name,
                 context_size=context_size
             )
+            # Note: Because llama index Bedrock class doesn't set up these values to the corresponding
+            # attributes in its constructor function, we pass the values again via setter to pass them to
+            # `get_dspy_lm_by_llama_llm` function.
             llm.aws_access_key_id=access_key_id
             llm.aws_secret_access_key=secret_access_key
             llm.region_name=region_name

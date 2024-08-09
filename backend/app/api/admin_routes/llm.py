@@ -29,6 +29,7 @@ from app.models import (
 )
 
 router = APIRouter()
+logger = logging.getLogger(__name__)
 
 
 @router.get("/admin/llms/options")
@@ -82,7 +83,7 @@ def test_llm(
         success = True
         error = ""
     except Exception as e:
-        logging.exception(e)
+        logger.debug(e)
         success = False
         error = str(e)
     return LLMTestResult(success=success, error=error)
