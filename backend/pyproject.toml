@@ -35,7 +35,7 @@ dependencies = [
     "fastapi-pagination>=0.12.25",
     "gunicorn>=22.0.0",
     "pyyaml>=6.0.1",
-    "anthropic[vertex]>=0.31.0",
+    "anthropic[vertex]>=0.28.1",
     "google-cloud-aiplatform>=1.59.0",
     "deepeval>=0.21.73",
     "llama-index-llms-openai>=0.1.27",
@@ -43,6 +43,7 @@ dependencies = [
     "playwright>=1.45.1",
     "markdownify>=0.13.1",
     "llama-index-postprocessor-cohere-rerank>=0.1.7",
+    "llama-index-llms-bedrock>=0.1.12",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"

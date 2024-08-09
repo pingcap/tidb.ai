@@ -55,4 +55,17 @@ admin_llm_options: List[LLMOption] = [
             "private_key_id": "****",
         },
     ),
+    LLMOption(
+        provider=LLMProvider.BEDROCK,
+        default_llm_model="anthropic.claude-3-5-sonnet-20240620-v1:0",
+        llm_model_description="",
+        credentials_display_name="AWS Bedrock Credentials JSON",
+        credentials_description="The JSON Object of AWS Credentials, refer to https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html#cli-configure-files-global",
+        credentials_type="dict",
+        default_credentials={
+            "aws_access_key_id": "****",
+            "aws_secret_access_key": "****",
+            "aws_region_name": "us-west-2"
+        },
+    ),
 ]
