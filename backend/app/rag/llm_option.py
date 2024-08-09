@@ -70,6 +70,9 @@ admin_llm_options: List[LLMOption] = [
     ),
     LLMOption(
         provider=LLMProvider.BEDROCK,
+        provider_display_name="Bedrock",
+        provider_description="Amazon Bedrock is a fully managed foundation models service.",
+        provider_url="https://docs.aws.amazon.com/bedrock/",
         default_llm_model="anthropic.claude-3-5-sonnet-20240620-v1:0",
         llm_model_description="",
         credentials_display_name="AWS Bedrock Credentials JSON",
