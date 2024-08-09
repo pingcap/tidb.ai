@@ -1,0 +1,27 @@
+{
+  "name": "@tidb-ai/sdk",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/sdk.js",
+  "module": "dist/sdk.js",
+  "types": "dist/sdk.d.ts",
+  "scripts": {
+    "build": "npm run gen:api-dts && npm run build:js && npm run build:dts",
+    "build:js": "vite build",
+    "build:dts": "rollup -c ",
+    "gen:api-dts": "node scripts/genApiTs.js"
+  },
+  "dependencies": {
+    "ai": "^3.2.16",
+    "eventemitter3": "^5.0.1",
+    "zod": "^3.23.8"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "rollup": "^4.20.0",
+    "rollup-plugin-dts": "^6.1.1",
+    "rollup-plugin-visualizer": "^5.12.0",
+    "typescript": "^5.5.4",
+    "vite": "^5.3.3"
+  }
+}
