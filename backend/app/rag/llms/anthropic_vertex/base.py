@@ -136,17 +136,19 @@ class AnthropicVertex(FunctionCallingLLM):
             timeout=timeout,
             max_retries=max_retries,
             default_headers=default_headers,
-            credentials=credentials,
+            # credentials=credentials,
             project_id=credentials.project_id,
         )
+        self._client._credentials = credentials
         self._aclient = anthropic.AsyncAnthropicVertex(
             region="us-east5",
             timeout=timeout,
             max_retries=max_retries,
             default_headers=default_headers,
-            credentials=credentials,
+            # credentials=credentials,
             project_id=credentials.project_id,
         )
+        self._aclient._credentials = credentials
 
         super().__init__(
             temperature=temperature,
