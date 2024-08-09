@@ -176,9 +176,6 @@ def get_llm(
             access_key_id = credentials["aws_access_key_id"]
             secret_access_key = credentials["aws_secret_access_key"]
             region_name = credentials["aws_region_name"]
-            os.environ["AWS_ACCESS_KEY_ID"] = access_key_id
-            os.environ["AWS_SECRET_ACCESS_KEY"] = secret_access_key
-            os.environ["AWS_REGION_NAME"] = region_name
 
             context_size = None
             if model not in BEDROCK_FOUNDATION_LLMS:
@@ -191,6 +188,8 @@ def get_llm(
                 region_name=region_name,
                 context_size=context_size
             )
+            llm.aws_access_key_id=access_key_id
+            llm.aws_secret_access_key=secret_access_key
             llm.region_name=region_name
             return llm
         case LLMProvider.ANTHROPIC_VERTEX:

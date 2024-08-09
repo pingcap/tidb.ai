@@ -1,3 +1,5 @@
+import os
+
 import dspy
 
 from llama_index.core.base.llms.base import BaseLLM
@@ -38,6 +40,10 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
             max_output_tokens=llama_llm.max_tokens or 8192,
         )
     elif isinstance(llama_llm, Bedrock):
+        # Notice: dspy.Bedrock currently does not support configuring access keys through parameters.
+        # Using environment variables for configuration risks contaminating global variables.
+        os.environ["AWS_ACCESS_KEY_ID"] = llama_llm.aws_access_key_id
+        os.environ["AWS_SECRET_ACCESS_KEY"] = llama_llm.aws_secret_access_key
         bedrock = dspy.Bedrock(region_name=llama_llm.region_name)
         if llama_llm.model.startswith("anthropic"):
             return dspy.AWSAnthropic(
