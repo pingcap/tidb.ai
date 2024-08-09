@@ -1,7 +1,7 @@
 'use client';
 
 import type { PublicWebsiteSettings } from '@/api/site-settings';
-import type { BootstrapStatus, RequiredBootstrapStatus } from '@/api/system';
+import type { BootstrapStatus } from '@/api/system';
 import { getMe, type MeInfo } from '@/api/users';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ChatsProvider } from '@/components/chat/chat-hooks';
@@ -20,9 +20,9 @@ export interface RootProvidersProps {
 }
 
 export function RootProviders ({ me, settings, bootstrapStatus, children }: RootProvidersProps) {
-  const { data, isValidating, isLoading } = useSWR('api.users.me', getMe, {
+  const { data, isValidating, isLoading, mutate } = useSWR('api.users.me', getMe, {
     fallbackData: me,
-    revalidateOnMount: !me,
+    revalidateOnMount: false,
     revalidateOnFocus: false,
     errorRetryCount: 0,
   });
@@ -37,7 +37,7 @@ export function RootProviders ({ me, settings, bootstrapStatus, children }: Root
       >
         <SettingProvider
           value={settings}>
-          <AuthProvider me={data} isLoading={isLoading} isValidating={isValidating}>
+          <AuthProvider me={data} isLoading={isLoading} isValidating={isValidating} reload={() => mutate(data, { revalidate: true })}>
             <ChatsProvider>
               {children}
               <Toaster />

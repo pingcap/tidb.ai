@@ -3,8 +3,7 @@
 import { type ChatEngine, updateChatEngine } from '@/api/chat-engines';
 import { EditPropertyForm } from '@/components/chat-engine/edit-property-form';
 import { FormInput } from '@/components/form/control-widget';
-import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useRefresh } from '@/components/nextjs/app-router-hooks';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -15,8 +14,7 @@ export interface EditNameFormProps {
 const stringSchema = z.string();
 
 export function EditNameForm ({ chatEngine }: EditNameFormProps) {
-  const router = useRouter();
-  const [transitioning, startTransition] = useTransition();
+  const [refreshing, refresh] = useRefresh();
 
   return (
     <EditPropertyForm
@@ -26,12 +24,10 @@ export function EditNameForm ({ chatEngine }: EditNameFormProps) {
       schema={stringSchema}
       onSubmit={async (data) => {
         await updateChatEngine(chatEngine.id, data);
-        startTransition(() => {
-          router.refresh();
-        });
+        refresh();
         toast('ChatEngine\'s name successfully updated.');
       }}
-      disabled={transitioning}
+      disabled={refreshing}
     >
       <FormInput />
     </EditPropertyForm>

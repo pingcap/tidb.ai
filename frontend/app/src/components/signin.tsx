@@ -1,35 +1,38 @@
 'use client';
 
 import { login } from '@/api/auth';
+import { FormInput } from '@/components/form/control-widget';
+import { FormFieldBasicLayout } from '@/components/form/field-layout';
+import { useReplace } from '@/components/nextjs/app-router-hooks';
 // import { supportedProviders } from '@/app/(main)/(admin)/settings/authentication/providers';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Form, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
+import { Form } from '@/components/ui/form';
 import { getErrorMessage } from '@/lib/errors';
 import { Loader2Icon } from 'lucide-react';
 // import { fetcher } from '@/lib/fetch';
 // import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 
-export function Signin ({ callbackUrl }: { callbackUrl?: string }) {
-  const router = useRouter();
-
+export function Signin ({ noRedirect = false, onLoggedIn, callbackUrl }: { noRedirect?: boolean, onLoggedIn?: () => void, callbackUrl?: string }) {
+  const [transitioning, replace] = useReplace(true);
   const [error, setError] = useState<string>();
-  const [transitioning, startTransition] = useTransition();
-
-  const form = useForm<{ username: string; password: string }>();
+  const form = useForm<{ username: string; password: string }>({
+    defaultValues: {
+      username: '',
+      password: '',
+    },
+  });
 
   const handleSubmit = form.handleSubmit(async (data) => {
     setError(undefined);
     try {
       await login(data);
-      startTransition(() => {
-        router.replace(refineCallbackUrl(callbackUrl));
-        router.refresh();
-      });
+      onLoggedIn?.();
+      if (!noRedirect) {
+        replace(refineCallbackUrl(callbackUrl));
+      }
     } catch (error) {
       setError(getErrorMessage(error));
     }
@@ -48,24 +51,12 @@ export function Signin ({ callbackUrl }: { callbackUrl?: string }) {
       )}
       <Form {...form}>
         <form className="space-y-2" onSubmit={handleSubmit}>
-          <FormItem>
-            <FormLabel htmlFor="username">Username</FormLabel>
-            <FormField
-              name="username"
-              render={({ field }) => (
-                <Input placeholder="x@example.com" {...field} />
-              )}
-            />
-          </FormItem>
-          <FormItem>
-            <FormLabel htmlFor="password">Password</FormLabel>
-            <FormField
-              name="password"
-              render={({ field }) => (
-                <Input type="password" {...field} />
-              )}
-            />
-          </FormItem>
+          <FormFieldBasicLayout name="username" label="Username">
+            <FormInput placeholder="x@example.com" />
+          </FormFieldBasicLayout>
+          <FormFieldBasicLayout name="password" label="Password">
+            <FormInput type="password" />
+          </FormFieldBasicLayout>
           <Button className="!mt-4 w-full" disabled={loading}>
             {loading && <Loader2Icon className="w-4 h-4 mr-2 animate-spin repeat-infinite" />}
             {transitioning ? 'Redirecting...' : loading ? 'Logging in...' : 'Login'}

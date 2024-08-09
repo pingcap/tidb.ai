@@ -3,8 +3,7 @@
 import { type ChatEngine, updateChatEngine } from '@/api/chat-engines';
 import { EditPropertyForm } from '@/components/chat-engine/edit-property-form';
 import { FormTextarea } from '@/components/form/control-widget';
-import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useRefresh } from '@/components/nextjs/app-router-hooks';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -20,13 +19,12 @@ export interface EditOptionsLlmPromptFormProps {
 const schema = z.string().min(1);
 
 export function EditOptionsLlmPromptForm ({ chatEngine, type }: EditOptionsLlmPromptFormProps) {
-  const router = useRouter();
-  const [transitioning, startTransition] = useTransition();
+  const [refreshing, refresh] = useRefresh();
 
   return (
     <>
       <EditPropertyForm
-        className='w-full'
+        className="w-full"
         object={chatEngine.engine_options.llm}
         property={type}
         schema={schema}
@@ -39,14 +37,12 @@ export function EditOptionsLlmPromptForm ({ chatEngine, type }: EditOptionsLlmPr
             },
           };
           await updateChatEngine(chatEngine.id, { engine_options: chatEngineOptions });
-          startTransition(() => {
-            router.refresh();
-          });
+          refresh();
           toast(`ChatEngine successfully updated.`);
         }}
-        disabled={transitioning}
+        disabled={refreshing}
       >
-        <FormTextarea className='min-h-64' />
+        <FormTextarea className="min-h-64" />
       </EditPropertyForm>
     </>
   );

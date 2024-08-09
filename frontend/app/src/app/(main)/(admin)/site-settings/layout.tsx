@@ -2,14 +2,14 @@
 
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { Loader } from '@/components/loader';
+import { usePush } from '@/components/nextjs/app-router-hooks';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useRouter, useSelectedLayoutSegment } from 'next/navigation';
-import { type ReactNode, useTransition } from 'react';
+import { useSelectedLayoutSegment } from 'next/navigation';
+import { type ReactNode } from 'react';
 
 export default function SiteSettingsLayout ({ children }: { children: ReactNode }) {
   const segment = useSelectedLayoutSegment() ?? 'website';
-  const router = useRouter();
-  const [navigating, starTransition] = useTransition();
+  const [navigating, push] = usePush(true);
 
   return (
     <div className="relative">
@@ -17,10 +17,7 @@ export default function SiteSettingsLayout ({ children }: { children: ReactNode 
       <Tabs
         value={segment}
         onValueChange={value => {
-          starTransition(() => {
-            router.push(`/site-settings${value === 'website' ? '' : `/${value}`}`);
-            router.refresh();
-          });
+          push(`/site-settings${value === 'website' ? '' : `/${value}`}`);
         }}
       >
         <TabsList>

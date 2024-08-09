@@ -2,7 +2,6 @@ import { getPublicSiteSettings } from '@/api/site-settings';
 import { getBootstrapStatus } from '@/api/system';
 import { RootProviders } from '@/app/RootProviders';
 import { SystemWizardDialog } from '@/components/system/SystemWizardDialog';
-import { Toaster } from '@/components/ui/sonner';
 import { auth } from '@/lib/auth';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata } from 'next';

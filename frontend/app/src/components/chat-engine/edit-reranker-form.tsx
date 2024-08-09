@@ -3,8 +3,7 @@
 import { type ChatEngine, updateChatEngine } from '@/api/chat-engines';
 import { EditPropertyForm } from '@/components/chat-engine/edit-property-form';
 import { RerankerSelect } from '@/components/form/biz';
-import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useRefresh } from '@/components/nextjs/app-router-hooks';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -15,8 +14,7 @@ export interface EditRerankerFormProps {
 }
 
 export function EditRerankerForm ({ chatEngine }: EditRerankerFormProps) {
-  const router = useRouter();
-  const [transitioning, startTransition] = useTransition();
+  const [refreshing, refresh] = useRefresh();
 
   return (
     <>
@@ -26,13 +24,11 @@ export function EditRerankerForm ({ chatEngine }: EditRerankerFormProps) {
         schema={schema}
         onSubmit={async data => {
           await updateChatEngine(chatEngine.id, data);
-          startTransition(() => {
-            router.refresh();
-          });
+          refresh();
           toast(`ChatEngine successfully updated.`);
         }}
         inline
-        disabled={transitioning}
+        disabled={refreshing}
       >
         <RerankerSelect reverse={false} />
       </EditPropertyForm>

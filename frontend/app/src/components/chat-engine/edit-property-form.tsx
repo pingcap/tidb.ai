@@ -22,8 +22,6 @@ export interface EditPropertyFormProps<T, P extends keyof T & string> {
 }
 
 export function EditPropertyForm<T, P extends keyof T & string> ({ className, object, property, schema, onSubmit, inline, disabled, description, children }: EditPropertyFormProps<T, P>) {
-  // const router = useRouter();
-  // const [transitioning, startTransition] = useTransition();
   const { setOpen } = useManagedDialog();
 
   const resolver = useMemo(() => {
@@ -42,10 +40,6 @@ export function EditPropertyForm<T, P extends keyof T & string> ({ className, ob
 
   const handleSubmit = form.handleSubmit(async (data) => {
     onSubmit(data);
-    // startTransition(() => {
-    //   router.refresh();
-    // });
-    // toast('ChatEngine\'s name successfully updated.');
     setOpen(false);
   });
 

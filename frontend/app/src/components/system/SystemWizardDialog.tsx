@@ -8,8 +8,11 @@ import { DatasourceTypeTabs } from '@/components/datasource/DatasourceTypeTabs';
 import type { DatasourceType } from '@/components/datasource/types';
 import { CreateEmbeddingModelForm } from '@/components/embedding-model/CreateEmbeddingModelForm';
 import { CreateLLMForm } from '@/components/llm/CreateLLMForm';
+import { useRefresh } from '@/components/nextjs/app-router-hooks';
+import { LinkButton } from '@/components/nextjs/LinkButton';
 import { CreateRerankerForm } from '@/components/reranker/CreateRerankerForm';
 import { LangfuseSettings } from '@/components/settings/IntegrationsSettings';
+import { Signin } from '@/components/signin';
 import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
@@ -18,20 +21,19 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { ArrowRightIcon, CircleAlertIcon, CircleCheckIcon } from 'lucide-react';
-import { usePathname, useRouter } from 'next/navigation';
+import { ArrowRightIcon, CircleAlertIcon, CircleCheckIcon, Loader2Icon } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import * as React from 'react';
-import { type ReactElement, useState, useTransition } from 'react';
+import { type ReactElement, useState } from 'react';
 import useSWR from 'swr';
 
 export function SystemWizardDialog () {
   const pathname = usePathname();
   const bootstrapStatus = useBootstrapStatus();
   const [open, setOpen] = useState(() => !isBootstrapStatusPassed(bootstrapStatus));
-  const router = useRouter();
-  const [transitioning, startTransition] = useTransition();
+  const [refreshing, refresh] = useRefresh();
   const [datasourceType, setDatasourceType] = useState<DatasourceType>('file');
-  const { me } = useAuth();
+  const { me, isValidating, reload } = useAuth();
 
   const configured = isBootstrapStatusPassed(bootstrapStatus);
   const { data: siteSettings, isLoading: isSiteSettingsLoading, isValidating: isSiteSettingsValidating, mutate: mutateSiteSettings } = useSWR(me && 'api.site-settings.get-all', () => getAllSiteSettings(), { revalidateOnFocus: false });
@@ -43,13 +45,16 @@ export function SystemWizardDialog () {
       <>
         <DialogHeader>
           <DialogTitle>Almost there...</DialogTitle>
-          <DialogDescription>Your app is not fully configured yet. Please complete the setup process.</DialogDescription>
+          <DialogDescription>Your app is not fully configured yet. Please login to complete the setup process.</DialogDescription>
         </DialogHeader>
-        <DialogFooter>
-          <Button disabled={transitioning} onClick={() => startTransition(() => router.push('/auth/login'))}>Login to continue</Button>
-        </DialogFooter>
-      </>
-    );
+        {isValidating
+          ? <Loader2Icon className="mt-4 text-muted-foreground size-4 animate-spin repeat-infinite" />
+          : <div className="mt-4 rounded border p-4">
+            <Signin noRedirect onLoggedIn={() => reload()} />
+            <p className="text-sm text-muted-foreground mt-2">You can find your initial username and password in the server console output.</p>
+          </div>}
+      </>)
+    ;
   } else {
     el = (
       <>
@@ -74,11 +79,9 @@ export function SystemWizardDialog () {
               </AccordionTrigger>
               {!bootstrapStatus.required.default_llm && <AccordionContent className="px-4">
                 <CreateLLMForm
-                  transitioning={transitioning}
+                  transitioning={refreshing}
                   onCreated={() => {
-                    startTransition(() => {
-                      router.refresh();
-                    });
+                    refresh();
                   }}
                 />
               </AccordionContent>}
@@ -92,11 +95,9 @@ export function SystemWizardDialog () {
               </AccordionTrigger>
               {!bootstrapStatus.required.default_embedding_model && <AccordionContent className="px-4">
                 <CreateEmbeddingModelForm
-                  transitioning={transitioning}
+                  transitioning={refreshing}
                   onCreated={() => {
-                    startTransition(() => {
-                      router.refresh();
-                    });
+                    refresh();
                   }}
                 />
               </AccordionContent>}
@@ -114,11 +115,9 @@ export function SystemWizardDialog () {
                   <CreateDatasourceForm
                     excludesLLM
                     type={datasourceType}
-                    transitioning={transitioning}
+                    transitioning={refreshing}
                     onCreated={() => {
-                      startTransition(() => {
-                        router.refresh();
-                      });
+                      refresh();
                     }}
                   />
                 </AccordionContent>
@@ -151,11 +150,9 @@ export function SystemWizardDialog () {
               </AccordionTrigger>
               {!bootstrapStatus.optional.default_reranker && <AccordionContent className="px-4">
                 <CreateRerankerForm
-                  transitioning={transitioning}
+                  transitioning={refreshing}
                   onCreated={() => {
-                    startTransition(() => {
-                      router.refresh();
-                    });
+                    refresh();
                   }}
                 />
               </AccordionContent>}
@@ -163,16 +160,16 @@ export function SystemWizardDialog () {
           </Accordion>
         </DialogHeader>
         {configured && <DialogFooter className="mt-2">
-          <Button
+          <LinkButton
             variant="ghost"
+            href="/index-progress"
             onClick={() => {
               setOpen(false);
-              router.push('/index-progress');
             }}
           >
             View Index Progress
             <ArrowRightIcon className="size-4 ml-1" />
-          </Button>
+          </LinkButton>
           <Button onClick={() => setOpen(false)}>
             OK
           </Button>
@@ -191,7 +188,9 @@ export function SystemWizardDialog () {
           )}
         >
           <ScrollArea className="max-h-[80vh]">
-            {el}
+            <div className="p-1">
+              {el}
+            </div>
           </ScrollArea>
         </DialogPrimitive.Content>
       </DialogPortal>

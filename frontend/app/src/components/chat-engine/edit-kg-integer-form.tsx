@@ -3,8 +3,7 @@
 import { type ChatEngine, type ChatEngineOptions, updateChatEngine } from '@/api/chat-engines';
 import { EditPropertyForm } from '@/components/chat-engine/edit-property-form';
 import { FormInput } from '@/components/form/control-widget';
-import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useRefresh } from '@/components/nextjs/app-router-hooks';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -18,8 +17,7 @@ export interface EditIntegerFormProps {
 }
 
 export function EditKgIntegerForm ({ type, chatEngine }: EditIntegerFormProps) {
-  const router = useRouter();
-  const [transitioning, startTransition] = useTransition();
+  const [refreshing, refresh] = useRefresh();
 
   return (
     <>
@@ -39,12 +37,10 @@ export function EditKgIntegerForm ({ type, chatEngine }: EditIntegerFormProps) {
           await updateChatEngine(chatEngine.id, {
             engine_options: options,
           });
-          startTransition(() => {
-            router.refresh();
-          });
+          refresh();
           toast('ChatEngine successfully updated.');
         }}
-        disabled={transitioning}
+        disabled={refreshing}
       >
         <FormInput type="number" min={0} step={1} />
       </EditPropertyForm>

@@ -1,16 +1,17 @@
 import { type SettingItem, updateSiteSetting } from '@/api/site-settings';
+import { useRefresh } from '@/components/nextjs/app-router-hooks';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { getErrorMessage } from '@/lib/errors';
+import { cn } from '@/lib/utils';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { capitalCase } from 'change-case-all';
 import { deepEqual } from 'fast-equals';
-import { Loader2Icon, TriangleAlertIcon } from 'lucide-react';
-import { useRouter } from 'next/navigation';
-import { cloneElement, type ReactElement, type ReactNode, useCallback, useMemo } from 'react';
+import { CheckIcon, Loader2Icon, TriangleAlertIcon } from 'lucide-react';
+import { cloneElement, type ReactElement, type ReactNode, useCallback, useDeferredValue, useMemo } from 'react';
 import { type ControllerRenderProps, useForm, useFormState, useWatch } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z, type ZodType } from 'zod';
@@ -26,7 +27,7 @@ export interface SettingsFieldProps {
 }
 
 export function SettingsField ({ name, item, arrayItemSchema, objectSchema, onChanged, disabled, children }: SettingsFieldProps) {
-  const router = useRouter();
+  const [refreshing, refresh] = useRefresh();
 
   if (!item) {
     return (
@@ -81,18 +82,18 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, onCh
       default:
         throw new Error(`unknown data type`);
     }
-    return z.object({ value: schema });
-  }, [item.data_type, arrayItemSchema, objectSchema]);
+    return z.object({ [item.name]: schema });
+  }, [item.name, item.data_type, arrayItemSchema, objectSchema]);
 
   // eslint-disable-next-line react-hooks/rules-of-hooks
   const form = useForm({
     resolver: zodResolver(schema),
-    disabled,
+    disabled: disabled || refreshing,
     values: {
-      value: item.value,
+      [item.name]: item.value,
     },
     defaultValues: {
-      value: item.default,
+      [item.name]: item.default,
     },
   });
 
@@ -127,17 +128,17 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, onCh
         {el}
       </FormControl>
     );
-  }, [item.data_type, children]);
+  }, [item.default, item.data_type, children]);
 
   const handleSubmit = form.handleSubmit(async data => {
     try {
-      await updateSiteSetting(name, data.value);
-      form.reset({ value: data.value });
-      router.refresh();
+      await updateSiteSetting(name, data[item.name]);
+      form.reset({ [item.name]: data[item.name] });
+      refresh();
       onChanged?.();
       toast.success(`Changes successfully saved.`);
     } catch (e) {
-      form.setError('value', { type: 'value', message: getErrorMessage(e) });
+      form.setError(item.name, { type: 'value', message: getErrorMessage(e) });
       return Promise.reject(e);
     }
   });
@@ -145,15 +146,17 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, onCh
   return (
     <Form {...form}>
       <form
+        id={`setting_form_${name}`}
         className="space-y-2"
         onSubmit={handleSubmit}
         onReset={(e) => {
-          form.setValue('value', item.default, { shouldTouch: true, shouldDirty: true });
+          form.setValue(item.name, item.default, { shouldTouch: true, shouldDirty: true });
           // void handleSubmit(e);
         }}
       >
         <FormField
-          name="value"
+          name={item.name}
+          disabled={form.formState.isSubmitting}
           render={({ field }) => (
             <FormItem>
               <FormLabel>{capitalCase(item.name)}</FormLabel>
@@ -163,24 +166,30 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, onCh
             </FormItem>
           )}
         />
-        <Operations defaultValue={item.default} />
+        <Operations name={item.name} defaultValue={item.default} refreshing={refreshing} />
       </form>
     </Form>
   );
 }
 
-function Operations ({ defaultValue }: { defaultValue: any }) {
+function Operations ({ refreshing, name, defaultValue }: { refreshing: boolean, name: string, defaultValue: any }) {
   const currentValue = useWatch({
-    name: 'value',
+    name,
   });
   const { isDirty, isSubmitting, disabled, isSubmitted } = useFormState();
   const notDefault = !deepEqual(currentValue, defaultValue);
 
+  const deferredIsDirty = useDeferredValue(isDirty);
+  const deferredIsSubmitting = useDeferredValue(isSubmitting);
+
+  const successAndWaitRefreshing = !isSubmitting && (deferredIsSubmitting && refreshing);
+
   return (
     <div className="flex gap-2 items-center">
-      {isDirty && <Button className="gap-2 items-center" type="submit" disabled={isSubmitting || disabled}>
-        {isSubmitting && <Loader2Icon className="size-4 animate-spin repeat-infinite" />}
-        Save
+      {(isDirty || deferredIsDirty) && <Button className={cn('gap-2 items-center', successAndWaitRefreshing && 'bg-green-500')} type="submit" disabled={isSubmitting || successAndWaitRefreshing || disabled}>
+        {(isSubmitting) && <Loader2Icon className="size-4 animate-spin repeat-infinite" />}
+        {successAndWaitRefreshing && <CheckIcon className="size-4" />}
+        {isSubmitting ? 'Saving...' : refreshing ? 'Saved' : 'Save'}
       </Button>}
       {(isDirty || notDefault) && <Button type="reset" variant="secondary" disabled={isSubmitting || !notDefault || disabled}>Reset</Button>}
     </div>

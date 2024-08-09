@@ -5,9 +5,10 @@ export interface AuthContextValues {
   me: MeInfo | undefined;
   isLoading: boolean;
   isValidating: boolean;
+  reload: () => void;
 }
 
-const AuthContext = createContext<AuthContextValues>({ me: undefined, isLoading: false, isValidating: false, });
+const AuthContext = createContext<AuthContextValues>({ me: undefined, isLoading: false, isValidating: false, reload: () => {}, });
 
 export function AuthProvider ({ children, ...context }: AuthContextValues & { children: ReactNode }) {
   return (

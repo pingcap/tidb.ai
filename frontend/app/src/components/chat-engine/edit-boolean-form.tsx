@@ -3,8 +3,7 @@
 import { type ChatEngine, updateChatEngine } from '@/api/chat-engines';
 import { EditPropertyForm } from '@/components/chat-engine/edit-property-form';
 import { FormSwitch } from '@/components/form/control-widget';
-import { useRouter } from 'next/navigation';
-import { useTransition } from 'react';
+import { useRefresh } from '@/components/nextjs/app-router-hooks';
 import { toast } from 'sonner';
 import { z } from 'zod';
 
@@ -18,8 +17,7 @@ export interface EditBooleanFormProps {
 }
 
 export function EditBooleanForm ({ type, chatEngine }: EditBooleanFormProps) {
-  const router = useRouter();
-  const [transitioning, startTransition] = useTransition();
+  const [refreshing, refresh] = useRefresh();
 
   return (
     <>
@@ -30,12 +28,10 @@ export function EditBooleanForm ({ type, chatEngine }: EditBooleanFormProps) {
         schema={booleanSchema}
         onSubmit={async (data) => {
           await updateChatEngine(chatEngine.id, data);
-          startTransition(() => {
-            router.refresh();
-          });
+          refresh();
           toast('ChatEngine successfully updated.');
         }}
-        disabled={transitioning}
+        disabled={refreshing}
       >
         <FormSwitch />
       </EditPropertyForm>
