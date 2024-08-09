@@ -1,3 +1,4 @@
+import { type ProviderOption, providerOptionSchema } from '@/api/providers';
 import { BASE_URL, handleNullableResponse, handleResponse, opaqueCookieHeader } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType, type ZodTypeDef } from 'zod';
@@ -12,14 +13,9 @@ export interface EmbeddingModel {
   updated_at: Date | null;
 }
 
-export interface EmbeddingModelOption {
-  provider: string;
+export interface EmbeddingModelOption extends ProviderOption {
   default_embedding_model: string;
   embedding_model_description: string;
-  credentials_display_name: string;
-  credentials_description: string;
-  credentials_type: 'str' | 'dict';
-  default_credentials: any;
 }
 
 export interface CreateEmbeddingModel {
@@ -40,22 +36,10 @@ const embeddingModelSchema = z.object({
   updated_at: zodJsonDate().nullable(),
 }) satisfies ZodType<EmbeddingModel, ZodTypeDef, any>;
 
-const embeddingModelOptionSchema = z.object({
-  provider: z.string(),
+const embeddingModelOptionSchema = providerOptionSchema.and(z.object({
   default_embedding_model: z.string(),
   embedding_model_description: z.string(),
-  credentials_display_name: z.string(),
-  credentials_description: z.string(),
-}).and(z.discriminatedUnion('credentials_type', [
-  z.object({
-    credentials_type: z.literal('str'),
-    default_credentials: z.string(),
-  }),
-  z.object({
-    credentials_type: z.literal('dict'),
-    default_credentials: z.object({}).passthrough(),
-  }),
-])) satisfies ZodType<EmbeddingModelOption>;
+})) satisfies ZodType<EmbeddingModelOption, any, any>;
 
 export async function listEmbeddingModelOptions () {
   return await fetch(`${BASE_URL}/api/v1/admin/embedding-model/options`, {

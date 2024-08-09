@@ -45,6 +45,7 @@ export type FormSelectConfig<T extends object> = {
   options: T[]
   key: keyof T
   clearable?: boolean
+  itemClassName?: string;
   renderOption: (option: T) => ReactNode;
   renderValue?: (option: T) => ReactNode;
 }
@@ -116,7 +117,7 @@ export const FormSelect = forwardRef<any, FormSelectProps>(({ config, placeholde
       </div>
       <SelectContent>
         {config.options.map(option => (
-          <SelectItem value={String(option[config.key])} key={option[config.key]}>
+          <SelectItem value={String(option[config.key])} key={option[config.key]} className={config.itemClassName}>
             {config.renderOption(option)}
           </SelectItem>
         ))}

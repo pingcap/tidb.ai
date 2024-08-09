@@ -42,7 +42,7 @@ export function FormFieldBasicLayout<
           <FormControl>
             {renderWidget(children, field)}
           </FormControl>
-          {description && <FormDescription>{description}</FormDescription>}
+          {description && <FormDescription className='break-words'>{description}</FormDescription>}
           <FormMessage />
         </FormItem>
       )}

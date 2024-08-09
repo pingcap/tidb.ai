@@ -1,4 +1,5 @@
 import { listLlms, type LLM } from '@/api/llms';
+import type { ProviderOption } from '@/api/providers';
 import { listRerankers, type Reranker } from '@/api/rerankers';
 import { FormSelect, type FormSelectConfig, type FormSelectProps } from '@/components/form/control-widget';
 import { LlmInfo } from '@/components/llm/LlmInfo';
@@ -45,3 +46,36 @@ export const RerankerSelect = forwardRef<any, Omit<FormSelectProps, 'config'> & 
 });
 
 RerankerSelect.displayName = 'RerankerSelect';
+
+export interface ProviderSelectProps<Provider extends ProviderOption = ProviderOption> extends Omit<FormSelectProps, 'config'> {
+  options: ProviderOption[] | undefined;
+  isLoading: boolean;
+  error: unknown;
+}
+
+export const ProviderSelect = forwardRef<any, ProviderSelectProps>(({
+  options, isLoading, error, ...props
+}, ref) => {
+  return (
+    <FormSelect
+      ref={ref}
+      config={{
+        options: options ?? [],
+        loading: isLoading,
+        error,
+        renderOption: option => (
+          <>
+            <div className="text-sm font-bold max-w-screen-sm">{option.provider_display_name ?? option.provider}</div>
+            {option.provider_description && <div className="text-xs text-muted-foreground break-words" style={{ maxWidth: 'calc(var(--radix-select-trigger-width) - 68px)' }}>{option.provider_description}</div>}
+          </>
+        ),
+        itemClassName: 'space-y-1',
+        renderValue: option => option.provider_display_name ?? option.provider,
+        key: 'provider',
+      } satisfies FormSelectConfig<ProviderOption>}
+      {...props}
+    />
+  );
+});
+
+ProviderSelect.displayName = 'ProviderSelect';

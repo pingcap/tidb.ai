@@ -1,10 +1,12 @@
 'use client';
 
-import { createEmbeddingModel, type EmbeddingModel, type EmbeddingModelOption, listEmbeddingModelOptions, testEmbeddingModel } from '@/api/embedding-model';
-import { FormInput, FormSelect, type FormSelectConfig } from '@/components/form/control-widget';
+import { createEmbeddingModel, type EmbeddingModel, listEmbeddingModelOptions, testEmbeddingModel } from '@/api/embedding-model';
+import { ProviderSelect } from '@/components/form/biz';
+import { FormInput } from '@/components/form/control-widget';
 import { FormFieldBasicLayout } from '@/components/form/field-layout';
 import { FormRootError } from '@/components/form/root-error';
 import { CodeInput } from '@/components/form/widgets/CodeInput';
+import { ProviderDescription } from '@/components/provider-description';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -66,7 +68,7 @@ export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transi
         ...form.getValues(),
         model: provider.default_embedding_model,
         credentials: provider.credentials_type === 'dict' ? undefined : '',
-        config: '{}'
+        config: '{}',
       });
     } else {
       const { name } = form.getValues();
@@ -75,7 +77,7 @@ export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transi
         provider: '',
         credentials: '',
         model: '',
-        config: '{}'
+        config: '{}',
       });
     }
   }, [provider]);
@@ -102,16 +104,8 @@ export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transi
           <FormFieldBasicLayout name="name" label="Name">
             <FormInput />
           </FormFieldBasicLayout>
-          <FormFieldBasicLayout name="provider" label="Provider">
-            <FormSelect
-              config={{
-                options: options ?? [],
-                loading: isLoading,
-                error,
-                renderOption: option => option.provider,
-                key: 'provider',
-              } satisfies FormSelectConfig<EmbeddingModelOption>}
-            />
+          <FormFieldBasicLayout name="provider" label="Provider" description={provider && <ProviderDescription provider={provider} />}>
+            <ProviderSelect options={options} isLoading={isLoading} error={error} />
           </FormFieldBasicLayout>
           {provider && (
             <>
