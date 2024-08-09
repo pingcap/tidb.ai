@@ -1,0 +1,55 @@
+# Quick Start
+
+Here is a documentation page that shows how to setup a same tool like https://tidb.ai from deployment to usage. 
+
+## Step 1: Deployment
+
+As this tool is open source, you can deploy it on your own server. We provide a guide to deploy the entire RAG using Docker Compose.
+
+[Read the deployment guide](./deploy-with-docker)
+
+
+## Step 2: Configure
+
+After deployment, you need to configure the tool to use your own settings.
+
+### Configure the LLM - Large Language Model
+
+The LLM is used for extracting knowledge from docs and generating responses. You can change the default LLM to another one.
+
+[Configure  LLM](./llm)
+
+
+### Configure the Embedding Model
+
+The Embedding Model is a machine learning model that is trained to generate embeddings for a given input. We must translate text to vectors with this model before insert vector to database.
+
+[Configure  Embedding Service](./embedding-model)
+
+### Configure the Reranker [Optional]
+
+The Reranker is a machine learning model that is trained to rerank the results retrieved from the database. We use this model to improve performance of answers.
+
+[Configure Reranker](./reranker-model)
+
+> Note: Reranker is used to improve the performance of the answers. If you don't have a reranker model, you can skip this step.
+> But we recommend you to use a reranker model to improve the performance of the answers.
+
+
+## Step 3: Add Data Source
+
+After deployment and configuration, you need to add data source to the tool for example your own docs, knowledge base, etc.
+
+[Add Data Source](./data-source)
+
+> After adding data source, there will be a period of time for the tool to index the data. During this time, the tool will not be able to provide answers to users.
+
+## Step 4: Usage
+
+After deployment, configuration and adding data source, you can use the tool to chat with users to answer their questions.
+
+pingcap/tidb.ai provides several features to help you chat with users:
+
+1. Out-of-the-box chat interface, e.g. https://tidb.ai
+2. API to chat with users programmatically, e.g. https://tidb.ai/api-docs
+3. Embeddable chat widget to integrate with your website

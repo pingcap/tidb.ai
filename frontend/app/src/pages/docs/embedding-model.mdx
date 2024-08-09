@@ -1,0 +1,17 @@
+# Configure the Embedding Model
+
+The Embedding Model is a machine learning model that is trained to generate embeddings for a given input. The embeddings are then used to generate recommendations for the user. The Embedding Model is trained using the [Embedding Model Trainer](/docs/embedding-model-trainer).
+
+import { Callout } from 'nextra/components'
+
+<Callout>
+Note: The Embedding Model is configured at the beggining of the deployment process. As different embedding models have different dimensions of vectors, you can not change the embedding model after the deployment.
+
+If you want to change the embedding model, you need to:  
+* Redeploy the RAG app currently.
+* Or you can start a discussion in the [GitHub Discussions](https://github.com/pingcap/tidb.ai/discussions)
+</Callout>
+
+You can enter the admin panel to view the current embedding model and its configuration.
+
+![embedding-model-config](https://github.com/user-attachments/assets/5cb589c1-3579-417e-9730-dcbe5aee4f84 "Embedding Model Config")

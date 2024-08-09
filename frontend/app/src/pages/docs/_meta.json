@@ -4,6 +4,7 @@
     "title": "Getting Started"
   },
   "index": "Introduction",
+  "quick-start": "Quick Start",
   "how-to-read-these-docs": {
     "title": "How to read these docs",
     "display": "hidden"
@@ -15,14 +16,28 @@
     "title": "Deployment"
   },
   "requirements": "Requirements",
-  "quickstart": "Quick Start",
-  "deploy-with-docker": {
-    "title": "Deploy with Docker",
-    "display": "hidden"
+  "deploy-with-docker": "Deploy with Docker",
+  "-- Configuration": {
+    "type": "separator",
+    "title": "Configuration"
+  },
+  "llm": {
+    "title": "LLM - Large Language Model"
+  },
+  "chat-engine": {
+    "title": "Chat Engine"
+  },
+  "embedding-model": {
+    "title": "Embedding Model"
+  },
+  "reranker-model": {
+    "title": "Reranker Model"
+  },
+  "data-source": {
+    "title": "Data Source"
   },
   "javascript": {
-    "title": "Deploy with JavaScript",
-    "display": "hidden"
+    "title": "Pop Up Chat Window"
   },
   "README": {
     "display": "hidden"
