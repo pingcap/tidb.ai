@@ -3,44 +3,6 @@ from typing import Any
 from pydantic import BaseModel
 
 
-class LLMProvider(str, enum.Enum):
-    OPENAI = "openai"
-    GEMINI = "gemini"
-    VERTEX = "vertex"
-    BEDROCK = "bedrock"
-
-
-class OpenAIModel(str, enum.Enum):
-    GPT_35_TURBO = "gpt-3.5-turbo"
-    GPT_4O = "gpt-4o"
-
-
-class GeminiModel(str, enum.Enum):
-    GEMINI_15_FLASH = "models/gemini-1.5-flash"
-    GEMINI_15_PRO = "models/gemini-1.5-pro"
-
-
-class VertexModel(str, enum.Enum):
-    CLAUDE_35_SONNET = "claude-3-5-sonnet@20240620"
-
-
-# Reference: https://us-west-2.console.aws.amazon.com/bedrock/home?region=us-west-2#/models
-class BedrockModel(str, enum.Enum):
-    CLAUDE_35_SONNET = "anthropic.claude-3-5-sonnet-20240620-v1:0"
-
-
-class EmbeddingProvider(str, enum.Enum):
-    OPENAI = "openai"
-
-
-class OpenAIEmbeddingModel(str, enum.Enum):
-    TEXT_EMBEDDING_3_SMALL = "text-embedding-3-small"
-
-
-class RerankerProvider(str, enum.Enum):
-    JINAAI = "jinaai"
-
-
 class MessageRole(str, enum.Enum):
     SYSTEM = "system"
     USER = "user"
