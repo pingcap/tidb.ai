@@ -7,7 +7,6 @@
 #   all-features: false
 #   with-sources: false
 #   generate-hashes: false
-#   universal: true
 
 aiohttp==3.9.5
     # via datasets
@@ -88,12 +87,6 @@ click-repl==0.3.0
     # via celery
 cohere==5.6.2
     # via llama-index-postprocessor-cohere-rerank
-colorama==0.4.6 ; platform_system == 'Windows' or sys_platform == 'win32'
-    # via click
-    # via colorlog
-    # via pytest
-    # via tqdm
-    # via uvicorn
 colorlog==6.8.2
     # via optuna
 cryptography==42.0.8
@@ -526,7 +519,7 @@ pyjwt==2.8.0
 pymysql==1.1.1
 pyparsing==3.1.2
     # via httplib2
-pypdf==4.2.0
+pypdf==4.3.1
     # via llama-index-readers-file
 pysbd==0.3.4
     # via ragas
@@ -552,8 +545,6 @@ python-multipart==0.0.9
 pytz==2024.1
     # via flower
     # via pandas
-pywin32==306 ; platform_system == 'Windows'
-    # via portalocker
 pyyaml==6.0.1
     # via datasets
     # via huggingface-hub
@@ -705,7 +696,7 @@ urllib3==2.2.1
     # via types-requests
 uvicorn==0.30.3
     # via fastapi
-uvloop==0.19.0 ; platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'
+uvloop==0.19.0
     # via uvicorn
 vine==5.1.0
     # via amqp

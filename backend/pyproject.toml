@@ -44,6 +44,7 @@ dependencies = [
     "markdownify>=0.13.1",
     "llama-index-postprocessor-cohere-rerank>=0.1.7",
     "llama-index-llms-bedrock>=0.1.12",
+    "pypdf>=4.3.1",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"

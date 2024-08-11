@@ -14,6 +14,7 @@ router = APIRouter()
 SUPPORTED_FILE_TYPES = {
     ".txt": "text/plain",
     ".md": "text/markdown",
+    ".pdf": "application/pdf",
 }
 
 

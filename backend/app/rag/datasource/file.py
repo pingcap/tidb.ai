@@ -1,6 +1,7 @@
 import logging
 from pydantic import BaseModel
-from typing import Generator
+from typing import Generator, IO
+from pypdf import PdfReader
 
 from app.models import Document, Upload
 from app.file_storage import default_file_storage
@@ -29,15 +30,25 @@ class FileDataSource(BaseDataSource):
                 continue
 
             with default_file_storage.open(upload.path) as f:
-                content = f.read()
+                if upload.mime_type == "application/pdf":
+                    content = extract_text_from_pdf(f)
+                    mime_type = "text/plain"
+                else:
+                    content = f.read()
+                    mime_type = upload.mime_type
             document = Document(
                 name=upload.name,
                 hash=hash(content),
                 content=content,
-                mime_type=upload.mime_type,
+                mime_type=mime_type,
                 data_source_id=self.data_source_id,
                 user_id=self.user_id,
                 source_uri=upload.path,
                 last_modified_at=upload.created_at,
             )
             yield document
+
+
+def extract_text_from_pdf(file: IO) -> str:
+    reader = PdfReader(file)
+    return "\n\n".join([page.extract_text() for page in reader.pages])
