@@ -14,5 +14,6 @@ def list_documents(
     user: CurrentSuperuserDep,
     params: Params = Depends(),
     query: str | None = None,
+    data_source_id: int | None = None,
 ) -> Page[Document]:
-    return document_repo.paginate(session, params, query)
+    return document_repo.paginate(session, params, query, data_source_id)

@@ -55,8 +55,8 @@ admin_llm_options: List[LLMOption] = [
     LLMOption(
         provider=LLMProvider.ANTHROPIC_VERTEX,
         provider_display_name="Anthropic Vertex AI",
-        provider_description = "Anthropic’s Claude models are now generally available through Vertex AI.",
-        provider_url = "https://docs.anthropic.com/en/api/claude-on-vertex-ai",
+        provider_description="Anthropic’s Claude models are now generally available through Vertex AI.",
+        provider_url="https://docs.anthropic.com/en/api/claude-on-vertex-ai",
         default_llm_model="claude-3-5-sonnet@20240620",
         llm_model_description="",
         credentials_display_name="Google Credentials JSON",
@@ -81,7 +81,7 @@ admin_llm_options: List[LLMOption] = [
         default_credentials={
             "aws_access_key_id": "****",
             "aws_secret_access_key": "****",
-            "aws_region_name": "us-west-2"
+            "aws_region_name": "us-west-2",
         },
     ),
 ]
