@@ -5,7 +5,7 @@ from sqlmodel import select, Session, func
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
-from app.models import DataSource, Document, Chunk
+from app.models import DataSource, Document, Chunk, Relationship
 from app.repositories.base_repo import BaseRepo
 
 
@@ -62,7 +62,30 @@ class DataSourceRepo(BaseRepo):
         results = session.exec(statement).all()
         vector_index_status = {s: c for s, c in results}
 
+        overview_data = {
+            "documents": {
+                "total": documents_count,
+            },
+            "chunks": {
+                "total": chunks_count,
+            },
+            "vector_index": vector_index_status,
+        }
+
         if data_source.build_kg_index:
+            relationships_count = session.scalar(
+                select(func.count(Relationship.id)).where(
+                    Relationship.document_id.in_(
+                        select(Document.id).where(
+                            Document.data_source_id == data_source_id
+                        )
+                    )
+                )
+            )
+            overview_data["relationships"] = {
+                "total": relationships_count,
+            }
+
             statement = (
                 select(Chunk.index_status, func.count(Chunk.id))
                 .where(Chunk.document.has(Document.data_source_id == data_source_id))
@@ -71,19 +94,9 @@ class DataSourceRepo(BaseRepo):
             )
             results = session.exec(statement).all()
             kg_index_status = {s: c for s, c in results}
-        else:
-            kg_index_status = {}
+            overview_data["kg_index"] = kg_index_status
 
-        return {
-            "documents": {
-                "total": documents_count,
-            },
-            "chunks": {
-                "total": chunks_count,
-            },
-            "kg_index": kg_index_status,
-            "vector_index": vector_index_status,
-        }
+        return overview_data
 
 
 data_source_repo = DataSourceRepo()
