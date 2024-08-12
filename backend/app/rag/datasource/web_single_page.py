@@ -1,6 +1,6 @@
 import logging
 from pydantic import BaseModel
-from typing import Generator
+from typing import Generator, List
 
 from app.models import Document
 from app.rag.datasource.base import BaseDataSource
@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 class WebSinglePageConfig(BaseModel):
-    url: str
+    urls: List[str]
 
 
 class WebSinglePageDataSource(BaseDataSource):
