@@ -1,12 +1,18 @@
 'use client';
 
-import { Button } from '@/components/ui/button';
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DataTableProvider } from '@/components/use-data-table';
 import { cn } from '@/lib/utils';
-import { ColumnDef, flexRender, getCoreRowModel, getPaginationRowModel, useReactTable } from '@tanstack/react-table';
+import { ColumnDef, flexRender, getCoreRowModel, useReactTable } from '@tanstack/react-table';
 import type { ReactNode } from 'react';
+
+interface DataTableClassNames {
+  table?: string;
+  tr?: string;
+  td?: string;
+  headTd?: string;
+  headTr?: string;
+}
 
 interface DataTableProps<TData, TValue> {
   className?: string;
@@ -15,6 +21,7 @@ interface DataTableProps<TData, TValue> {
   hideHeader?: boolean;
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
+  classNames?: DataTableClassNames;
 }
 
 export function DataTable<TData, TValue> ({
@@ -23,7 +30,8 @@ export function DataTable<TData, TValue> ({
   columns,
   data,
   before,
-  after
+  after,
+  classNames,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -35,13 +43,13 @@ export function DataTable<TData, TValue> ({
     <DataTableProvider value={table}>
       {before}
       <div className={cn('rounded-md border', className)}>
-        <Table className='text-xs whitespace-nowrap'>
+        <Table className="text-xs whitespace-nowrap">
           {!hideHeader && <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className={classNames?.headTd}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead key={header.id} className={classNames?.headTr}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -59,10 +67,11 @@ export function DataTable<TData, TValue> ({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
+                  className={classNames?.td}
                   data-state={row.getIsSelected() && 'selected'}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className={classNames?.td}>
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}

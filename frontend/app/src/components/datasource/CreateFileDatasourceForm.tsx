@@ -49,7 +49,7 @@ export default function CreateFileDatasourceForm ({ excludesLLM, transitioning, 
   return (
     <BasicCreateDatasourceFormLayout form={form} onSubmit={handleSubmit} transitioning={transitioning} excludesLLM={excludesLLM}>
       <FormFieldBasicLayout name="files" label="Files" description="Currently support Markdown (*.md) and Text (*.txt) files.">
-        <FilesInput accept={['text/plain', '.md']} />
+        <FilesInput accept={['text/plain', 'application/pdf', '.md']} />
       </FormFieldBasicLayout>
     </BasicCreateDatasourceFormLayout>
   );

@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { filesize } from 'filesize';
+import { FileMinus2Icon } from 'lucide-react';
 import { type ChangeEvent, forwardRef, useId } from 'react';
 
 export interface FilesInputProps extends FormControlWidgetProps {
@@ -35,12 +36,15 @@ export const FilesInput = forwardRef<any, FilesInputProps>(({
       cell: (cell) => <Button
         type="button"
         variant="ghost"
+        size="sm"
+        className='text-xs'
         onClick={() => {
           files = [...files];
           files.splice(cell.row.index, 1);
           onFilesChange?.(files);
         }}
       >
+        <FileMinus2Icon className="size-4 mr-1" />
         Remove
       </Button>,
     }),
@@ -57,6 +61,9 @@ export const FilesInput = forwardRef<any, FilesInputProps>(({
   return (
     <>
       <DataTable<File, any>
+        classNames={{
+          td: 'px-2 py-1',
+        }}
         before={
           <DataTableHeading>
             <input
