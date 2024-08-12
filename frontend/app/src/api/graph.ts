@@ -1,4 +1,4 @@
-import { BASE_URL, buildUrlParams, handleResponse, opaqueCookieHeader } from '@/lib/request';
+import { authenticationHeaders, BASE_URL, buildUrlParams, handleResponse } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
 
@@ -91,7 +91,7 @@ export async function search (params: GraphSearchParams) {
   return await fetch(`${BASE_URL}/api/v1/admin/graph/search`, {
     method: 'post',
     headers: {
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(params),
@@ -99,12 +99,20 @@ export async function search (params: GraphSearchParams) {
 }
 
 export async function searchEntity (query: string, top_k: number = 10) {
-  return await fetch(`${BASE_URL}/api/v1/admin/graph/entities/search?${buildUrlParams({ query, top_k }).toString()}`)
+  return await fetch(`${BASE_URL}/api/v1/admin/graph/entities/search?${buildUrlParams({ query, top_k }).toString()}`, {
+    headers: {
+      ...await authenticationHeaders(),
+    },
+  })
     .then(handleResponse(entitySchema.array()));
 }
 
 export async function getEntity (id: number) {
-  return await fetch(`${BASE_URL}/api/v1/admin/graph/entities/${id}`)
+  return await fetch(`${BASE_URL}/api/v1/admin/graph/entities/${id}`, {
+    headers: {
+      ...await authenticationHeaders(),
+    },
+  })
     .then(handleResponse(entitySchema));
 }
 
@@ -112,7 +120,7 @@ export async function updateEntity (id: number, params: UpdateEntityParams) {
   return await fetch(`${BASE_URL}/api/v1/admin/graph/entities/${id}`, {
     method: 'put',
     headers: {
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(params),
@@ -123,7 +131,7 @@ export async function createSynopsisEntity (params: CreateSynopsisEntityParams) 
   return await fetch(`${BASE_URL}/api/v1/admin/graph/entities/synopsis`, {
     method: 'post',
     headers: {
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(params),
@@ -131,12 +139,20 @@ export async function createSynopsisEntity (params: CreateSynopsisEntityParams) 
 }
 
 export async function getEntitySubgraph (id: number) {
-  return await fetch(`${BASE_URL}/api/v1/admin/graph/entities/${id}/subgraph`)
+  return await fetch(`${BASE_URL}/api/v1/admin/graph/entities/${id}/subgraph`, {
+    headers: {
+      ...await authenticationHeaders(),
+    },
+  })
     .then(handleResponse(knowledgeGraphSchema));
 }
 
 export async function getRelationship (id: number) {
-  return await fetch(`${BASE_URL}/api/v1/admin/graph/relationships/${id}`)
+  return await fetch(`${BASE_URL}/api/v1/admin/graph/relationships/${id}`, {
+    headers: {
+      ...await authenticationHeaders(),
+    },
+  })
     .then(handleResponse(relationshipSchema));
 }
 
@@ -144,7 +160,7 @@ export async function updateRelationship (id: number, params: UpdateRelationship
   return await fetch(`${BASE_URL}/api/v1/admin/graph/relationships/${id}`, {
     method: 'put',
     headers: {
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(params),

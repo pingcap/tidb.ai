@@ -1,5 +1,5 @@
 import { type ProviderOption, providerOptionSchema } from '@/api/providers';
-import { BASE_URL, handleNullableResponse, handleResponse, opaqueCookieHeader } from '@/lib/request';
+import { authenticationHeaders, BASE_URL, handleNullableResponse, handleResponse } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType, type ZodTypeDef } from 'zod';
 
@@ -43,14 +43,14 @@ const embeddingModelOptionSchema = providerOptionSchema.and(z.object({
 
 export async function listEmbeddingModelOptions () {
   return await fetch(`${BASE_URL}/api/v1/admin/embedding-model/options`, {
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   })
     .then(handleResponse(embeddingModelOptionSchema.array()));
 }
 
 export async function getEmbeddingModel () {
   return await fetch(`${BASE_URL}/api/v1/admin/embedding-model`, {
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   })
     .then(handleNullableResponse(embeddingModelSchema));
 }
@@ -61,7 +61,7 @@ export async function createEmbeddingModel (create: CreateEmbeddingModel) {
     body: JSON.stringify(create),
     headers: {
       'Content-Type': 'application/json',
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
     },
   }).then(handleResponse(embeddingModelSchema));
 }
@@ -72,7 +72,7 @@ export async function testEmbeddingModel (createEmbeddingModel: CreateEmbeddingM
     body: JSON.stringify(createEmbeddingModel),
     headers: {
       'Content-Type': 'application/json',
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
     },
   })
     .then(handleResponse(z.object({

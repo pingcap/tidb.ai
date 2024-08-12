@@ -1,5 +1,5 @@
 import { type IndexProgress, indexSchema, type IndexTotalStats, totalSchema } from '@/api/rag';
-import { BASE_URL, buildUrlParams, handleErrors, handleResponse, opaqueCookieHeader, type Page, type PageParams, zodPage } from '@/lib/request';
+import { authenticationHeaders, BASE_URL, buildUrlParams, handleErrors, handleResponse, type Page, type PageParams, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
 
@@ -118,26 +118,26 @@ const datasourceOverviewSchema = z.object({
 
 export async function listDataSources ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<Datasource>> {
   return fetch(`${BASE_URL}/api/v1/admin/datasources?${buildUrlParams({ page, size }).toString()}`, {
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   }).then(handleResponse(zodPage(datasourceSchema)));
 }
 
 export async function getDatasource (id: number): Promise<Datasource> {
   return fetch(`${BASE_URL}/api/v1/admin/datasources/${id}`, {
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   }).then(handleResponse(datasourceSchema));
 }
 
 export async function deleteDatasource (id: number): Promise<void> {
   await fetch(`${BASE_URL}/api/v1/admin/datasources/${id}`, {
     method: 'DELETE',
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   }).then(handleErrors);
 }
 
 export async function getDatasourceOverview (id: number): Promise<DataSourceIndexProgress> {
   return fetch(`${BASE_URL}/api/v1/admin/datasources/${id}/overview`, {
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   }).then(handleResponse(datasourceOverviewSchema));
 }
 
@@ -145,7 +145,7 @@ export async function createDatasource (params: CreateDatasourceParams) {
   return fetch(`${BASE_URL}/api/v1/admin/datasources`, {
     method: 'POST',
     headers: {
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(params),
@@ -161,7 +161,7 @@ export async function uploadFiles (files: File[]) {
   return fetch(`${BASE_URL}/api/v1/admin/uploads`, {
     method: 'POST',
     headers: {
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
     },
     body: formData,
   }).then(handleResponse(uploadSchema.array()));

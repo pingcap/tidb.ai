@@ -1,4 +1,4 @@
-import { BASE_URL, handleResponse, opaqueCookieHeader } from '@/lib/request';
+import { authenticationHeaders, BASE_URL, handleResponse } from '@/lib/request';
 import { z } from 'zod';
 
 export interface MeInfo {
@@ -19,7 +19,7 @@ const userSchema = z.object({
 
 export async function getMe (): Promise<MeInfo> {
   return await fetch(BASE_URL + '/api/v1/users/me', {
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   })
     .then(handleResponse(userSchema));
 }

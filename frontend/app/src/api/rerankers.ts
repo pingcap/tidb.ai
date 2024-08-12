@@ -1,5 +1,5 @@
 import { type ProviderOption, providerOptionSchema } from '@/api/providers';
-import { BASE_URL, buildUrlParams, handleErrors, handleResponse, opaqueCookieHeader, type Page, type PageParams, zodPage } from '@/lib/request';
+import { authenticationHeaders, BASE_URL, buildUrlParams, handleErrors, handleResponse, type Page, type PageParams, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType, type ZodTypeDef } from 'zod';
 
@@ -52,7 +52,7 @@ const rerankerOptionSchema = providerOptionSchema.and(z.object({
 export async function listRerankerOptions () {
   return await fetch(`${BASE_URL}/api/v1/admin/reranker-models/options`, {
     headers: {
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
     },
   })
     .then(handleResponse(rerankerOptionSchema.array()));
@@ -60,14 +60,14 @@ export async function listRerankerOptions () {
 
 export async function listRerankers ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<Reranker>> {
   return await fetch(BASE_URL + '/api/v1/admin/reranker-models' + '?' + buildUrlParams({ page, size }), {
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   })
     .then(handleResponse(zodPage(rerankerSchema)));
 }
 
 export async function getReranker (id: number): Promise<Reranker> {
   return await fetch(BASE_URL + `/api/v1/admin/reranker-models/${id}`, {
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   }).then(handleResponse(rerankerSchema));
 }
 
@@ -77,7 +77,7 @@ export async function createReranker (create: CreateRERANKER) {
     body: JSON.stringify(create),
     headers: {
       'Content-Type': 'application/json',
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
     },
   }).then(handleResponse(rerankerSchema));
 }
@@ -85,7 +85,7 @@ export async function createReranker (create: CreateRERANKER) {
 export async function deleteReranker (id: number) {
   await fetch(BASE_URL + `/api/v1/admin/reranker-models/${id}`, {
     method: 'DELETE',
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   }).then(handleErrors);
 }
 
@@ -95,7 +95,7 @@ export async function testReranker (createRERANKER: CreateRERANKER) {
     body: JSON.stringify(createRERANKER),
     headers: {
       'Content-Type': 'application/json',
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
     },
   })
     .then(handleResponse(z.object({

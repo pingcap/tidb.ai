@@ -1,4 +1,4 @@
-import { BASE_URL, buildUrlParams, handleErrors, handleResponse, opaqueCookieHeader, type Page, type PageParams, zodPage } from '@/lib/request';
+import { authenticationHeaders, BASE_URL, buildUrlParams, handleErrors, handleResponse, type Page, type PageParams, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType, type ZodTypeDef } from 'zod';
 
@@ -36,7 +36,7 @@ const createApiKeyResponseSchema = z.object({
 
 export async function listApiKeys ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<ApiKey>> {
   return await fetch(BASE_URL + '/api/v1/api-keys' + '?' + buildUrlParams({ page, size }), {
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   })
     .then(handleResponse(zodPage(apiKeySchema)));
 }
@@ -45,7 +45,7 @@ export async function createApiKey (create: CreateApiKey): Promise<CreateApiKeyR
   return await fetch(BASE_URL + '/api/v1/api-keys', {
     method: 'POST',
     headers: {
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(create),
@@ -56,7 +56,7 @@ export async function deleteApiKey (id: number): Promise<void> {
   await fetch(BASE_URL + `/api/v1/api-keys/${id}`, {
     method: 'DELETE',
     headers: {
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
     },
   }).then(handleErrors);
 }

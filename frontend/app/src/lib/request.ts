@@ -153,7 +153,7 @@ export function zodPage<Z extends ZodType> (itemSchema: Z) {
   });
 }
 
-export async function opaqueCookieHeader (): Promise<HeadersInit> {
+export async function authenticationHeaders (): Promise<Record<string, string>> {
   const { cookies } = await import('next/headers');
   try {
     const k = cookies();

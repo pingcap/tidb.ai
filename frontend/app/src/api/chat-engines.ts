@@ -1,4 +1,4 @@
-import { BASE_URL, buildUrlParams, handleErrors, handleResponse, opaqueCookieHeader, type Page, type PageParams, zodPage } from '@/lib/request';
+import { authenticationHeaders, BASE_URL, buildUrlParams, handleErrors, handleResponse, type Page, type PageParams, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
 
@@ -81,14 +81,14 @@ const chatEngineSchema = z.object({
 
 export async function listChatEngines ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<ChatEngine>> {
   return await fetch(BASE_URL + '/api/v1/admin/chat-engines' + '?' + buildUrlParams({ page, size }), {
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   })
     .then(handleResponse(zodPage(chatEngineSchema)));
 }
 
 export async function getChatEngine (id: number): Promise<ChatEngine> {
   return await fetch(BASE_URL + `/api/v1/admin/chat-engines/${id}`, {
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   })
     .then(handleResponse(chatEngineSchema));
 }
@@ -98,7 +98,7 @@ export async function updateChatEngine (id: number, partial: Partial<Pick<ChatEn
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
     },
     body: JSON.stringify(partial),
   })
@@ -110,7 +110,7 @@ export async function createChatEngine (create: Pick<ChatEngine, 'name' | 'llm_i
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
     },
     body: JSON.stringify(create),
   })
@@ -121,7 +121,7 @@ export async function deleteChatEngine (id: number): Promise<void> {
   await fetch(BASE_URL + `/api/v1/admin/chat-engines/${id}`, {
     method: 'DELETE',
     headers: {
-      ...await opaqueCookieHeader(),
+      ...await authenticationHeaders(),
     },
   })
     .then(handleErrors);

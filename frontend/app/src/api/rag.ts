@@ -1,4 +1,4 @@
-import { BASE_URL, handleResponse, opaqueCookieHeader } from '@/lib/request';
+import { authenticationHeaders, BASE_URL, handleResponse } from '@/lib/request';
 import { z, type ZodType } from 'zod';
 
 export type IndexProgress = {
@@ -45,7 +45,7 @@ const ragIndexProgressSchema = z.object({
 
 export async function getIndexProgress () {
   return await fetch(BASE_URL + '/api/v1/admin/rag/index-progress', {
-    headers: await opaqueCookieHeader(),
+    headers: await authenticationHeaders(),
   })
     .then(handleResponse(ragIndexProgressSchema));
 }
