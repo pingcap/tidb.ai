@@ -5,10 +5,6 @@
   },
   "index": "Introduction",
   "quick-start": "Quick Start",
-  "how-to-read-these-docs": {
-    "title": "How to read these docs",
-    "display": "hidden"
-  },
   "changelog": "Changelog",
   "faq": "FAQ",
   "-- Deploy This RAG": {
