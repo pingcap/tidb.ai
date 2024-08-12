@@ -8,9 +8,7 @@ services:
       - ./redis-data:/data
 
   backend:
-    image: tidb.ai/backend:local
-    build:
-      context: ./backend
+    image: tidbai/backend:0.1.0
     restart: always
     depends_on:
       - redis
@@ -27,10 +25,7 @@ services:
         max-file: "6"
 
   frontend:
-    image: tidb.ai/frontend:local
-    build:
-      context: .
-      dockerfile: frontend/Dockerfile
+    image: tidbai/frontend:0.1.0
     restart: always
     depends_on:
       - backend
@@ -45,9 +40,7 @@ services:
         max-file: "6"
 
   background:
-    image: tidb.ai/backend:local
-    build:
-      context: ./backend
+    image: tidbai/backend:0.1.0
     restart: always
     depends_on:
       - redis
