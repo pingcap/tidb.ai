@@ -29,19 +29,13 @@ This document provides instructions for deploying the entire RAG using Docker Co
 
       - Note: TiDB Serverless will provide a default database name called `test`, if you want to use another database name, you need to create a new database in the TiDB Serverless console.
 
-3. Build docker images:
-
-    ```bash
-    docker compose build
-    ```
-
-4. Migrate the database schema:
+3. Migrate the database schema:
 
     ```bash
     docker compose run backend /bin/sh -c "alembic upgrade head"
     ```
 
-5. Bootstrap the database with initial data:
+4. Bootstrap the database with initial data:
 
     ```bash
     docker compose run backend /bin/sh -c "python bootstrap.py"
@@ -49,12 +43,12 @@ This document provides instructions for deploying the entire RAG using Docker Co
 
     Running the bootstrap script creates an admin user. You can find the username and password in the output.
 
-6. Start the services:
+5. Start the services:
 
     ```bash
     docker compose up
     ```
 
-7. Open your browser and visit `http://localhost:3000` to access the web interface.
+6. Open your browser and visit `http://localhost:3000` to access the web interface.
 
 That's it! You can now use TiDB.AI locally. You can also go to https://tidb.ai to experience the live demo.
