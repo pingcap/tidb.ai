@@ -18,8 +18,11 @@ export type Datasource = DatasourceBase & ({
   data_source_type: 'file'
   config: { file_id: number, file_name: string }[]
 } | {
-  data_source_type: 'web_sitemap' | 'web_single_page'
+  data_source_type: 'web_sitemap'
   config: { url: string }
+} | {
+  data_source_type: 'web_single_page'
+  config: { urls: string[] }
 })
 
 export type DataSourceIndexProgress = {
@@ -42,7 +45,10 @@ export type CreateDatasourceParams = BaseCreateDatasourceParams & ({
   data_source_type: 'file'
   config: { file_id: number, file_name: string }[]
 } | {
-  data_source_type: 'web_sitemap' | 'web_single_page'
+  data_source_type: 'web_single_page'
+  config: { urls: string[] }
+} | {
+  data_source_type: 'web_sitemap'
   config: { url: string }
 })
 
@@ -75,7 +81,17 @@ const datasourceSchema = baseDatasourceSchema
       config: z.array(z.object({ file_id: z.number(), file_name: z.string() })),
     }),
     z.object({
-      data_source_type: z.enum(['web_sitemap', 'web_single_page']),
+      data_source_type: z.enum(['web_single_page']),
+      config: z.object({ urls: z.string().array() }).or(z.object({ url: z.string() })).transform(obj => {
+        if ('url' in obj) {
+          return { urls: [obj.url] };
+        } else {
+          return obj;
+        }
+      }),
+    }),
+    z.object({
+      data_source_type: z.enum(['web_sitemap']),
       config: z.object({ url: z.string() }),
     })],
   )) satisfies ZodType<Datasource, any, any>;

@@ -16,11 +16,11 @@ export function DatasourceTypeTabs ({ className, type, onTypeChange }: Datasourc
         <TabsTrigger value="file">
           File
         </TabsTrigger>
-        <TabsTrigger value="web-sitemap">
-          Web Sitemap
-        </TabsTrigger>
         <TabsTrigger value="web-single-page">
           Web Single Page
+        </TabsTrigger>
+        <TabsTrigger value="web-sitemap">
+          Web Sitemap
         </TabsTrigger>
       </TabsList>
     </Tabs>

@@ -29,8 +29,11 @@ export default function DatasourcePage ({ params }: { params: { id: string } }) 
       <div className="space-y-2 text-sm rounded p-4 border">
         <OptionDetail title="ID" value={id} />
         <OptionDetail title="Type" value={datasource?.data_source_type} />
-        {(datasource?.data_source_type === 'web_single_page' || datasource?.data_source_type === 'web_sitemap') && (
+        {(datasource?.data_source_type === 'web_sitemap') && (
           <OptionDetail title="URL" value={datasource?.config.url} />
+        )}
+        {(datasource?.data_source_type === 'web_single_page') && (
+          <OptionDetail title="URL" value={<ul>{datasource?.config.urls.map(url => <li key={url}><a className="underline" href={url} target="_blank">{url}</a></li>)}</ul>} />
         )}
         <OptionDetail title="Name" value={datasource?.name} />
         <OptionDetail title="Description" value={datasource?.description} />

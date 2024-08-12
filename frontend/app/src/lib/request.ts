@@ -57,7 +57,7 @@ export function handleResponse<S extends ZodType> (schema: S): ((responseOrPromi
     try {
       return schema.parse(body);
     } catch (e) {
-      console.error(`Cannot parse response json data for ${response.url} ${response.status}, check your frontend and backend versions.`);
+      console.error(`Cannot parse response json data for ${response.url} ${response.status}, check your frontend and backend versions.`, e);
       throw e;
     }
   };
@@ -77,7 +77,7 @@ export function handleNullableResponse<S extends ZodType> (schema: S): ((respons
     try {
       return schema.parse(body);
     } catch (e) {
-      console.error(`Cannot parse response json data for ${response.url} ${response.status}, check your frontend and backend versions.`);
+      console.error(`Cannot parse response json data for ${response.url} ${response.status}, check your frontend and backend versions.`, 2);
       throw e;
     }
   };
