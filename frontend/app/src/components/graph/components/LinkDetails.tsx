@@ -7,7 +7,7 @@ import { handleServerRelationship, type Relationship } from '../utils';
 import type { IdType } from '../network/Network';
 import { useRemote } from '../remote';
 import { useDirtyRelationship } from '../useDirtyRelationship';
-import { EditingButton } from './EditingButton';
+// import { EditingButton } from './EditingButton';
 import { InputField } from './InputField';
 import { JsonField } from './JsonField';
 import { NetworkContext } from './NetworkContext';
@@ -73,12 +73,12 @@ export function LinkDetails ({
         <span className="text-sm text-muted-foreground font-normal ">
           <b>#{relationship.id}</b> relationship
         </span>
-        <EditingButton editing={editing} onStartEdit={() => setEditing(true)} onSave={handleSave} onReset={handleReset} busy={busy} onEnterSubgraph={() => onEnterSubgraph('document', relationship.meta.doc_id)} subGraphTitle="Document subgraph" />
+        {/*<EditingButton editing={editing} onStartEdit={() => setEditing(true)} onSave={handleSave} onReset={handleReset} busy={busy} onEnterSubgraph={() => onEnterSubgraph('document', relationship.meta.doc_id)} subGraphTitle="Document subgraph" />*/}
       </div>
       {relationship.meta.doc_id && <section>
         <h6 className="text-xs font-bold text-accent-foreground mb-1">Document URI</h6>
         <p className="block w-full text-xs text-accent-foreground">
-          <a className="underline" href={relationship.meta.doc_id} target="_blank">{relationship.meta.doc_id}</a>
+          <a className="underline" href={relationship.meta.source_uri} target="_blank">{relationship.meta.source_uri}</a>
         </p>
       </section>}
       <TextareaField label="Description" ref={dirtyRelationship.descriptionRef} defaultValue={relationship.description} disabled={controlsDisabled} />
