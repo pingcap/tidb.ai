@@ -120,7 +120,7 @@ export function Widget ({ bootstrapStatus, exampleQuestions, icon, buttonIcon, b
                   </div>
                 </ScrollArea>
                 <div className="text-muted-foreground text-xs">
-                  Powered by <a href="https://github.com/pingcap/tidb.ai" target="_blank">pingcap/tidb.ai</a>, deploy your own for free.
+                  Powered by <a className='underline' href="https://github.com/pingcap/tidb.ai" target="_blank">pingcap/tidb.ai</a>, deploy your own for free.
                 </div>
               </DialogPrimitive.Content>
             </DialogPortal>
