@@ -1,9 +1,8 @@
 'use client';
 
+import type { Datasource } from '@/api/datasources';
 import { type Document, listDocuments } from '@/api/documents';
-import { AdminPageHeading } from '@/components/admin-page-heading';
 import { datetime } from '@/components/cells/datetime';
-import { DatasourceCell } from '@/components/cells/reference';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { DocumentPreviewDialog } from '@/components/document-viewer';
 import { Button } from '@/components/ui/button';
@@ -20,7 +19,6 @@ const href = (cell: CellContext<any, string>) => <a className="underline" href={
 
 const columns = [
   helper.accessor('id', { cell: mono }),
-  helper.accessor('data_source_id', { cell: ctx => <DatasourceCell id={ctx.getValue()} /> }),
   helper.accessor('name', { cell: mono }),
   helper.accessor('source_uri', { cell: href }),
   helper.accessor('mime_type', { cell: mono }),
@@ -28,24 +26,13 @@ const columns = [
   helper.accessor('created_at', { cell: datetime }),
   helper.accessor('updated_at', { cell: datetime }),
   helper.accessor('last_modified_at', { cell: datetime }),
-  // {
-  //   id: 'actions',
-  //   cell: ({ row }) => <DataTableRowActions row={row} />,
-  // },
 ] as ColumnDef<Document>[];
 
-export default function DocumentsPage () {
+export default function DatasourceDocumentsDocumentsPage ({ datasource }: { datasource: Datasource }) {
   const searchRef = useRef<HTMLInputElement>(null);
   return (
     <>
-      <AdminPageHeading title="Documents" />
       <DataTableRemote
-        // before={(
-        //   <DataTableHeading>
-        //     <span className="ml-auto" />
-        //     <CreateChatEngineDialog {...props} trigger={<Button size="sm">New chat engine</Button>} />
-        //   </DataTableHeading>
-        // )}
         toolbar={(({ setGlobalFilter }) => (
           <div className="flex gap-2 items-center">
             <Input
@@ -65,8 +52,8 @@ export default function DocumentsPage () {
           </div>
         ))}
         columns={columns}
-        apiKey="api.documents.list"
-        api={(params, { globalFilter }) => listDocuments({ ...params, query: globalFilter })}
+        apiKey={`api.datasource.${datasource.id}.documents`}
+        api={(params, { globalFilter }) => listDocuments({ ...params, data_source_id: datasource.id, query: globalFilter })}
         idColumn="id"
       />
     </>

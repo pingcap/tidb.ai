@@ -15,7 +15,7 @@ import useSWR from 'swr';
 export default function DatasourcePage ({ params }: { params: { id: string } }) {
   const id = parseInt(params.id);
 
-  const { data: datasource } = useSWR(`api.datasource.get?id=${id}`, () => getDatasource(id));
+  const { data: datasource } = useSWR(`api.datasource.${id}`, () => getDatasource(id));
   const { data: progress } = useSWR(`api.datasource.get-overview?id=${id}`, () => getDatasourceOverview(id));
 
   return (
@@ -51,7 +51,7 @@ export default function DatasourcePage ({ params }: { params: { id: string } }) 
               icon={<FileTextIcon className="h-4 w-4 text-muted-foreground" />}
               total={progress.documents.total}
             >
-              <Link className="flex gap-2 items-center" href="/documents">All documents <ArrowRightIcon className="size-3" /></Link>
+              <Link className="flex gap-2 items-center" href={`/datasources/${params.id}/documents`}>All documents <ArrowRightIcon className="size-3" /></Link>
             </TotalCard>
             <TotalCard title="Chunks" icon={<PuzzleIcon className="h-4 w-4 text-muted-foreground" />} total={progress.chunks.total} />
             {datasource?.build_kg_index && progress.entities && <TotalCard

@@ -15,6 +15,7 @@ export interface Document {
   source_uri: string,
   index_status: string,
   index_result?: unknown
+  data_source_id: number
 }
 
 const documentSchema = z.object({
@@ -30,10 +31,11 @@ const documentSchema = z.object({
   source_uri: z.string(),
   index_status: z.string(),
   index_result: z.unknown(),
+  data_source_id: z.number(),
 }) satisfies ZodType<Document, any, any>;
 
-export async function listDocuments ({ page = 1, size = 10, query }: PageParams & { query?: string } = {}): Promise<Page<Document>> {
-  return await fetch(BASE_URL + '/api/v1/admin/documents' + '?' + buildUrlParams({ page, size, query }), {
+export async function listDocuments ({ page = 1, size = 10, query, data_source_id }: PageParams & { data_source_id?: number, query?: string } = {}): Promise<Page<Document>> {
+  return await fetch(BASE_URL + '/api/v1/admin/documents' + '?' + buildUrlParams({ page, size, data_source_id, query }), {
     headers: await opaqueCookieHeader(),
   })
     .then(handleResponse(zodPage(documentSchema)));
