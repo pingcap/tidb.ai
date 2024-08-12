@@ -18,10 +18,10 @@ export interface WidgetProps {
 }
 
 export function Widget ({ bootstrapStatus, exampleQuestions, icon, buttonIcon, buttonLabel }: WidgetProps) {
-  const [_, setDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches);
+  const [, setDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches);
   const container = useRef<HTMLDivElement>();
   if (!container.current) {
-    container.current = document.getElementById('tidb-ai-widget')! as any;
+    container.current = document.getElementById('tidb-ai-widget')! as never;
   }
 
   const toggleDark = (dark: boolean) => {
