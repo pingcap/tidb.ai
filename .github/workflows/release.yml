@@ -41,7 +41,7 @@ jobs:
             platform: linux/amd64,linux/arm64
             push: true
             tags: |
-                ghcr.io/pingcap/tidb.ai-backend:${{ inputs.tag || github.ref_name }}
+                ghcr.io/${{ github.repository }}/backend:${{ inputs.tag || github.ref_name }}
 
     build-frontend:
       name: Build and Push Frontend Image
@@ -74,4 +74,4 @@ jobs:
             platform: linux/amd64,linux/arm64
             push: true
             tags: |
-                ghcr.io/pingcap/tidb.ai-frontend:${{ inputs.tag || github.ref_name }}
+                ghcr.io/${{ github.repository }}/frontend:${{ inputs.tag || github.ref_name }}
