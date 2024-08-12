@@ -1,0 +1,142 @@
+[
+  {
+    "query":"Chat2query is returning an error message saying \"Query timeout expired\". Additionally, I am unable to locate this SQL query in the slow query log.",
+    "source_entity":"Chat2query",
+    "target_entity":"Error Message",
+    "relationship_desc":"Chat2query is returning an error message saying 'Query timeout expired'.",
+    "reasoning":"The main problem the user is facing."
+  },
+  {
+    "query":"Chat2query is returning an error message saying \"Query timeout expired\". Additionally, I am unable to locate this SQL query in the slow query log.",
+    "source_entity":"SQL Query",
+    "target_entity":"Slow Query Log",
+    "relationship_desc":"The reason why not to locate the SQL query in the slow query log.",
+    "reasoning":"The secondary problem the user is facing."
+  },
+  {
+    "query":"Hi, how do u setup tidb on debian vps?",
+    "source_entity":"TiDB Cluster",
+    "target_entity":"Debian VPS",
+    "relationship_desc":"How to deploy a TiDB Cluster on a Debian VPS? Should I use TiUP or TiDB Operator?",
+    "reasoning":"The main question the user is asking."
+  },
+  {
+    "query":"I am current using tidb serverless, but as my product grows, I really need a dalicated cluster. Is there a solution helps finish the migration?",
+    "source_entity":"TiDB Serverless",
+    "target_entity":"Dedicated Cluster",
+    "relationship_desc":"How to migrate from TiDB serverless to TiDB dedicated cluster?",
+    "reasoning":"The main concern of the user."
+  },
+  {
+    "query":"I am designing a table based on TiDB's TTL feature, but when I try to create the table using a cluster created with Serverless, I get a `'TTL' is not supported on TiDB Serverless` error.\n\nI plan to use Dedicated on my production environment and Serverless on my development environment, so it would be helpful if the TTL feature could be used in a Serverless environment.\n\nI've read the documentation that says Serverless will support TTL features in the future, but is there a specific timeline for this?\n\nAlso, is it possible to prevent TTL syntax from causing errors in Serverless?",
+    "source_entity":"TTL Feature",
+    "target_entity":"TiDB Serverless",
+    "relationship_desc":"The TTL feature is not currently supported in TiDB Serverless.",
+    "reasoning":"The problem the user is facing."
+  },
+  {
+    "query":"I am designing a table based on TiDB's TTL feature, but when I try to create the table using a cluster created with Serverless, I get a `'TTL' is not supported on TiDB Serverless` error.\n\nI plan to use Dedicated on my production environment and Serverless on my development environment, so it would be helpful if the TTL feature could be used in a Serverless environment.\n\nI've read the documentation that says Serverless will support TTL features in the future, but is there a specific timeline for this?\n\nAlso, is it possible to prevent TTL syntax from causing errors in Serverless?",
+    "source_entity":"TTL Feature",
+    "target_entity":"Roadmap Support Timeline",
+    "relationship_desc":"What's the roadmap timeline on when the TTL feature will be supported in TiDB Serverless.",
+    "reasoning":"The main question the user is asking."
+  },
+  {
+    "query":"I am designing a table based on TiDB's TTL feature, but when I try to create the table using a cluster created with Serverless, I get a `'TTL' is not supported on TiDB Serverless` error.\n\nI plan to use Dedicated on my production environment and Serverless on my development environment, so it would be helpful if the TTL feature could be used in a Serverless environment.\n\nI've read the documentation that says Serverless will support TTL features in the future, but is there a specific timeline for this?\n\nAlso, is it possible to prevent TTL syntax from causing errors in Serverless?",
+    "source_entity":"TTL SQL Syntax",
+    "target_entity":"Workaround for SQL Syntax Error",
+    "relationship_desc":"Workaround to prevent TTL feature SQL syntax from causing errors in TiDB Serverless.",
+    "reasoning":"The secondary question the user is asking."
+  },
+  {
+    "query":"I'm attempting to download a specific backup from the database hosted on TiDB Cloud. So far, I've tried accessing the backup through SQL queries, but haven't found a way to execute this operation.\n\nThe instructions provided suggested using SSH to transfer the backup, however, I don't have SSH access to the server where the backups are stored.\n\nI would like to request guidance on how I can proceed to download this backup without direct access to the server. Is there an alternative or different method that I can use to obtain the desired backup?\n\nThank you in advance for any assistance or guidance you can provide on this matter.",
+    "source_entity":"Backup data",
+    "target_entity":"TiDB Cloud",
+    "relationship_desc":"How to download a specific backup from TiDB Cloud?",
+    "reasoning":"The main question the user is asking"
+  },
+  {
+    "query":"I'm attempting to download a specific backup from the database hosted on TiDB Cloud. So far, I've tried accessing the backup through SQL queries, but haven't found a way to execute this operation.\n\nThe instructions provided suggested using SSH to transfer the backup, however, I don't have SSH access to the server where the backups are stored.\n\nI would like to request guidance on how I can proceed to download this backup without direct access to the server. Is there an alternative or different method that I can use to obtain the desired backup?\n\nThank you in advance for any assistance or guidance you can provide on this matter.",
+    "source_entity":"Backup SQL",
+    "target_entity":"Backup data",
+    "relationship_desc":"I can't find a way to execute Backup SQL queries to download the backup.",
+    "reasoning":"The problem the user is facing"
+  },
+  {
+    "query":"Upgrade TiDB Serverless to 7.4 or latest for enhanced MySQL 8.0 compatibility",
+    "source_entity":"TiDB 7.4 or Latest version",
+    "target_entity":"MySQL 8.0 Compatibility",
+    "relationship_desc":"TiDB 7.4 or the latest version enhances compatibility with MySQL 8.0",
+    "reasoning":"The reasoning why user wants to upgrade TiDB Serverless to 7.4 or latest for enhanced MySQL 8.0 compatibility"
+  },
+  {
+    "query":"Upgrade TiDB Serverless to 7.4 or latest for enhanced MySQL 8.0 compatibility",
+    "source_entity":"TiDB Serverless",
+    "target_entity":"Upgrade",
+    "relationship_desc":"How to upgrade TiDB Serverless?",
+    "reasoning":"The basic question what the user itentionally asked."
+  },
+  {
+    "query":"We are new to TiDB and don't quite understand the potential impact on our application architecture. We are using TiDB for audit logs and continue to direct traffic to TiDB. We noticed a sudden jump ID from 1 to 30,001. Are there any impacts? Do we need to address this? If we have 100 connections from several applications, what will happen? In summary, what should we do for Auto Increment or do nothing?",
+    "source_entity":"Auto Increment",
+    "target_entity":"ID Jump",
+    "relationship_desc":"Why Auto Increment in TiDB causes a sudden increase in the ID values?",
+    "reasoning":"The main concerns that the user itentionally asked."
+  },
+  {
+    "query":"We are new to TiDB and don't quite understand the potential impact on our application architecture. We are using TiDB for audit logs and continue to direct traffic to TiDB. We noticed a sudden jump ID from 1 to 30,001. Are there any impacts? Do we need to address this? If we have 100 connections from several applications, what will happen? In summary, what should we do for Auto Increment or do nothing?",
+    "source_entity":"Connections Impact",
+    "target_entity":"TiDB",
+    "relationship_desc":"How 100 connections from several applications affect TiDB, especially when the Auto Increment causes a sudden jump in ID values?",
+    "reasoning":"The second most important question that the user itentionally asked."
+  },
+  {
+    "query":"We are new to TiDB and don't quite understand the potential impact on our application architecture. We are using TiDB for audit logs and continue to direct traffic to TiDB. We noticed a sudden jump ID from 1 to 30,001. Are there any impacts? Do we need to address this? If we have 100 connections from several applications, what will happen? In summary, what should we do for Auto Increment or do nothing?",
+    "source_entity":"TiDB",
+    "target_entity":"Audit Logs",
+    "relationship_desc":"TiDB is used for storing audit logs and receiving continuous traffic.",
+    "reasoning":"The user case what the user wants to achieve"
+  },
+  {
+    "query":"my cluster shows \"available\" but my app containers can no longer reach the database",
+    "source_entity":"App Containers",
+    "target_entity":"TiDB Database",
+    "relationship_desc":"How to solve the connection issue between the app containers and the TiDB database?",
+    "reasoning":"The main problem the user is facing."
+  },
+  {
+    "query":"my cluster shows \"available\" but my app containers can no longer reach the database",
+    "source_entity":"Connectivity Issue",
+    "target_entity":"Cluster Status",
+    "relationship_desc":"The connectivity issue exists despite the cluster status showing 'available'.",
+    "reasoning":"The discrepancy the user is concerned about."
+  },
+  {
+    "query":"tidb lighting to sync to serverless cluster,but the load command and the tidb-lighting tools dont have the tls config like --ssl-ca or --ca. so i can not sync to the full back data to the serverless",
+    "source_entity":"TiDB Lighting",
+    "target_entity":"Serverless Cluster",
+    "relationship_desc":"Sync data to a serverless cluster using TiDB Lighting.",
+    "reasoning":"The user case what the user wants to achieve"
+  },
+  {
+    "query":"tidb lighting to sync to serverless cluster,but the load command and the tidb-lighting tools dont have the tls config like --ssl-ca or --ca. so i can not sync to the full back data to the serverless",
+    "source_entity":"Load Command and TiDB Lighting Tools",
+    "target_entity":"TLS Configuration",
+    "relationship_desc":"How to configure TLS for TiDB Lightning?",
+    "reasoning":"The basic question what the user itentionally asked."
+  },
+  {
+    "query":"tidb lighting to sync to serverless cluster,but the load command and the tidb-lighting tools dont have the tls config like --ssl-ca or --ca. so i can not sync to the full back data to the serverless",
+    "source_entity":"Lack of TLS Configuration",
+    "target_entity":"Sync Issue",
+    "relationship_desc":"The sync issue is caused by the lack of TLS configuration options for TiDB Lightning.",
+    "reasoning":"The problem that the user is facing."
+  },
+  {
+    "query":"Please speak Chinese",
+    "source_entity":"User",
+    "target_entity":"Language",
+    "relationship_desc":"The user is requesting to communicate in Chinese.",
+    "reasoning":"the main concern of the user"
+  }
+]
