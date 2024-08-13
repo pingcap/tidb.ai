@@ -9,7 +9,7 @@ patchedDependencies:
     hash: nv7w2gxticledghefu4yn3fady
     path: patches/@jest__environment@29.7.0.patch
   jest-runtime@29.7.0:
-    hash: 4fjd3nf5euweqct7izfyq2alga
+    hash: ok2orsrpa7lhsywo4z3bp54ueu
     path: patches/jest-runtime@29.7.0.patch
 
 importers:
@@ -8330,7 +8330,7 @@ snapshots:
       jest-resolve: 29.7.0
       jest-resolve-dependencies: 29.7.0
       jest-runner: 29.7.0
-      jest-runtime: 29.7.0(patch_hash=4fjd3nf5euweqct7izfyq2alga)
+      jest-runtime: 29.7.0(patch_hash=ok2orsrpa7lhsywo4z3bp54ueu)
       jest-snapshot: 29.7.0
       jest-util: 29.7.0
       jest-validate: 29.7.0
@@ -11403,7 +11403,7 @@ snapshots:
       eslint: 8.57.0
       eslint-import-resolver-node: 0.3.9
       eslint-import-resolver-typescript: 3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(eslint@8.57.0))(eslint@8.57.0)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(eslint@8.57.0))(eslint@8.57.0))(eslint@8.57.0)
+      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
       eslint-plugin-jsx-a11y: 6.9.0(eslint@8.57.0)
       eslint-plugin-react: 7.35.0(eslint@8.57.0)
       eslint-plugin-react-hooks: 4.6.2(eslint@8.57.0)
@@ -11427,7 +11427,7 @@ snapshots:
       enhanced-resolve: 5.17.1
       eslint: 8.57.0
       eslint-module-utils: 2.8.1(@typescript-eslint/parser@7.2.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(eslint@8.57.0))(eslint@8.57.0))(eslint@8.57.0)
-      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(eslint@8.57.0))(eslint@8.57.0))(eslint@8.57.0)
+      eslint-plugin-import: 2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0)
       fast-glob: 3.3.2
       get-tsconfig: 4.7.6
       is-core-module: 2.15.0
@@ -11449,7 +11449,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1(@typescript-eslint/parser@7.2.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-node@0.3.9)(eslint-plugin-import@2.29.1(eslint@8.57.0))(eslint@8.57.0))(eslint@8.57.0):
+  eslint-plugin-import@2.29.1(@typescript-eslint/parser@7.2.0(eslint@8.57.0)(typescript@5.5.4))(eslint-import-resolver-typescript@3.6.1)(eslint@8.57.0):
     dependencies:
       array-includes: 3.1.8
       array.prototype.findlastindex: 1.2.5
@@ -12392,7 +12392,7 @@ snapshots:
       jest-each: 29.7.0
       jest-matcher-utils: 29.7.0
       jest-message-util: 29.7.0
-      jest-runtime: 29.7.0(patch_hash=4fjd3nf5euweqct7izfyq2alga)
+      jest-runtime: 29.7.0(patch_hash=ok2orsrpa7lhsywo4z3bp54ueu)
       jest-snapshot: 29.7.0
       jest-util: 29.7.0
       p-limit: 3.1.0
@@ -12587,7 +12587,7 @@ snapshots:
       jest-leak-detector: 29.7.0
       jest-message-util: 29.7.0
       jest-resolve: 29.7.0
-      jest-runtime: 29.7.0(patch_hash=4fjd3nf5euweqct7izfyq2alga)
+      jest-runtime: 29.7.0(patch_hash=ok2orsrpa7lhsywo4z3bp54ueu)
       jest-util: 29.7.0
       jest-watcher: 29.7.0
       jest-worker: 29.7.0
@@ -12596,7 +12596,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  jest-runtime@29.7.0(patch_hash=4fjd3nf5euweqct7izfyq2alga):
+  jest-runtime@29.7.0(patch_hash=ok2orsrpa7lhsywo4z3bp54ueu):
     dependencies:
       '@jest/environment': 29.7.0(patch_hash=nv7w2gxticledghefu4yn3fady)
       '@jest/fake-timers': 29.7.0
