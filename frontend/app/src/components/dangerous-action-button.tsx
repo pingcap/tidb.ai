@@ -9,7 +9,7 @@ export interface DangerousActionButtonProps extends ButtonProps {
   dialogDescription?: ReactNode;
 }
 
-export const DangerousActionButton = forwardRef<HTMLButtonElement, DangerousActionButtonProps>(({ action, dialogDescription, dialogTitle, ...props }, ref) => {
+export const DangerousActionButton = forwardRef<HTMLButtonElement, DangerousActionButtonProps>(({ action, dialogDescription, dialogTitle, asChild, ...props }, ref) => {
   const [open, setOpen] = useState(false);
   const [acting, setActing] = useState(false);
   const [error, setError] = useState<unknown>();
@@ -27,9 +27,9 @@ export const DangerousActionButton = forwardRef<HTMLButtonElement, DangerousActi
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>
-        <Button {...props} disabled={props.disabled || acting} />
-      </AlertDialogTrigger>
+      {asChild
+        ? <AlertDialogTrigger asChild ref={ref} {...props} disabled={props.disabled || acting} />
+        : <Button ref={ref} {...props} disabled={props.disabled || acting} />}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{dialogTitle ?? 'Are you absolutely sure?'}</AlertDialogTitle>

@@ -1,6 +1,9 @@
-import { cachedGetDatasource } from '@/app/(main)/(admin)/datasources/[id]/api';
-import DatasourceDocumentsDocumentsPage from '@/app/(main)/(admin)/datasources/[id]/documents/page.client';
+import { getDatasource } from '@/api/datasources';
 import { AdminPageHeading } from '@/components/admin-page-heading';
+import { DocumentsTable } from '@/components/documents/documents-table';
+import { isServerError } from '@/lib/request';
+import { notFound } from 'next/navigation';
+import { cache } from 'react';
 
 export default async function ChatEnginesPage ({ params }: { params: { id: string } }) {
   const datasource = await cachedGetDatasource(parseInt(params.id));
@@ -14,7 +17,20 @@ export default async function ChatEnginesPage ({ params }: { params: { id: strin
           { title: 'Documents' },
         ]}
       />
-      <DatasourceDocumentsDocumentsPage datasource={datasource} />
+      <DocumentsTable datasourceId={datasource.id} />
     </>
   );
 }
+
+const cachedGetDatasource = cache(async (id: number) => {
+  try {
+    return await getDatasource(id);
+  } catch (error) {
+    if (isServerError(error, [404])) {
+      notFound();
+    } else {
+      return Promise.reject(error);
+    }
+  }
+});
+
