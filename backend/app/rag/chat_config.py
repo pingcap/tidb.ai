@@ -159,9 +159,10 @@ def get_llm(
 ) -> LLM:
     match provider:
         case LLMProvider.OPENAI:
+            api_base = config.pop("api_base", DEFAULT_OPENAI_API_BASE)
             return OpenAI(
                 model=model,
-                api_base=DEFAULT_OPENAI_API_BASE,
+                api_base=api_base,
                 api_key=credentials,
                 **config,
             )
