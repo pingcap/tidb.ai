@@ -35,3 +35,17 @@ The project is divided into several components, and you can contribute to any of
   * [Embedding](https://github.com/pingcap/tidb.ai/blob/main/backend/app/rag/embed_model_option.py): The Embedding Engine component is responsible for converting text into vectors. You can add more Embedding models support to the project.
   * [RAG & GraphRAG Engine](https://github.com/pingcap/tidb.ai/tree/main/backend/app/rag): The component is responsible for extracting knowldge from docs and then chunking, indexing and storing the data in the database, also includes retrieving the data from the database and generating the answer for the user.
   * [Documentations](https://github.com/pingcap/tidb.ai/tree/main/frontend/app/src/pages): The documentation of the project is written in Markdown files. You can contribute to the documentation by adding more content to the documentation.]
+
+## Maintainers
+
+Please feel free to reach out to the maintainers if you have any questions or need help with the project.
+
+* [wd0517](https://github.com/wd0517)
+* [634750802](https://github.com/634750802)
+* [Mini256](https://github.com/Mini256)
+* [IANTHEREAL](https://github.com/IANTHEREAL)
+* [Cheese](https://github.com/Icemap)
+
+## Discussion
+
+If you have any questions or suggestions, please feel free to open a discussion in the [Discussions](https://github.com/pingcap/tidb.ai/discussions)
