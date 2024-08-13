@@ -44,7 +44,6 @@ export function DataTableRemote<TData, TValue> ({
   before,
   after,
   toolbar,
-  ts,
   defaultSorting = [],
 }: DataTableRemoteProps<TData, TValue>) {
   const [pagination, setPagination] = useState<PaginationState>(() => {
