@@ -70,6 +70,7 @@ class Settings(BaseSettings):
     TIDB_USER: str
     TIDB_PASSWORD: str
     TIDB_DATABASE: str
+    TIDB_SSL: bool = True
 
     CELERY_BROKER_URL: str = "redis://redis:6379/0"
     CELERY_RESULT_BACKEND: str = "redis://redis:6379/0"
@@ -93,7 +94,9 @@ class Settings(BaseSettings):
             host=self.TIDB_HOST,
             port=self.TIDB_PORT,
             path=self.TIDB_DATABASE,
-            query="ssl_verify_cert=true&ssl_verify_identity=true",
+            query="ssl_verify_cert=true&ssl_verify_identity=true"
+            if self.TIDB_SSL
+            else None,
         )
 
     @computed_field  # type: ignore[misc]

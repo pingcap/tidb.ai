@@ -38,7 +38,9 @@ async_engine = create_async_engine(
         # seems config ssl in url is not working
         # we can only config ssl in connect_args
         "ssl": get_ssl_context(),
-    },
+    }
+    if settings.TIDB_SSL
+    else {},
 )
 
 
