@@ -11,5 +11,11 @@
     "build:docker": "pnpm run --filter 'app' build:standalone",
     "build": "pnpm run --filter 'app' build",
     "verify": "pnpm run test && pnpm run build && pnpm run build:widget-react"
+  },
+  "pnpm": {
+    "patchedDependencies": {
+      "jest-runtime@29.7.0": "patches/jest-runtime@29.7.0.patch",
+      "@jest/environment@29.7.0": "patches/@jest__environment@29.7.0.patch"
+    }
   }
 }

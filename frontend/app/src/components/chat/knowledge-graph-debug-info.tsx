@@ -1,7 +1,7 @@
 import { getChatMessageSubgraph } from '@/api/chats';
 import { useAuth } from '@/components/auth/AuthProvider';
-import type { OngoingState } from '@/components/chat/chat-controller';
 import { type ChatMessageGroup, useChatMessageStreamState } from '@/components/chat/chat-hooks';
+import type { OngoingState } from '@/components/chat/chat-message-controller';
 import { AppChatStreamState } from '@/components/chat/chat-stream-state';
 import { NetworkViewer } from '@/components/graph/components/NetworkViewer';
 import { useNetwork } from '@/components/graph/useNetwork';

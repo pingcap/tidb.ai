@@ -1,29 +1,26 @@
-import { chat, type Chat, type ChatMessage, ChatMessageRole, type PostChatParams } from '@/api/chats';
+import { chat, type Chat, type ChatMessage, type PostChatParams } from '@/api/chats';
+import { ChatMessageController, type OngoingState } from '@/components/chat/chat-message-controller';
 import { AppChatStreamState, chatDataPartSchema, type ChatMessageAnnotation, fixChatInitialData } from '@/components/chat/chat-stream-state';
 import { getErrorMessage } from '@/lib/errors';
+import { type JSONValue, type StreamPart } from 'ai';
 import EventEmitter from 'eventemitter3';
-
-export interface OngoingState {
-  finished: boolean;
-  state: AppChatStreamState;
-  display: string;
-}
 
 export interface ChatControllerEventsMap {
   'created': [Chat];
   'updated': [Chat];
   'message-loaded': [messageController: ChatMessageController];
+
+  /**
+   * Emit instantly when {@link ChatController#post} is called
+   */
   'post': [params: Omit<PostChatParams, 'chat_id'>];
+
+  /**
+   * Emit when server returned chat and chat_message info
+   */
   'post-initialized': [];
   'post-finished': [];
   'post-error': [error: unknown];
-}
-
-export interface ChatMessageControllerEventsMap {
-  'update': [assistant_message: ChatMessage];
-  'stream-update': [ongoing_message: ChatMessage, ongoing: OngoingState];
-  'stream-finished': [ongoing_message: ChatMessage];
-  'stream-error': [ongoing_message: ChatMessage, ongoing: OngoingState];
 }
 
 export class ChatController extends EventEmitter<ChatControllerEventsMap> {
@@ -64,6 +61,8 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
     if (this._postParams) {
       throw new Error('previous not finished.');
     }
+
+    // Initialize post states
     this._postParams = params;
     this._postError = undefined;
     this._postInitialized = false;
@@ -77,55 +76,12 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
         ...params,
       });
 
+      // Process stream parts and dispatch to ongoingMessageController
       for await (let part of streamParts) {
-        switch (part.type) {
-          case 'data': {
-            const { chat, user_message, assistant_message } = chatDataPartSchema.parse(fixChatInitialData(part.value[0]));
-            this.updateChat(chat);
-            this.upsertMessage(user_message);
-            if (!ongoingMessageController) {
-              ongoingMessageController = this.createMessage(assistant_message, {
-                state: AppChatStreamState.CONNECTING,
-                display: 'Connecting to server...',
-                finished: false,
-              });
-              this._postInitialized = true;
-              this.emit('post-initialized');
-            } else {
-              ongoingMessageController.update(assistant_message);
-            }
-            break;
-          }
-          case 'message_annotations': {
-            if (!ongoingMessageController) {
-              console.error('Cannot handle chat stream part: no ongoingMessageController', part);
-              return Promise.reject(new Error('bad stream'));
-            }
-            const annotation: ChatMessageAnnotation = part.value[0] as any;
-            ongoingMessageController.applyStreamAnnotation(annotation);
-            break;
-          }
-          case 'text':
-            if (part.value) { // ignore leading empty chunks.
-              if (!ongoingMessageController) {
-                console.error('Cannot handle chat stream part: no ongoingMessageController', part);
-                return Promise.reject(new Error('bad stream'));
-              }
-              ongoingMessageController.applyDelta(part.value);
-            }
-            break;
-          case 'error':
-            if (!ongoingMessageController) {
-              return Promise.reject(new Error(part.value));
-            } else {
-              ongoingMessageController.applyError(part.value);
-            }
-            break;
-          default:
-            console.warn('unsupported stream part', part);
-        }
+        ongoingMessageController = this._processPart(ongoingMessageController, part);
       }
 
+      // Cleanup post states
       if (ongoingMessageController) {
         this.upsertMessage(ongoingMessageController.finish());
       } else {
@@ -163,6 +119,66 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
     }
   }
 
+  _processPart (ongoingMessageController: ChatMessageController | undefined, part: ReturnType<StreamPart<any, any, any>['parse']>) {
+    switch (part.type) {
+      case 'data':
+        // Data part contains chat and chat_message info from server. will be sent twice (beginning and finished).
+        // We will update frontend cached and computed info like message content which is computed from stream text deltas.
+        ongoingMessageController = this._processDataPart(ongoingMessageController, part);
+        break;
+      case 'message_annotations':
+        // Message annotations part containing current generating state.
+        this._processMessageAnnotationPart(ongoingMessageController, part);
+        break;
+      case 'text':
+        this._processTextPart(ongoingMessageController, part);
+        break;
+      case 'error':
+        this._processErrorPart(ongoingMessageController, part);
+        break;
+      default:
+        console.warn('unsupported stream part', part);
+    }
+    return ongoingMessageController;
+  }
+
+  private _processDataPart (ongoingMessageController: ChatMessageController | undefined, part: ReturnType<StreamPart<any, 'data', JSONValue[]>['parse']>): ChatMessageController {
+    const { chat, user_message, assistant_message } = chatDataPartSchema.parse(fixChatInitialData(part.value[0]));
+    this.updateChat(chat);
+    this.upsertMessage(user_message);
+    if (!ongoingMessageController) {
+      ongoingMessageController = this.createMessage(assistant_message, {
+        state: AppChatStreamState.CONNECTING,
+        display: 'Connecting to server...',
+        finished: false,
+      });
+      this._postInitialized = true;
+      this.emit('post-initialized');
+    } else {
+      ongoingMessageController.update(assistant_message);
+    }
+
+    return ongoingMessageController;
+  }
+
+  private _processMessageAnnotationPart (ongoingMessageController: ChatMessageController | undefined, part: ReturnType<StreamPart<any, 'message_annotations', JSONValue[]>['parse']>) {
+    assertNonNull(ongoingMessageController, 'Cannot handle chat stream part: no ongoingMessageController', part);
+    const annotation: ChatMessageAnnotation = part.value[0] as any;
+    ongoingMessageController.applyStreamAnnotation(annotation);
+  }
+
+  private _processTextPart (ongoingMessageController: ChatMessageController | undefined, part: ReturnType<StreamPart<any, 'text', string>['parse']>) {
+    if (part.value) { // ignore leading empty chunks.
+      assertNonNull(ongoingMessageController, 'Cannot handle chat stream part: no ongoingMessageController', part);
+      ongoingMessageController.applyDelta(part.value);
+    }
+  }
+
+  private _processErrorPart (ongoingMessageController: ChatMessageController | undefined, part: ReturnType<StreamPart<any, 'error', string>['parse']>) {
+    assertNonNull(ongoingMessageController, 'Cannot handle chat stream part: no ongoingMessageController', part);
+    ongoingMessageController.applyError(part.value);
+  }
+
   private createMessage (message: ChatMessage, initialOngoingState?: OngoingState) {
     const controller = new ChatMessageController(message, initialOngoingState);
     this._messages.set(message.id, controller);
@@ -171,110 +187,9 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
   }
 }
 
-export class ChatMessageController extends EventEmitter<ChatMessageControllerEventsMap> {
-  private _message!: ChatMessage;
-  private _ongoing: OngoingState | undefined;
-  public readonly role: ChatMessageRole;
-  public readonly id: number;
-
-  constructor (message: ChatMessage, ongoing: OngoingState | undefined) {
-    super();
-    this._message = message;
-    this._ongoing = ongoing;
-    this.role = message.role;
-    this.id = message.id;
-
-    if (this._message.finished_at == null && !ongoing) {
-      this._ongoing = {
-        state: AppChatStreamState.UNKNOWN,
-        display: 'Unknown',
-        finished: false,
-      };
-    }
-  }
-
-  // dynamic, usage in react component needs subscription.
-  get content () {
-    return this.message?.content ?? '';
-  }
-
-  update (message: ChatMessage) {
-    this._message = { ...this._message, ...message };
-    this.emit('update', this._message);
-  }
-
-  applyStreamAnnotation (annotation: ChatMessageAnnotation) {
-    if (!this._ongoing || this._ongoing.finished) {
-      console.warn('message already finished');
-      return;
-    }
-    let message = this._message;
-    const ongoing: OngoingState = { ...this._ongoing };
-
-    ongoing.state = annotation.state;
-    ongoing.display = annotation.display;
-    switch (annotation.state) {
-      case AppChatStreamState.TRACE:
-        message = { ...message };
-        message.trace_url = annotation.context.langfuse_url;
-        break;
-      case AppChatStreamState.SOURCE_NODES:
-        message = { ...message };
-        message.sources = annotation.context;
-        break;
-    }
-
-    this._ongoing = ongoing;
-    this._message = message;
-    if (annotation.state === AppChatStreamState.FINISHED) {
-      this._ongoing.finished = true;
-    }
-    this.emit('stream-update', this._message, this._ongoing);
-  }
-
-  applyDelta (delta: string) {
-    if (!this._ongoing || this._ongoing.finished) {
-      console.warn('message already finished');
-      return;
-    }
-    this._message = {
-      ...this._message,
-      content: this._message.content + delta,
-    };
-    this.emit('stream-update', this._message, this._ongoing);
-  }
-
-  applyError (error: string) {
-    if (!this._ongoing || this._ongoing.finished) {
-      console.warn('message already finished');
-      return;
-    }
-    this._ongoing = {
-      ...this._ongoing,
-      finished: true,
-    };
-    this._message = {
-      ...this._message,
-      error,
-    };
-    this.emit('stream-error', this._message, this._ongoing);
-  }
-
-  finish () {
-    if (!this._message) {
-      throw new Error('message info not provided');
-    }
-
-    this._ongoing = undefined;
-    this.emit('stream-finished', this._message);
-    return this._message;
-  }
-
-  get message (): ChatMessage {
-    return this._message;
-  }
-
-  get ongoing () {
-    return this._ongoing;
+function assertNonNull<T> (value: T, message: string, ...args: any): asserts value is NonNullable<T> {
+  if (value == null) {
+    console.warn(message, args);
+    throw new Error('bad stream');
   }
 }

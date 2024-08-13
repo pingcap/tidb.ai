@@ -1,5 +1,5 @@
-import type { ChatMessageController } from '@/components/chat/chat-controller';
 import { useChatMessageField } from '@/components/chat/chat-hooks';
+import { ChatMessageController } from '@/components/chat/chat-message-controller';
 import { RemarkContent } from '@/components/remark-content';
 import '@/components/chat/style.css';
 
