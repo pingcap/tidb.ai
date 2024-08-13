@@ -42,7 +42,11 @@ A open source alternative of Kapa.ai, conversational search tool based on GraphR
 
 ## Contact Us
 
-You can post topics on our [TiDB Community](https://ask.pingcap.com/) page.
+You can reach out to us on [@TiDB_Developer](https://twitter.com/TiDB_Developer) on Twitter.
+
+## Contributing
+
+We welcome contributions from the community. If you are interested in contributing to the project, please read the [Contributing Guidelines](/CONTRIBUTING.md).
 
 ## License
 
