@@ -65,9 +65,9 @@ class Settings(BaseSettings):
 
     LOCAL_FILE_STORAGE_PATH: str = "/shared/data"
 
-    TIDB_HOST: str
+    TIDB_HOST: str = "127.0.0.1"
     TIDB_PORT: int = 4000
-    TIDB_USER: str
+    TIDB_USER: str = "root"
     TIDB_PASSWORD: str = ""
     TIDB_DATABASE: str
     TIDB_SSL: bool = True
