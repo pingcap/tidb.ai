@@ -11,8 +11,8 @@ router = APIRouter()
 
 @router.get("/healthz")
 def status(session: SessionDep):
-    session.exec(text("SELECT 1"))
-    return "OK"
+    now = session.exec(text("SELECT NOW()")).scalar()
+    return {"now": now}
 
 
 @router.get("/site-config")

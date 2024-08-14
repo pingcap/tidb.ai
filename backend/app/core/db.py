@@ -3,6 +3,7 @@ import contextlib
 from typing import AsyncGenerator, Generator
 
 from sqlmodel import create_engine, Session
+from sqlalchemy import event
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.asyncio import create_async_engine
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -42,6 +43,18 @@ async_engine = create_async_engine(
     if settings.TIDB_SSL
     else {},
 )
+
+
+def prepare_connection(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    # In TiDB.AI, we store datetime in the database using UTC timezone.
+    # Therefore, we need to set the timezone to '+00:00'.
+    cursor.execute("SET time_zone = '+00:00'")
+    cursor.close()
+
+
+event.listen(engine, "connect", prepare_connection)
+event.listen(async_engine.sync_engine, "connect", prepare_connection)
 
 
 def get_db_session() -> Generator[Session, None, None]:
