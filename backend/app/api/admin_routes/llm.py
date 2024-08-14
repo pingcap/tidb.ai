@@ -26,6 +26,7 @@ from app.models import (
     AdminEmbeddingModel,
     RerankerModel,
     AdminRerankerModel,
+    DataSource,
 )
 
 router = APIRouter()
@@ -121,6 +122,11 @@ def delete_llm(
         update(ChatEngine)
         .where(ChatEngine.fast_llm_id == llm_id)
         .values(fast_llm_id=None)
+    )
+    session.exec(
+        update(DataSource)
+        .where(DataSource.llm_id == llm_id)
+        .values(llm_id=None)
     )
     session.delete(llm)
     session.commit()
