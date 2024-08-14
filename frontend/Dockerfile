@@ -7,6 +7,7 @@ RUN apk add --no-cache libc6-compat
 
 WORKDIR /tidb.ai
 
+RUN mkdir -p frontend/patches
 RUN mkdir -p frontend/app
 RUN mkdir -p frontend/packages/widget-react
 
@@ -14,6 +15,7 @@ RUN mkdir -p frontend/packages/widget-react
 COPY README.md .
 COPY frontend/package.json ./frontend
 COPY frontend/pnpm-*.yaml ./frontend
+COPY frontend/patches/* ./frontend/patches
 COPY frontend/app/package.json ./frontend/app
 COPY frontend/packages/widget-react/package.json ./frontend/packages/widget-react
 
