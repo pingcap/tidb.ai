@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "The tag to build the image with (format *.*.*)"
+        description: "The tag to build the image with. Format *.*.*((beta|rc)*)?"
         required: true
 
 jobs:
