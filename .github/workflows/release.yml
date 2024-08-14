@@ -7,13 +7,35 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "The tag to build the image with"
+        description: "The tag to build the image with. Format *.*.*((beta|rc)*)?"
         required: true
 
 jobs:
+    docker-metadata:
+      name: Generate docker metadata
+      runs-on: ubuntu-latest
+      outputs:
+        tags: ${{steps.meta.outputs.tags}}
+        labels: ${{steps.meta.outputs.labels}}
+        annotations: ${{steps.meta.outputs.annotations}}
+      permissions:
+        contents: read
+      steps:
+        - name: Docker metadata
+          id: meta
+          uses: docker/metadata-action@v5
+          with:
+            github-token: ${{ github.token }}
+            images: "{0}/{1}"
+            tags: |
+              type=pep440,value=${{inputs.tag || github.ref_name}},pattern={{version}}
+              type=pep440,value=${{inputs.tag || github.ref_name}},pattern={{major}}.{{minor}}
+              type=pep440,value=${{inputs.tag || github.ref_name}},pattern={{major}}
+
     build-backend:
       name: Build and Push Backend Image
       runs-on: ubuntu-latest
+      needs: docker-metadata
       permissions:
         contents: read
         packages: write
@@ -42,12 +64,14 @@ jobs:
             context: backend
             platforms: linux/amd64,linux/arm64
             push: true
-            tags: |
-                ${{ secrets.RELEASE_DOCKERHUB_USERNAME }}/backend:${{ inputs.tag || github.ref_name }}
+            tags: ${{format(needs.docker-metadata.outputs.tags, secrets.RELEASE_DOCKERHUB_USERNAME, 'backend')}}
+            labels: ${{needs.docker-metadata.outputs.labels}}
+            annotations: ${{needs.docker-metadata.outputs.annotations}}
 
     build-frontend:
       name: Build and Push Frontend Image
       runs-on: ubuntu-latest
+      needs: docker-metadata
       permissions:
         contents: read
         packages: write
@@ -77,5 +101,6 @@ jobs:
             file: ./frontend/Dockerfile
             platforms: linux/amd64,linux/arm64
             push: true
-            tags: |
-                ${{ secrets.RELEASE_DOCKERHUB_USERNAME }}/frontend:${{ inputs.tag || github.ref_name }}
+            tags: ${{format(needs.docker-metadata.outputs.tags, secrets.RELEASE_DOCKERHUB_USERNAME, 'frontend')}}
+            labels: ${{needs.docker-metadata.outputs.labels}}
+            annotations: ${{needs.docker-metadata.outputs.annotations}}
