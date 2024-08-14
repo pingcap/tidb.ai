@@ -1,4 +1,5 @@
 import { ChatMessageRole } from '@/api/chats';
+import type { ChatController } from '@/components/chat/chat-controller';
 import type { ChatMessageController } from '@/components/chat/chat-message-controller';
 import type { ChatInitialData } from '@/components/chat/chat-stream-state';
 import { jest } from '@jest/globals';
@@ -75,27 +76,44 @@ const exampleData = {
   },
 } satisfies ChatInitialData;
 
-describe('chat protocol', () => {
+describe('stream protocol', () => {
+  const onPost = jest.fn();
+  const onPostInitialized = jest.fn();
+  const onMessageLoaded = jest.fn();
+  const onPostError = jest.fn();
+  const onPostFinished = jest.fn();
+
+  const postRejection = jest.fn();
+
+  const addListeners = (controller: ChatController) => {
+    controller.on('post', onPost)
+      .on('post-initialized', onPostInitialized)
+      .on('message-loaded', onMessageLoaded)
+      .on('post-error', onPostError)
+      .on('post-finished', onPostFinished);
+  };
+
+  const newChatController = async () => {
+    // for using `jest.unstable_mockModule` mocked module
+    const { ChatController } = await import('./chat-controller');
+
+    const controller = new ChatController();
+    addListeners(controller);
+
+    return controller;
+  };
+
   test('terminate before server responses', async () => {
     const error = new Error('terminate before server response');
     currentChat = () => {
       throw error;
     };
 
-    // for using `jest.unstable_mockModule` mocked module
-    const { ChatController } = await import('./chat-controller');
+    const controller = await newChatController();
+    await controller.post({ content: 'hi' }).catch(postRejection);
 
-    const controller = new ChatController();
-    const onPost = jest.fn();
-    const onPostInitialized = jest.fn();
-    const onPostError = jest.fn();
+    expect(postRejection).toHaveBeenCalledTimes(0);
 
-    controller
-      .on('post', onPost)
-      .on('post-initialized', onPostInitialized)
-      .on('post-error', onPostError);
-
-    await controller.post({ content: 'hi' }).catch(() => {});
     expect(onPost).toHaveBeenCalledTimes(1);
     expect(onPost).toHaveBeenCalledWith({ content: 'hi' });
 
@@ -105,8 +123,7 @@ describe('chat protocol', () => {
     expect(onPostError).toHaveBeenCalledWith(error);
   });
 
-  test('terminated while generating', async () => {
-    const error = new Error('ee');
+  test('terminated by stream protocol', async () => {
     currentChat = async function* () {
       yield {
         type: 'data',
@@ -116,22 +133,10 @@ describe('chat protocol', () => {
       yield { type: 'error', value: 'terminated' };
     };
 
-    // for using `jest.unstable_mockModule` mocked module
-    const { ChatController } = await import('./chat-controller');
+    const controller = await newChatController();
 
-    const controller = new ChatController();
-    const onPost = jest.fn();
-    const onPostInitialized = jest.fn();
-    const onMessageLoaded = jest.fn();
-    const onPostError = jest.fn();
-
-    controller
-      .on('post', onPost)
-      .on('post-initialized', onPostInitialized)
-      .on('post-error', onPostError)
-      .on('message-loaded', onMessageLoaded);
-
-    await controller.post({ content: 'hi' }).catch(() => {});
+    await controller.post({ content: 'hi' }).catch(postRejection);
+    expect(postRejection).toHaveBeenCalledTimes(0);
 
     expect(onPost).toHaveBeenCalledTimes(1);
     expect(onPost).toHaveBeenCalledWith({ content: 'hi' });
@@ -141,12 +146,12 @@ describe('chat protocol', () => {
 
     expect(onMessageLoaded).toHaveBeenCalledTimes(2);
 
-    const assistantMessage: ChatMessageController = onMessageLoaded.mock.calls.find(msg => (msg[0] as ChatMessageController).role === 'assistant')![0] as any;
+    const assistantMessage: ChatMessageController = controller.messages.find(msg => msg.role === 'assistant')!;
     expect(assistantMessage.content).toBe('pong');
     expect(assistantMessage.message.error).toBe('terminated');
   });
 
-  test('ok', async () => {
+  test('normal', async () => {
     currentChat = async function* () {
       yield {
         type: 'data',
@@ -155,25 +160,17 @@ describe('chat protocol', () => {
       yield { type: 'text', value: 'pong' };
     };
 
-    const { ChatController } = await import('./chat-controller');
+    const controller = await newChatController();
 
-    const controller = new ChatController();
+    await controller.post({ content: 'ping' }).catch(postRejection);
 
-    const onPostInitialized = jest.fn();
-    const onMessageLoaded = jest.fn();
-    const onPostFinished = jest.fn();
+    expect(postRejection).toHaveBeenCalledTimes(0);
 
-    controller
-      .on('post-initialized', onPostInitialized)
-      .on('message-loaded', onMessageLoaded)
-      .on('post-finished', onPostFinished);
-
-    await controller.post({ content: 'ping' }).catch((err) => {console.error(err);});
     expect(onPostInitialized).toHaveBeenCalledTimes(1);
     expect(onMessageLoaded).toHaveBeenCalledTimes(2);
     expect(onPostFinished).toHaveBeenCalledTimes(1);
 
-    const assistantMessage: ChatMessageController = onMessageLoaded.mock.calls.find(msg => (msg[0] as ChatMessageController).role === 'assistant')![0] as any;
+    const assistantMessage: ChatMessageController = controller.messages.find(msg => msg.role === 'assistant')!;
     expect(assistantMessage.content).toBe('pong');
   });
 });

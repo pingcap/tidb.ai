@@ -10,13 +10,13 @@ export interface OngoingState {
 
 export interface ChatMessageControllerEventsMap {
   'update': [assistant_message: ChatMessage];
-  'stream-update': [ongoing_message: ChatMessage, ongoing: OngoingState];
+  'stream-update': [ongoing_message: ChatMessage, ongoing: OngoingState, delta: string];
   'stream-finished': [ongoing_message: ChatMessage];
   'stream-error': [ongoing_message: ChatMessage, ongoing: OngoingState];
 }
 
 export class ChatMessageController extends EventEmitter<ChatMessageControllerEventsMap> {
-  private _message!: ChatMessage;
+  private _message: ChatMessage;
   private _ongoing: OngoingState | undefined;
   public readonly role: ChatMessageRole;
   public readonly id: number;
@@ -73,7 +73,7 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
     if (annotation.state === AppChatStreamState.FINISHED) {
       this._ongoing.finished = true;
     }
-    this.emit('stream-update', this._message, this._ongoing);
+    this.emit('stream-update', this._message, this._ongoing, '');
   }
 
   applyDelta (delta: string) {
@@ -85,7 +85,7 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
       ...this._message,
       content: this._message.content + delta,
     };
-    this.emit('stream-update', this._message, this._ongoing);
+    this.emit('stream-update', this._message, this._ongoing, delta);
   }
 
   applyError (error: string) {
@@ -105,10 +105,6 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
   }
 
   finish () {
-    if (!this._message) {
-      throw new Error('message info not provided');
-    }
-
     this._ongoing = undefined;
     this.emit('stream-finished', this._message);
     return this._message;
