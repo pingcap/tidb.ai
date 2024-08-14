@@ -68,7 +68,7 @@ class Settings(BaseSettings):
     TIDB_HOST: str
     TIDB_PORT: int = 4000
     TIDB_USER: str
-    TIDB_PASSWORD: str
+    TIDB_PASSWORD: str = ""
     TIDB_DATABASE: str
     TIDB_SSL: bool = True
 
