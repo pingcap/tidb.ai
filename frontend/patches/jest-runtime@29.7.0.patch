@@ -1,0 +1,29 @@
+diff --git a/build/index.js b/build/index.js
+index 01cb4206525dab0e564e07366bb0de1cc68ae2d1..a3e97fedd7d591a6872ea2e34c994153157e4faf 100644
+--- a/build/index.js
++++ b/build/index.js
+@@ -1943,6 +1943,16 @@ class Runtime {
+       this.setModuleMock(from, moduleName, mockFactory, options);
+       return jestObject;
+     };
++    const unmockModule = (moduleName) => {
++      const moduleID = this._resolver.getModuleID(
++        this._virtualModuleMocks,
++        from,
++        moduleName,
++        {conditions: this.esmConditions},
++      );
++      this._explicitShouldMockModule.set(moduleID, false);
++      return jestObject;
++    };
+     const clearAllMocks = () => {
+       this.clearAllMocks();
+       return jestObject;
+@@ -2165,6 +2175,7 @@ class Runtime {
+       spyOn,
+       unmock,
+       unstable_mockModule: mockModule,
++      unstable_unmockModule: unmockModule,
+       useFakeTimers,
+       useRealTimers
+     };

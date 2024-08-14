@@ -1,5 +1,5 @@
-import { ChatMessageController } from '@/components/chat/chat-controller';
 import { useChatMessageField, useChatMessageStreamState } from '@/components/chat/chat-hooks';
+import { ChatMessageController } from '@/components/chat/chat-message-controller';
 import { AppChatStreamState } from '@/components/chat/chat-stream-state';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { format } from 'date-fns';

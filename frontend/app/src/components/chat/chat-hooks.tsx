@@ -1,10 +1,10 @@
 import { type Chat, type ChatMessage, ChatMessageRole } from '@/api/chats';
 import { isBootstrapStatusPassed } from '@/api/system';
-import { ChatController, ChatMessageController, type OngoingState } from '@/components/chat/chat-controller';
+import { ChatController } from '@/components/chat/chat-controller';
+import { ChatMessageController, type OngoingState } from '@/components/chat/chat-message-controller';
 import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { useLatestRef } from '@/components/use-latest-ref';
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
-import { util } from 'zod';
 
 export interface ChatsProviderValues {
   chats: Map<string, ChatController>;

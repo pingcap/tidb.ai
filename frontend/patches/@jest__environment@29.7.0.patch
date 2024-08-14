@@ -1,0 +1,17 @@
+diff --git a/build/index.d.ts b/build/index.d.ts
+index 1837e6ac01f7e6d73f7b82844b20e8c59f14fa77..9307322cb42d89dae39dec62a65b210c0a23df67 100644
+--- a/build/index.d.ts
++++ b/build/index.d.ts
+@@ -191,6 +191,12 @@ export declare interface Jest {
+       virtual?: boolean;
+     },
+   ): Jest;
++  /**
++   * Mocks a module with the provided module factory when it is being imported.
++   */
++  unstable_unmockModule<T = unknown>(
++    moduleName: string,
++  ): Jest;
+   /**
+    * Wraps types of the `source` object and its deep members with type definitions
+    * of Jest mock function. Pass `{shallow: true}` option to disable the deeply

@@ -1,5 +1,5 @@
-import { ChatMessageController } from '@/components/chat/chat-controller';
 import { useChatMessageStreamState } from '@/components/chat/chat-hooks';
+import { ChatMessageController } from '@/components/chat/chat-message-controller';
 import { AppChatStreamState } from '@/components/chat/chat-stream-state';
 import { LoaderIcon } from 'lucide-react';
 

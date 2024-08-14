@@ -1,5 +1,5 @@
-import { ChatMessageController } from '@/components/chat/chat-controller';
 import { useChatMessageField, useChatMessageStreamState, useCurrentChatController } from '@/components/chat/chat-hooks';
+import { ChatMessageController } from '@/components/chat/chat-message-controller';
 import { MessageFeedback } from '@/components/chat/message-feedback';
 import { useMessageFeedback } from '@/components/chat/use-message-feedback';
 import { Button } from '@/components/ui/button';
