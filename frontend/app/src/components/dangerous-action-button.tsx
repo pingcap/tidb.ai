@@ -1,6 +1,9 @@
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button, type ButtonProps } from '@/components/ui/button';
-import { Loader2Icon } from 'lucide-react';
+import { getErrorMessage } from '@/lib/errors';
+import { cn } from '@/lib/utils';
+import { AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import { forwardRef, MouseEvent, type ReactNode, useState } from 'react';
 
 export interface DangerousActionButtonProps extends ButtonProps {
@@ -29,7 +32,11 @@ export const DangerousActionButton = forwardRef<HTMLButtonElement, DangerousActi
     <AlertDialog open={open} onOpenChange={setOpen}>
       {asChild
         ? <AlertDialogTrigger asChild ref={ref} {...props} disabled={props.disabled || acting} />
-        : <Button ref={ref} {...props} disabled={props.disabled || acting} />}
+        : (
+          <AlertDialogTrigger asChild>
+            <Button ref={ref} {...props} disabled={props.disabled || acting} />
+          </AlertDialogTrigger>
+        )}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{dialogTitle ?? 'Are you absolutely sure?'}</AlertDialogTitle>
@@ -37,6 +44,11 @@ export const DangerousActionButton = forwardRef<HTMLButtonElement, DangerousActi
             {dialogDescription ?? 'This action cannot be undone.'}
           </AlertDialogDescription>
         </AlertDialogHeader>
+        {!!error && <Alert variant="destructive" className={cn('transition-opacity', acting && 'opacity-50')}>
+          <AlertTriangleIcon />
+          <AlertTitle>Failed to perform operation</AlertTitle>
+          <AlertDescription>{getErrorMessage(error)}</AlertDescription>
+        </Alert>}
         <AlertDialogFooter>
           <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction disabled={acting} onClick={handleClick}>
