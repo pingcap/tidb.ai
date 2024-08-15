@@ -1,0 +1,19 @@
+{
+  "name": "tidb.ai-playwright",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "playwright test"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@playwright/test": "^1.46.0",
+    "@types/node": "^22.2.0"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5"
+  }
+}

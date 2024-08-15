@@ -4,6 +4,9 @@ on:
     push:
       branches:
         - main
+    pull_request:
+      branches:
+        - main
     workflow_dispatch:
 
 concurrency:
@@ -22,8 +25,8 @@ jobs:
           name: Login to Docker Hub
           uses: docker/login-action@v3
           with:
-            username: ${{ secrets.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_TOKEN }}
+            username: ${{ secrets.RELEASE_DOCKERHUB_USERNAME }}
+            password: ${{ secrets.RELEASE_DOCKERHUB_TOKEN }}
         -
           name: Set up Docker Buildx
           uses: docker/setup-buildx-action@v3
@@ -34,8 +37,8 @@ jobs:
             context: backend
             push: true
             tags: |
-                ${{ secrets.DOCKERHUB_USERNAME }}/tidb.ai-py:latest
-                ${{ secrets.DOCKERHUB_USERNAME }}/tidb.ai-py:${{ github.sha }}
+              ${{ (github.ref == 'refs/heads/main' && format('{0}/backend:dev', secrets.RELEASE_DOCKERHUB_USERNAME)) || '' }}
+              ${{ secrets.RELEASE_DOCKERHUB_USERNAME }}/backend:dev-${{ github.sha }}
 
     build-frontend:
       name: Build and Push Frontend Image
@@ -48,8 +51,8 @@ jobs:
           name: Login to Docker Hub
           uses: docker/login-action@v3
           with:
-            username: ${{ secrets.DOCKERHUB_USERNAME }}
-            password: ${{ secrets.DOCKERHUB_TOKEN }}
+            username: ${{ secrets.RELEASE_DOCKERHUB_USERNAME }}
+            password: ${{ secrets.RELEASE_DOCKERHUB_TOKEN }}
         -
           name: Set up Docker Buildx
           uses: docker/setup-buildx-action@v3
@@ -61,5 +64,53 @@ jobs:
             file: ./frontend/Dockerfile
             push: true
             tags: |
-                ${{ secrets.DOCKERHUB_USERNAME }}/tidb.ai-py-fe:latest
-                ${{ secrets.DOCKERHUB_USERNAME }}/tidb.ai-py-fe:${{ github.sha }}
+              ${{ (github.ref == 'main' && format('{0}/frontend:dev', secrets.RELEASE_DOCKERHUB_USERNAME)) || '' }}
+              ${{ secrets.RELEASE_DOCKERHUB_USERNAME }}/frontend:dev-${{ github.sha }}
+
+    e2e-test:
+      name: E2E Test
+      runs-on: ubuntu-latest
+      timeout-minutes: 10
+      defaults:
+        run:
+          working-directory: e2e
+      needs:
+        - build-backend
+        - build-frontend
+      steps:
+        - uses: actions/checkout@v4
+
+        - uses: actions/setup-node@v4
+          with:
+            node-version: lts/*
+
+        - name: Install dependencies
+          run: npm ci
+
+        - uses: KengoTODA/actions-setup-docker-compose@v1
+          with:
+            version: '2.14.2'
+
+        - name: Install Playwright Browsers
+          run: npx playwright install --with-deps
+
+        - name: Run tests
+          run: ./start-test.sh
+          env:
+            E2E_DOCKER_TAG: dev-${{ github.sha }}
+            E2E_LLM_PROVIDER: ${{env.E2E_LLM_PROVIDER}}
+            E2E_LLM_MODEL: ${{env.E2E_LLM_MODEL || ''}}
+            E2E_LLM_CREDENTIALS: ${{secrets.E2E_LLM_CREDENTIALS}}
+            E2E_EMBEDDING_PROVIDER: ${{env.E2E_EMBEDDING_PROVIDER || 'openai'}}
+            E2E_EMBEDDING_MODEL: ${{env.E2E_EMBEDDING_MODEL || ''}}
+            E2E_EMBEDDING_CREDENTIALS: ${{secrets.E2E_EMBEDDING_CREDENTIALS}}
+            E2E_RERANKER_PROVIDER: ${{env.E2E_RERANKER_PROVIDER || 'jinaai'}}
+            E2E_RERANKER_MODEL: ${{env.E2E_RERANKER_MODEL || ''}}
+            E2E_RERANKER_CREDENTIALS: ${{secrets.E2E_RERANKER_CREDENTIALS}}
+
+        - uses: actions/upload-artifact@v4
+          if: failure()
+          with:
+            name: e2e/playwright-report
+            path: e2e/playwright-report/
+            retention-days: 30
