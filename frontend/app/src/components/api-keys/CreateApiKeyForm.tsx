@@ -33,7 +33,7 @@ export function CreateApiKeyForm ({ onCreated }: CreateApiKeyFormProps) {
           onCreated?.(response);
         })}
       >
-        <FormFieldBasicLayout name="description" label="API Key Descrtipion">
+        <FormFieldBasicLayout name="description" label="API Key Description">
           <FormInput />
         </FormFieldBasicLayout>
         <FormSubmit submittingText="Creating API Key...">
