@@ -27,7 +27,7 @@ Scoped_Session = scoped_session(sessionmaker(bind=engine, class_=Session))
 
 def get_ssl_context():
     ssl_context = ssl.create_default_context(ssl.Purpose.SERVER_AUTH)
-    ssl_context.options |= ssl.OP_NO_TLSv1 | ssl.OP_NO_TLSv1_1
+    ssl_context.minimum_version = ssl.TLSVersion.TLSv1_2
     ssl_context.check_hostname = True
     return ssl_context
 
