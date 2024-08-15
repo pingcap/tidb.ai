@@ -12,7 +12,7 @@ TAG="${F_BOLD}${F_UNDERLINED}${C_AQUA}[TiDB.AI Integration Test]${NO_FORMAT}"
 # Cleanups
 function clean_up {
   ARG=$?
-  echo "$TAG Cleaning up..."
+  echo -e "$TAG Cleaning up..."
   docker compose down frontend background backend tidb redis
   exit $ARG
 }
@@ -47,4 +47,8 @@ do
   sleep 1
 done
 
-npm start
+npx playwright test
+
+if [ ! "${CI}" ]; then
+  npx playwright show-report
+fi
