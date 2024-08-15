@@ -323,18 +323,18 @@ def get_reranker_model_detail(
 
 @router.delete("/admin/reranker-models/{reranker_model_id}")
 def delete_reranker_model(
-    reranker_id: int,
+    reranker_model_id: int,
     session: SessionDep,
     user: CurrentSuperuserDep,
 ):
-    reranker_model = session.get(RerankerModel, reranker_id)
+    reranker_model = session.get(RerankerModel, reranker_model_id)
     if reranker_model is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Reranker model not found"
         )
     session.exec(
         update(ChatEngine)
-        .where(ChatEngine.reranker_id == reranker_id)
+        .where(ChatEngine.reranker_id == reranker_model_id)
         .values(reranker_id=None)
     )
     session.delete(reranker_model)
