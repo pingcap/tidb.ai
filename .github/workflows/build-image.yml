@@ -98,19 +98,19 @@ jobs:
           run: ./start-test.sh
           env:
             E2E_DOCKER_TAG: dev-${{ github.sha }}
-            E2E_LLM_PROVIDER: ${{env.E2E_LLM_PROVIDER}}
-            E2E_LLM_MODEL: ${{env.E2E_LLM_MODEL || ''}}
+            E2E_LLM_PROVIDER: ${{vars.E2E_LLM_PROVIDER}}
+            E2E_LLM_MODEL: ${{vars.E2E_LLM_MODEL || ''}}
             E2E_LLM_CREDENTIALS: ${{secrets.E2E_LLM_CREDENTIALS}}
-            E2E_EMBEDDING_PROVIDER: ${{env.E2E_EMBEDDING_PROVIDER || 'openai'}}
-            E2E_EMBEDDING_MODEL: ${{env.E2E_EMBEDDING_MODEL || ''}}
+            E2E_EMBEDDING_PROVIDER: ${{vars.E2E_EMBEDDING_PROVIDER || 'openai'}}
+            E2E_EMBEDDING_MODEL: ${{vars.E2E_EMBEDDING_MODEL || ''}}
             E2E_EMBEDDING_CREDENTIALS: ${{secrets.E2E_EMBEDDING_CREDENTIALS}}
-            E2E_RERANKER_PROVIDER: ${{env.E2E_RERANKER_PROVIDER || 'jinaai'}}
-            E2E_RERANKER_MODEL: ${{env.E2E_RERANKER_MODEL || ''}}
+            E2E_RERANKER_PROVIDER: ${{vars.E2E_RERANKER_PROVIDER || 'jinaai'}}
+            E2E_RERANKER_MODEL: ${{vars.E2E_RERANKER_MODEL || ''}}
             E2E_RERANKER_CREDENTIALS: ${{secrets.E2E_RERANKER_CREDENTIALS}}
 
         - uses: actions/upload-artifact@v4
           if: failure()
           with:
-            name: e2e/playwright-report
+            name: e2e-report
             path: e2e/playwright-report/
             retention-days: 30
