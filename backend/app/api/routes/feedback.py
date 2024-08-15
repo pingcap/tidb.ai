@@ -3,7 +3,7 @@ from http import HTTPStatus
 from pydantic import BaseModel
 
 from app.api.deps import SessionDep, OptionalUserDep
-from app.models import FeedbackType, Feedback, ChatMessage
+from app.models import FeedbackType, Feedback
 from app.repositories import chat_repo
 
 router = APIRouter()

@@ -80,7 +80,7 @@ def test_llm(
             config=db_llm.config,
             credentials=db_llm.credentials,
         )
-        response = llm.complete("Who are you?")
+        llm.complete("Who are you?")
         success = True
         error = ""
     except Exception as e:
@@ -124,9 +124,7 @@ def delete_llm(
         .values(fast_llm_id=None)
     )
     session.exec(
-        update(DataSource)
-        .where(DataSource.llm_id == llm_id)
-        .values(llm_id=None)
+        update(DataSource).where(DataSource.llm_id == llm_id).values(llm_id=None)
     )
     session.delete(llm)
     session.commit()
@@ -251,7 +249,7 @@ def test_reranker_model(
             config=db_reranker_model.config,
             credentials=db_reranker_model.credentials,
         )
-        nodes = reranker.postprocess_nodes(
+        reranker.postprocess_nodes(
             nodes=[
                 NodeWithScore(
                     node=TextNode(

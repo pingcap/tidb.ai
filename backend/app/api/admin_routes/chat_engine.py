@@ -1,5 +1,3 @@
-from typing import Optional
-from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_pagination import Params, Page
 

@@ -3,7 +3,7 @@ import asyncio
 from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.core.db import get_async_session_context
+from app.core.db import get_db_async_session_context
 from app.models import User, ChatEngine
 
 
@@ -12,6 +12,7 @@ async def ensure_admin_user(session: AsyncSession) -> None:
     user = result.first()
     if not user:
         from app.auth.users import create_user
+
         admin_email = "admin@example.com"
         admin_password = secrets.token_urlsafe(16)
         user = await create_user(
@@ -35,6 +36,7 @@ async def ensure_default_chat_engine(session: AsyncSession) -> None:
     result = await session.scalar(func.count(ChatEngine.id))
     if result == 0:
         from app.rag.chat_config import ChatEngineConfig
+
         chat_engine = ChatEngine(
             name="default",
             engine_options=ChatEngineConfig().model_dump(),
@@ -46,7 +48,7 @@ async def ensure_default_chat_engine(session: AsyncSession) -> None:
 
 
 async def bootstrap() -> None:
-    async with get_async_session_context() as session:
+    async with get_db_async_session_context() as session:
         await ensure_admin_user(session)
         await ensure_default_chat_engine(session)
 

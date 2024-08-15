@@ -45,7 +45,7 @@ async_engine = create_async_engine(
 )
 
 
-def prepare_connection(dbapi_connection, connection_record):
+def prepare_db_connection(dbapi_connection, connection_record):
     cursor = dbapi_connection.cursor()
     # In TiDB.AI, we store datetime in the database using UTC timezone.
     # Therefore, we need to set the timezone to '+00:00'.
@@ -53,8 +53,8 @@ def prepare_connection(dbapi_connection, connection_record):
     cursor.close()
 
 
-event.listen(engine, "connect", prepare_connection)
-event.listen(async_engine.sync_engine, "connect", prepare_connection)
+event.listen(engine, "connect", prepare_db_connection)
+event.listen(async_engine.sync_engine, "connect", prepare_db_connection)
 
 
 def get_db_session() -> Generator[Session, None, None]:
@@ -67,4 +67,4 @@ async def get_db_async_session() -> AsyncGenerator[AsyncSession, None]:
         yield session
 
 
-get_async_session_context = contextlib.asynccontextmanager(get_db_async_session)
+get_db_async_session_context = contextlib.asynccontextmanager(get_db_async_session)

@@ -3,7 +3,6 @@ import requests
 import typing
 import uuid
 import json
-import os
 from tqdm import tqdm
 from datetime import datetime
 from langfuse import Langfuse

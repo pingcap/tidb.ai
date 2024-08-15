@@ -1,8 +1,7 @@
-from typing import Dict, Union
+from typing import Dict
 from pydantic import BaseModel
 from http import HTTPStatus
 from fastapi import APIRouter, HTTPException
-from fastapi.exceptions import RequestValidationError
 
 from app.api.deps import CurrentSuperuserDep, SessionDep
 from app.site_settings import SiteSetting, SettingValue, SettingType

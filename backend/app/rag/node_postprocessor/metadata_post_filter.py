@@ -1,6 +1,6 @@
 import logging
 from enum import Enum
-from typing import List, Optional, Any, Union, Annotated
+from typing import List, Optional, Any, Union
 
 from llama_index.core import QueryBundle
 from llama_index.core.postprocessor.types import BaseNodePostprocessor

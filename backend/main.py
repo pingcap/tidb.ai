@@ -16,37 +16,41 @@ from app.core.config import settings, Environment
 from app.site_settings import SiteSetting
 from app.utils.uuid6 import uuid7
 
-dictConfig({
-    "version": 1,
-    "disable_existing_loggers": False,
-    "formatters": {
-        "default": {
-            "format": "%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s",
+dictConfig(
+    {
+        "version": 1,
+        "disable_existing_loggers": False,
+        "formatters": {
+            "default": {
+                "format": "%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s",
+            },
         },
-    },
-    "handlers": {
-        "console": {
-            "class": "logging.StreamHandler",
-            "formatter": "default",
+        "handlers": {
+            "console": {
+                "class": "logging.StreamHandler",
+                "formatter": "default",
+            },
         },
-    },
-    "root": {
-        "level": logging.INFO if settings.ENVIRONMENT != Environment.LOCAL else logging.DEBUG,
-        "handlers": ["console"],
-    },
-    "loggers": {
-        "uvicorn.error": {
-            "level": "ERROR",
+        "root": {
+            "level": logging.INFO
+            if settings.ENVIRONMENT != Environment.LOCAL
+            else logging.DEBUG,
             "handlers": ["console"],
-            "propagate": False,
         },
-        "uvicorn.access": {
-            "level": "INFO",
-            "handlers": ["console"],
-            "propagate": False,
+        "loggers": {
+            "uvicorn.error": {
+                "level": "ERROR",
+                "handlers": ["console"],
+                "propagate": False,
+            },
+            "uvicorn.access": {
+                "level": "INFO",
+                "handlers": ["console"],
+                "propagate": False,
+            },
         },
-    },
-})
+    }
+)
 
 
 logger = logging.getLogger(__name__)

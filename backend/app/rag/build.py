@@ -3,7 +3,6 @@ import logging
 import dspy
 from llama_index.core import VectorStoreIndex
 from llama_index.core.llms.llm import LLM
-from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core.extractors import (
     SummaryExtractor,
