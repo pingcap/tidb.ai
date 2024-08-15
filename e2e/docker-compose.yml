@@ -4,10 +4,14 @@ services:
   tidb:
     image: wangdi4zm/tind:v7.5.3-vector-index
     restart: always
+    volumes:
+      - ${E2E_DATA_TIDB_DIR:-.data/tidb}:/app/data
 
   redis:
     image: redis:6.0.16
     restart: always
+    volumes:
+      - ${E2E_DATA_REDIS_DIR:-.data/redis}:/data
 
   backend:
     image: tidbai/backend:${E2E_DOCKER_TAG}
@@ -18,6 +22,8 @@ services:
       - "5000:80"
     env_file:
       - .env.compose
+    volumes:
+      - ${E2E_DATA_STORAGE_DIR:-.data/storage}:/shared/data
     logging:
       driver: json-file
       options:
@@ -49,6 +55,8 @@ services:
     env_file:
       - .env.compose
     command: /usr/bin/supervisord
+    volumes:
+      - ${E2E_DATA_STORAGE_DIR:-.data/storage}:/shared/data
     logging:
       driver: json-file
       options:

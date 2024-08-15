@@ -19,6 +19,14 @@ function clean_up {
 
 trap clean_up EXIT
 
+echo -e "$TAG Creating temp dir"
+export E2E_DATA_STORAGE_DIR=$(mktemp -d -t tidbai-storage)
+export E2E_DATA_REDIS_DIR=$(mktemp -d -t tidbai-redis)
+export E2E_DATA_TIDB_DIR=$(mktemp -d -t tidbai-tidb)
+echo E2E_DATA_STORAGE_DIR: ${E2E_DATA_STORAGE_DIR}
+echo E2E_DATA_REDIS_DIR: ${E2E_DATA_REDIS_DIR}
+echo E2E_DATA_TIDB_DIR: ${E2E_DATA_TIDB_DIR}
+
 echo -e "$TAG Starting TiDB"
 docker compose up -d tidb
 
