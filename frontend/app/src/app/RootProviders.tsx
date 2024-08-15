@@ -8,6 +8,7 @@ import { ChatsProvider } from '@/components/chat/chat-hooks';
 import { BootstrapStatusProvider } from '@/components/system/BootstrapStatusProvider';
 import { Toaster } from '@/components/ui/sonner';
 import { SettingProvider } from '@/components/website-setting-provider';
+import { cn } from '@/lib/utils';
 import { ThemeProvider } from 'next-themes';
 import type { ReactNode } from 'react';
 import useSWR from 'swr';
@@ -40,7 +41,7 @@ export function RootProviders ({ me, settings, bootstrapStatus, children }: Root
           <AuthProvider me={data} isLoading={isLoading} isValidating={isValidating} reload={() => mutate(data, { revalidate: true })}>
             <ChatsProvider>
               {children}
-              <Toaster />
+              <Toaster cn={cn} />
             </ChatsProvider>
           </AuthProvider>
         </SettingProvider>

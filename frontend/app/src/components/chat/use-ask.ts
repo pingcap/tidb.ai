@@ -1,4 +1,6 @@
 import { useChats } from '@/components/chat/chat-hooks';
+import { getErrorMessage } from '@/lib/errors';
+import { toastError } from '@/lib/ui-error';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 
@@ -14,15 +16,22 @@ export function useAsk (onFinish?: () => void) {
     headers?: Record<string, string>;
   }) => {
     setWaiting(true);
-    startTransition(() => {
-      newChat(undefined, undefined, { content: message, chat_engine: engineRef.current, headers: options?.headers })
-        .once('created', chat => {
-          setWaiting(false);
-          startTransition(() => {
-            router.push(`/c/${chat.id}`);
-          });
-        });
-    });
+    const handleInitialError = (error: unknown) => {
+      setWaiting(false);
+      toastError('Failed to chat', getErrorMessage(error));
+    };
+
+    const controller = newChat(undefined, undefined, { content: message, chat_engine: engineRef.current, headers: options?.headers });
+
+    controller.once('created', chat => {
+      controller.off('post-error', handleInitialError);
+
+      setWaiting(false);
+      startTransition(() => {
+        router.push(`/c/${chat.id}`);
+      });
+    })
+      .once('post-error', handleInitialError);
   }, []);
 
   useEffect(() => {

@@ -1,28 +1,20 @@
-import { InfoIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 export function toastSuccess (message: string) {
   toast.success(message, {
     classNames: {
       toast: 'group-[.toaster]:bg-green-500 group-[.toaster]:text-white',
-    }
+    },
   });
 }
 
 export function toastError (title: string, error: unknown) {
-  toast.error((
-    <>
-      <InfoIcon />
-      <div>
-        <h6 className="font-bold">
-          {title}
-        </h6>
-        <p className="text-xs">{getErrorMessage(error)}</p>
-      </div>
-    </>
-  ), {
+  toast.error(title, {
+    description: getErrorMessage(error),
     classNames: {
       toast: 'group-[.toaster]:bg-destructive group-[.toaster]:text-destructive-foreground',
+      title: 'font-bold',
+      description: 'group-[.toaster]:text-destructive-foreground'
     },
   });
 }
