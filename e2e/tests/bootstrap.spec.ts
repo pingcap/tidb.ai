@@ -16,7 +16,7 @@ test('Bootstrap', async ({ page }) => {
   } = process.env;
 
   await test.step('Visit home page', async () => {
-    await page.goto('http://127.0.0.1:3000');
+    await page.goto('/');
     await expect(page).toHaveTitle('TiDB.AI');
   });
 
