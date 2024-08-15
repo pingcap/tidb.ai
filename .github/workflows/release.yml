@@ -138,6 +138,7 @@ jobs:
           with:
             node-version: lts/*
             cache: npm
+            cache-dependency-path: e2e/package-lock.json
 
         - name: Install dependencies
           run: npm ci

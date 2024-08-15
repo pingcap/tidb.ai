@@ -7,6 +7,9 @@
   </a>
 </div>
 
+![Backend Docker Image Version](https://img.shields.io/docker/v/tidbai/backend?sort=semver&arch=amd64&label=tidbai%2Fbackend)
+![Frontend Docker Image Version](https://img.shields.io/docker/v/tidbai/frontend?sort=semver&arch=amd64&label=tidbai%2Ffrontend)
+
 ## Introduction
 
 A open source alternative of Kapa.ai, conversational search tool based on GraphRAG (Knowledge Graph) built on top of [TiDB Vector](https://tidb.cloud/ai) and [LlamaIndex](https://github.com/run-llama/llama_index) and [DSPy](https://github.com/stanfordnlp/dspy).
