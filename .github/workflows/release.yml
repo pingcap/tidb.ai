@@ -206,7 +206,7 @@ jobs:
             VERCEL_TOKEN: ${{secrets.E2E_VERCEL_TOKEN}}
             VERCEL_ORG_ID: ${{secrets.E2E_VERCEL_ORG_ID}}
             VERCEL_PROJECT_ID: ${{secrets.E2E_VERCEL_PROJECT_ID}}
-            VERCEL_CLI_ARGS: ${{(github.ref == 'refs/heades/main' && '--prod') || ''}}
+            VERCEL_CLI_ARGS: ${{(github.ref == 'refs/heads/main' && '--prod') || ''}}
 
         - name: Find PR Comment
           uses: peter-evans/find-comment@v3
