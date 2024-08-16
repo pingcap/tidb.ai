@@ -21,14 +21,15 @@ on:
         description: "The tag to build the image with. Format *.*.*((beta|rc)*)?"
         required: true
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     docker-metadata:
       name: Generate docker metadata
       runs-on: ubuntu-latest
       if: ${{ (github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'require-build')) || (github.event_name != 'pull_request' && !cancelled()) }}
-      concurrency:
-        group: ${{ github.workflow }}-${{ github.ref }}
-        cancel-in-progress: true
       outputs:
         tags: ${{steps.meta.outputs.tags}}
         labels: ${{steps.meta.outputs.labels}}
