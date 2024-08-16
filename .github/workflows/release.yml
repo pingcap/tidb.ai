@@ -185,12 +185,12 @@ jobs:
             name: e2e-report
             path: e2e/playwright-report/
 
-        - name: Deploy
+        - name: Deploy Test Results to Vercel
+          id: deploy-test-result
           run: |
             deploy_message=$(./deploy-test-result.sh)
-            echo "deploy-message=${deploy_message}\n" >> $GITHUB_OUTPUT
-          id: deploy-test-result
-          if: always()
+            echo "deploy-message=${deploy_message}" >> $GITHUB_OUTPUT
+          if: "!cancelled()"
           env:
             VERCEL_TOKEN: ${{secrets.E2E_VERCEL_TOKEN}}
             VERCEL_ORG_ID: ${{secrets.E2E_VERCEL_ORG_ID}}
@@ -206,7 +206,7 @@ jobs:
             comment-author: 'github-actions[bot]'
             body-includes: E2E Result Deployment
 
-        - name: Comment on PR
+        - name: Upsert Comment on PR
           uses: peter-evans/create-or-update-comment@v4
           if: github.event.pull_request.number
           with:
