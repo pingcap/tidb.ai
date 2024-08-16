@@ -145,45 +145,46 @@ def create_synopsis_entity(
     related_entities_ids: List[int],
 ) -> Entity:
     embed_model = get_default_embedding_model(session)
-    with session.begin():
-        synopsis_entity = Entity(
-            name=name,
-            description=description,
-            description_vec=get_entity_description_embedding(
-                name, description, embed_model
-            ),
-            meta=meta,
-            meta_vec=get_entity_metadata_embedding(meta, embed_model),
-            entity_type=EntityType.synopsis,
-            synopsis_info={
-                "entities": related_entities_ids,
-                "topic": topic,
-            },
-        )
-        session.add(synopsis_entity)
-        graph_store = TiDBGraphStore(dspy_lm=None, session=session)
-        for related_entity in session.exec(
-            select(Entity).where(Entity.id.in_(related_entities_ids))
-        ).all():
-            graph_store.create_relationship(
-                session,
-                synopsis_entity,
-                related_entity,
-                RelationshipAIModel(
-                    source_entity=synopsis_entity.name,
-                    target_entity=related_entity.name,
-                    relationship_desc=f"{related_entity.name} is a part of synopsis entity (name={synopsis_entity.name}, topic={topic})",
-                ),
-                {"relationship_type": EntityType.synopsis.value},
-                commit=False,
-            )
-        create_staff_action_log(
+    # with session.begin():
+    synopsis_entity = Entity(
+        name=name,
+        description=description,
+        description_vec=get_entity_description_embedding(
+            name, description, embed_model
+        ),
+        meta=meta,
+        meta_vec=get_entity_metadata_embedding(meta, embed_model),
+        entity_type=EntityType.synopsis,
+        synopsis_info={
+            "entities": related_entities_ids,
+            "topic": topic,
+        },
+    )
+    session.add(synopsis_entity)
+    graph_store = TiDBGraphStore(dspy_lm=None, session=session)
+    for related_entity in session.exec(
+        select(Entity).where(Entity.id.in_(related_entities_ids))
+    ).all():
+        graph_store.create_relationship(
             session,
-            "create_synopsis_entity",
-            "entity",
-            synopsis_entity.id,
-            {},
-            synopsis_entity.screenshot(),
+            synopsis_entity,
+            related_entity,
+            RelationshipAIModel(
+                source_entity=synopsis_entity.name,
+                target_entity=related_entity.name,
+                relationship_desc=f"{related_entity.name} is a part of synopsis entity (name={synopsis_entity.name}, topic={topic})",
+            ),
+            {"relationship_type": EntityType.synopsis.value},
             commit=False,
         )
-        return synopsis_entity
+    session.commit()
+    create_staff_action_log(
+        session,
+        "create_synopsis_entity",
+        "entity",
+        synopsis_entity.id,
+        {},
+        synopsis_entity.screenshot(),
+        commit=False,
+    )
+    return synopsis_entity
