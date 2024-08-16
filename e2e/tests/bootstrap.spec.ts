@@ -1,6 +1,8 @@
 import { expect, test } from '@playwright/test';
 
 test('Bootstrap', async ({ page }) => {
+  test.slow();
+
   const {
     USERNAME,
     PASSWORD,
@@ -163,10 +165,10 @@ test('Bootstrap', async ({ page }) => {
       await page.screenshot({ path: 'screenshots/0-bootstrap/10-Setup-Datasource.png' });
 
       const nameInput = await page.waitForSelector('[name=name]');
-      await nameInput.fill('example.pdf');
+      await nameInput.fill('sample.pdf');
 
       const descriptionInput = await page.waitForSelector('textarea[name=description]');
-      await descriptionInput.fill('This is example.pdf.');
+      await descriptionInput.fill('This is sample.pdf.');
 
       await page.setInputFiles('[name=files]', 'sample.pdf');
 
@@ -186,5 +188,25 @@ test('Bootstrap', async ({ page }) => {
     await page.reload();
     await page.screenshot({ path: 'screenshots/0-bootstrap/99-Bootstrap-Finished.png' });
     await expect(page.getByText('Almost there...')).toHaveCount(0);
+  });
+
+  await test.step('Documents count greater than 0', async () => {
+    await page.goto('/documents');
+    await page.getByRole('link', { name: 'sample.pdf' }).waitFor({ state: 'visible' });
+  });
+
+  await test.step('Wait for indexing', async () => {
+    while (true) {
+      const response = await page.request.get('/api/v1/admin/rag/index-progress');
+      if (!response.ok()) {
+        console.warn(`${response.status()} ${response.statusText()}`, await response.text());
+      } else {
+        const json = await response.json();
+        if (json.vector_index.completed > 0) {
+          break;
+        }
+      }
+      await page.waitForTimeout(500);
+    }
   });
 });

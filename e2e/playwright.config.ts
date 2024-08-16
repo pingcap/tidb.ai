@@ -31,9 +31,6 @@ export default defineConfig({
     trace: 'on-first-retry',
     screenshot: !process.env.CI ? 'only-on-failure' : undefined,
     video: !process.env.CI ? 'on' : undefined,
-    permissions: [
-      'clipboard-read',
-    ]
   },
 
   /* Configure projects for major browsers */

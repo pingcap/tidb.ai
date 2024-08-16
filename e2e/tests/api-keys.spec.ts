@@ -1,7 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { loginViaApi } from '../utils/login';
 
+test.use({
+  permissions: ['clipboard-read'],
+});
+
 test('API Keys Operations', async ({ page, baseURL }) => {
+
   await test.step('Login', async () => {
     await loginViaApi(page.request);
   });
