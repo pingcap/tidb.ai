@@ -8,7 +8,7 @@ test.use({
 test('API Keys Operations', async ({ page, baseURL }) => {
 
   await test.step('Login', async () => {
-    await loginViaApi(page.request);
+    await loginViaApi(page);
   });
 
   await test.step('Click Nav', async () => {

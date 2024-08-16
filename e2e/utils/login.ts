@@ -1,6 +1,6 @@
 import { type APIRequestContext, expect, test } from '@playwright/test';
 
-export async function loginViaApi (request: APIRequestContext) {
+export async function loginViaApi ({ request }: { request: APIRequestContext }) {
   await test.step('Login via API', async () => {
     const usp = new URLSearchParams();
     usp.set('username', process.env.USERNAME);

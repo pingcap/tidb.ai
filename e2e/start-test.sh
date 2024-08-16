@@ -60,7 +60,7 @@ do
   sleep 1
 done
 
-npx playwright test
+npx playwright test ${PLAYWRIGHT_ARGS}
 
 if [ ! "${CI}" ]; then
   npx playwright show-report

@@ -35,7 +35,7 @@ test.describe('API', () => {
       });
     }
 
-    await loginViaApi(request);
+    await loginViaApi({ request });
 
     //
     // =====
