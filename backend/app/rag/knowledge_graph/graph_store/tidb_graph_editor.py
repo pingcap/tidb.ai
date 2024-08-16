@@ -161,7 +161,7 @@ def create_synopsis_entity(
         },
     )
     session.add(synopsis_entity)
-    graph_store = TiDBGraphStore(dspy_lm=None, session=session)
+    graph_store = TiDBGraphStore(dspy_lm=None, session=session, embed_model=embed_model)
     for related_entity in session.exec(
         select(Entity).where(Entity.id.in_(related_entities_ids))
     ).all():
