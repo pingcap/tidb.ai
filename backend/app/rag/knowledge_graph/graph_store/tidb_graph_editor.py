@@ -166,7 +166,6 @@ def create_synopsis_entity(
         select(Entity).where(Entity.id.in_(related_entities_ids))
     ).all():
         graph_store.create_relationship(
-            session,
             synopsis_entity,
             related_entity,
             RelationshipAIModel(
