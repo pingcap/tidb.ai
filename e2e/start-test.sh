@@ -9,26 +9,31 @@ F_UNDERLINED="\033[4m"
 C_AQUA="\033[38;5;14m"
 TAG="${F_BOLD}${F_UNDERLINED}${C_AQUA}[TiDB.AI Integration Test]${NO_FORMAT}"
 
-# Cleanups
-function clean_up {
-  ARG=$?
-  echo -e "$TAG Cleaning up..."
-  docker compose down frontend background backend tidb redis
-  exit $ARG
-}
-
-trap clean_up EXIT
 
 echo -e "$TAG Creating temp dir"
-export E2E_DATA_STORAGE_DIR=$(mktemp -d -t tidbai-storage)
-export E2E_DATA_REDIS_DIR=$(mktemp -d -t tidbai-redis)
-export E2E_DATA_TIDB_DIR=$(mktemp -d -t tidbai-tidb)
+export E2E_DATA_STORAGE_DIR=$(mktemp -d "${TMPDIR:-/tmp/}"/tidbai-storage.XXXXXXXX | sed 's#//#/#g')
+export E2E_DATA_REDIS_DIR=$(mktemp -d "${TMPDIR:-/tmp/}"/tidbai-redis.XXXXXXXX | sed 's#//#/#g')
+export E2E_DATA_TIDB_DIR=$(mktemp -d "${TMPDIR:-/tmp/}"/tidbai-storage.XXXXXXXX | sed 's#//#/#g')
 echo E2E_DATA_STORAGE_DIR: ${E2E_DATA_STORAGE_DIR}
 echo E2E_DATA_REDIS_DIR: ${E2E_DATA_REDIS_DIR}
 echo E2E_DATA_TIDB_DIR: ${E2E_DATA_TIDB_DIR}
 
 echo -e "$TAG Starting TiDB"
 docker compose up -d tidb
+
+# Cleanups
+function clean_up {
+  ARG=$?
+  echo -e "$TAG Cleaning up..."
+  docker compose down frontend background backend tidb redis
+
+  rm -rf ${E2E_DATA_STORAGE_DIR} ${E2E_DATA_REDIS_DIR} ${E2E_DATA_TIDB_DIR} || echo "Failed to remove temp dirs."
+
+  exit $ARG
+}
+
+trap clean_up EXIT
+
 
 echo -e "$TAG Wait until TiDB ready..."
 while ! docker compose exec tidb /bin/bash -c "curl http://127.0.0.1:10080/status" > /dev/null 2>/dev/null
@@ -59,4 +64,8 @@ npx playwright test
 
 if [ ! "${CI}" ]; then
   npx playwright show-report
+fi
+
+if [ "${VERCEL_TOKEN}" && "${CI}" && "${VERCEL_ORG_ID}" && "${VERCEL_PROJECT_ID}" ]; then
+  npx vercel deploy . --scope "${VERCEL_SCOPE}" --yes --prod
 fi

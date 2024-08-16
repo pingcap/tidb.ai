@@ -1,7 +1,12 @@
 import { expect, test } from '@playwright/test';
 import { loginViaApi } from '../utils/login';
 
+test.use({
+  permissions: ['clipboard-read'],
+});
+
 test('API Keys Operations', async ({ page, baseURL }) => {
+
   await test.step('Login', async () => {
     await loginViaApi(page.request);
   });
@@ -10,7 +15,6 @@ test('API Keys Operations', async ({ page, baseURL }) => {
     await page.goto('/');
     await page.getByText('API Keys').click();
     await page.waitForURL('/api-keys');
-    await page.screenshot({ path: 'screenshots/1-api-keys/0-Visit-Admin-Page.png' });
   });
 
   const apiKey = await test.step('Create API Key', async () => {
@@ -23,7 +27,6 @@ test('API Keys Operations', async ({ page, baseURL }) => {
     await page.getByRole('button', { name: 'Create API Key', exact: true }).click();
 
     await dialog.waitFor({ state: 'hidden' });
-    await page.screenshot({ path: 'screenshots/1-api-keys/1-APIKey-Created.png' });
 
     const apiKey = await page.evaluate('navigator.clipboard.readText()');
     expect(apiKey).not.toBeFalsy();
