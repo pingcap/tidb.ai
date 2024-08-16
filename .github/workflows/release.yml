@@ -161,13 +161,14 @@ jobs:
             E2E_RERANKER_CREDENTIALS: ${{secrets.E2E_RERANKER_CREDENTIALS}}
 
         - uses: actions/upload-artifact@v4
-          if: failure()
+          if: "!cancelled()"
           with:
             name: e2e-report
             path: e2e/playwright-report/
             retention-days: 30
 
     e2e-test-deploy:
+      name: "Deploy E2E Test Results"
       runs-on: ubuntu-latest
       needs: e2e-test
       if: "!cancelled()"

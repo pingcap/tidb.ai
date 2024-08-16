@@ -11,9 +11,9 @@ TAG="${F_BOLD}${F_UNDERLINED}${C_AQUA}[TiDB.AI Integration Test]${NO_FORMAT}"
 
 
 echo -e "$TAG Creating temp dir"
-export E2E_DATA_STORAGE_DIR=$(mktemp -d -t tidbai-storage)
-export E2E_DATA_REDIS_DIR=$(mktemp -d -t tidbai-redis)
-export E2E_DATA_TIDB_DIR=$(mktemp -d -t tidbai-tidb)
+export E2E_DATA_STORAGE_DIR=$(mktemp -d "${TMPDIR:-/tmp/}"/tidbai-storage.XXXXXXXX | sed 's#//#/#g')
+export E2E_DATA_REDIS_DIR=$(mktemp -d "${TMPDIR:-/tmp/}"/tidbai-redis.XXXXXXXX | sed 's#//#/#g')
+export E2E_DATA_TIDB_DIR=$(mktemp -d "${TMPDIR:-/tmp/}"/tidbai-storage.XXXXXXXX | sed 's#//#/#g')
 echo E2E_DATA_STORAGE_DIR: ${E2E_DATA_STORAGE_DIR}
 echo E2E_DATA_REDIS_DIR: ${E2E_DATA_REDIS_DIR}
 echo E2E_DATA_TIDB_DIR: ${E2E_DATA_TIDB_DIR}
