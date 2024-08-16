@@ -160,9 +160,33 @@ jobs:
             E2E_RERANKER_MODEL: ${{vars.E2E_RERANKER_MODEL || ''}}
             E2E_RERANKER_CREDENTIALS: ${{secrets.E2E_RERANKER_CREDENTIALS}}
 
-        - uses: actions/upload-artifact@v4
-          if: failure()
+        - run: |
+            deploy_message=$(./deploy-test-result.sh)
+            echo "deploy-message="${deploy_message}"\n" >> $GITHUB_OUTPUT
+          id: deploy-test-result
+          if: always()
+          env:
+            VERCEL_TOKEN: ${{secrets.E2E_VERCEL_TOKEN}}
+            VERCEL_ORG_ID: ${{secrets.E2E_VERCEL_ORG_ID}}
+            VERCEL_PROJECT_ID: ${{secrets.E2E_VERCEL_PROJECT_ID}}
+            VERCEL_CLI_ARGS: ${{(github.ref == 'refs/heades/main' && '--prod') || ''}}
+
+        - name: Find PR Comment
+          uses: peter-evans/find-comment@v3
+          if: github.event.pull_request.number
+          id: find-comment
           with:
-            name: e2e-report
-            path: e2e/playwright-report/
-            retention-days: 30
+            issue-number: ${{ github.event.pull_request.number }}
+            comment-author: 'github-actions[bot]'
+            body-includes: E2E Result Deployment
+
+        - name: Comment on PR
+          uses: peter-evans/create-or-update-comment@v4
+          if: github.event.pull_request.number
+          with:
+            comment-id: ${{ steps.find-comment.outputs.comment-id }}
+            issue-number: ${{ github.event.pull_request.number }}
+            body: |
+              ### E2E Result Deployment
+              ${{steps.deploy-test-result.outputs.deploy-message}}
+            edit-mode: replace

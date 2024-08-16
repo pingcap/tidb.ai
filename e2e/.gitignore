@@ -14,3 +14,4 @@ local-test.sh
 *.stdout
 *.stderr
 screenshots
+.vercel

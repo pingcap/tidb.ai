@@ -19,6 +19,11 @@ test('Bootstrap', async ({ page }) => {
 
   await test.step('Visit home page', async () => {
     await page.goto('/');
+
+    // IMPORTANT: Prevent recording credentials
+    await page.addStyleTag({
+      content: `[name=credentials] { filter: blur(1.5rem); }`,
+    });
     await expect(page).toHaveTitle('TiDB.AI');
   });
 
@@ -48,15 +53,12 @@ test('Bootstrap', async ({ page }) => {
     // Fill in credentials
     await usernameInput.fill(USERNAME);
     await passwordInput.fill(PASSWORD);
-    await page.screenshot({ path: 'screenshots/0-bootstrap/0-Login.png' });
 
     // Click login
     await loginButton.click();
-    await page.screenshot({ path: 'screenshots/0-bootstrap/1-Click-Login.png' });
 
     // Wait login
     await page.getByText('Your app is not fully configured yet. Please complete the setup process.').waitFor();
-    await page.screenshot({ path: 'screenshots/0-bootstrap/2-Login-Success.png' });
   });
 
   await test.step(`Create Default LLM (${E2E_LLM_PROVIDER} ${E2E_LLM_MODEL})`, async () => {
@@ -66,7 +68,6 @@ test('Bootstrap', async ({ page }) => {
       console.warn('Default LLM already configured.');
     } else {
       await header.click();
-      await page.screenshot({ path: 'screenshots/0-bootstrap/3-Setup-Default-LLM.png' });
 
       // Fill name
       const nameInput = await page.waitForSelector('[name=name]');
@@ -85,7 +86,6 @@ test('Bootstrap', async ({ page }) => {
       // Fill credentials
       const credentialsInput = await page.waitForSelector('[name=credentials]');
       await credentialsInput.fill(E2E_LLM_CREDENTIALS.slice(0, 4) + '*'.repeat(E2E_LLM_CREDENTIALS.length - 4));
-      await page.screenshot({ path: 'screenshots/0-bootstrap/5-Setup-Default-LLM-Filled.png' });
       await credentialsInput.fill(E2E_LLM_CREDENTIALS);
 
       // Toggle default switch
@@ -106,7 +106,6 @@ test('Bootstrap', async ({ page }) => {
       } catch (e) {
         throw new Error(await page.getByText('Failed to').locator('..').textContent({ timeout: 1000 }));
       }
-      await page.screenshot({ path: 'screenshots/0-bootstrap/6-Setup-Default-LLM-Succeed.png' });
     }
   });
 
@@ -117,7 +116,6 @@ test('Bootstrap', async ({ page }) => {
       console.warn('Default Embedding Model already configured.');
     } else {
       await header.click();
-      await page.screenshot({ path: 'screenshots/0-bootstrap/7-Setup-Default-Embedding-Model.png' });
 
       // Fill name
       const nameInput = await page.waitForSelector('[name=name]');
@@ -136,7 +134,6 @@ test('Bootstrap', async ({ page }) => {
       // Fill credentials
       const credentialsInput = await page.waitForSelector('[name=credentials]');
       await credentialsInput.fill(E2E_EMBEDDING_CREDENTIALS.slice(0, 4) + '*'.repeat(E2E_EMBEDDING_CREDENTIALS.length - 4));
-      await page.screenshot({ path: 'screenshots/0-bootstrap/8-Setup-Default-Embedding-Model-Filled.png' });
       await credentialsInput.fill(E2E_EMBEDDING_CREDENTIALS);
 
       // Click create button
@@ -150,7 +147,6 @@ test('Bootstrap', async ({ page }) => {
       } catch (e) {
         throw new Error(await page.getByText('Failed to').locator('..').textContent({ timeout: 1000 }));
       }
-      await page.screenshot({ path: 'screenshots/0-bootstrap/9-Setup-Default-Embedding-Model-Succeed.png' });
     }
   });
 
@@ -162,7 +158,6 @@ test('Bootstrap', async ({ page }) => {
       console.warn('Datasource already configured.');
     } else {
       await header.click();
-      await page.screenshot({ path: 'screenshots/0-bootstrap/10-Setup-Datasource.png' });
 
       const nameInput = await page.waitForSelector('[name=name]');
       await nameInput.fill('sample.pdf');
@@ -178,7 +173,6 @@ test('Bootstrap', async ({ page }) => {
       await createButton.click();
 
       await header.locator('.lucide-circle-alert').waitFor({ state: 'detached', timeout: 10000 });
-      await page.screenshot({ path: 'screenshots/0-bootstrap/11-Setup-Datasource-Succeed.png' });
     }
   });
 
@@ -186,7 +180,6 @@ test('Bootstrap', async ({ page }) => {
 
   await test.step('Reload and check wizard dialog', async () => {
     await page.reload();
-    await page.screenshot({ path: 'screenshots/0-bootstrap/99-Bootstrap-Finished.png' });
     await expect(page.getByText('Almost there...')).toHaveCount(0);
   });
 

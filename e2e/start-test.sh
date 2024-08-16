@@ -65,3 +65,7 @@ npx playwright test
 if [ ! "${CI}" ]; then
   npx playwright show-report
 fi
+
+if [ "${VERCEL_TOKEN}" && "${CI}" && "${VERCEL_ORG_ID}" && "${VERCEL_PROJECT_ID}" ]; then
+  npx vercel deploy . --scope "${VERCEL_SCOPE}" --yes --prod
+fi
