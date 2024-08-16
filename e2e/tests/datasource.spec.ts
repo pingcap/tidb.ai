@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { loginViaApi } from '../utils/login';
 
 test.describe('Datasource', () => {
-  test('Web Single Page', async ({ page }) => {
+  test.only('Web Single Page', async ({ page }) => {
     test.slow();
 
     await test.step('Login and visit page', async () => {
@@ -17,10 +17,13 @@ test.describe('Datasource', () => {
       await page.getByRole('tab', { name: 'Web Single Page' }).click();
       await page.waitForURL('/datasources/create/web-single-page');
 
-      await page.getByLabel('Name').fill('https://example.com');
+      await page.getByLabel('Name').fill('example site');
       await page.getByLabel('Description').fill('This is example.com');
 
+      await page.locator('input[name="urls.0"]').locator('..').locator('button', { has: page.locator('svg.lucide-plus') }).click();
       await page.locator('input[name="urls.0"]').fill('https://example.com');
+      await page.locator('input[name="urls.1"]').fill('https://www.iana.org/help/example-domains');
+
       await page.getByRole('button', { name: 'Create Datasource' }).click();
 
       await page.waitForURL(/\/datasources\/\d+/);
@@ -30,7 +33,7 @@ test.describe('Datasource', () => {
         const response = await page.request.get(`/api/v1/admin/datasources/${id}/overview`);
         if (response.ok()) {
           const json = await response.json();
-          if (json.vector_index.completed > 0) {
+          if (json.vector_index.completed === 2) {
             break;
           }
         } else {
@@ -38,6 +41,12 @@ test.describe('Datasource', () => {
         }
         await page.waitForTimeout(500);
       }
+    });
+
+    await test.step('Check Documents Page', async () => {
+      await page.goto('/documents');
+      await expect(page.getByRole('link', { name: 'https://example.com' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'https://www.iana.org/help/example-domains' })).toBeVisible();
     });
   });
 
