@@ -4,6 +4,12 @@ on:
   pull_request:
     branches:
       - main
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - labeled
+      - unlabeled
   push:
     branches:
       - main
@@ -19,6 +25,10 @@ jobs:
     docker-metadata:
       name: Generate docker metadata
       runs-on: ubuntu-latest
+      if: "(github.event_name == 'pull_request' && contains(github.event.pull_request.labels.*.name, 'require-e2e')) || !cancelled()"
+      concurrency:
+        group: ${{ github.workflow }}-${{ github.ref }}
+        cancel-in-progress: true
       outputs:
         tags: ${{steps.meta.outputs.tags}}
         labels: ${{steps.meta.outputs.labels}}
