@@ -188,7 +188,7 @@ jobs:
         - name: Deploy
           run: |
             deploy_message=$(./deploy-test-result.sh)
-            echo "deploy-message="${deploy_message}"\n" >> $GITHUB_OUTPUT
+            echo "deploy-message=${deploy_message}\n" >> $GITHUB_OUTPUT
           id: deploy-test-result
           if: always()
           env:

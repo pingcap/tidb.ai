@@ -27,7 +27,7 @@ function clean_up {
   echo -e "$TAG Cleaning up..."
   docker compose down frontend background backend tidb redis
 
-  rm -rf ${E2E_DATA_STORAGE_DIR} ${E2E_DATA_REDIS_DIR} ${E2E_DATA_TIDB_DIR}
+  rm -rf ${E2E_DATA_STORAGE_DIR} ${E2E_DATA_REDIS_DIR} ${E2E_DATA_TIDB_DIR} || echo "Failed to remove temp dirs."
 
   exit $ARG
 }
