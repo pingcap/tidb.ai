@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { loginViaApi } from '../utils/login';
 
 test.describe('Site Sittings', () => {
-  test.only('Basic Settings', async ({ page, browser, baseURL }) => {
+  test('Basic Settings', async ({ page, browser, baseURL }) => {
     const homePage = await test.step('Visit Settings Page', async () => {
       await loginViaApi(page);
       await page.goto('/site-settings');
