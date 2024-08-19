@@ -66,7 +66,7 @@ export function Widget ({ bootstrapStatus, exampleQuestions, icon, buttonIcon, b
         <ChatsProvider>
           <Dialog>
             <DialogTrigger asChild>
-              <Button id="tidb-ai-widget-trigger" className="fixed right-8 bottom-8 flex gap-2 items-center">
+              <Button id="tidb-ai-widget-trigger" className="hidden sm:flex fixed right-8 bottom-8 gap-2 items-center">
                 <img src={buttonIcon} alt="Logo" className="size-4" />
                 <span>
               {buttonLabel}
