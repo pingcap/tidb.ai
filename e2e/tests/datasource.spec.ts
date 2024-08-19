@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { loginViaApi } from '../utils/login';
 
 test.describe('Datasource', () => {
-  test.only('Web Single Page', async ({ page }) => {
+  test('Web Single Page', async ({ page }) => {
     test.slow();
 
     await test.step('Login and visit page', async () => {
