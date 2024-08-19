@@ -46,13 +46,13 @@ class SiteSettingProxy:
     __mutex = threading.Lock()
 
     def update_db_cache(self, force_check=False):
-        # Check if we need to update the cache every 10 seconds,
+        # Check if we need to update the cache every 6 seconds,
         # so it means settings will not be updated in real-time
         # which is acceptable for this project.
         # If we need real-time updates in the future, we can use
         # a message queue or a pub/sub system to notify the app.
         now = time.time()
-        if force_check or (now - self.__last_checked_at_ts > 10):
+        if force_check or (now - self.__last_checked_at_ts > 6):
             self.__last_checked_at_ts = now
             with Session(engine) as session:
                 last_updated_at_ts = get_db_last_updated_at(session)

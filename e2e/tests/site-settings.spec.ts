@@ -25,7 +25,7 @@ test.describe('Site Sittings', () => {
 
       await page.reload();
 
-      await homePage.waitForTimeout(11000); // wait for settings cache
+      await homePage.waitForTimeout(7000); // wait for settings cache
       await homePage.reload();
       expect(await homePage.title()).toBe('FooBar.AI');
       await expect(homePage.locator('h1')).toHaveText('Ask anything about FooBar');
