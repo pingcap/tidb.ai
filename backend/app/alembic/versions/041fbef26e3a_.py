@@ -7,6 +7,7 @@ Create Date: 2024-08-19 08:20:13.695891
 """
 
 from alembic import op
+import sqlalchemy as sa
 from sqlalchemy.dialects.mysql import DATETIME
 
 
@@ -23,12 +24,14 @@ def upgrade():
         "site_settings",
         "created_at",
         existing_type=DATETIME(timezone=True, fsp=6),
+        server_default=sa.text("current_timestamp(6)"),
         nullable=False,
     )
     op.alter_column(
         "site_settings",
         "updated_at",
         existing_type=DATETIME(timezone=True, fsp=6),
+        server_default=sa.text("current_timestamp(6) on update current_timestamp(6)"),
         nullable=False,
     )
     # ### end Alembic commands ###
