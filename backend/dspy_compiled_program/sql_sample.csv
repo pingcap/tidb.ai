@@ -1,0 +1,21 @@
+QA_content,no_reasonable_example,steps
+"User question: Does TiDB support FOREIGN KEY?
+Answer: Yes, TiDB supports FOREIGN KEY constraints starting from version 6.6.0 as an experimental feature. However, there are key considerations:
+    1.    Experimental Status: The feature is experimental and may change or be removed in future releases.
+    2.    Performance Impact: Foreign keys can lead to performance issues, especially with large datasets.
+    3.    Implementation: FOREIGN KEY constraints can be created, modified, and viewed using standard SQL commands (e.g., CREATE TABLE, ALTER TABLE).
+    4.    Upgrade Considerations: If upgrading from a version prior to 6.6.0, foreign keys will not be automatically enforced and must be recreated.
+    5.    Caution Advised: Given the potential performance impacts and experimental status, use foreign keys cautiously in TiDB.
+In conclusion, while supported, foreign keys in TiDB are still experimental and may have significant performance implications.
+",False,"[{""explanation"": ""Create a 'users' table which will be referenced by the 'orders' table via a foreign key."", ""sql"": ""CREATE TABLE IF NOT EXISTS sample_db.users (user_id INT PRIMARY KEY, name VARCHAR(255));""}, {""explanation"": ""Create an 'orders' table with a FOREIGN KEY referencing the 'user_id' column in the 'users' table. Ensure the foreign key constraint is specified in the table creation statement."", ""sql"": ""CREATE TABLE IF NOT EXISTS sample_db.orders (order_id INT PRIMARY KEY, order_date DATE NOT NULL, user_id INT, FOREIGN KEY (user_id) REFERENCES sample_db.users(user_id));""}, {""explanation"": ""Insert sample data into the 'users' table."", ""sql"": ""INSERT INTO sample_db.users (user_id, name) VALUES (1, 'Alice'), (2, 'Bob');""}, {""explanation"": ""Insert sample data into the 'orders' table, ensuring the 'user_id' values correspond to existing 'user_id' values in the 'users' table."", ""sql"": ""INSERT INTO sample_db.orders (order_id, order_date, user_id) VALUES (101, '2022-01-01', 1), (102, '2022-01-02', 2);""}, {""explanation"": ""Attempt to insert a record into the 'orders' table with a 'user_id' value that does not exist in the 'users' table. This should trigger a foreign key constraint violation."", ""sql"": ""INSERT INTO sample_db.orders (order_id, order_date, user_id) VALUES (103, '2022-01-03', 3);""}, {""explanation"": ""View the error message that indicates the foreign key constraint violation."", ""sql"": ""SHOW WARNINGS;""}, {""explanation"": ""Drop the 'orders' table to remove the foreign key constraint."", ""sql"": ""DROP TABLE IF EXISTS sample_db.orders;""}, {""explanation"": ""Drop the 'users' table to clean up the example."", ""sql"": ""DROP TABLE IF EXISTS sample_db.users;""}]"
+"User question: How to implement rolling upgrade in TiDB?
+Answer: 1.    Preparation:
+  - Verify no ongoing DDL operations and ensure the cluster meets the minimum topology requirements.
+  - Stop the Drainer service if using TiDB Binlog.
+2.    Use TiUP for Upgrade:
+  - Run tiup cluster upgrade <cluster-name> <version>, following the upgrade order: PD, TiProxy (if applicable), TiFlash, TiKV, TiDB, and TiCDC.
+3.    Upgrade Process:
+  - TiUP upgrades nodes one by one, handling leader transfers automatically to minimize impact.
+  - If any issues are detected, the process halts for manual intervention.
+...
+",True,[]
