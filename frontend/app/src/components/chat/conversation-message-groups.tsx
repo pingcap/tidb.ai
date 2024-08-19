@@ -1,6 +1,6 @@
 import { type ChatMessageGroup, useChatPostState, useCurrentChatController } from '@/components/chat/chat-hooks';
 import { DebugInfo } from '@/components/chat/debug-info';
-import { MessageAnnotation } from '@/components/chat/message-annotation';
+import { MessageAnnotationHistory } from '@/components/chat/message-annotation-history';
 import { MessageContent } from '@/components/chat/message-content';
 import { MessageContextSources } from '@/components/chat/message-content-sources';
 import { MessageError } from '@/components/chat/message-error';
@@ -97,12 +97,12 @@ function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
         </CollapsibleContent>
       </Collapsible>
 
+      <MessageAnnotationHistory message={group.assistant} />
       <MessageContextSources message={group.assistant} />
       <section className="space-y-2">
         <MessageHeading />
         {group.assistant && <MessageError message={group.assistant} />}
         <MessageContent message={group.assistant} />
-        <MessageAnnotation message={group.assistant} />
       </section>
       {group.assistant && <MessageOperations message={group.assistant} />}
     </section>

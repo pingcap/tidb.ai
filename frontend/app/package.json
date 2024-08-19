@@ -95,6 +95,7 @@
     "eventemitter3": "^5.0.1",
     "fast-equals": "^5.0.1",
     "filesize": "^10.1.4",
+    "framer-motion": "^11.3.28",
     "git-revision-webpack-plugin": "^5.0.0",
     "highlight.js": "^11.10.0",
     "is-hotkey": "^0.2.0",

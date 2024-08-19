@@ -8,9 +8,15 @@ export interface OngoingState {
   display: string;
 }
 
+export interface OngoingStateHistoryItem {
+  state: OngoingState;
+  time: Date;
+}
+
 export interface ChatMessageControllerEventsMap {
   'update': [assistant_message: ChatMessage];
   'stream-update': [ongoing_message: ChatMessage, ongoing: OngoingState, delta: string];
+  'stream-history-update': [ongoing_message: ChatMessage, history: { state: OngoingState, time: Date }[]];
   'stream-finished': [ongoing_message: ChatMessage];
   'stream-error': [ongoing_message: ChatMessage, ongoing: OngoingState];
 }
@@ -18,6 +24,7 @@ export interface ChatMessageControllerEventsMap {
 export class ChatMessageController extends EventEmitter<ChatMessageControllerEventsMap> {
   private _message: ChatMessage;
   private _ongoing: OngoingState | undefined;
+  private _ongoingHistory: OngoingStateHistoryItem[] | undefined;
   public readonly role: ChatMessageRole;
   public readonly id: number;
 
@@ -25,6 +32,7 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
     super();
     this._message = message;
     this._ongoing = ongoing;
+    this._ongoingHistory = ongoing ? [] : undefined;
     this.role = message.role;
     this.id = message.id;
 
@@ -68,12 +76,27 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
         break;
     }
 
+    const lastOngoing = this._ongoing;
+
     this._ongoing = ongoing;
     this._message = message;
     if (annotation.state === AppChatStreamState.FINISHED) {
       this._ongoing.finished = true;
     }
     this.emit('stream-update', this._message, this._ongoing, '');
+
+    const lastState = this._ongoingHistory ? this._ongoingHistory[this._ongoingHistory.length - 1] : undefined;
+
+    if (this._ongoingHistory != null && lastOngoing.state !== lastState?.state.state && lastOngoing) {
+      this._ongoingHistory = [
+        ...this._ongoingHistory,
+        {
+          state: lastOngoing,
+          time: new Date(),
+        },
+      ];
+      this.emit('stream-history-update', this._message, this._ongoingHistory);
+    }
   }
 
   applyDelta (delta: string) {
@@ -116,5 +139,9 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
 
   get ongoing () {
     return this._ongoing;
+  }
+
+  get ongoingHistory () {
+    return this._ongoingHistory;
   }
 }

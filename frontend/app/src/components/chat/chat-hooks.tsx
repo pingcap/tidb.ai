@@ -1,7 +1,7 @@
 import { type Chat, type ChatMessage, ChatMessageRole } from '@/api/chats';
 import { isBootstrapStatusPassed } from '@/api/system';
 import { ChatController } from '@/components/chat/chat-controller';
-import { ChatMessageController, type OngoingState } from '@/components/chat/chat-message-controller';
+import { ChatMessageController, type OngoingState, type OngoingStateHistoryItem } from '@/components/chat/chat-message-controller';
 import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { useLatestRef } from '@/components/use-latest-ref';
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
@@ -273,6 +273,36 @@ export function useChatMessageStreamState (controller: ChatMessageController | u
         controller
           .off('stream-update', handleUpdate)
           .off('stream-error', handleUpdate)
+          .off('stream-finished', handleUpdate);
+      };
+    } else {
+      setState(undefined);
+    }
+  }, [controller]);
+
+  return state;
+}
+
+export function useChatMessageStreamHistoryStates (controller: ChatMessageController | undefined) {
+  const [state, setState] = useState(controller?.ongoingHistory);
+
+  useEffect(() => {
+    if (controller) {
+      setState(controller.ongoingHistory);
+
+      const handleUpdate = (_: any, state?: OngoingStateHistoryItem[]) => {
+        if (state) {
+          setState(state);
+        }
+      };
+
+      controller
+        .on('stream-history-update', handleUpdate)
+        .on('stream-finished', handleUpdate);
+
+      return () => {
+        controller
+          .off('stream-history-update', handleUpdate)
           .off('stream-finished', handleUpdate);
       };
     } else {

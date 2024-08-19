@@ -1,6 +1,6 @@
 import './App.css';
 import { getPublicSiteSettings, type PublicWebsiteSettings } from '@/api/site-settings';
-import { type BootstrapStatus, getBootstrapStatus, type RequiredBootstrapStatus } from '@/api/system';
+import { type BootstrapStatus, getBootstrapStatus } from '@/api/system';
 
 import { useEffect, useState } from 'react';
 import { Widget } from './Widget';
