@@ -1,5 +1,9 @@
 import { expect, test } from '@playwright/test';
 
+test.use({
+  trace: !!process.env.CI ? 'off' : 'on',
+})
+
 test('Bootstrap', async ({ page }) => {
   test.slow();
 
