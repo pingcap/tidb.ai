@@ -1,4 +1,7 @@
 # Frontend
+.DS_Store
+.gitignore
+.idea
 .github
 e2e
 frontend/Dockerfile

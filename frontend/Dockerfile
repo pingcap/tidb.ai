@@ -2,43 +2,46 @@ FROM node:20-alpine AS base
 
 # 1. Install dependencies only when needed
 FROM base AS deps
+
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
 RUN apk add --no-cache libc6-compat
 
-WORKDIR /tidb.ai
-
-RUN mkdir -p frontend/patches
-RUN mkdir -p frontend/app
-RUN mkdir -p frontend/packages/widget-react
-
-# Install dependencies based on the preferred package manager
-COPY frontend/package.json ./frontend
-COPY frontend/pnpm-*.yaml ./frontend
-COPY frontend/patches/* ./frontend/patches
-COPY frontend/app/package.json ./frontend/app
-COPY frontend/packages/widget-react/package.json ./frontend/packages/widget-react
-
+RUN mkdir -p /tidb.ai/frontend
 WORKDIR /tidb.ai/frontend
+# COPY frontend/package.json .
+COPY frontend/pnpm-lock.yaml .
+COPY frontend/patches ./patches
 
-RUN corepack enable pnpm
-RUN pnpm i --frozen-lockfile
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+
+RUN corepack enable
+RUN pnpm fetch
 
 
 # 2. Rebuild the source code only when needed
 FROM base AS builder
+
 # Need git client to fetch git revision info
 RUN apk add --no-cache git
+
 WORKDIR /tidb.ai
-COPY --from=deps /tidb.ai/frontend/node_modules ./frontend/node_modules
-COPY --from=deps /tidb.ai/frontend/app/node_modules ./frontend/app/node_modules
-COPY --from=deps /tidb.ai/frontend/packages/widget-react/node_modules ./frontend/packages/widget-react/node_modules
-# For symbol link of root README.md
 COPY . .
+COPY --from=deps /tidb.ai/frontend/node_modules ./frontend/node_modules
+
+# For symbol link of root README.md
 
 # This will do the trick, use the corresponding env file for each environment.
 #COPY .env.production.sample .env.production
 
 WORKDIR /tidb.ai/frontend
+
+ENV PNPM_HOME="/pnpm"
+ENV PATH="$PNPM_HOME:$PATH"
+COPY --from=deps /pnpm /pnpm
+
+RUN corepack enable
+RUN pnpm install --frozen-lockfile --prefer-offline
 
 ENV BASE_URL=""
 ENV NEXT_PUBLIC_BASE_URL=""
@@ -48,7 +51,6 @@ RUN rm -f app/.env
 RUN echo BASE_URL=${BASE_URL:-'""'} >> app/.env.production
 RUN echo NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-'""'} >> app/.env.production
 
-RUN corepack enable pnpm
 RUN pnpm run build:docker
 RUN pnpm run build:widget-react
 

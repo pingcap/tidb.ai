@@ -5,3 +5,5 @@
 redis-data
 data
 venv
+
+.DS_Store
