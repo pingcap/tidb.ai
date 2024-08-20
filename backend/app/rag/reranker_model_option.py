@@ -45,4 +45,13 @@ admin_reranker_model_options: List[RerankerModelOption] = [
         credentials_type="str",
         default_credentials="*****",
     ),
+    RerankerModelOption(
+        provider=RerankerProvider.BAISHENG,
+        provider_display_name="BaiSheng",
+        default_reranker_model="bge-reranker-v2-m3",
+        default_top_n=10,
+        credentials_display_name="BaiSheng API Key",
+        credentials_type="str",
+        default_credentials="*****",
+    ),
 ]

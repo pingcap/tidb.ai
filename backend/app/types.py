@@ -16,3 +16,4 @@ class EmbeddingProvider(str, enum.Enum):
 class RerankerProvider(str, enum.Enum):
     JINA = "jina"
     COHERE = "cohere"
+    BAISHENG = "baisheng"

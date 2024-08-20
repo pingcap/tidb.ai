@@ -22,6 +22,7 @@ from google.auth.transport.requests import Request
 
 from app.rag.node_postprocessor import MetadataPostFilter
 from app.rag.node_postprocessor.metadata_post_filter import MetadataFilters
+from app.rag.node_postprocessor.baisheng_reranker import BaishengRerank
 from app.types import LLMProvider, EmbeddingProvider, RerankerProvider
 from app.rag.default_prompt import (
     DEFAULT_INTENT_GRAPH_KNOWLEDGE,
@@ -274,6 +275,12 @@ def get_reranker_model(
             )
         case RerankerProvider.COHERE:
             return CohereRerank(
+                model=model,
+                top_n=top_n,
+                api_key=credentials,
+            )
+        case RerankerProvider.BAISHENG:
+            return BaishengRerank(
                 model=model,
                 top_n=top_n,
                 api_key=credentials,
