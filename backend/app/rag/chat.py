@@ -327,10 +327,12 @@ class ChatService:
         text_qa_template = get_prompt_by_jinja2_template(
             self.chat_engine_config.llm.text_qa_prompt,
             graph_knowledges=graph_knowledges_context,
+            original_question=user_question,
         )
         refine_template = get_prompt_by_jinja2_template(
             self.chat_engine_config.llm.refine_prompt,
             graph_knowledges=graph_knowledges_context,
+            original_question=user_question,
         )
         service_context = ServiceContext.from_defaults(
             llm=_llm,
