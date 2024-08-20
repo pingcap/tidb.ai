@@ -1,5 +1,6 @@
 # Frontend
 .DS_Store
+.git
 .gitignore
 .idea
 .github
