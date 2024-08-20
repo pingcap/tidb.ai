@@ -51,9 +51,9 @@ export function MessageAnnotationHistory ({ message }: { message: ChatMessageCon
               <span>
                 {state.display}
               </span>
-              <time className="text-muted-foreground text-xs">{(differenceInMilliseconds(time, history[index - 1].time) / 1000).toFixed(1)}s</time>
+              {index > 0 && <time className="text-muted-foreground text-xs">{(differenceInMilliseconds(time, history[index - 1].time) / 1000).toFixed(1)}s</time>}
             </div>
-            {state.message && <div className='ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500 pt-1'>{state.message}</div>}
+            {state.message && <div className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500 pt-1">{state.message}</div>}
           </motion.li>
         )
       ))}
@@ -79,7 +79,7 @@ export function MessageAnnotationHistory ({ message }: { message: ChatMessageCon
           </span>
           {history && <time className="text-muted-foreground text-xs">{(differenceInMilliseconds(new Date(), history[history.length - 1].time) / 1000).toFixed(1)}s</time>}
         </div>
-        {current.message && <div className='ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500 pt-1'>{current.message}</div>}
+        {current.message && <div className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500 pt-1">{current.message}</div>}
       </motion.li>}
     </ol>
   );

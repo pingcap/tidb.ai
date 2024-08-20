@@ -22,6 +22,7 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: 'html',
+  globalSetup: 'global.setup.ts',
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -36,13 +37,9 @@ export default defineConfig({
   /* Configure projects for major browsers */
   projects: [
     {
-      name: 'setup',
-      testMatch: 'tests/*.setup.ts',
-    },
-    {
       name: 'bootstrap',
-      testMatch: 'tests/bootstrap.spec.ts',
-      dependencies: ['setup'],
+      use: { ...devices['Desktop Chrome'] },
+      testMatch: 'tests/bootstrap.ts',
     },
     {
       name: 'chromium',
