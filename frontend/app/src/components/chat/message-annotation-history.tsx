@@ -77,7 +77,7 @@ export function MessageAnnotationHistory ({ message }: { message: ChatMessageCon
           <span>
             {current.display}
           </span>
-          {history && <time className="text-muted-foreground text-xs">{(differenceInMilliseconds(new Date(), history[history.length - 1].time) / 1000).toFixed(1)}s</time>}
+          {history && history.length > 0 && <time className="text-muted-foreground text-xs">{(differenceInMilliseconds(new Date(), history[history.length - 1].time) / 1000).toFixed(1)}s</time>}
         </div>
         {current.message && <div className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500 pt-1">{current.message}</div>}
       </motion.li>}
