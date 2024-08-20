@@ -374,8 +374,14 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
                 state=ChatMessageSate.SOURCE_NODES,
-                display="Generate answer",
                 context=source_documents,
+            ),
+        )
+        yield ChatEvent(
+            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.GENERATE_ANSWER,
+                display="Generate answer",
             ),
         )
 
