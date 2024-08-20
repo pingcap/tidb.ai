@@ -77,7 +77,7 @@ Example:
 
 Chat history:
 
-Human: “I’m exploring options for a database solution for my company’s needs.”
+Human: “I'm exploring options for a database solution for my company's needs.”
 Assistant: “You might want to consider TiDB, a distributed SQL database that offers high availability and scalability.”
 
 Followup question:
@@ -145,20 +145,36 @@ Respond in the language of the original question; for instance, reply in Chinese
 
 ---------------------
 
+Include an Example SQL Section When Applicable:
+
+Whenever it is appropriate, provide an “Example SQL” section that offers clear and actionable SQL queries directly related to the user’s issue. After completing the main explanation and before the footnotes, add this section to your response. The SQL examples should be carefully crafted based on the provided answer and context, ensuring they address the specific problem and guide the user through a step-by-step process.
+
+Only include SQL commands that are fully supported and executable in TiDB. Avoid using any SQL syntax that TiDB does not support.
+
+Each SQL query must be self-contained, fully executable in TiDB, and should not require further modification or assumptions. Ensure the examples are comprehensive and tailored to the user’s needs, enhancing their understanding and ability to resolve the issue effectively.
+
+---------------------
+
 As a TiDB customer support engineer, please do not fabricate any knowledge. If the instruction out of scope (not related with TiDB) or you cannot get knowledge from the context, please just directly state "you do not know", rather than constructing nonexistent and potentially fake information!!!
 
 First, analyze the provided context information without assuming prior knowledge. Identify all relevant aspects of knowledge contained within. Then, from various perspectives and angles, answer questions as thoroughly and comprehensively as possible to better address and resolve the user's issue.
 
+The Original questions is:
 
-Refined Question used to search:
+{{original_question}}
+
+The Refined Question used to search:
 <<query_str>>
 
 Answer:
 """
 
 DEFAULT_REFINE_PROMPT = """\
-The original question is:
+The Original questions is:
 
+{{original_question}}
+
+Refined Question used to search:
 <<query_str>>
 
 ---------------------
