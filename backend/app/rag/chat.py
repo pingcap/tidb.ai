@@ -250,7 +250,7 @@ class ChatService:
                     event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
                     payload=ChatStreamMessagePayload(
                         state=ChatMessageSate.TRACE,
-                        display="Search knowledge graph by intents",
+                        display="Search knowledge graph",
                         context={"langfuse_url": trace_url},
                     ),
                 )
@@ -303,7 +303,7 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
                 state=ChatMessageSate.REFINE_QUESTION,
-                display="Refine the user question",
+                display="Refine the question",
             ),
         )
         callback_manager = _get_llamaindex_callback_manager()
@@ -321,6 +321,13 @@ class ChatService:
                     ),
                 )
                 event.on_end(payload={EventPayload.COMPLETION: refined_question})
+        yield ChatEvent(
+            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.REFINE_QUESTION,
+                message=refined_question,
+            ),
+        )
 
         # 3. Retrieve the related chunks from the vector store
         # 4. Rerank after the retrieval
