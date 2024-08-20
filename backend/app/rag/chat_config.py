@@ -284,6 +284,7 @@ def get_reranker_model(
                 model=model,
                 top_n=top_n,
                 api_key=credentials,
+                **config,
             )
         case _:
             raise ValueError(f"Got unknown reranker provider: {provider}")
