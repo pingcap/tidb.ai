@@ -1,11 +1,10 @@
 import { type ChatMessageGroup, useChatPostState, useCurrentChatController } from '@/components/chat/chat-hooks';
 import { DebugInfo } from '@/components/chat/debug-info';
 import { MessageAnnotationHistory } from '@/components/chat/message-annotation-history';
-import { MessageContent } from '@/components/chat/message-content';
+import { MessageAnswer } from '@/components/chat/message-answer';
 import { MessageContextSources } from '@/components/chat/message-content-sources';
-import { MessageError } from '@/components/chat/message-error';
-import { MessageHeading } from '@/components/chat/message-heading';
 import { MessageOperations } from '@/components/chat/message-operations';
+import { MessageSection } from '@/components/chat/message-section';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -98,12 +97,15 @@ function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
       </Collapsible>
 
       <MessageAnnotationHistory message={group.assistant} />
-      <MessageContextSources message={group.assistant} />
-      <section className="space-y-2">
-        <MessageHeading />
-        {group.assistant && <MessageError message={group.assistant} />}
-        <MessageContent message={group.assistant} />
-      </section>
+
+      <MessageSection message={group.assistant}>
+        <MessageContextSources message={group.assistant} />
+      </MessageSection>
+
+      <MessageSection className="space-y-2" message={group.assistant}>
+        <MessageAnswer message={group.assistant} />
+      </MessageSection>
+
       {group.assistant && <MessageOperations message={group.assistant} />}
     </section>
   );

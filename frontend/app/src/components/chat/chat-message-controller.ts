@@ -6,6 +6,7 @@ export interface OngoingState {
   finished: boolean;
   state: AppChatStreamState;
   display: string;
+  message?: string;
 }
 
 export interface OngoingStateHistoryItem {
@@ -60,11 +61,15 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
       console.warn('message already finished');
       return;
     }
+    const stateChanged = annotation.state !== this._ongoing.state;
+
     let message = this._message;
     const ongoing: OngoingState = { ...this._ongoing };
 
     ongoing.state = annotation.state;
-    ongoing.display = annotation.display;
+    ongoing.display = annotation.display || (stateChanged ? '' : ongoing.display);
+    ongoing.message = stateChanged ? undefined : ongoing.message;
+
     switch (annotation.state) {
       case AppChatStreamState.TRACE:
         message = { ...message };
@@ -73,6 +78,9 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
       case AppChatStreamState.SOURCE_NODES:
         message = { ...message };
         message.sources = annotation.context;
+        break;
+      case AppChatStreamState.REFINE_QUESTION:
+        ongoing.message = annotation.message || ongoing.message;
         break;
     }
 
@@ -85,17 +93,19 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
     }
     this.emit('stream-update', this._message, this._ongoing, '');
 
-    const lastState = this._ongoingHistory ? this._ongoingHistory[this._ongoingHistory.length - 1] : undefined;
-
-    if (this._ongoingHistory != null && lastOngoing.state !== lastState?.state.state && lastOngoing) {
-      this._ongoingHistory = [
-        ...this._ongoingHistory,
-        {
-          state: lastOngoing,
-          time: new Date(),
-        },
-      ];
-      this.emit('stream-history-update', this._message, this._ongoingHistory);
+    if (stateChanged && this._ongoingHistory != null) {
+      const lastState = this._ongoingHistory[this._ongoingHistory.length - 1];
+      if (lastOngoing && lastOngoing.display && lastOngoing.state !== lastState?.state.state) {
+        // Insert new state
+        this._ongoingHistory = [
+          ...this._ongoingHistory,
+          {
+            state: lastOngoing,
+            time: new Date(),
+          },
+        ];
+        this.emit('stream-history-update', this._message, this._ongoingHistory);
+      }
     }
   }
 

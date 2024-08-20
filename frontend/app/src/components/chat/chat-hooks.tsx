@@ -2,6 +2,7 @@ import { type Chat, type ChatMessage, ChatMessageRole } from '@/api/chats';
 import { isBootstrapStatusPassed } from '@/api/system';
 import { ChatController } from '@/components/chat/chat-controller';
 import { ChatMessageController, type OngoingState, type OngoingStateHistoryItem } from '@/components/chat/chat-message-controller';
+import type { AppChatStreamState } from '@/components/chat/chat-stream-state';
 import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { useLatestRef } from '@/components/use-latest-ref';
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
@@ -311,4 +312,15 @@ export function useChatMessageStreamHistoryStates (controller: ChatMessageContro
   }, [controller]);
 
   return state;
+}
+
+export function useChatMessageStreamContainsState (controller: ChatMessageController | undefined, state: AppChatStreamState) {
+  const history = useChatMessageStreamHistoryStates(controller);
+  const current = useChatMessageStreamState(controller);
+
+  // FIXME: what if state not triggered?
+  if (!current || current.finished) {
+    return true;
+  }
+  return history?.some(item => item.state.state === state) || current?.state === state;
 }

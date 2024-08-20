@@ -24,11 +24,11 @@ export function MessageAnnotationHistory ({ message }: { message: ChatMessageCon
   }, [current]);
 
   return (
-    <ol className="text-xs">
+    <ol className="text-sm">
       {history?.map(({ state, time }, index, history) => (
         index > 0 && (
           <motion.li
-            className={cn('flex gap-2 items-center relative mb-2', index === history.length - 1 && current && !current.finished && 'mb-2')}
+            className={cn('relative mb-2', index === history.length - 1 && current && !current.finished && 'mb-2')}
             key={index}
             initial={{
               opacity: 0.5,
@@ -38,25 +38,28 @@ export function MessageAnnotationHistory ({ message }: { message: ChatMessageCon
             }}
           >
             {index > 1 && <span className="absolute left-2 bg-green-500 h-2" style={{ width: 1, top: -8 }} />}
-            <CheckedCircle
-              className="size-4 text-green-500"
-              initial={{
-                color: 'rgb(113 113 122)',
-              }}
-              animate={{
-                color: 'rgb(34 197 94)',
-              }}
-            />
-            <span>
-              {state.display}
-            </span>
-            <time className="text-muted-foreground">{(differenceInMilliseconds(time, history[index - 1].time) / 1000).toFixed(1)}s</time>
+            <div className="flex gap-2 items-center">
+              <CheckedCircle
+                className="size-4 text-green-500"
+                initial={{
+                  color: 'rgb(113 113 122)',
+                }}
+                animate={{
+                  color: 'rgb(34 197 94)',
+                }}
+              />
+              <span>
+                {state.display}
+              </span>
+              <time className="text-muted-foreground text-xs">{(differenceInMilliseconds(time, history[index - 1].time) / 1000).toFixed(1)}s</time>
+            </div>
+            {state.message && <div className='ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500 pt-1'>{state.message}</div>}
           </motion.li>
         )
       ))}
       {current && !current.finished && <motion.li
         key={current.state}
-        className="flex gap-2 items-center relative"
+        className="relative space-y-1"
         initial={{
           opacity: 0,
           height: 0,
@@ -68,12 +71,15 @@ export function MessageAnnotationHistory ({ message }: { message: ChatMessageCon
           x: 0,
         }}
       >
-        {(history?.length ?? 0) > 1 && <span className="absolute left-2 opacity-50 bg-zinc-500 h-2" style={{ width: 1, top: -8 }} />}
-        <Loader2Icon className="size-4 animate-spin repeat-infinite text-muted-foreground" />
-        <span>
-          {current.display}
-        </span>
-        {history && <time className="text-muted-foreground">{(differenceInMilliseconds(new Date(), history[history.length - 1].time) / 1000).toFixed(1)}s</time>}
+        <div className="flex gap-2 items-center">
+          {(history?.length ?? 0) > 1 && <span className="absolute left-2 opacity-50 bg-zinc-500 h-2" style={{ width: 1, top: -8 }} />}
+          <Loader2Icon className="size-4 animate-spin repeat-infinite text-muted-foreground" />
+          <span>
+            {current.display}
+          </span>
+          {history && <time className="text-muted-foreground text-xs">{(differenceInMilliseconds(new Date(), history[history.length - 1].time) / 1000).toFixed(1)}s</time>}
+        </div>
+        {current.message && <div className='ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500 pt-1'>{current.message}</div>}
       </motion.li>}
     </ol>
   );
