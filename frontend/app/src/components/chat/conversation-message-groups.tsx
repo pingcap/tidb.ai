@@ -98,7 +98,7 @@ function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
 
       <MessageAnnotationHistory message={group.assistant} />
 
-      <MessageSection message={group.assistant}>
+      <MessageSection className="!mt-1" message={group.assistant}>
         <MessageContextSources message={group.assistant} />
       </MessageSection>
 
