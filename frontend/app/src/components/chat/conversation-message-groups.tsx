@@ -3,6 +3,7 @@ import { DebugInfo } from '@/components/chat/debug-info';
 import { MessageAnnotationHistory } from '@/components/chat/message-annotation-history';
 import { MessageAnswer } from '@/components/chat/message-answer';
 import { MessageContextSources } from '@/components/chat/message-content-sources';
+import { MessageError } from '@/components/chat/message-error';
 import { MessageOperations } from '@/components/chat/message-operations';
 import { MessageSection } from '@/components/chat/message-section';
 import { Button } from '@/components/ui/button';
@@ -105,6 +106,8 @@ function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
       <MessageSection className="space-y-2" message={group.assistant}>
         <MessageAnswer message={group.assistant} />
       </MessageSection>
+
+      {group.assistant && <MessageError message={group.assistant} />}
 
       {group.assistant && <MessageOperations message={group.assistant} />}
     </section>

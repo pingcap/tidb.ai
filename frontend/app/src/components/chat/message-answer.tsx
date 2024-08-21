@@ -2,7 +2,6 @@ import { useChatMessageField, useChatMessageStreamContainsState } from '@/compon
 import type { ChatMessageController } from '@/components/chat/chat-message-controller';
 import { AppChatStreamState } from '@/components/chat/chat-stream-state';
 import { MessageContent } from '@/components/chat/message-content';
-import { MessageError } from '@/components/chat/message-error';
 
 export function MessageAnswer ({ message }: { message: ChatMessageController | undefined }) {
   const content = useChatMessageField(message, 'content');
@@ -19,7 +18,6 @@ export function MessageAnswer ({ message }: { message: ChatMessageController | u
         <img className="hidden dark:block h-4" src="/answer-white.svg" alt="logo" />
         Answer
       </div>
-      {message && <MessageError message={message} />}
       <MessageContent message={message} />
     </>
   );
