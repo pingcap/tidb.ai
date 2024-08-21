@@ -26,7 +26,7 @@ export const enum AppChatStreamState {
 
 export interface BaseAnnotation<S extends AppChatStreamState> {
   state: S;
-  display: string;
+  display?: string;
 }
 
 export interface TraceAnnotation extends BaseAnnotation<AppChatStreamState.TRACE> {
@@ -37,10 +37,15 @@ export interface SourceNodesAnnotation extends BaseAnnotation<AppChatStreamState
   context: ChatMessageSource[];
 }
 
+export interface RefineQuestionAnnotation extends BaseAnnotation<AppChatStreamState.REFINE_QUESTION> {
+  message?: string;
+}
+
 export type ChatMessageAnnotation =
-  BaseAnnotation<Exclude<AppChatStreamState, AppChatStreamState.TRACE | AppChatStreamState.SOURCE_NODES>>
+  BaseAnnotation<Exclude<AppChatStreamState, AppChatStreamState.TRACE | AppChatStreamState.SOURCE_NODES | AppChatStreamState.REFINE_QUESTION>>
   | TraceAnnotation
-  | SourceNodesAnnotation;
+  | SourceNodesAnnotation
+  | RefineQuestionAnnotation;
 
 export type ChatInitialData = {
   chat: Chat;

@@ -17,7 +17,7 @@ from llama_index.core.schema import BaseNode, TransformComponent
 import llama_index.core.instrumentation as instrument
 
 from app.rag.knowledge_graph.extractor import SimpleGraphExtractor
-from app.rag.knowledge_graph.intent import IntentAnalyzer
+from app.rag.knowledge_graph.intent import IntentAnalyzer, RelationshipReasoning
 from app.rag.types import MyCBEventType
 from app.core.config import settings
 from app.core.db import Scoped_Session
@@ -206,14 +206,12 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
             "All inserts are already upserts."
         )
 
-    def intent_based_search(
+    def intent_analyze(
         self,
         query: str,
         chat_history: list = [],
-        depth: int = 2,
-        include_meta: bool = False,
-        relationship_meta_filters: Dict = {},
-    ) -> Mapping[str, Any]:
+    ) -> List[RelationshipReasoning]:
+        """Analyze the intent of the query."""
         chat_content = query
         if len(chat_history) > 0:
             chat_history_strings = [
@@ -233,7 +231,15 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
             ) as event:
                 intents = self._intents.analyze(chat_content)
                 event.on_end(payload={"relationships": intents.relationships})
+        return intents.relationships
 
+    def intent_based_search(
+        self,
+        intent_relationships: List[RelationshipReasoning],
+        depth: int = 2,
+        include_meta: bool = False,
+        relationship_meta_filters: Dict = {},
+    ) -> Mapping[str, Any]:
         result = {"queries": {}, "graph": None}
         all_entities = []
         all_relationships = defaultdict(
@@ -268,7 +274,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
 
         semantic_queries = [
             f"{r.source_entity} -> {r.relationship_desc} -> {r.target_entity}"
-            for r in intents.relationships
+            for r in intent_relationships
         ]
 
         def process_query(sub_query):

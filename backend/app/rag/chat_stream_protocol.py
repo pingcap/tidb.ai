@@ -31,6 +31,7 @@ class ChatStreamMessagePayload(ChatStreamPayload):
     state: ChatMessageSate = ChatMessageSate.TRACE
     display: str = ""
     context: dict | list | str = ""
+    message: str = ""
 
     def dump(self):
         return [
@@ -38,6 +39,7 @@ class ChatStreamMessagePayload(ChatStreamPayload):
                 "state": self.state.name,
                 "display": self.display,
                 "context": self.context,
+                "message": self.message,
             }
         ]
 

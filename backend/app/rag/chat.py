@@ -218,17 +218,8 @@ class ChatService:
                 assistant_message=db_assistant_message,
             ),
         )
-        yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-            payload=ChatStreamMessagePayload(
-                state=ChatMessageSate.TRACE,
-                display="Start knowledge graph searching ...",
-                context={"langfuse_url": trace_url},
-            ),
-        )
 
         # 1. Retrieve entities, relations, and chunks from the knowledge graph
-        callback_manager = _get_llamaindex_callback_manager()
         kg_config = self.chat_engine_config.knowledge_graph
         if kg_config.enabled:
             graph_store = TiDBGraphStore(
@@ -239,27 +230,36 @@ class ChatService:
             graph_index: KnowledgeGraphIndex = KnowledgeGraphIndex.from_existing(
                 dspy_lm=_fast_dspy_lm,
                 kg_store=graph_store,
-                callback_manager=callback_manager,
+                callback_manager=_get_llamaindex_callback_manager(),
             )
 
             if kg_config.using_intent_search:
-                with callback_manager.as_trace("retrieve_with_weight"):
-                    with callback_manager.event(
-                        MyCBEventType.RETRIEVE_FROM_GRAPH,
-                        payload={
-                            EventPayload.QUERY_STR: {
-                                "query": user_question,
-                                "chat_history": chat_history,
-                            }
-                        },
-                    ) as event:
-                        result = graph_index.intent_based_search(
-                            user_question,
-                            chat_history,
-                            include_meta=True,
-                            relationship_meta_filters=kg_config.relationship_meta_filters,
-                        )
-                        event.on_end(payload={"graph": result["queries"]})
+                yield ChatEvent(
+                    event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                    payload=ChatStreamMessagePayload(
+                        state=ChatMessageSate.KG_RETRIEVAL,
+                        display="Decompose the question",
+                    ),
+                )
+                graph_index._callback_manager = _get_llamaindex_callback_manager()
+                intent_relationships = graph_index.intent_analyze(
+                    user_question,
+                    chat_history,
+                )
+                yield ChatEvent(
+                    event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                    payload=ChatStreamMessagePayload(
+                        state=ChatMessageSate.TRACE,
+                        display="Search knowledge graph",
+                        context={"langfuse_url": trace_url},
+                    ),
+                )
+                graph_index._callback_manager = _get_llamaindex_callback_manager()
+                result = graph_index.intent_based_search(
+                    intent_relationships,
+                    include_meta=True,
+                    relationship_meta_filters=kg_config.relationship_meta_filters,
+                )
 
                 entities = result["graph"]["entities"]
                 relations = result["graph"]["relationships"]
@@ -270,6 +270,15 @@ class ChatService:
                 )
                 graph_knowledges_context = graph_knowledges.template
             else:
+                yield ChatEvent(
+                    event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                    payload=ChatStreamMessagePayload(
+                        state=ChatMessageSate.TRACE,
+                        display="Search knowledge graph",
+                        context={"langfuse_url": trace_url},
+                    ),
+                )
+                graph_index._callback_manager = _get_llamaindex_callback_manager()
                 entities, relations, chunks = graph_index.retrieve_with_weight(
                     user_question,
                     [],
@@ -294,7 +303,7 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
                 state=ChatMessageSate.REFINE_QUESTION,
-                display="Refine the user question ...",
+                display="Refine the question",
             ),
         )
         callback_manager = _get_llamaindex_callback_manager()
@@ -312,6 +321,13 @@ class ChatService:
                     ),
                 )
                 event.on_end(payload={EventPayload.COMPLETION: refined_question})
+        yield ChatEvent(
+            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.REFINE_QUESTION,
+                message=refined_question,
+            ),
+        )
 
         # 3. Retrieve the related chunks from the vector store
         # 4. Rerank after the retrieval
@@ -320,7 +336,7 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
                 state=ChatMessageSate.SEARCH_RELATED_DOCUMENTS,
-                display="Search related documents ...",
+                display="Search related documents",
             ),
         )
         callback_manager = _get_llamaindex_callback_manager()
@@ -361,6 +377,13 @@ class ChatService:
             payload=ChatStreamMessagePayload(
                 state=ChatMessageSate.SOURCE_NODES,
                 context=source_documents,
+            ),
+        )
+        yield ChatEvent(
+            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.GENERATE_ANSWER,
+                display="Generate answer",
             ),
         )
 

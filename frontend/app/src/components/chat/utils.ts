@@ -1,3 +1,5 @@
+import type { OngoingState } from '@/components/chat/chat-message-controller';
+
 export type { ChatEngineOptions } from '@/api/chat-engines';
 
 export function parseSource (uri?: string) {
@@ -9,4 +11,8 @@ export function parseSource (uri?: string) {
   } else {
     return uri;
   }
+}
+
+export function isNotFinished (ongoing: OngoingState | undefined) {
+  return !!ongoing && !ongoing.finished;
 }

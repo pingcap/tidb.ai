@@ -6,11 +6,18 @@ export interface OngoingState {
   finished: boolean;
   state: AppChatStreamState;
   display: string;
+  message?: string;
+}
+
+export interface OngoingStateHistoryItem {
+  state: OngoingState;
+  time: Date;
 }
 
 export interface ChatMessageControllerEventsMap {
   'update': [assistant_message: ChatMessage];
   'stream-update': [ongoing_message: ChatMessage, ongoing: OngoingState, delta: string];
+  'stream-history-update': [ongoing_message: ChatMessage, history: { state: OngoingState, time: Date }[]];
   'stream-finished': [ongoing_message: ChatMessage];
   'stream-error': [ongoing_message: ChatMessage, ongoing: OngoingState];
 }
@@ -18,6 +25,7 @@ export interface ChatMessageControllerEventsMap {
 export class ChatMessageController extends EventEmitter<ChatMessageControllerEventsMap> {
   private _message: ChatMessage;
   private _ongoing: OngoingState | undefined;
+  private _ongoingHistory: OngoingStateHistoryItem[] | undefined;
   public readonly role: ChatMessageRole;
   public readonly id: number;
 
@@ -25,6 +33,7 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
     super();
     this._message = message;
     this._ongoing = ongoing;
+    this._ongoingHistory = ongoing ? [] : undefined;
     this.role = message.role;
     this.id = message.id;
 
@@ -52,11 +61,15 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
       console.warn('message already finished');
       return;
     }
+    const stateChanged = annotation.state !== this._ongoing.state;
+
     let message = this._message;
     const ongoing: OngoingState = { ...this._ongoing };
 
     ongoing.state = annotation.state;
-    ongoing.display = annotation.display;
+    ongoing.display = annotation.display || (stateChanged ? '' : ongoing.display);
+    ongoing.message = stateChanged ? undefined : ongoing.message;
+
     switch (annotation.state) {
       case AppChatStreamState.TRACE:
         message = { ...message };
@@ -66,7 +79,12 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
         message = { ...message };
         message.sources = annotation.context;
         break;
+      case AppChatStreamState.REFINE_QUESTION:
+        ongoing.message = annotation.message || ongoing.message;
+        break;
     }
+
+    const lastOngoing = this._ongoing;
 
     this._ongoing = ongoing;
     this._message = message;
@@ -74,6 +92,21 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
       this._ongoing.finished = true;
     }
     this.emit('stream-update', this._message, this._ongoing, '');
+
+    if (stateChanged && this._ongoingHistory != null) {
+      const lastState = this._ongoingHistory[this._ongoingHistory.length - 1];
+      if (lastOngoing && lastOngoing.display && lastOngoing.state !== lastState?.state.state) {
+        // Insert new state
+        this._ongoingHistory = [
+          ...this._ongoingHistory,
+          {
+            state: lastOngoing,
+            time: new Date(),
+          },
+        ];
+        this.emit('stream-history-update', this._message, this._ongoingHistory);
+      }
+    }
   }
 
   applyDelta (delta: string) {
@@ -116,5 +149,9 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
 
   get ongoing () {
     return this._ongoing;
+  }
+
+  get ongoingHistory () {
+    return this._ongoingHistory;
   }
 }
