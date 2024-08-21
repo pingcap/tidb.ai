@@ -55,7 +55,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
 
   const isVerifying = verifying || !finished;
 
-  if (!isSuperuser || !enabled) {
+  if (!isSuperuser || !enabled || !messageFinished) {
     return null;
   }
 
