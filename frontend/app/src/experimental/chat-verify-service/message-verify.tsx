@@ -41,7 +41,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
   }, [shouldPoll, finished]);
 
   useEffect(() => {
-    if (!verifyId && question && answer && messageFinished && !verifying) {
+    if (enabled && !verifyId && question && answer && messageFinished && !verifying) {
       verify(question, answer)
         .then(result => {
           setVerifyId(result.job_id);
@@ -50,7 +50,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
           setVerifying(false);
         });
     }
-  }, [verifyId, messageFinished, question, answer, verifying]);
+  }, [enabled, verifyId, messageFinished, question, answer, verifying]);
 
   const isVerifying = verifying || !finished;
 
