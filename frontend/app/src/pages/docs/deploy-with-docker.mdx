@@ -63,3 +63,48 @@ After you deploy the tool, you need to initialize the tool by following the popu
 * Set up `Data Source` to index the data.
 
 ![initialization](https://github.com/user-attachments/assets/7f9253da-3d6f-4ccd-838d-feed3f0b6f05 "Initialization")
+
+
+## Upgrade
+
+This section will help you upgrade tidb.ai to the new version.
+
+Suppose you want to upgrade tidb.ai from 0.1 to version 0.2
+
+1. Edit your docker-compose.yml file to use the new image version.
+
+    ```yaml
+    services:
+      backend:
+        image: tidbai/backend:0.2
+      frontend:
+        image: tidbai/frontend:0.2
+      background:
+        image: tidbai/backend:0.2
+    ```
+
+2. Pull the new image:
+
+    ```bash
+    docker compose pull
+    ```
+
+3. Migrate the database schema:
+
+    ```bash
+    docker compose run backend /bin/sh -c "alembic upgrade head"
+    ```
+
+4. Recreate the docker containers:
+
+    ```bash
+    docker compose up -d --force-recreate
+    ```
+
+5. Check the logs to ensure everything is working correctly:
+
+    ```bash
+    docker compose logs -f
+    ```
+
+6. Done!
