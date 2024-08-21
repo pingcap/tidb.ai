@@ -336,7 +336,9 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
                 state=ChatMessageSate.SEARCH_RELATED_DOCUMENTS,
-                display="Search related documents",
+                display="Search and rerank related documents"
+                if self._reranker
+                else "Search related documents",
             ),
         )
         callback_manager = _get_llamaindex_callback_manager()
