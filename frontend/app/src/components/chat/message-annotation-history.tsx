@@ -2,7 +2,6 @@ import { useChatMessageStreamHistoryStates, useChatMessageStreamState } from '@/
 import type { ChatMessageController } from '@/components/chat/chat-message-controller';
 import { isNotFinished } from '@/components/chat/utils';
 import { DiffSeconds } from '@/components/diff-seconds';
-import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion } from 'framer-motion';
 import { CheckCircleIcon, ChevronUpIcon, ClockIcon, Loader2Icon } from 'lucide-react';
@@ -28,6 +27,10 @@ export function MessageAnnotationHistory ({ message }: { message: ChatMessageCon
     }
   }, [finished]);
 
+  if (!history) {
+    return <div className="!mt-5" />;
+  }
+
   return (
     <div className="!mt-1">
       <motion.div
@@ -37,7 +40,7 @@ export function MessageAnnotationHistory ({ message }: { message: ChatMessageCon
         }}
       >
         <ol
-          className="text-sm"
+          className="text-sm mt-4"
         >
           {history?.map(({ state, time }, index, history) => (
             index > 0 && (
@@ -96,19 +99,19 @@ export function MessageAnnotationHistory ({ message }: { message: ChatMessageCon
             {current.message && <div className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500 pt-1">{current.message}</div>}
           </motion.li>}
         </ol>
-        <Button variant="ghost" size="sm" className="text-muted-foreground h-auto py-1 text-xs mr-1" onClick={() => setShow(false)}>
+        <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors" onClick={() => setShow(false)}>
           <ChevronUpIcon className="size-4 mr-1" />
           Collapse
-        </Button>
+        </button>
       </motion.div>
-      {history?.length && <motion.button
+      <motion.button
         onClick={() => setShow(true)}
-        className={cn('flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors')}
+        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
         animate={show ? { height: 0, opacity: 0, overflow: 'visible', pointerEvents: 'none', scale: 0.5 } : { height: 'auto', opacity: 1, scale: 1, pointerEvents: 'auto' }}
       >
         <ClockIcon className="size-3" />
         <DiffSeconds from={message?.message?.created_at} to={message?.message?.finished_at} />
-      </motion.button>}
+      </motion.button>
     </div>
   );
 }
