@@ -33,8 +33,6 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
     }
   }, [shouldPoll, finished]);
 
-  console.log(verifyId, question, answer, messageFinished, verifying);
-
   useEffect(() => {
     if (!verifyId && question && answer && messageFinished && !verifying) {
       verify(question, answer)
