@@ -8,6 +8,7 @@ import { MessageOperations } from '@/components/chat/message-operations';
 import { MessageSection } from '@/components/chat/message-section';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { MessageVerify } from '@/experimental/chat-verify-service/message-verify';
 import { cn } from '@/lib/utils';
 import { InfoIcon } from 'lucide-react';
 import { useEffect, useState } from 'react';
@@ -108,6 +109,8 @@ function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
       </MessageSection>
 
       {group.assistant && <MessageError message={group.assistant} />}
+
+      <MessageVerify user={group.user} assistant={group.assistant} />
 
       {group.assistant && <MessageOperations message={group.assistant} />}
     </section>

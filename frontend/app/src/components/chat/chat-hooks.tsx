@@ -251,7 +251,7 @@ export function useChatMessageField (controller: ChatMessageController | undefin
     } else {
       setValue(undefined);
     }
-  }, [controller]);
+  }, [controller, key]);
 
   return value;
 }
