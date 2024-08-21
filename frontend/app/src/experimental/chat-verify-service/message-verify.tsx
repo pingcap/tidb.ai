@@ -25,7 +25,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
 
   const shouldPoll = !!verifyId && !!assistant && isSuperuser;
   const { data: result, mutate } = useSWR(shouldPoll && `experimental.chat-message.${assistant.id}.verify`, () => getVerify(verifyId!), { revalidateOnMount: false, revalidateOnFocus: false, errorRetryCount: 0 });
-  const finished = result ? isFinalVerifyState(result.state) : false;
+  const finished = result ? isFinalVerifyState(result.status) : false;
 
   useEffect(() => {
     if (shouldPoll && !finished) {
@@ -53,14 +53,14 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
 
   return (
     <Alert
-      variant={result ? result.state === VerifyState.SUCCESS ? 'success' : result.state === VerifyState.FAILED ? 'destructive' : undefined : undefined}
+      variant={result ? result.status === VerifyState.SUCCESS ? 'success' : result.status === VerifyState.FAILED ? 'destructive' : undefined : undefined}
       className={cn('transition-opacity', isVerifying && 'opacity-50')}
     >
       {isVerifying
         ? <Loader2Icon className="animate-spin repeat-infinite" />
-        : result?.state === VerifyState.SUCCESS
+        : result?.status === VerifyState.SUCCESS
           ? <CheckCircle2Icon />
-          : result?.state === VerifyState.FAILED
+          : result?.status === VerifyState.FAILED
             ? <InformationCircleIcon />
             : undefined}
       <AlertTitle>Verify chat response</AlertTitle>

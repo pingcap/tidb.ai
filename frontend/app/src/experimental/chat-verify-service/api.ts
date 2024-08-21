@@ -16,10 +16,11 @@ const verifyResponse = z.object({
 });
 
 const getVerifyResponse = z.object({
-  state: z.enum([VerifyState.CREATED, VerifyState.EXTRACTING, VerifyState.VALIDATING, VerifyState.SUCCESS, VerifyState.FAILED]),
+  status: z.enum([VerifyState.CREATED, VerifyState.EXTRACTING, VerifyState.VALIDATING, VerifyState.SUCCESS, VerifyState.FAILED]),
   message: z.string().optional(),
   runs: z.object({
     sql: z.string(),
+    explanation: z.string(),
   }).and(z.object({
     success: z.literal(true),
     results: z.any().array().array(),
@@ -27,7 +28,7 @@ const getVerifyResponse = z.object({
     success: z.literal(false),
     sql_error_code: z.number(),
     sql_error_message: z.string(),
-    warnings: z.string(),
+    warnings: z.string().array(),
   }))).array().optional(),
 });
 
