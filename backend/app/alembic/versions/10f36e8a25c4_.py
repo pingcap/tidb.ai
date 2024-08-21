@@ -5,6 +5,7 @@ Revises: 041fbef26e3a
 Create Date: 2024-08-20 09:10:50.130219
 
 """
+
 from alembic import op
 import sqlalchemy as sa
 import sqlmodel.sql.sqltypes
@@ -12,8 +13,8 @@ from tidb_vector.sqlalchemy import VectorType
 from sqlalchemy.dialects import mysql
 
 # revision identifiers, used by Alembic.
-revision = '10f36e8a25c4'
-down_revision = '041fbef26e3a'
+revision = "10f36e8a25c4"
+down_revision = "041fbef26e3a"
 branch_labels = None
 depends_on = None
 
@@ -23,9 +24,7 @@ def upgrade():
     op.alter_column(
         "reranker_models",
         "provider",
-        existing_type=mysql.ENUM(
-            "JINA", "COHERE", "BAISHENG"
-        ),
+        existing_type=mysql.ENUM("JINA", "COHERE", "BAISHENG"),
         nullable=False,
     )
     # ### end Alembic commands ###
@@ -36,9 +35,7 @@ def downgrade():
     op.alter_column(
         "reranker_models",
         "provider",
-        existing_type=mysql.ENUM(
-            "JINA", "COHERE"
-        ),
+        existing_type=mysql.ENUM("JINA", "COHERE"),
         nullable=False,
     )
     # ### end Alembic commands ###

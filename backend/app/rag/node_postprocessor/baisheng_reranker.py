@@ -16,7 +16,10 @@ dispatcher = get_dispatcher(__name__)
 
 class BaishengRerank(BaseNodePostprocessor):
     api_key: str = Field(default="", description="API key.")
-    api_url: str = Field(default="http://api.chat.prd.yumc.local/chat/v1/reranker", description="API url.")
+    api_url: str = Field(
+        default="http://api.chat.prd.yumc.local/chat/v1/reranker",
+        description="API url.",
+    )
     model: str = Field(
         default="bge-reranker-v2-m3",
         description="The model to use when calling API",
@@ -38,9 +41,7 @@ class BaishengRerank(BaseNodePostprocessor):
         self.api_url = api_url
         self.model = model
         self._session = requests.Session()
-        self._session.headers.update(
-            {"Authorization": f"Bearer {self.api_key}"}
-        )
+        self._session.headers.update({"Authorization": f"Bearer {self.api_key}"})
 
     @classmethod
     def class_name(cls) -> str:
