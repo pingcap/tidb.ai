@@ -27,8 +27,8 @@ const getVerifyResponse = z.object({
       results: z.any().array().array(),
     }).or(z.object({
       success: z.literal(false),
-      sql_error_code: z.number(),
-      sql_error_message: z.string(),
+      sql_error_code: z.number().nullish(),
+      sql_error_message: z.string().nullish(),
       warnings: z.string().array(),
     }))).array(),
 });
