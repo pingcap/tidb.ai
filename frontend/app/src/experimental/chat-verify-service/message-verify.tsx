@@ -25,20 +25,21 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
   const isSuperuser = !!me.me?.is_superuser;
 
   const shouldPoll = enabled && !!verifyId && !!assistant && isSuperuser;
-  const { data: result, mutate } = useSWR(shouldPoll && `experimental.chat-message.${assistant.id}.verify`, () => getVerify(verifyId!), { revalidateOnMount: false, revalidateOnFocus: false, errorRetryCount: 0 });
+  const { data: result } = useSWR(
+    shouldPoll && `experimental.chat-message.${assistant.id}.verify`, () => getVerify(verifyId!),
+    {
+      revalidateOnMount: true,
+      revalidateOnFocus: false,
+      errorRetryCount: 0,
+      refreshInterval: data => {
+        if (!data) {
+          return 0;
+        }
+        return !isFinalVerifyState(data.status) ? 1000 : 0;
+      },
+    },
+  );
   const finished = result ? isFinalVerifyState(result.status) : false;
-
-  useEffect(() => {
-    if (shouldPoll && !finished) {
-      const interval = setInterval(() => {
-        void mutate(prev => prev, { revalidate: true });
-      }, 1000);
-
-      return () => {
-        clearInterval(interval);
-      };
-    }
-  }, [shouldPoll, finished]);
 
   useEffect(() => {
     if (enabled && !verifyId && question && answer && messageFinished && !verifying) {
@@ -74,8 +75,8 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
         </Button>
       </CollapsibleTrigger>
       <CollapsibleContent>
-        <ul className="space-y-2">
-          {result && result.runs.map(((run, index) => (
+        {result && <ul className="space-y-2">
+          {result.runs.map(((run, index) => (
             <li key={index}>
               <div className="p-2 space-y-1">
                 <pre className="whitespace-pre-wrap text-xs text-accent-foreground rounded">
@@ -90,7 +91,12 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
               </div>
             </li>
           )))}
-        </ul>
+        </ul>}
+        {result && result.runs.length === 0 && (
+          <div className="p-2 text-muted-foreground text-xs">
+            Empty result.
+          </div>
+        )}
       </CollapsibleContent>
     </Collapsible>
   );
