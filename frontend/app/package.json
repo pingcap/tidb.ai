@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --experimental-https",
+    "dev": "next dev",
     "dev:local": "next dev",
     "build": "next build && next-sitemap",
     "build:standalone": "STANDALONE=1 next build --no-lint && next-sitemap",
