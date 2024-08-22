@@ -1,12 +1,20 @@
 from typing import Optional
 from datetime import datetime, UTC
 
-from sqlmodel import select, Session, func
+from sqlmodel import select, Session, func, update
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
-from app.models import DataSource, Document, Chunk, Relationship
+from app.models import (
+    DataSource,
+    Document,
+    DocIndexTaskStatus,
+    Chunk,
+    KgIndexStatus,
+    Relationship,
+)
 from app.repositories.base_repo import BaseRepo
+from app.schemas import VectorIndexError, KGIndexError
 
 
 class DataSourceRepo(BaseRepo):
@@ -97,6 +105,115 @@ class DataSourceRepo(BaseRepo):
             overview_data["kg_index"] = kg_index_status
 
         return overview_data
+
+    def vector_index_built_errors(
+        self,
+        session: Session,
+        data_source: DataSource,
+        params: Params | None = Params(),
+    ) -> Page[VectorIndexError]:
+        query = (
+            select(
+                Document.id,
+                Document.name,
+                Document.source_uri,
+                Document.index_result,
+            )
+            .where(
+                Document.data_source_id == data_source.id,
+                Document.index_status == DocIndexTaskStatus.FAILED,
+            )
+            .order_by(Document.id.desc())
+        )
+        return paginate(
+            session,
+            query,
+            params,
+            transformer=lambda items: [
+                VectorIndexError(
+                    document_id=item[0],
+                    document_name=item[1],
+                    source_uri=item[2],
+                    error=item[3],
+                )
+                for item in items
+            ],
+        )
+
+    def kg_index_built_errors(
+        self,
+        session: Session,
+        data_source: DataSource,
+        params: Params | None = Params(),
+    ) -> Page[KGIndexError]:
+        query = (
+            select(
+                Chunk.id,
+                Chunk.source_uri,
+                Chunk.index_result,
+            )
+            .where(
+                Chunk.document.has(Document.data_source_id == data_source.id),
+                Chunk.index_status == KgIndexStatus.FAILED,
+            )
+            .order_by(Chunk.id.desc())
+        )
+        return paginate(
+            session,
+            query,
+            params,
+            transformer=lambda items: [
+                KGIndexError(
+                    chunk_id=item[0],
+                    source_uri=item[1],
+                    error=item[2],
+                )
+                for item in items
+            ],
+        )
+
+    def set_failed_vector_index_tasks_to_pending(
+        self, session: Session, data_source: DataSource
+    ) -> list[int]:
+        failed_document_ids = session.exec(
+            select(Document.id).where(
+                Document.data_source_id == data_source.id,
+                Document.index_status == DocIndexTaskStatus.FAILED,
+            )
+        ).all()
+        stmt = (
+            update(Document)
+            .where(
+                Document.id.in_(failed_document_ids),
+                Document.index_status == DocIndexTaskStatus.FAILED,
+            )
+            .values(index_status=DocIndexTaskStatus.PENDING)
+        )
+        session.exec(stmt)
+        session.commit()
+        return failed_document_ids
+
+    def set_failed_kg_index_tasks_to_pending(
+        self, session: Session, data_source: DataSource
+    ) -> list[tuple]:
+        failed_chunks = session.exec(
+            select(
+                Chunk.id,
+                Chunk.document_id,
+            ).where(
+                Chunk.document.has(Document.data_source_id == data_source.id),
+                Chunk.index_status == KgIndexStatus.FAILED,
+            )
+        ).all()
+        failed_chunks_ids = [chunk[0] for chunk in failed_chunks]
+        stmt = (
+            update(Chunk)
+            .where(Chunk.id.in_(failed_chunks_ids))
+            .values(index_status=KgIndexStatus.PENDING)
+        )
+        session.exec(stmt)
+        session.commit()
+        return failed_chunks
 
 
 data_source_repo = DataSourceRepo()

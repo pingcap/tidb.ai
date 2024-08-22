@@ -7,6 +7,7 @@ from app.experiments.sql_sample_gen import SQLSample
 
 logger = logging.getLogger(__name__)
 
+
 class SampleExtract(dspy.Signature):
     """Your goal is to extract the "SQL Example" from the provided answer. This section contains SQL queries intended to address the user's issue. 
     

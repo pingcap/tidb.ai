@@ -43,7 +43,9 @@ class BuildService:
         embed_mode = get_default_embedding_model(session)
 
         if db_document.mime_type.lower() == "text/markdown":
-            spliter = MarkdownNodeParser()
+            # spliter = MarkdownNodeParser()
+            # TODO: FIX MarkdownNodeParser
+            spliter = SentenceSplitter()
         else:
             spliter = SentenceSplitter()
 

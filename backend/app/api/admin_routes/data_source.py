@@ -10,8 +10,11 @@ from app.models import (
 from app.tasks import (
     import_documents_from_datasource,
     purge_datasource_related_resources,
+    build_kg_index_from_chunk,
+    build_vector_index_from_document,
 )
 from app.repositories import data_source_repo
+from app.schemas import VectorIndexError, KGIndexError
 
 router = APIRouter()
 
@@ -96,3 +99,49 @@ def get_datasource_overview(
             detail="Data source not found",
         )
     return data_source_repo.overview(session, data_source)
+
+
+@router.get("/admin/datasources/{data_source_id}/vector-index-errors")
+def get_datasource_vector_index_errors(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    data_source_id: int,
+    params: Params = Depends(),
+) -> Page[VectorIndexError]:
+    data_source = data_source_repo.get(session, data_source_id)
+    if data_source is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return data_source_repo.vector_index_built_errors(session, data_source, params)
+
+
+@router.get("/admin/datasources/{data_source_id}/kg-index-errors")
+def get_datasource_kg_index_errors(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    data_source_id: int,
+    params: Params = Depends(),
+) -> Page[KGIndexError]:
+    data_source = data_source_repo.get(session, data_source_id)
+    if data_source is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    return data_source_repo.kg_index_built_errors(session, data_source, params)
+
+
+@router.post("/admin/datasources/{data_source_id}/retry-failed-tasks")
+def retry_failed_tasks(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    data_source_id: int,
+) -> None:
+    data_source = data_source_repo.get(session, data_source_id)
+    if data_source is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    for docuemnt_id in data_source_repo.set_failed_vector_index_tasks_to_pending(
+        session, data_source
+    ):
+        build_vector_index_from_document.delay(data_source_id, docuemnt_id)
+    for chunk_id, document_id in data_source_repo.set_failed_kg_index_tasks_to_pending(
+        session, data_source
+    ):
+        build_kg_index_from_chunk.delay(data_source_id, document_id, chunk_id)
+    return
