@@ -1,0 +1,85 @@
+QA_content,no_reasonable_example,steps
+"User question: TiDB 支持 vector search 吗？
+Answer: 是的，TiDB 支持向量搜索（Vector Search）功能。让我详细为您解释 TiDB 的向量搜索功能：
+
+1. 功能概述：
+TiDB 的向量搜索功能允许用户在 TiDB 数据库中存储和查询向量数据，实现高效的相似性搜索[^1]。这项功能目前处于 beta 阶段，仅适用于 TiDB Serverless 集群[^2]。
+
+2. 工作原理：
+TiDB 向量搜索使用近似最近邻（ANN）搜索算法来加速 K-最近邻（KNN）查询[^3]。它通过创建和利用向量搜索索引来实现毫秒级的查询速度。目前，TiDB 支持 HNSW（Hierarchical Navigable Small World）算法作为向量搜索索引[^3]。
+
+3. 支持的向量类型：
+TiDB 引入了新的向量数据类型来支持向量搜索。它可以存储最多 16,000 维的向量，这足以满足大多数嵌入模型的需求[^4]。
+
+4. 使用方法：
+要使用 TiDB 进行向量搜索，您需要：
+   a. 创建一个包含向量数据类型列的表
+   b. 插入向量数据
+   c. 创建向量搜索索引
+   d. 执行向量相似性查询
+
+5. 集成与应用：
+TiDB 向量搜索可以与多种 AI 框架和嵌入模型集成，如 Langchain 和 LlamaIndex[^5]。这使得它可以应用于各种场景，如语义搜索、推荐系统等。
+
+6. 性能优化：
+TiDB 提供了多种方法来优化向量搜索性能，包括索引调优和查询优化[^6]。
+
+7. SQL 支持：
+TiDB 扩展了 MySQL 语法以支持向量搜索，引入了新的向量函数和操作符[^7]。这使得用户可以使用熟悉的 SQL 语句来执行向量搜索操作。
+
+总的来说，TiDB 的向量搜索功能为用户提供了一个强大的工具，可以在关系数据库中高效地进行向量相似性搜索，适用于各种 AI 和机器学习应用场景。
+
+Example SQL:
+
+以下是使用 TiDB 进行向量搜索的示例 SQL：
+
+```sql
+-- 创建包含向量数据的表
+CREATE TABLE vector_data (
+    id INT PRIMARY KEY,
+    description VARCHAR(255),
+    embedding VECTOR(128) -- 假设我们使用128维的向量
+);
+
+-- 插入向量数据
+INSERT INTO vector_data (id, description, embedding) VALUES 
+(1, 'Sample 1', '[1.0, 2.0, 3.0, ..., 128.0]'),
+(2, 'Sample 2', '[2.0, 3.0, 4.0, ..., 129.0]');
+
+-- 创建向量搜索索引
+CREATE INDEX idx_embedding ON vector_data USING HNSW(embedding);
+
+-- 执行向量相似性查询
+SELECT id, description, VECTOR_DISTANCE(embedding, '[1.1, 2.1, 3.1, ..., 128.1]') AS distance
+FROM vector_data
+ORDER BY distance
+LIMIT 5;
+```
+
+请注意，这些 SQL 示例是概念性的，实际使用时需要根据您的具体数据和需求进行调整。
+
+[^1]: [Vector Search Overview | PingCAP Docs](https://docs.pingcap.com/tidbcloud/vector-search-overview)
+[^2]: [Get Started with Vector Search via SQL | PingCAP Docs](https://docs.pingcap.com/tidbcloud/vector-search-get-started-using-sql)
+[^3]: [Vector Search Index | PingCAP Docs](https://docs.pingcap.com/tidbcloud/vector-search-index)
+[^4]: [Vector Search Integration Overview | PingCAP Docs](https://docs.pingcap.com/tidbcloud/vector-search-integration-overview)
+[^5]: [AI frameworks | PingCAP Docs](https://docs.pingcap.com/tidbcloud/vector-search-integration-overview#ai-frameworks)
+[^6]: [Improve Vector Search Performance | PingCAP Docs](https://docs.pingcap.com/tidbcloud/vector-search-improve-performance)
+[^7]: [Vector Functions and Operators | PingCAP Docs](https://docs.pingcap.com/tidbcloud/vector-search-functions-and-operators)",False,"[{""explanation"": ""Create a table with a column of vector data type. However to simplify the demo, Let's set the vector length to 3. "", ""sql"": ""CREATE TABLE vector_data (id INT PRIMARY KEY, description VARCHAR(255), embedding VECTOR(3));""}, {""explanation"": ""Insert sample data with vector values."", ""sql"": ""INSERT INTO vector_data (id, description, embedding) VALUES (1, 'Sample 1', '[1.0, 2.0, 3.0]'), (2, 'Sample 2', '[2.0, 3.0, 4.0]');""}, {""explanation"": ""Create a vector search index using the HNSW algorithm. However, since TiDB does not yet support creating indexes using the CREATE INDEX statement, we will skip this step."", ""sql"": ""-- CREATE INDEX idx_embedding ON vector_data USING HNSW(embedding);""}, {""explanation"": ""Execute a vector similarity query to find the closest vectors. But TiDB don't support `VECTOR_DISTANCE` function, let's use `VEC_COSINE_DISTANCE`."", ""sql"": ""SELECT id, description, VEC_COSINE_DISTANCE(embedding, '[1.1, 2.1, 3.1]') AS distance FROM vector_data ORDER BY distance LIMIT 5;""}, {""explanation"": ""Clear the table after the demo."", ""sql"": ""DROP TABLE vector_data;""}]"
+"What is TiDB??
+Answer: TiDB is an open-source distributed SQL database that supports Hybrid Transactional and Analytical Processing (HTAP) workloads[^1]. It is designed to provide a scalable, highly available, and MySQL-compatible database solution for large-scale data management. Let's explore TiDB's key features and functionalities:
+
+1. Distributed Architecture:
+TiDB has a distributed architecture that separates computing from storage, allowing for flexible and elastic scalability[^2]. This design enables users to scale out or scale in both computing and storage resources independently, adapting to changing workloads without disrupting operations.
+
+....
+
+8. Comprehensive Toolset:
+TiDB provides a rich set of tools for data migration, replication, and backup, facilitating easy integration with existing database systems and ensuring data safety[^3].
+
+By addressing the challenges of scalability and high availability in a distributed environment while maintaining MySQL compatibility, TiDB positions itself as a powerful solution for businesses dealing with large-scale data and requiring both transactional and analytical processing capabilities.
+
+[^1]: [TiDB Introduction | PingCAP Docs](https://docs.pingcap.com/tidb/v6.1/overview)
+[^2]: [TiDB Architecture | PingCAP Docs](https://docs.pingcap.com/tidb/v7.1/tidb-architecture)
+[^3]: [TiDB Architecture | PingCAP Docs](https://docs.pingcap.com/tidb/stable/tidb-architecture)
+[^4]: [TiDB Key Features | PingCAP Docs](https://docs.pingcap.com/tidb/v5.4/overview)
+",True,[]

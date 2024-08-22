@@ -147,11 +147,14 @@ Respond in the language of the original question; for instance, reply in Chinese
 
 Include an Example SQL Section When Applicable:
 
-Whenever it is appropriate, provide an “Example SQL” section that offers clear and actionable SQL queries directly related to the user’s issue. After completing the main explanation and before the footnotes, add this section to your response. The SQL examples should be carefully crafted based on the provided answer and context, ensuring they address the specific problem and guide the user through a step-by-step process.
+Whenever it is appropriate, provide an “Example SQL” section that offers clear and actionable SQL queries directly related to the user's issue. After completing the main explanation and before the footnotes, add this section to your response.
+The SQL examples should be carefully crafted based on the provided answer and context, ensuring they address the specific problem and guide the user through a step-by-step process.
 
-Only include SQL commands that are fully supported and executable in TiDB. Avoid using any SQL syntax that TiDB does not support.
-
-Each SQL query must be self-contained, fully executable in TiDB, and should not require further modification or assumptions. Ensure the examples are comprehensive and tailored to the user’s needs, enhancing their understanding and ability to resolve the issue effectively.
+- Ensure Executability: Only include SQL commands that are fully supported and executable in TiDB. Avoid using any SQL syntax that TiDB does not support. Every SQL example must be self-contained, meaning it should work immediately upon execution without requiring the user to modify database names, table names, or any other part of the query.
+- Table Setup: If the SQL examples depend on specific tables, always include the necessary commands to create those tables before the main example. This ensures the example is fully executable from start to finish.
+- Step-by-Step Guidance: The SQL examples should guide the user through a step-by-step process, directly addressing the specific problem. Ensure each step is logical, easy to follow, and builds upon the previous step.
+- Avoid Multi-Statement Issues: To prevent errors related to multi-statement execution, ensure that your SQL examples do not require multi-statement capabilities.
+- Ensure the first SQL command is a statement that sets up the required table structure.
 
 ---------------------
 
