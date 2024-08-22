@@ -68,7 +68,7 @@ class ChatService:
             self._node_postprocessors = [self._metadata_filter, self._reranker]
             # Set initial similarity_top_k to a large number,
             # reranker will filter out irrelevant nodes after the retrieval
-            self._similarity_top_k = 100
+            self._similarity_top_k = 80
         else:
             self._node_postprocessors = [self._metadata_filter]
             self._similarity_top_k = 10
@@ -429,27 +429,35 @@ class ChatService:
 
     def _get_source_documents(self, response: StreamingResponse) -> List[dict]:
         source_nodes_ids = [s_n.node_id for s_n in response.source_nodes]
-        stmt = select(
-            Document.id,
-            Document.name,
-            Document.source_uri,
-        ).where(
-            Document.id.in_(
-                select(
-                    Chunk.document_id,
-                ).where(
-                    Chunk.id.in_(source_nodes_ids),
-                )
-            ),
+        stmt = (
+            select(
+                Chunk.id,
+                Document.id,
+                Document.name,
+                Document.source_uri,
+            )
+            .outerjoin(Document, Chunk.document_id == Document.id)
+            .where(
+                Chunk.id.in_(source_nodes_ids),
+            )
         )
-        source_documents = [
-            {
-                "id": doc_id,
-                "name": doc_name,
-                "source_uri": source_uri,
-            }
-            for doc_id, doc_name, source_uri in self.db_session.exec(stmt).all()
-        ]
+        source_chunks = self.db_session.exec(stmt).all()
+        # Sort the source chunks based on the order of the source_nodes_ids, which are arranged according to their related scores.
+        source_chunks = sorted(
+            source_chunks, key=lambda x: source_nodes_ids.index(str(x[0]))
+        )
+        source_documents = []
+        source_documents_ids = []
+        for s in source_chunks:
+            if s[1] not in source_documents_ids:
+                source_documents_ids.append(s[1])
+                source_documents.append(
+                    {
+                        "id": s[1],
+                        "name": s[2],
+                        "source_uri": s[3],
+                    }
+                )
         return source_documents
 
 
