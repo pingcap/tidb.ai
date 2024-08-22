@@ -126,6 +126,7 @@ class ChatService:
             )
             chat_id = self.db_chat_obj.id
             # slack/discord may create a new chat with history messages
+            now = datetime.now(UTC)
             for i, m in enumerate(chat_history):
                 chat_repo.create_message(
                     session=self.db_session,
@@ -134,6 +135,9 @@ class ChatService:
                         role=m.role,
                         content=m.content,
                         ordinal=i + 1,
+                        created_at=now,
+                        updated_at=now,
+                        finished_at=now,
                     ),
                 )
 
