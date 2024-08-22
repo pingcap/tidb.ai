@@ -5,7 +5,6 @@
   },
   "index": "Introduction",
   "quick-start": "Quick Start",
-  "changelog": "Changelog",
   "faq": "FAQ",
   "-- Deploy This RAG": {
     "type": "separator",
