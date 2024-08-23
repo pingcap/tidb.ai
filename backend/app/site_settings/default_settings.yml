@@ -79,12 +79,12 @@ custom_js:
     description: "The button label on the custom_js."
     client: true
   custom_js_button_img_src:
-    default: "https://tidb.ai/tidb-ai.svg"
+    default: "https://tidb.ai/tidb-ai-widget.svg"
     data_type: str
     description: "The button image on the custom_js."
     client: true
   custom_js_logo_src:
-    default: "https://tidb.ai/tidb-ai-light.svg"
+    default: "https://tidb.ai/tidb-ai-widget.svg"
     data_type: str
     description: "The logo on the custom_js."
     client: true

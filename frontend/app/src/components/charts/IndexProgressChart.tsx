@@ -8,29 +8,35 @@ import * as React from 'react';
 import { useMemo } from 'react';
 import { Label, Pie, PieChart } from 'recharts';
 
+const color_error = '#ef4444';
+const color_succeed = '#22c55e';
+const color_in_progress = '#3b82f6';
+const color_pending = '#71717a';
+const color_blank = '#71717a80';
+
 const chartConfig = {
   total: {
     label: 'Total',
   },
   completed: {
     label: 'Completed',
-    color: 'hsl(var(--chart-1))',
+    color: color_succeed,
   },
   pending: {
     label: 'Pending',
-    color: 'hsl(var(--chart-2))',
+    color: color_pending,
   },
   running: {
     label: 'Running',
-    color: 'hsl(var(--chart-3))',
+    color: color_in_progress,
   },
   failed: {
     label: 'Failed',
-    color: 'hsl(var(--chart-4))',
+    color: color_error,
   },
   not_started: {
     label: 'Not Started',
-    color: 'hsl(var(--chart-5))',
+    color: color_blank,
   },
 } satisfies ChartConfig;
 
@@ -42,11 +48,11 @@ export function IndexProgressChart ({ title, description, data }: { title: strin
   const chartData = useMemo(() => {
 
     return [
-      { count: data.completed, state: 'Completed', fill: 'hsl(var(--chart-5))' },
-      { count: data.failed, state: 'Failed', fill: 'hsl(var(--chart-4))' },
-      { count: data.pending, state: 'Pending', fill: 'hsl(var(--chart-3))' },
-      { count: data.running, state: 'Running', fill: 'hsl(var(--chart-2))' },
-      { count: data.not_started, state: 'Not started', fill: 'hsl(var(--chart-1))' },
+      { count: data.completed, state: 'Completed', fill: color_succeed },
+      { count: data.failed, state: 'Failed', fill: color_error },
+      { count: data.pending, state: 'Pending', fill: color_pending },
+      { count: data.running, state: 'Running', fill: color_in_progress },
+      { count: data.not_started, state: 'Not started', fill: color_blank },
     ];
   }, []);
 
