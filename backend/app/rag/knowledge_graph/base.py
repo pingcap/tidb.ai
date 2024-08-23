@@ -299,35 +299,35 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
                 Scoped_Session.remove()
             return sub_query, entities, relationships
 
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            future_to_query = {
-                executor.submit(process_query, sub_query): sub_query
-                for sub_query in semantic_queries
-            }
-            for future in concurrent.futures.as_completed(future_to_query):
-                sub_query = future_to_query[future]
-                try:
-                    # It can't record the real execution time of the sub_query
-                    with self._callback_manager.as_trace("intent_based_search"):
-                        with self._callback_manager.event(
-                            MyCBEventType.GRAPH_SEMANTIC_SEARCH,
-                            payload={EventPayload.QUERY_STR: sub_query},
-                        ) as event:
-                            sub_query, entities, relationships = future.result()
-                            event.on_end(
-                                payload={
-                                    "entities": entities,
-                                    "relationships": relationships,
-                                },
-                            )
-                    result["queries"][sub_query] = {
-                        "entities": entities,
-                        "relationships": relationships,
+        with self._callback_manager.as_trace("intent_based_search"):
+            with self._callback_manager.event(
+                MyCBEventType.GRAPH_SEMANTIC_SEARCH,
+                payload={EventPayload.QUERY_STR: semantic_queries},
+            ) as event:
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    future_to_query = {
+                        executor.submit(process_query, sub_query): sub_query
+                        for sub_query in semantic_queries
                     }
-                    all_entities.extend(entities)
-                    add_relationships(relationships)
-                except Exception as exc:
-                    logger.error(f"{sub_query} generated an exception: {exc}")
+                    for future in concurrent.futures.as_completed(future_to_query):
+                        sub_query = future_to_query[future]
+                        try:
+                            # It can't record the real execution time of the sub_query
+                            sub_query, entities, relationships = future.result()
+                            result["queries"][sub_query] = {
+                                "entities": entities,
+                                "relationships": relationships,
+                            }
+                            all_entities.extend(entities)
+                            add_relationships(relationships)
+                        except Exception as exc:
+                            logger.error(f"{sub_query} generated an exception: {exc}")
+
+                event.on_end(
+                    payload={
+                        "queries": result["queries"],
+                    },
+                )
 
         unique_entities = {e["id"]: e for e in all_entities}.values()
 
