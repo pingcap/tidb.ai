@@ -6,12 +6,21 @@ import { useEffect, useState } from 'react';
 
 const base = process.env.SITE_URL || '';
 
+function parseOrigin (url: string) {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return '';
+  }
+}
+
 export function WidgetSnippet () {
   const [copied, setCopied] = useState(false);
 
   const [url, setUrl] = useState(base + '/widget.js');
 
-  const script = `<script src="${url}" data-api-base="${new URL(url).origin}" async></script>`;
+  const origin = parseOrigin(url);
+  const script = `<script src="${url}" ${origin && `data-api-base="${origin}"`} async></script>`;
 
   useEffect(() => {
     if (!process.env.SITE_URL) {
