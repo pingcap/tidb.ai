@@ -53,52 +53,56 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
     }
   }, [enabled, verifyId, messageFinished, question, answer, verifying]);
 
-  const isVerifying = verifying || !finished;
+  const shouldDisplayContent = result?.status === VerifyState.VALIDATING ||
+                             result?.status === VerifyState.SUCCESS ||
+                             result?.status === VerifyState.FAILED;
 
-  if (!isSuperuser || !enabled || !messageFinished) {
+  if (!isSuperuser || !enabled || !messageFinished || !shouldDisplayContent) {
     return null;
   }
 
   return (
-    <Collapsible className="p-2 border rounded-lg">
-      <CollapsibleTrigger asChild>
-        <Button className="group gap-2 w-full" variant="ghost" disabled={!finished}>
-          {result?.status === VerifyState.VALIDATING
-            ? <Loader2Icon className="size-4 animate-spin repeat-infinite" />
-            : result?.status === VerifyState.SUCCESS
-              ? <CheckCircle2Icon className="size-4 text-green-500" />
-              : result?.status === VerifyState.FAILED
-                ? <InformationCircleIcon className="size-4 text-yellow-500" />
-                : undefined}
-          {result?.message ?? 'Preparing verify chat result...'}
-          <ChevronDownIcon className="size-4 ml-auto transition-transform group-data-[state=open]:rotate-180" />
-        </Button>
-      </CollapsibleTrigger>
-      <CollapsibleContent>
-        {result && <ul className="space-y-2">
-          {result.runs.map(((run, index) => (
-            <li key={index}>
-              <div className="p-2 space-y-1">
-                <pre className="whitespace-pre-wrap text-xs text-accent-foreground rounded">
-                  {run.success ? <CheckIcon className="inline-block mr-2 size-3 text-green-500" /> : <XIcon className="inline-block mr-2 size-3 text-red-500" />}
-                  <code>{run.sql}</code>
-                </pre>
-                <p className="text-xs text-muted-foreground">
-                  {run.explanation}
-                </p>
-                {run.success && <pre className="whitespace-pre-wrap text-xs bg-muted text-muted-foreground p-2 rounded">{JSON.stringify(run.results)}</pre>}
-                {!run.success && <pre className="whitespace-pre-wrap text-xs bg-muted text-muted-foreground p-2 rounded">{run.sql_error_code} {run.sql_error_message}</pre>}
-              </div>
-            </li>
-          )))}
-        </ul>}
-        {result && result.runs.length === 0 && (
-          <div className="p-2 text-muted-foreground text-xs">
-            Empty result.
-          </div>
-        )}
-      </CollapsibleContent>
-    </Collapsible>
+    shouldDisplayContent && (
+      <Collapsible className="p-2 border rounded-lg">
+        <CollapsibleTrigger asChild>
+          <Button className="group gap-2 w-full" variant="ghost" disabled={!finished}>
+            {result?.status === VerifyState.VALIDATING
+              ? <Loader2Icon className="size-4 animate-spin repeat-infinite" />
+              : result?.status === VerifyState.SUCCESS
+                ? <CheckCircle2Icon className="size-4 text-green-500" />
+                : result?.status === VerifyState.FAILED
+                  ? <InformationCircleIcon className="size-4 text-yellow-500" />
+                  : undefined}
+            {result?.message ?? 'Preparing verify chat result...'}
+            <ChevronDownIcon className="size-4 ml-auto transition-transform group-data-[state=open]:rotate-180" />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          {result && <ul className="space-y-2">
+            {result.runs.map(((run, index) => (
+              <li key={index}>
+                <div className="p-2 space-y-1">
+                  <pre className="whitespace-pre-wrap text-xs text-accent-foreground rounded">
+                    {run.success ? <CheckIcon className="inline-block mr-2 size-3 text-green-500" /> : <XIcon className="inline-block mr-2 size-3 text-red-500" />}
+                    <code>{run.sql}</code>
+                  </pre>
+                  <p className="text-xs text-muted-foreground">
+                    {run.explanation}
+                  </p>
+                  {run.success && <pre className="whitespace-pre-wrap text-xs bg-muted text-muted-foreground p-2 rounded">{JSON.stringify(run.results)}</pre>}
+                  {!run.success && <pre className="whitespace-pre-wrap text-xs bg-muted text-muted-foreground p-2 rounded">{run.sql_error_code} {run.sql_error_message}</pre>}
+                </div>
+              </li>
+            )))}
+          </ul>}
+          {result && result.runs.length === 0 && (
+            <div className="p-2 text-muted-foreground text-xs">
+              Empty result.
+            </div>
+          )}
+        </CollapsibleContent>
+      </Collapsible>
+    )
   );
 }
 
