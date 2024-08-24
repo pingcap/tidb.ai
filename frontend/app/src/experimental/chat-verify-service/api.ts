@@ -8,7 +8,8 @@ export const enum VerifyState {
   EXTRACTING = 'EXTRACTING',
   VALIDATING = 'VALIDATING',
   SUCCESS = 'SUCCESS',
-  FAILED = 'FAILED'
+  FAILED = 'FAILED',
+  SKIPPED = 'SKIPPED'
 }
 
 const verifyResponse = z.object({
@@ -48,5 +49,5 @@ export async function getVerify (id: string) {
 }
 
 export function isFinalVerifyState (state: VerifyState) {
-  return [VerifyState.SUCCESS, VerifyState.FAILED].includes(state);
+  return [VerifyState.SUCCESS, VerifyState.FAILED, VerifyState.SKIPPED].includes(state);
 }
