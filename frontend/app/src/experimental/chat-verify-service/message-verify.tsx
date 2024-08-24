@@ -57,6 +57,9 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
                              result?.status === VerifyState.SUCCESS ||
                              result?.status === VerifyState.FAILED;
 
+  console.log('shouldDisplayContent:', shouldDisplayContent);
+  console.log('result:', result);
+
   if (!isSuperuser || !enabled || !messageFinished || !shouldDisplayContent) {
     return null;
   }
