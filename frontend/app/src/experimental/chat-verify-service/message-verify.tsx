@@ -59,6 +59,10 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
     return null;
   }
 
+  if (![VerifyState.VALIDATING, VerifyState.SUCCESS, VerifyState.FAILED].includes(result?.status)) {
+    return null;
+  }
+
   return (
     <Collapsible className="p-2 border rounded-lg">
       <CollapsibleTrigger asChild>
