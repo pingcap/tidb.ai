@@ -59,15 +59,11 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
     return null;
   }
 
-  if (![VerifyState.VALIDATING, VerifyState.SUCCESS, VerifyState.FAILED].includes(result?.status)) {
-    return null;
-  }
-
   return (
     <Collapsible className="p-2 border rounded-lg">
       <CollapsibleTrigger asChild>
         <Button className="group gap-2 w-full" variant="ghost" disabled={!finished}>
-          {isVerifying
+          {result?.status === VerifyState.VALIDATING
             ? <Loader2Icon className="size-4 animate-spin repeat-infinite" />
             : result?.status === VerifyState.SUCCESS
               ? <CheckCircle2Icon className="size-4 text-green-500" />
