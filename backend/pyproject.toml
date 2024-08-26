@@ -12,7 +12,7 @@ dependencies = [
     "celery>=5.4.0",
     "dspy-ai>=2.4.9",
     "langfuse>=2.42.0",
-    "llama-index>=0.10.59",
+    "llama-index==0.10.68",
     "alembic>=1.13.1",
     "pydantic>=2.8.2",
     "pydantic-settings>=2.3.3",
@@ -45,6 +45,10 @@ dependencies = [
     "llama-index-postprocessor-cohere-rerank>=0.1.7",
     "llama-index-llms-bedrock>=0.1.12",
     "pypdf>=4.3.1",
+    "llama-index-llms-ollama<=0.3.0",
+    "llama-index-embeddings-ollama<=0.3.0",
+    "llama-index-embeddings-jinaai<=0.3.0",
+    "llama-index-embeddings-cohere<=0.3.0",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"
