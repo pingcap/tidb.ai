@@ -54,8 +54,9 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
     }
   }, [enabled, verifyId, messageFinished, question, answer, verifying]);
 
-  console.log('shouldDisplayContent:', shouldDisplayContent);
-  console.log('result:', result);
+  useEffect(() => {
+    console.debug(`[message-verify] display=${shouldDisplayContent}:`, result);
+  }, [shouldDisplayContent, result]);
 
   if (!isSuperuser || !enabled || !messageFinished || !shouldDisplayContent) {
     return null;
