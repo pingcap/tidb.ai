@@ -9,7 +9,9 @@
     "build:standalone": "STANDALONE=1 next build --no-lint && next-sitemap",
     "start": "next start",
     "lint": "next lint",
-    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest"
+    "test": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
@@ -73,7 +75,16 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@chromatic-com/storybook": "^1.7.0",
     "@jest/globals": "^29.7.0",
+    "@storybook/addon-essentials": "^8.2.9",
+    "@storybook/addon-interactions": "^8.2.9",
+    "@storybook/addon-links": "^8.2.9",
+    "@storybook/addon-onboarding": "^8.2.9",
+    "@storybook/blocks": "^8.2.9",
+    "@storybook/nextjs": "^8.2.9",
+    "@storybook/react": "^8.2.9",
+    "@storybook/test": "^8.2.9",
     "@tanstack/react-table": "^8.20.1",
     "@tanstack/table-core": "^8.20.1",
     "@testing-library/jest-dom": "^6.4.8",
@@ -92,6 +103,7 @@
     "d3": "^7.9.0",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.2.5",
+    "eslint-plugin-storybook": "^0.8.0",
     "eventemitter3": "^5.0.1",
     "fast-equals": "^5.0.1",
     "filesize": "^10.1.4",
@@ -112,6 +124,7 @@
     "react-lowlight": "^3.0.0",
     "react-textarea-autosize": "^8.5.3",
     "sass": "^1.77.8",
+    "storybook": "^8.2.9",
     "swr": "^2.2.5",
     "tailwindcss": "^3.4.9",
     "ts-jest": "^29.2.4",
@@ -119,5 +132,19 @@
     "typescript": "^5.5.4",
     "undici": "^6.19.7",
     "yaml-loader": "^0.8.1"
+  },
+  "imports": {
+    "#*": {
+      "storybook": [
+        "./src/*.mock",
+        "./src/*.mock.ts",
+        "./src/*.mock.tsx"
+      ],
+      "default": [
+        "./src/*",
+        "./src/*.ts",
+        "./src/*.tsx"
+      ]
+    }
   }
 }
