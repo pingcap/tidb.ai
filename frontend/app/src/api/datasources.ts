@@ -63,6 +63,19 @@ export interface Upload {
   user_id: string;
 }
 
+export type DatasourceVectorIndexError = {
+  document_id: number
+  document_name: string
+  source_uri: string
+  error: string
+}
+
+export type DatasourceKgIndexError = {
+  chunk_id: string
+  source_uri: string
+  error: string
+}
+
 const baseDatasourceSchema = z.object({
   id: z.number(),
   name: z.string(),
@@ -116,6 +129,19 @@ const datasourceOverviewSchema = z.object({
   relationships: totalSchema.optional(),
 }) satisfies ZodType<DataSourceIndexProgress>;
 
+const vectorIndexErrorSchema = z.object({
+  document_id: z.number(),
+  document_name: z.string(),
+  source_uri: z.string(),
+  error: z.string(),
+}) satisfies ZodType<DatasourceVectorIndexError, any, any>;
+
+const kgIndexErrorSchema = z.object({
+  chunk_id: z.string(),
+  source_uri: z.string(),
+  error: z.string(),
+}) satisfies ZodType<DatasourceKgIndexError, any, any>;
+
 export async function listDataSources ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<Datasource>> {
   return fetch(`${BASE_URL}/api/v1/admin/datasources?${buildUrlParams({ page, size }).toString()}`, {
     headers: await authenticationHeaders(),
@@ -165,4 +191,26 @@ export async function uploadFiles (files: File[]) {
     },
     body: formData,
   }).then(handleResponse(uploadSchema.array()));
+}
+
+export async function listDatasourceVectorIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}) {
+  return fetch(`${BASE_URL}/api/v1/admin/datasources/${id}/vector-index-errors?${buildUrlParams({ page, size }).toString()}`, {
+    headers: await authenticationHeaders(),
+  }).then(handleResponse(zodPage(vectorIndexErrorSchema)));
+}
+
+export async function listDatasourceKgIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}) {
+  return fetch(`${BASE_URL}/api/v1/admin/datasources/${id}/kg-index-errors?${buildUrlParams({ page, size }).toString()}`, {
+    headers: await authenticationHeaders(),
+  }).then(handleResponse(zodPage(kgIndexErrorSchema)));
+}
+
+export async function retryDatasourceAllFailedTasks (id: number) {
+  return fetch(`${BASE_URL}/api/v1/admin/datasources/${id}/retry-failed-tasks`, {
+    method: 'POST',
+    headers: {
+      ...await authenticationHeaders(),
+      'Content-Type': 'application/json',
+    },
+  }).then(handleResponse(datasourceSchema));
 }
