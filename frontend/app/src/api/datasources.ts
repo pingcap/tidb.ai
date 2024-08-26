@@ -67,13 +67,13 @@ export type DatasourceVectorIndexError = {
   document_id: number
   document_name: string
   source_uri: string
-  error: string
+  error: string | null
 }
 
 export type DatasourceKgIndexError = {
   chunk_id: string
   source_uri: string
-  error: string
+  error: string | null
 }
 
 const baseDatasourceSchema = z.object({
@@ -133,13 +133,13 @@ const vectorIndexErrorSchema = z.object({
   document_id: z.number(),
   document_name: z.string(),
   source_uri: z.string(),
-  error: z.string(),
+  error: z.string().nullable(),
 }) satisfies ZodType<DatasourceVectorIndexError, any, any>;
 
 const kgIndexErrorSchema = z.object({
   chunk_id: z.string(),
   source_uri: z.string(),
-  error: z.string(),
+  error: z.string().nullable(),
 }) satisfies ZodType<DatasourceKgIndexError, any, any>;
 
 export async function listDataSources ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<Datasource>> {

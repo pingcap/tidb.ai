@@ -209,8 +209,8 @@ const kgIndexErrorsColumns: ColumnDef<DatasourceKgIndexError, any>[] = [
   }),
 ];
 
-function ErrorPopper ({ children }: { children: string }) {
-  if (children.length <= 50) {
+function ErrorPopper ({ children }: { children: string | null }) {
+  if (!children || children.length <= 25) {
     return children;
   }
 
@@ -219,7 +219,10 @@ function ErrorPopper ({ children }: { children: string }) {
   return (
     <HoverCard>
       <HoverCardTrigger>
-        {shortcut}... <span className="text-muted-foreground">({children.length + ' characters'})</span>
+        {shortcut}{'... '}
+        <span className="text-muted-foreground">
+          ({children.length + ' characters'})
+        </span>
       </HoverCardTrigger>
       <HoverCardContent className="w-96 h-48">
         <div className="size-full overflow-scroll">
