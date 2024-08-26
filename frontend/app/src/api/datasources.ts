@@ -212,5 +212,5 @@ export async function retryDatasourceAllFailedTasks (id: number) {
       ...await authenticationHeaders(),
       'Content-Type': 'application/json',
     },
-  }).then(handleResponse(datasourceSchema));
+  }).then(handleErrors);
 }
