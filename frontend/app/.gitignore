@@ -42,3 +42,5 @@ public/widget.js
 public/robots.txt
 public/sitemap.xml
 public/sitemap-*.xml
+
+*storybook.log

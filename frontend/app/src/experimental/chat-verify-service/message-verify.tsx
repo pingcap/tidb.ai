@@ -4,7 +4,7 @@ import type { ChatMessageController } from '@/components/chat/chat-message-contr
 import { isNotFinished } from '@/components/chat/utils';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { getVerify, isFinalVerifyState, isVisibleVerifyState, verify, VerifyState } from '@/experimental/chat-verify-service/api';
+import { getVerify, isFinalVerifyState, isVisibleVerifyState, verify, VerifyState } from '#experimental/chat-verify-service/api';
 import { CheckCircle2Icon, CheckIcon, ChevronDownIcon, Loader2Icon, XIcon } from 'lucide-react';
 import { InformationCircleIcon } from 'nextra/icons';
 import { useEffect, useState } from 'react';
