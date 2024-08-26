@@ -51,3 +51,7 @@ export async function getVerify (id: string) {
 export function isFinalVerifyState (state: VerifyState) {
   return [VerifyState.SUCCESS, VerifyState.FAILED, VerifyState.SKIPPED].includes(state);
 }
+
+export function isVisibleVerifyState (state: VerifyState) {
+  return [VerifyState.SUCCESS, VerifyState.FAILED, VerifyState.VALIDATING].includes(state);
+}
