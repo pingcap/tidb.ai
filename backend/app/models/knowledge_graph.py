@@ -37,12 +37,12 @@ class Entity(EntityBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     description_vec: Any = Field(
         sa_column=Column(
-            VectorType(settings.EMBEDDOMG_DIMS), comment="hnsw(distance=cosine)"
+            VectorType(settings.EMBEDDING_DIMS), comment="hnsw(distance=cosine)"
         )
     )
     meta_vec: Any = Field(
         sa_column=Column(
-            VectorType(settings.EMBEDDOMG_DIMS), comment="hnsw(distance=cosine)"
+            VectorType(settings.EMBEDDING_DIMS), comment="hnsw(distance=cosine)"
         )
     )
 
@@ -77,7 +77,7 @@ class Relationship(RelationshipBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     description_vec: Any = Field(
         sa_column=Column(
-            VectorType(settings.EMBEDDOMG_DIMS), comment="hnsw(distance=cosine)"
+            VectorType(settings.EMBEDDING_DIMS), comment="hnsw(distance=cosine)"
         )
     )
     source_entity: Entity = SQLModelRelationship(

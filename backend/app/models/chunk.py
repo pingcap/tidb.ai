@@ -29,7 +29,7 @@ class Chunk(UUIDBaseModel, UpdatableBaseModel, table=True):
     meta: dict | list = Field(default={}, sa_column=Column(JSON))
     embedding: Any = Field(
         sa_column=Column(
-            VectorType(settings.EMBEDDOMG_DIMS), comment="hnsw(distance=cosine)"
+            VectorType(settings.EMBEDDING_DIMS), comment="hnsw(distance=cosine)"
         )
     )
     document_id: int = Field(foreign_key="documents.id", nullable=True)

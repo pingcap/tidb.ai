@@ -151,7 +151,7 @@ def test_embedding_model(
             credentials=db_embed_model.credentials,
         )
         embedding = embed_model.get_query_embedding("Hello, world!")
-        expected_length = settings.EMBEDDOMG_DIMS
+        expected_length = settings.EMBEDDING_DIMS
         if len(embedding) != expected_length:
             raise ValueError(
                 f"Currently we only support {expected_length} dims embedding, got {len(embedding)} dims."

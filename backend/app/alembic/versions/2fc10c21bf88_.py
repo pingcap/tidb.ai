@@ -99,13 +99,13 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column(
             "description_vec",
-            VectorType(dim=settings.EMBEDDOMG_DIMS),
+            VectorType(dim=settings.EMBEDDING_DIMS),
             nullable=True,
             comment="hnsw(distance=cosine)",
         ),
         sa.Column(
             "meta_vec",
-            VectorType(dim=settings.EMBEDDOMG_DIMS),
+            VectorType(dim=settings.EMBEDDING_DIMS),
             nullable=True,
             comment="hnsw(distance=cosine)",
         ),
@@ -117,14 +117,14 @@ def upgrade():
         sa.Column("query", sa.Text(), nullable=True),
         sa.Column(
             "query_vec",
-            VectorType(dim=settings.EMBEDDOMG_DIMS),
+            VectorType(dim=settings.EMBEDDING_DIMS),
             nullable=True,
             comment="hnsw(distance=cosine)",
         ),
         sa.Column("value", sa.Text(), nullable=True),
         sa.Column(
             "value_vec",
-            VectorType(dim=settings.EMBEDDOMG_DIMS),
+            VectorType(dim=settings.EMBEDDING_DIMS),
             nullable=True,
             comment="hnsw(distance=cosine)",
         ),
@@ -290,7 +290,7 @@ def upgrade():
         sa.Column("meta", sa.JSON(), nullable=True),
         sa.Column(
             "embedding",
-            VectorType(dim=settings.EMBEDDOMG_DIMS),
+            VectorType(dim=settings.EMBEDDING_DIMS),
             nullable=True,
             comment="hnsw(distance=cosine)",
         ),
@@ -330,7 +330,7 @@ def upgrade():
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column(
             "description_vec",
-            VectorType(dim=settings.EMBEDDOMG_DIMS),
+            VectorType(dim=settings.EMBEDDING_DIMS),
             nullable=True,
             comment="hnsw(distance=cosine)",
         ),
