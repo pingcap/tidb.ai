@@ -1,6 +1,6 @@
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ChatMessageController } from '@/components/chat/chat-message-controller';
-import { getVerify, verify, VerifyState } from '@/experimental/chat-verify-service/api.mock';
+import { getVerify, verify, VerifyStatus } from '@/experimental/chat-verify-service/api.mock';
 import type { Meta, StoryObj } from '@storybook/react';
 import { mutate } from 'swr';
 import { MessageVerify } from './message-verify';
@@ -34,10 +34,12 @@ const meta = {
   render (_, { id }) {
     return (
       <AuthProvider key={id} isLoading={false} isValidating={false} me={{ email: 'foo@bar.com', is_active: true, is_superuser: true, is_verified: true, id: '000' }} reload={() => {}}>
-        <MessageVerify
-          user={new ChatMessageController({ finished_at: new Date(), id: 0, role: 'user', content: 'Question' } as any, undefined)}
-          assistant={new ChatMessageController({ finished_at: new Date(), id: 1, role: 'assistant', content: 'Answer' } as any, undefined)}
-        />
+        <div style={{ width: 600 }}>
+          <MessageVerify
+            user={new ChatMessageController({ finished_at: new Date(), id: 0, role: 'user', content: 'Question' } as any, undefined)}
+            assistant={new ChatMessageController({ finished_at: new Date(), id: 1, role: 'assistant', content: 'Answer' } as any, undefined)}
+          />
+        </div>
       </AuthProvider>
     );
   },
@@ -46,11 +48,46 @@ const meta = {
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-// More on writing stories with args: https://storybook.js.org/docs/writing-stories/args
+export const Creating: Story = {
+  beforeEach: () => {
+    getVerify.mockReturnValue(new Promise(() => {}));
+  },
+};
+
+export const Created: Story = {
+  beforeEach: () => {
+    getVerify.mockReturnValue(Promise.resolve({
+      status: VerifyStatus.CREATED,
+      message: 'This is a created message returned from server',
+      runs: [],
+    }));
+  },
+};
+
+export const Extracting: Story = {
+  beforeEach: () => {
+    getVerify.mockReturnValue(Promise.resolve({
+      status: VerifyStatus.EXTRACTING,
+      message: 'This is a extracting message returned from server',
+      runs: [],
+    }));
+  },
+};
+
+export const Validating: Story = {
+  beforeEach: () => {
+    getVerify.mockReturnValue(Promise.resolve({
+      status: VerifyStatus.VALIDATING,
+      message: 'This is a validating message returned from server',
+      runs: [],
+    }));
+  },
+};
+
 export const Verified: Story = {
   beforeEach: () => {
     getVerify.mockReturnValue(Promise.resolve({
-      status: VerifyState.SUCCESS,
+      status: VerifyStatus.SUCCESS,
       message: 'This is a success message returned from server',
       runs: [
         { sql: 'SOME A FROM B FROM C FROM D FROM E FROM F FROM G', results: [], success: true, explanation: 'some description for this SQL' },
@@ -59,20 +96,10 @@ export const Verified: Story = {
   },
 };
 
-export const Validating: Story = {
-  beforeEach: () => {
-    getVerify.mockReturnValue(Promise.resolve({
-      status: VerifyState.VALIDATING,
-      message: 'This is a validating message returned from server',
-      runs: [],
-    }));
-  },
-};
-
 export const Failed: Story = {
   beforeEach: () => {
     getVerify.mockReturnValue(Promise.resolve({
-      status: VerifyState.FAILED,
+      status: VerifyStatus.FAILED,
       message: 'This is a failed message returned from server',
       runs: [
         { sql: 'SOME A FROM B FROM C FROM D FROM E FROM F FROM G', results: [], success: true, explanation: 'Some description for this SQL' },
@@ -82,3 +109,18 @@ export const Failed: Story = {
   },
 };
 
+export const Skipped: Story = {
+  beforeEach: () => {
+    getVerify.mockReturnValue(Promise.resolve({
+      status: VerifyStatus.SKIPPED,
+      message: 'This is a skipped message returned from server',
+      runs: [],
+    }));
+  },
+};
+
+export const ApiError: Story = {
+  beforeEach: () => {
+    getVerify.mockReturnValue(Promise.reject(new Error('This is error from server')));
+  },
+};
