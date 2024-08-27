@@ -115,7 +115,7 @@ export const FormSelect = forwardRef<any, FormSelectProps>(({ config, placeholde
           </Tooltip>
         </TooltipProvider>
       </div>
-      <SelectContent>
+      <SelectContent className='max-h-[min(40vh,396px)]'>
         {config.options.map(option => (
           <SelectItem value={String(option[config.key])} key={option[config.key]} className={config.itemClassName}>
             {config.renderOption(option)}
