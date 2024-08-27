@@ -4,6 +4,7 @@ import type { IndexProgress } from '@/api/rag';
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
+import { Skeleton } from '@/components/ui/skeleton';
 import * as React from 'react';
 import { useMemo } from 'react';
 import { Label, Pie, PieChart } from 'recharts';
@@ -13,6 +14,7 @@ const color_succeed = '#22c55e';
 const color_in_progress = '#3b82f6';
 const color_pending = '#71717a';
 const color_blank = '#71717a80';
+const color_placeholder = '#71717a40';
 
 const chartConfig = {
   total: {
@@ -95,6 +97,69 @@ export function IndexProgressChart ({ title, description, data }: { title: strin
                           className="fill-foreground text-3xl font-bold"
                         >
                           {total.toLocaleString()}
+                        </tspan>
+                        <tspan
+                          x={viewBox.cx}
+                          y={(viewBox.cy || 0) + 24}
+                          className="fill-muted-foreground"
+                        >
+                          Total chunks
+                        </tspan>
+                      </text>
+                    );
+                  }
+                }}
+              />
+            </Pie>
+          </PieChart>
+        </ChartContainer>
+      </CardContent>
+    </Card>
+  );
+}
+
+export interface IndexProgressChartPlaceholderProps {
+  title: string,
+  description?: string
+}
+
+export function IndexProgressChartPlaceholder ({ title, description }: IndexProgressChartPlaceholderProps) {
+  return (
+    <Card className="flex flex-col">
+      <CardHeader className="items-center pb-0">
+        <CardTitle>{title}</CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
+      </CardHeader>
+      <CardContent className="flex-1 pb-0">
+        <ChartContainer
+          config={chartConfig}
+          className="mx-auto aspect-square max-h-[250px]"
+        >
+          <PieChart>
+            <Pie
+              animationDuration={0}
+              data={[{ count: 1, state: '', fill: color_placeholder }]}
+              dataKey="count"
+              nameKey="state"
+              innerRadius={60}
+              strokeWidth={5}
+            >
+              <Label
+                content={({ viewBox }) => {
+                  if (viewBox && 'cx' in viewBox && 'cy' in viewBox) {
+                    return (
+                      <text
+                        x={viewBox.cx}
+                        y={viewBox.cy}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                      >
+                        <tspan
+                          x={viewBox.cx}
+                          y={viewBox.cy}
+                          className="fill-muted-foreground text-3xl font-bold"
+                        >
+                          --
                         </tspan>
                         <tspan
                           x={viewBox.cx}

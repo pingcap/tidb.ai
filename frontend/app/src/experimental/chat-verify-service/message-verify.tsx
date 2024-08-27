@@ -46,7 +46,6 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
   const messageFinished = !isNotFinished(messageState);
   const canOpen = result ? isVisibleVerifyState(result.status) : false;
   const creating = verifying || !!(verifyId && !result && isLoadingResult);
-  console.log(verifying, verifyId, result, isLoadingResult)
   const error: unknown = verifyError ?? pollError;
 
   useEffect(() => {
