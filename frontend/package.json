@@ -2,16 +2,17 @@
   "name": "tidb-ai-parent",
   "private": true,
   "version": "0.0.0",
-  "packageManager": "pnpm@9.6.0",
   "license": "Apache-2.0",
   "scripts": {
     "test": "pnpm run --filter '*' test",
     "dev": "pnpm run --filter 'app' dev",
+    "storybook": "pnpm run --filter 'app' storybook",
     "build:widget-react": "pnpm run --filter '@tidb.ai/react' build",
     "build:docker": "pnpm run --filter 'app' build:standalone",
     "build": "pnpm run --filter 'app' build",
     "verify": "pnpm run test && pnpm run build && pnpm run build:widget-react"
   },
+  "packageManager": "pnpm@9.6.0",
   "pnpm": {
     "patchedDependencies": {
       "jest-runtime@29.7.0": "patches/jest-runtime@29.7.0.patch",

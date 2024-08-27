@@ -1,9 +1,9 @@
 import { handleResponse } from '@/lib/request';
-import { z } from 'zod';
+import { z, type ZodType } from 'zod';
 
 const HOST = 'https://verify.tidb.ai';
 
-export const enum VerifyState {
+export const enum VerifyStatus {
   CREATED = 'CREATED',
   EXTRACTING = 'EXTRACTING',
   VALIDATING = 'VALIDATING',
@@ -12,12 +12,34 @@ export const enum VerifyState {
   SKIPPED = 'SKIPPED'
 }
 
+export interface MessageVerifyResponse {
+  status: VerifyStatus;
+  message?: string | null;
+  runs: MessageVerifyResponse.Run[];
+}
+
+export namespace MessageVerifyResponse {
+  export type Run = {
+    sql: string
+    explanation: string
+  } &
+    ({
+      success: true,
+      results?: any[][]
+    } | {
+      success: false,
+      sql_error_code?: number | null,
+      sql_error_message?: string | null,
+      warnings: string[]
+    })
+}
+
 const verifyResponse = z.object({
   job_id: z.string(),
 });
 
 const getVerifyResponse = z.object({
-  status: z.enum([VerifyState.CREATED, VerifyState.EXTRACTING, VerifyState.VALIDATING, VerifyState.SUCCESS, VerifyState.FAILED]),
+  status: z.enum([VerifyStatus.CREATED, VerifyStatus.EXTRACTING, VerifyStatus.VALIDATING, VerifyStatus.SUCCESS, VerifyStatus.FAILED, VerifyStatus.SKIPPED]),
   message: z.string().nullish(),
   runs: z.object({
     sql: z.string(),
@@ -32,7 +54,7 @@ const getVerifyResponse = z.object({
       sql_error_message: z.string().nullish(),
       warnings: z.string().array(),
     }))).array(),
-});
+}) satisfies ZodType<MessageVerifyResponse, any, any>;
 
 export async function verify (question: string, answer: string) {
   return await fetch(`${HOST}/api/v1/sqls-validation`, {
@@ -48,10 +70,10 @@ export async function getVerify (id: string) {
   return await fetch(`${HOST}/api/v1/sqls-validation/${id}`).then(handleResponse(getVerifyResponse));
 }
 
-export function isFinalVerifyState (state: VerifyState) {
-  return [VerifyState.SUCCESS, VerifyState.FAILED, VerifyState.SKIPPED].includes(state);
+export function isFinalVerifyState (state: VerifyStatus) {
+  return [VerifyStatus.SUCCESS, VerifyStatus.FAILED, VerifyStatus.SKIPPED].includes(state);
 }
 
-export function isVisibleVerifyState (state: VerifyState) {
-  return [VerifyState.SUCCESS, VerifyState.FAILED, VerifyState.VALIDATING].includes(state);
+export function isVisibleVerifyState (state: VerifyStatus) {
+  return [VerifyStatus.SUCCESS, VerifyStatus.FAILED].includes(state);
 }
