@@ -83,10 +83,6 @@ class RerankerResponse(BaseModel):
 
 @router.post("/reranker")
 def reranker_texts(request: RerankerRequest) -> RerankerResponse:
-    with open('test.json', 'w') as f:
-        f.write(request.query)
-        import json
-        f.write(json.dumps(request.passages))
     reranker_model = get_reranker_model(request.model)
     sentence_pairs = [(request.query, p) for p in request.passages]
     scores = reranker_model.predict(sentence_pairs)

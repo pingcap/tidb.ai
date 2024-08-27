@@ -32,12 +32,14 @@ class _APICaller:
             json={
                 "sentences": sentences,
                 "model": self.model,
-                "normalize_embeddings": self.normalize_embeddings
+                "normalize_embeddings": self.normalize_embeddings,
             },
         )
         resp_json = resp.json()
         if "embeddings" not in resp_json:
-            raise RuntimeError(f"Call local embedding api {self.api_url} failed {resp.status_code}")
+            raise RuntimeError(
+                f"Call local embedding api {self.api_url} failed {resp.status_code}"
+            )
 
         return resp_json["embeddings"]
 
@@ -84,9 +86,7 @@ class LocalEmbedding(BaseEmbedding):
             **kwargs,
         )
         self._api: _APICaller = _APICaller(
-            model=model,
-            api_url=api_url,
-            normalize_embeddings=normalize_embeddings
+            model=model, api_url=api_url, normalize_embeddings=normalize_embeddings
         )
 
     @classmethod
