@@ -34,7 +34,7 @@ A open source alternative of Kapa.ai, conversational search tool based on GraphR
 
 ## Deploy
 
-- [Deploy with Docker Compose](https://tidb.ai/docs/deploy-with-docker)
+- [Deploy with Docker Compose](https://tidb.ai/docs/deploy-with-docker) (Recommended system requirements: 4 CPU cores and 8GB RAM)
 
 ## Tech Stack
 
