@@ -56,4 +56,16 @@ admin_reranker_model_options: List[RerankerModelOption] = [
         credentials_type="str",
         default_credentials="*****",
     ),
+    RerankerModelOption(
+        provider=RerankerProvider.LOCAL,
+        provider_display_name="Local Reranker",
+        provider_description="TIDB.AI's local reranker server, deployed on your own infrastructure and powered by sentence-transformers.",
+        default_reranker_model="BAAI/bge-reranker-v2-m3",
+        reranker_model_description="Find more models in huggingface.",
+        default_top_n=10,
+        credentials_display_name="Local Reranker API Key",
+        credentials_description="Local Reranker server doesn't require an API key, set a dummy string here is ok.",
+        credentials_type="str",
+        default_credentials="dummy",
+    ),
 ]

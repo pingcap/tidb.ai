@@ -67,4 +67,15 @@ admin_embed_model_options: List[EmbeddingModelOption] = [
         credentials_type="str",
         default_credentials="dummy",
     ),
+    EmbeddingModelOption(
+        provider=EmbeddingProvider.LOCAL,
+        provider_display_name="Local Embedding",
+        provider_description="TIDB.AI's local embedding server, deployed on your own infrastructure and powered by sentence-transformers.",
+        default_embedding_model="BAAI/bge-m3",
+        embedding_model_description="Find more models in huggingface.",
+        credentials_display_name="Local Embedding API Key",
+        credentials_description="Local Embedding server doesn't require an API key, set a dummy string here is ok.",
+        credentials_type="str",
+        default_credentials="dummy",
+    ),
 ]

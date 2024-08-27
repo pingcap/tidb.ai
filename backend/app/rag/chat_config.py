@@ -27,6 +27,8 @@ from google.auth.transport.requests import Request
 from app.rag.node_postprocessor import MetadataPostFilter
 from app.rag.node_postprocessor.metadata_post_filter import MetadataFilters
 from app.rag.node_postprocessor.baisheng_reranker import BaishengRerank
+from app.rag.node_postprocessor.local_reranker import LocalRerank
+from app.rag.embeddings.local_embedding import LocalEmbedding
 from app.types import LLMProvider, EmbeddingProvider, RerankerProvider
 from app.rag.default_prompt import (
     DEFAULT_INTENT_GRAPH_KNOWLEDGE,
@@ -265,6 +267,11 @@ def get_embedding_model(
                 model_name=model,
                 **config,
             )
+        case EmbeddingProvider.LOCAL:
+            return LocalEmbedding(
+                model=model,
+                **config,
+            )
         case _:
             raise ValueError(f"Got unknown embedding provider: {provider}")
 
@@ -308,6 +315,12 @@ def get_reranker_model(
                 model=model,
                 top_n=top_n,
                 api_key=credentials,
+                **config,
+            )
+        case RerankerProvider.LOCAL:
+            return LocalRerank(
+                model=model,
+                top_n=top_n,
                 **config,
             )
         case _:
