@@ -9,3 +9,15 @@
 .remark-content [data-footnote-backref] {
   @apply sr-only;
 }
+
+.remark-content pre:has(.hljs) {
+  padding: 0;
+}
+
+.remark-content .hljs {
+  background-color: #fafafa;
+}
+
+.dark .remark-content .hljs {
+  background-color: #18181b;
+}

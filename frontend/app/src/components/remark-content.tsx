@@ -1,16 +1,20 @@
 import { MessageContextSourceCard } from '@/components/chat/message-content-sources';
 import { usePortalContainer } from '@/components/portal-provider';
+import { rehypeHighlightOptions } from '@/components/remark-content-highlight';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { cn } from '@/lib/utils';
 import { HoverCardArrow, HoverCardPortal } from '@radix-ui/react-hover-card';
+
 import { cloneElement, createContext, type ReactNode, useContext, useEffect, useId, useMemo, useState } from 'react';
 import { isElement, isFragment } from 'react-is';
 import * as prod from 'react/jsx-runtime';
+import rehypeHighlight from 'rehype-highlight';
 import rehypeReact, { Options as RehypeReactOptions } from 'rehype-react';
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
 import { unified } from 'unified';
+import './code-theme.scss';
 
 function dirtyRewrite (some: any, id: string): any {
   if (some == null) return some;
@@ -116,6 +120,7 @@ export function RemarkContent ({ children = '' }: { children: string | undefined
       .use(remarkParse)
       .use(remarkGfm)
       .use(remarkRehype)
+      .use(rehypeHighlight, rehypeHighlightOptions)
       .use(rehypeReact, production({ portalContainer }))
       .freeze();
 
