@@ -79,8 +79,14 @@ class Settings(BaseSettings):
 
     COMPLIED_INTENT_ANALYSIS_PROGRAM_PATH: str | None = None
 
-    # Currently, we only support 1536 dims for the embedding model
-    EMBEDDOMG_DIMS: int = 1536
+    # CAUTION: Do not change EMBEDDING_DIMS after initializing the database.
+    # Changing the embedding dimensions requires recreating the database and tables.
+    # The default EMBEDDING_DIMS and EMBEDDING_MAX_TOKENS are set for the OpenAI text-embedding-3-small model.
+    # If using a different embedding model, adjust these values according to the model's specifications.
+    # For example:
+    #   maidalun1020/bce-embedding-base_v1: EMBEDDING_DIMS=768   EMBEDDING_MAX_TOKENS=512
+    EMBEDDING_DIMS: int = 1536
+    EMBEDDING_MAX_TOKENS: int = 8191
 
     @computed_field  # type: ignore[misc]
     @property

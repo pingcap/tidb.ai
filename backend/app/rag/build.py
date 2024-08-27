@@ -16,6 +16,7 @@ from app.rag.knowledge_graph import KnowledgeGraphIndex
 from app.rag.node_parser import MarkdownNodeParser
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.chat_config import get_default_embedding_model
+from app.core.config import settings
 from app.models import (
     Document as DBDocument,
     Chunk as DBChunk,
@@ -45,9 +46,13 @@ class BuildService:
         if db_document.mime_type.lower() == "text/markdown":
             # spliter = MarkdownNodeParser()
             # TODO: FIX MarkdownNodeParser
-            spliter = SentenceSplitter()
+            spliter = SentenceSplitter(
+                chunk_size=settings.EMBEDDING_MAX_TOKENS,
+            )
         else:
-            spliter = SentenceSplitter()
+            spliter = SentenceSplitter(
+                chunk_size=settings.EMBEDDING_MAX_TOKENS,
+            )
 
         _transformations = [
             spliter,
