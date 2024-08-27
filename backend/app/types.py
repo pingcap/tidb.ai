@@ -15,10 +15,11 @@ class EmbeddingProvider(str, enum.Enum):
     JINA = "jina"
     COHERE = "cohere"
     OLLAMA = "ollama"
+    LOCAL = "local"
 
 
 class RerankerProvider(str, enum.Enum):
     JINA = "jina"
     COHERE = "cohere"
     BAISHENG = "baisheng"
-    LLM = "llm"
+    LOCAL = "local"
