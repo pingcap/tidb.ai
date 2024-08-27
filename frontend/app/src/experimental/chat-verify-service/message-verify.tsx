@@ -8,10 +8,15 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { getErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
-import { CheckCircle2Icon, CheckIcon, ChevronDownIcon, CircleMinus, Loader2Icon, XIcon } from 'lucide-react';
-import { InformationCircleIcon } from 'nextra/icons';
-import { type ReactElement, useEffect, useState } from 'react';
+import Highlight from 'highlight.js/lib/core';
+import sql from 'highlight.js/lib/languages/sql';
+import { CheckCircle2Icon, CheckIcon, ChevronDownIcon, CircleMinus, Loader2Icon, TriangleAlertIcon, XIcon } from 'lucide-react';
+import { type ReactElement, useEffect, useMemo, useState } from 'react';
+import { format } from 'sql-formatter';
 import useSWR from 'swr';
+import '@/components/code-theme.scss';
+
+Highlight.registerLanguage('sql', sql);
 
 export function MessageVerify ({ user, assistant }: { user: ChatMessageController | undefined, assistant: ChatMessageController | undefined }) {
   const [open, setOpen] = useState(false);
@@ -93,7 +98,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
             style={{ width: 'var(--radix-collapsible-content-width)' }}
             layout="size"
           >
-            <ul className="space-y-2 px-2">
+            <ul className="space-y-4 px-2">
               {result.runs.map(((run, index) => (
                 <li key={index}>
                   <MessageVerifyRun run={run} />
@@ -103,7 +108,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
           </motion.div>}
         </AnimatePresence>
       </CollapsibleContent>
-      <div className="mt-2 px-4 text-xs text-muted-foreground">
+      <div className="my-2 px-4 text-xs text-muted-foreground">
         Powered by <a className="underline font-bold" href="https://www.pingcap.com/tidb-serverless/" target="_blank">TiDB Serverless</a>
       </div>
     </Collapsible>
@@ -124,8 +129,8 @@ const defaultMessages = {
 const skippedIcon = <CircleMinus className="size-4" />;
 const loadingIcon = <Loader2Icon className="size-4 animate-spin repeat-infinite" />;
 const succeedIcon = <CheckCircle2Icon className="size-4 text-green-500" />;
-const failedIcon = <InformationCircleIcon className="size-4 text-yellow-500" />;
-const errorIcon = <InformationCircleIcon className="size-4 text-destructive" />;
+const failedIcon = <TriangleAlertIcon className="size-4 text-yellow-500" />;
+const errorIcon = <TriangleAlertIcon className="size-4 text-destructive" />;
 
 function MessageVerifyHeader ({ creating, error, result }: { creating?: boolean, error: unknown, result: MessageVerifyResponse | undefined }) {
   let icon: ReactElement | undefined;
@@ -171,17 +176,42 @@ function MessageVerifyHeader ({ creating, error, result }: { creating?: boolean,
 }
 
 function MessageVerifyRun ({ run }: { run: MessageVerifyResponse.Run }) {
+  const formattedSql = useMemo(() => {
+    try {
+      return format(run.sql, { language: 'tidb' });
+    } catch {
+      return run.sql;
+    }
+  }, [run.sql]);
+
+  const highlightedSql = useMemo(() => {
+    try {
+      const result = Highlight.highlight(formattedSql, { language: 'sql' });
+      return result.value;
+    } catch {
+      return formattedSql;
+    }
+  }, [formattedSql]);
+
   return (
-    <div className="p-2 space-y-1">
-      <pre className="whitespace-pre-wrap text-xs text-accent-foreground rounded">
-        {run.success ? <CheckIcon className="inline-block mr-2 size-3 text-green-500" /> : <XIcon className="inline-block mr-2 size-3 text-red-500" />}
-        <code>{run.sql}</code>
-      </pre>
-      <p className="text-xs text-muted-foreground">
+    <div className="p-2 space-y-2">
+      <p className="text-sm">
         {run.explanation}
       </p>
-      {run.success && <pre className="whitespace-pre-wrap text-xs bg-muted text-muted-foreground p-2 rounded">{JSON.stringify(run.results)}</pre>}
-      {!run.success && <pre className="whitespace-pre-wrap text-xs bg-muted text-muted-foreground p-2 rounded">{JSON.stringify(run.results)} <br /> Explained by LLM: {run.llm_verification} </pre>}
+      {run.llm_verification && <div className={cn('p-2 rounded text-xs', run.success ? 'bg-green-500/10' : 'bg-red-500/10')}>
+        {run.success ? <CheckIcon className="text-green-500 inline-block size-3 align-middle mr-1" /> : <XIcon className="text-red-500 inline-block size-3 align-middle mr-1" />}
+        <span>{run.llm_verification}</span>
+      </div>}
+      <pre className="whitespace-pre-wrap text-xs">
+        <div>
+          <code className="hljs text-xs" dangerouslySetInnerHTML={{ __html: highlightedSql }} />
+        </div>
+        <div className="text-muted-foreground p-3">
+          {(run.sql_error_code || run.sql_error_message)
+            ? <><span className="font-bold">Error: </span>{`${run.sql_error_code} ${run.sql_error_message}`}</>
+            : <>{JSON.stringify(run.results)}</>}
+        </div>
+       </pre>
     </div>
   );
 }
