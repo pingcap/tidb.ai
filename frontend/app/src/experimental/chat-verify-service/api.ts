@@ -30,6 +30,7 @@ export namespace MessageVerifyResponse {
       success: false,
       sql_error_code?: number | null,
       sql_error_message?: string | null,
+      llm_verification?: string | null,
       warnings: string[]
     })
 }

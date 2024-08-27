@@ -181,7 +181,7 @@ function MessageVerifyRun ({ run }: { run: MessageVerifyResponse.Run }) {
         {run.explanation}
       </p>
       {run.success && <pre className="whitespace-pre-wrap text-xs bg-muted text-muted-foreground p-2 rounded">{JSON.stringify(run.results)}</pre>}
-      {!run.success && <pre className="whitespace-pre-wrap text-xs bg-muted text-muted-foreground p-2 rounded">{run.sql_error_code} {run.sql_error_message}</pre>}
+      {!run.success && <pre className="whitespace-pre-wrap text-xs bg-muted text-muted-foreground p-2 rounded">{run.sql_error_code} {run.sql_error_message} <br /> Explained by LLM: {run.llm_verification} </pre>}
     </div>
   );
 }
