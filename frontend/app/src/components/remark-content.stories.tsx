@@ -11,7 +11,7 @@ const meta = {
   tags: ['autodocs'],
   decorators: [
     (Story) => (
-      <article className="remark-content prose prose-sm prose-neutral dark:prose-invert overflow-x-hidden break-words max-w-[unset]" style={{ minWidth: 400 }}>
+      <article className="remark-content prose prose-sm prose-neutral prose-pre:bg-zinc-50 dark:prose-pre:bg-zinc-900 prose-pre:text-accent-foreground dark:prose-invert overflow-x-hidden break-words max-w-[unset]" style={{ minWidth: 400 }}>
         <Story />
       </article>
     ),
@@ -42,6 +42,10 @@ Paragraph
   - a2
 - b
 - c
+
+\`\`\`
+No language code block
+\`\`\`
 
 \`\`\`sql
 SELECT 'hello world' from tidb;
