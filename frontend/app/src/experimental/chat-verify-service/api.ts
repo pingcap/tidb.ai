@@ -22,16 +22,13 @@ export namespace MessageVerifyResponse {
   export type Run = {
     sql: string
     explanation: string
-  } &
-    ({
-      success: true,
-      results?: any[][]
-    } | {
-      success: false,
-      sql_error_code?: number | null,
-      sql_error_message?: string | null,
-      warnings: string[]
-    })
+    success: boolean
+    results?: any[][]
+    sql_error_code?: number | null
+    sql_error_message?: string | null
+    llm_verification?: string | null
+    warnings?: string[]
+  }
 }
 
 const verifyResponse = z.object({
@@ -41,19 +38,16 @@ const verifyResponse = z.object({
 const getVerifyResponse = z.object({
   status: z.enum([VerifyStatus.CREATED, VerifyStatus.EXTRACTING, VerifyStatus.VALIDATING, VerifyStatus.SUCCESS, VerifyStatus.FAILED, VerifyStatus.SKIPPED]),
   message: z.string().nullish(),
-  runs: z.object({
+  runs: z.array(z.object({
     sql: z.string(),
     explanation: z.string(),
-  })
-    .and(z.object({
-      success: z.literal(true),
-      results: z.any().array().array(),
-    }).or(z.object({
-      success: z.literal(false),
-      sql_error_code: z.number().nullish(),
-      sql_error_message: z.string().nullish(),
-      warnings: z.string().array(),
-    }))).array(),
+    success: z.boolean(),
+    results: z.any().array().array().optional(),
+    sql_error_code: z.number().nullish(),
+    sql_error_message: z.string().nullish(),
+    llm_verification: z.string().nullish(),
+    warnings: z.string().array().optional(),
+  })),
 }) satisfies ZodType<MessageVerifyResponse, any, any>;
 
 export async function verify (question: string, answer: string) {

@@ -5,6 +5,8 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { mutate } from 'swr';
 import { MessageVerify } from './message-verify';
 
+const exampleSql = `INSERT INTO orders (user_id, order_date) VALUES (3, '2023-05-03');`;
+
 const meta = {
   title: 'Experimental/MessageVerify',
   component: undefined,
@@ -82,7 +84,8 @@ export const Verified: Story = {
       status: VerifyStatus.SUCCESS,
       message: 'This is a success message returned from server',
       runs: [
-        { sql: 'SOME A FROM B FROM C FROM D FROM E FROM F FROM G', results: [], success: true, explanation: 'some description for this SQL' },
+        { sql: exampleSql, results: [], success: true, explanation: 'some description for this SQL', llm_verification: 'No xxxxx' },
+        { sql: exampleSql, results: [['Expected Error']], success: true, sql_error_code: 8848, sql_error_message: 'Expected Error', explanation: 'some description for this SQL', llm_verification: 'This is LLM verification description' },
       ],
     }));
   },
@@ -94,8 +97,8 @@ export const Failed: Story = {
       status: VerifyStatus.FAILED,
       message: 'This is a failed message returned from server',
       runs: [
-        { sql: 'SOME A FROM B FROM C FROM D FROM E FROM F FROM G', results: [], success: true, explanation: 'Some description for this SQL' },
-        { sql: 'SOME A FROM B FROM C FROM D FROM E FROM F FROM G', results: [], success: false, explanation: 'Another description for this SQL', sql_error_code: 8848, sql_error_message: 'TiDB Error Message', warnings: [] },
+        { sql: exampleSql, results: [], success: true, explanation: 'Some description for this SQL', llm_verification: 'No xxxxx' },
+        { sql: exampleSql, results: [], success: false, explanation: 'Another description for this SQL', sql_error_code: 8848, sql_error_message: 'TiDB Error Message', llm_verification: 'No xxxxx', warnings: [] },
       ],
     }));
   },
