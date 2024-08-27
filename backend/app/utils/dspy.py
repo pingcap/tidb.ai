@@ -7,6 +7,7 @@ from llama_index.llms.openai import OpenAI
 from llama_index.llms.openai_like import OpenAILike
 from llama_index.llms.gemini import Gemini
 from llama_index.llms.bedrock import Bedrock
+from llama_index.llms.ollama import Ollama
 from app.rag.llms.anthropic_vertex import AnthropicVertex
 
 
@@ -67,6 +68,14 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
             )
     elif isinstance(llama_llm, AnthropicVertex):
         raise ValueError("AnthropicVertex is not supported by dspy.")
+    elif isinstance(llama_llm, Ollama):
+        return dspy.OllamaLocal(
+            model=llama_llm.model,
+            base_url=llama_llm.base_url,
+            timeout_s=llama_llm.request_timeout,
+            temperature=llama_llm.temperature,
+            max_tokens=llama_llm.context_window,
+        )
     else:
         raise ValueError(f"Got unknown LLM provider: {llama_llm.__class__.__name__}")
 

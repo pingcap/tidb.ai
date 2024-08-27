@@ -53,6 +53,18 @@ admin_llm_options: List[LLMOption] = [
         default_credentials="AIza****",
     ),
     LLMOption(
+        provider=LLMProvider.OLLAMA,
+        provider_display_name="Ollama",
+        provider_description="Ollama is a lightweight framework for building and running large language models.",
+        provider_url="https://ollama.com",
+        default_llm_model="llama3.1",
+        llm_model_description="Find more in https://ollama.com/library",
+        credentials_display_name="Ollama API Key",
+        credentials_description="Ollama doesn't require an API key, set a dummy string here is ok",
+        credentials_type="str",
+        default_credentials="dummy",
+    ),
+    LLMOption(
         provider=LLMProvider.ANTHROPIC_VERTEX,
         provider_display_name="Anthropic Vertex AI",
         provider_description="Anthropic’s Claude models are now generally available through Vertex AI.",

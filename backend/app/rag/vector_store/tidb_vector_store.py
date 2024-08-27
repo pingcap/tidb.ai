@@ -36,15 +36,15 @@ class TiDBVectorStore(BasePydanticVectorStore):
     _session: Session = PrivateAttr()
     _owns_session: bool = PrivateAttr()
 
-    stores_text = True
-    flat_metadata = False
+    stores_text: bool = True
+    flat_metadata: bool = False
 
     def __init__(self, session: Optional[Session] = None, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
         self._session = session
         self._owns_session = session is None
         if self._session is None:
             self._session = Session(engine)
-        super().__init__(**kwargs)
 
     def close_session(self) -> None:
         # Always call this method is necessary to make sure the session is closed

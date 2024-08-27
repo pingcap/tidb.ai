@@ -10,10 +10,14 @@ from llama_index.llms.openai import OpenAI
 from llama_index.llms.openai_like import OpenAILike
 from llama_index.llms.gemini import Gemini
 from llama_index.llms.bedrock import Bedrock
+from llama_index.llms.ollama import Ollama
 from llama_index.core.llms.llm import LLM
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.postprocessor.types import BaseNodePostprocessor
 from llama_index.embeddings.openai import OpenAIEmbedding
+from llama_index.embeddings.jinaai import JinaEmbedding
+from llama_index.embeddings.cohere import CohereEmbedding
+from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.postprocessor.jinaai_rerank import JinaRerank
 from llama_index.postprocessor.cohere_rerank import CohereRerank
 from sqlmodel import Session, select
@@ -208,6 +212,10 @@ def get_llm(
             if "max_tokens" not in config:
                 config.update(max_tokens=4096)
             return AnthropicVertex(model=model, credentials=google_creds, **config)
+        case LLMProvider.OLLAMA:
+            config.setdefault("request_timeout", 60 * 5)
+            config.setdefault("context_window", 4096)
+            return Ollama(model=model, **config)
         case _:
             raise ValueError(f"Got unknown LLM provider: {provider}")
 
@@ -239,6 +247,22 @@ def get_embedding_model(
                 model=model,
                 api_base=api_base,
                 api_key=credentials,
+                **config,
+            )
+        case EmbeddingProvider.JINA:
+            return JinaEmbedding(
+                model=model,
+                api_key=credentials,
+                **config,
+            )
+        case EmbeddingProvider.COHERE:
+            return CohereEmbedding(
+                model_name=model,
+                cohere_api_key=credentials,
+            )
+        case EmbeddingProvider.OLLAMA:
+            return OllamaEmbedding(
+                model_name=model,
                 **config,
             )
         case _:

@@ -14,6 +14,8 @@ from sqlmodel import (
 )
 from tidb_vector.sqlalchemy import VectorType
 
+from app.core.config import settings
+
 
 class EntityType(str, enum.Enum):
     original = "original"
@@ -34,10 +36,14 @@ class EntityBase(SQLModel):
 class Entity(EntityBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     description_vec: Any = Field(
-        sa_column=Column(VectorType(1536), comment="hnsw(distance=cosine)")
+        sa_column=Column(
+            VectorType(settings.EMBEDDING_DIMS), comment="hnsw(distance=cosine)"
+        )
     )
     meta_vec: Any = Field(
-        sa_column=Column(VectorType(1536), comment="hnsw(distance=cosine)")
+        sa_column=Column(
+            VectorType(settings.EMBEDDING_DIMS), comment="hnsw(distance=cosine)"
+        )
     )
 
     __tablename__ = "entities"
@@ -70,7 +76,9 @@ class RelationshipBase(SQLModel):
 class Relationship(RelationshipBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     description_vec: Any = Field(
-        sa_column=Column(VectorType(1536), comment="hnsw(distance=cosine)")
+        sa_column=Column(
+            VectorType(settings.EMBEDDING_DIMS), comment="hnsw(distance=cosine)"
+        )
     )
     source_entity: Entity = SQLModelRelationship(
         sa_relationship_kwargs={

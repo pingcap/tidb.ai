@@ -86,6 +86,7 @@ click-plugins==1.1.1
 click-repl==0.3.0
     # via celery
 cohere==5.6.2
+    # via llama-index-embeddings-cohere
     # via llama-index-postprocessor-cohere-rerank
 colorlog==6.8.2
     # via optuna
@@ -233,6 +234,7 @@ httpx==0.27.0
     # via llama-cloud
     # via llama-index-core
     # via llama-index-legacy
+    # via ollama
     # via openai
 httpx-oauth==0.14.1
 httpx-sse==0.4.0
@@ -259,6 +261,7 @@ jinja2==3.1.4
     # via fastapi
 jiter==0.5.0
     # via anthropic
+    # via openai
 jmespath==1.0.1
     # via boto3
     # via botocore
@@ -294,23 +297,27 @@ langsmith==0.1.88
     # via langchain
     # via langchain-community
     # via langchain-core
-llama-cloud==0.0.10
+llama-cloud==0.0.15
     # via llama-index-indices-managed-llama-cloud
-llama-index==0.10.59
-llama-index-agent-openai==0.2.7
+llama-index==0.10.68
+llama-index-agent-openai==0.2.9
     # via llama-index
     # via llama-index-program-openai
-llama-index-cli==0.1.12
+llama-index-cli==0.1.13
     # via llama-index
-llama-index-core==0.10.59
+llama-index-core==0.10.68.post1
     # via llama-index
     # via llama-index-agent-openai
     # via llama-index-cli
+    # via llama-index-embeddings-cohere
+    # via llama-index-embeddings-jinaai
+    # via llama-index-embeddings-ollama
     # via llama-index-embeddings-openai
     # via llama-index-indices-managed-llama-cloud
     # via llama-index-llms-anthropic
     # via llama-index-llms-bedrock
     # via llama-index-llms-gemini
+    # via llama-index-llms-ollama
     # via llama-index-llms-openai
     # via llama-index-llms-openai-like
     # via llama-index-multi-modal-llms-openai
@@ -321,18 +328,22 @@ llama-index-core==0.10.59
     # via llama-index-readers-file
     # via llama-index-readers-llama-parse
     # via llama-parse
-llama-index-embeddings-openai==0.1.10
+llama-index-embeddings-cohere==0.1.9
+llama-index-embeddings-jinaai==0.2.1
+llama-index-embeddings-ollama==0.2.0
+llama-index-embeddings-openai==0.1.11
     # via llama-index
     # via llama-index-cli
-llama-index-indices-managed-llama-cloud==0.2.5
+llama-index-indices-managed-llama-cloud==0.2.7
     # via llama-index
 llama-index-legacy==0.9.48
     # via llama-index
-llama-index-llms-anthropic==0.1.16
+llama-index-llms-anthropic==0.1.17
     # via llama-index-llms-bedrock
-llama-index-llms-bedrock==0.1.12
-llama-index-llms-gemini==0.1.11
-llama-index-llms-openai==0.1.27
+llama-index-llms-bedrock==0.1.13
+llama-index-llms-gemini==0.2.0
+llama-index-llms-ollama==0.2.2
+llama-index-llms-openai==0.1.31
     # via llama-index
     # via llama-index-agent-openai
     # via llama-index-cli
@@ -341,18 +352,18 @@ llama-index-llms-openai==0.1.27
     # via llama-index-program-openai
     # via llama-index-question-gen-openai
 llama-index-llms-openai-like==0.1.3
-llama-index-multi-modal-llms-openai==0.1.6
+llama-index-multi-modal-llms-openai==0.1.9
     # via llama-index
 llama-index-postprocessor-cohere-rerank==0.1.7
-llama-index-postprocessor-jinaai-rerank==0.1.6
-llama-index-program-openai==0.1.6
+llama-index-postprocessor-jinaai-rerank==0.1.7
+llama-index-program-openai==0.1.7
     # via llama-index
     # via llama-index-question-gen-openai
 llama-index-question-gen-openai==0.1.3
     # via llama-index
-llama-index-readers-file==0.1.25
+llama-index-readers-file==0.1.33
     # via llama-index
-llama-index-readers-llama-parse==0.1.4
+llama-index-readers-llama-parse==0.1.6
     # via llama-index
 llama-parse==0.4.4
     # via llama-index-readers-llama-parse
@@ -384,7 +395,7 @@ nest-asyncio==1.6.0
 networkx==3.3
     # via llama-index-core
     # via llama-index-legacy
-nltk==3.8.1
+nltk==3.9.1
     # via llama-index-core
     # via llama-index-legacy
 numpy==1.26.4
@@ -400,12 +411,15 @@ numpy==1.26.4
     # via shapely
     # via tidb-vector
     # via transformers
-openai==1.34.0
+ollama==0.3.1
+    # via llama-index-embeddings-ollama
+    # via llama-index-llms-ollama
+openai==1.42.0
     # via dspy-ai
     # via langchain-openai
     # via llama-index-agent-openai
-    # via llama-index-core
     # via llama-index-legacy
+    # via llama-index-llms-openai
     # via ragas
 opentelemetry-api==1.24.0
     # via deepeval
@@ -504,6 +518,7 @@ pydantic==2.8.2
     # via langfuse
     # via langsmith
     # via llama-cloud
+    # via llama-index-core
     # via openai
     # via pydantic-settings
     # via sqlmodel

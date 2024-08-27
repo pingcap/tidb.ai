@@ -7,13 +7,18 @@ class LLMProvider(str, enum.Enum):
     ANTHROPIC_VERTEX = "anthropic_vertex"
     OPENAI_LIKE = "openai_like"
     BEDROCK = "bedrock"
+    OLLAMA = "ollama"
 
 
 class EmbeddingProvider(str, enum.Enum):
     OPENAI = "openai"
+    JINA = "jina"
+    COHERE = "cohere"
+    OLLAMA = "ollama"
 
 
 class RerankerProvider(str, enum.Enum):
     JINA = "jina"
     COHERE = "cohere"
     BAISHENG = "baisheng"
+    LLM = "llm"

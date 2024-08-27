@@ -11,6 +11,7 @@ from sqlmodel import (
 from tidb_vector.sqlalchemy import VectorType
 from llama_index.core.schema import TextNode
 
+from app.core.config import settings
 from .base import UpdatableBaseModel, UUIDBaseModel
 
 
@@ -27,7 +28,9 @@ class Chunk(UUIDBaseModel, UpdatableBaseModel, table=True):
     text: str = Field(sa_column=Column(Text))
     meta: dict | list = Field(default={}, sa_column=Column(JSON))
     embedding: Any = Field(
-        sa_column=Column(VectorType(1536), comment="hnsw(distance=cosine)")
+        sa_column=Column(
+            VectorType(settings.EMBEDDING_DIMS), comment="hnsw(distance=cosine)"
+        )
     )
     document_id: int = Field(foreign_key="documents.id", nullable=True)
     document: "Document" = SQLRelationship(
