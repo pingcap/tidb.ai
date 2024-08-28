@@ -2,11 +2,6 @@ import { TotalCard } from '@/components/charts/TotalCard';
 import type { Meta, StoryObj } from '@storybook/react';
 import { GitHubIcon } from 'nextra/icons';
 
-const valueType = {
-  name: 'number',
-  required: false,
-} as const;
-
 const meta = {
   title: 'Components/Charts/TotalCard',
   component: TotalCard,
