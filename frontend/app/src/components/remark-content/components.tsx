@@ -102,6 +102,7 @@ export const getRehypeReactOptions = ({ portalContainer }: { portalContainer: HT
       );
     },
     pre ({ children, node, ...props }) {
+      // eslint-disable-next-line react-hooks/rules-of-hooks
       const { rawContent } = useContext(RemarkContentContext);
 
       let isCodeBlock = false;
