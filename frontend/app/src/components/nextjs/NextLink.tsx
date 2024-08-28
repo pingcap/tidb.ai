@@ -45,6 +45,7 @@ export const NextLink = forwardRef<HTMLAnchorElement, NextLinkProps>(({ classNam
       href={href}
       scroll={scroll}
       ref={ref}
+      role="button"
     />
   );
 });
