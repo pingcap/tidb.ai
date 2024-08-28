@@ -9,7 +9,7 @@ import type { DatasourceType } from '@/components/datasource/types';
 import { CreateEmbeddingModelForm } from '@/components/embedding-model/CreateEmbeddingModelForm';
 import { CreateLLMForm } from '@/components/llm/CreateLLMForm';
 import { useRefresh } from '@/components/nextjs/app-router-hooks';
-import { LinkButton } from '@/components/nextjs/LinkButton';
+import { NextLink } from '@/components/nextjs/NextLink';
 import { CreateRerankerForm } from '@/components/reranker/CreateRerankerForm';
 import { LangfuseSettings } from '@/components/settings/IntegrationsSettings';
 import { Signin } from '@/components/signin';
@@ -160,7 +160,7 @@ export function SystemWizardDialog () {
           </Accordion>
         </DialogHeader>
         {configured && <DialogFooter className="mt-2">
-          <LinkButton
+          <NextLink
             variant="ghost"
             href="/index-progress"
             onClick={() => {
@@ -169,7 +169,7 @@ export function SystemWizardDialog () {
           >
             View Index Progress
             <ArrowRightIcon className="size-4 ml-1" />
-          </LinkButton>
+          </NextLink>
           <Button onClick={() => setOpen(false)}>
             OK
           </Button>

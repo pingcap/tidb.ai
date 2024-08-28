@@ -1,13 +1,13 @@
 'use client';
 
 import { Divider } from '@/components/divider';
+import { NextLink } from '@/components/nextjs/NextLink';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import clsx from 'clsx';
 import { TrashIcon } from 'lucide-react';
-import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { type ComponentType, Fragment, type ReactElement, type ReactNode } from 'react';
 
@@ -125,11 +125,9 @@ function SiteNavLinkItem ({ item, active }: { item: NavLinkItem, active: boolean
     );
   } else {
     el = (
-      <Button asChild className={cn('flex w-full justify-start gap-2 font-semibold', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'default' : 'ghost')} data-active={active ? 'true' : undefined}>
-        <Link href={item.href} prefetch={false}>
-          {renderBaseItemContent(item)}
-        </Link>
-      </Button>
+      <NextLink href={item.href} prefetch={false} className={cn('flex w-full justify-start gap-2 font-semibold aria-disabled:opacity-50', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'default' : 'ghost')} data-active={active ? 'true' : undefined}>
+        {renderBaseItemContent(item)}
+      </NextLink>
     );
   }
   if (item.disabled && typeof item.disabled !== 'boolean') {

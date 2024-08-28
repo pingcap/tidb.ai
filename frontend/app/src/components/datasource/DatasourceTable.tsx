@@ -6,7 +6,7 @@ import { link } from '@/components/cells/link';
 import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { LlmInfo } from '@/components/llm/LlmInfo';
-import { LinkButton } from '@/components/nextjs/LinkButton';
+import { NextLink } from '@/components/nextjs/NextLink';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { PlusIcon, Trash2Icon } from 'lucide-react';
@@ -41,12 +41,12 @@ export function DatasourceTable () {
     <DataTableRemote
       before={(
         <DataTableHeading>
-          <LinkButton className="gap-2" href={`/datasources/create/file`}>
+          <NextLink className="gap-2" href={`/datasources/create/file`}>
             <PlusIcon className="size-4" />
             <span>
               Create
             </span>
-          </LinkButton>
+          </NextLink>
         </DataTableHeading>
       )}
       columns={columns}

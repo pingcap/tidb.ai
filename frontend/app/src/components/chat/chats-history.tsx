@@ -1,7 +1,7 @@
 import { type Chat, deleteChat, listChats } from '@/api/chats';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { DangerousActionButton } from '@/components/dangerous-action-button';
-import { LinkButton } from '@/components/nextjs/LinkButton';
+import { NextLink } from '@/components/nextjs/NextLink';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
@@ -37,9 +37,9 @@ export function ChatsHistory () {
         )}
         {history?.items.map(chat => (
           <li key={chat.id} className="flex gap-2 items-center">
-            <LinkButton href={`/c/${chat.id}`} data-active={isActive(chat) ? 'true' : undefined} variant={isActive(chat) ? 'secondary' : 'ghost'} className="flex-1 opacity-80 text-xs p-2 py-1.5 h-max font-light w-[86%] block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold transition-opacity text-left ellipsis">
+            <NextLink href={`/c/${chat.id}`} data-active={isActive(chat) ? 'true' : undefined} variant={isActive(chat) ? 'secondary' : 'ghost'} className="flex-1 opacity-80 text-xs p-2 py-1.5 h-max font-light w-[86%] block whitespace-nowrap overflow-hidden overflow-ellipsis data-[active]:font-semibold transition-opacity text-left ellipsis">
               {chat.title}
-            </LinkButton>
+            </NextLink>
             <DangerousActionButton
               asChild
               action={async () => {
