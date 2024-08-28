@@ -1,6 +1,5 @@
-import { RemarkContent } from '@/components/remark-content';
 import type { Meta, StoryObj } from '@storybook/react';
-import './chat/style.css'
+import { RemarkContent } from './remark-content';
 
 const meta = {
   title: 'Components/RemarkContent',
@@ -11,12 +10,16 @@ const meta = {
   tags: ['autodocs'],
   decorators: [
     (Story) => (
-      <article className="remark-content prose prose-sm prose-neutral prose-pre:bg-zinc-50 dark:prose-pre:bg-zinc-900 prose-pre:text-accent-foreground dark:prose-invert overflow-x-hidden break-words max-w-[unset]" style={{ minWidth: 400 }}>
+      <div style={{ minWidth: 400 }}>
         <Story />
-      </article>
+      </div>
     ),
   ],
-  argTypes: {},
+  argTypes: {
+    children: {
+      type: 'string',
+    },
+  },
   args: {},
 } satisfies Meta<typeof RemarkContent>;
 
@@ -48,7 +51,9 @@ No language code block
 \`\`\`
 
 \`\`\`sql
-SELECT 'hello world' from tidb;
+SELECT 
+  'hello world' 
+from tidb;
 \`\`\`
 `,
   },

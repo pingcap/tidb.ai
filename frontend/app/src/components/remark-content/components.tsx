@@ -1,20 +1,13 @@
 import { MessageContextSourceCard } from '@/components/chat/message-content-sources';
-import { usePortalContainer } from '@/components/portal-provider';
-import { rehypeHighlightOptions } from '@/components/remark-content-highlight';
+import { CopyButton } from '@/components/copy-button';
+import { RemarkContentContext } from '@/components/remark-content/context';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { cn } from '@/lib/utils';
 import { HoverCardArrow, HoverCardPortal } from '@radix-ui/react-hover-card';
-
-import { cloneElement, createContext, type ReactNode, useContext, useEffect, useId, useMemo, useState } from 'react';
+import { cloneElement, useContext, useState } from 'react';
 import { isElement, isFragment } from 'react-is';
-import * as prod from 'react/jsx-runtime';
-import rehypeHighlight from 'rehype-highlight';
-import rehypeReact, { Options as RehypeReactOptions } from 'rehype-react';
-import remarkGfm from 'remark-gfm';
-import remarkParse from 'remark-parse';
-import remarkRehype from 'remark-rehype';
-import { unified } from 'unified';
-import './code-theme.scss';
+import * as jsxRuntime from 'react/jsx-runtime';
+import { Options as RehypeReactOptions } from 'rehype-react';
 
 function dirtyRewrite (some: any, id: string): any {
   if (some == null) return some;
@@ -35,14 +28,15 @@ function dirtyRewrite (some: any, id: string): any {
   return some;
 }
 
-const production = ({ portalContainer }: { portalContainer: HTMLElement | undefined }): RehypeReactOptions => ({
-  Fragment: (prod as any).Fragment,
-  jsx: (prod as any).jsx,
-  jsxs: (prod as any).jsxs,
+export const getRehypeReactOptions = ({ portalContainer }: { portalContainer: HTMLElement | undefined }): RehypeReactOptions => ({
+  Fragment: (jsxRuntime as any).Fragment,
+  jsx: (jsxRuntime as any).jsx,
+  jsxs: (jsxRuntime as any).jsxs,
+  passNode: true,
   components: {
     section ({ ...props }) {
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      const reactId = useContext(RemarkContentContext);
+      const { reactId } = useContext(RemarkContentContext);
 
       if (!(props as any)['data-footnotes']) return <section {...props} />;
       return (
@@ -53,7 +47,7 @@ const production = ({ portalContainer }: { portalContainer: HTMLElement | undefi
     },
     a ({ ...props }) {
       // eslint-disable-next-line react-hooks/rules-of-hooks
-      const reactId = useContext(RemarkContentContext);
+      const { reactId } = useContext(RemarkContentContext);
 
       // eslint-disable-next-line react-hooks/rules-of-hooks
       const [link, setLink] = useState<{ title: string, href: string | false }>();
@@ -107,42 +101,34 @@ const production = ({ portalContainer }: { portalContainer: HTMLElement | undefi
         </HoverCard>
       );
     },
+    pre ({ children, node, ...props }) {
+      const { rawContent } = useContext(RemarkContentContext);
+
+      let isCodeBlock = false;
+      let range: [number, number] | undefined;
+      const firstChild = node?.children[0];
+      if (firstChild?.type === 'element' && firstChild.tagName === 'code') {
+        isCodeBlock = true;
+        if (firstChild.position && firstChild.position.start.offset && firstChild.position.end.offset) {
+          range = [firstChild.position.start.offset, firstChild.position.end.offset];
+        }
+      }
+
+      return (
+        <pre {...props}>
+          {children}
+          {isCodeBlock && <div className="absolute right-1 top-1 transition-opacity opacity-30 hover:opacity-100" data-role="codeblock-addon">
+            {range && <CopyButton text={() => parseCode(rawContent, range)} />}
+          </div>}
+        </pre>
+      );
+    },
   },
 });
 
-const RemarkContentContext = createContext<string>('');
-
-export function RemarkContent ({ children = '' }: { children: string | undefined }) {
-  const portalContainer = usePortalContainer();
-
-  const processFn = useMemo(() => {
-    const processor = unified()
-      .use(remarkParse)
-      .use(remarkGfm)
-      .use(remarkRehype)
-      .use(rehypeHighlight, rehypeHighlightOptions)
-      .use(rehypeReact, production({ portalContainer }))
-      .freeze();
-
-    return (text: string) => processor.processSync(text).result;
-  }, [portalContainer]);
-
-  const id = useId();
-  const [value, setValue] = useState<ReactNode>(processFn(children));
-
-  useEffect(() => {
-    if (children) {
-      try {
-        setValue(processFn(children));
-      } catch {
-        setValue(<div className="whitespace-pre-wrap">{children}</div>);
-      }
-    }
-  }, [children]);
-
-  return (
-    <RemarkContentContext.Provider value={id}>
-      {value}
-    </RemarkContentContext.Provider>
-  );
+function parseCode (raw: string, range: [number, number]) {
+  // Unindent prefix tabs?
+  return raw.slice(...range)
+    .replace(/^\s*```[^\n]*\n/, '')
+    .replace(/\n[^\n]*```$/, '');
 }
