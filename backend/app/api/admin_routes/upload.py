@@ -7,14 +7,17 @@ from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.file_storage import default_file_storage
 from app.utils.uuid6 import uuid7
 from app.models import Upload
+from app.types import MimeTypes
 
 router = APIRouter()
 
 
 SUPPORTED_FILE_TYPES = {
-    ".txt": "text/plain",
-    ".md": "text/markdown",
-    ".pdf": "application/pdf",
+    ".txt": MimeTypes.PLAIN_TXT,
+    ".md": MimeTypes.MARKDOWN,
+    ".pdf": MimeTypes.PDF,
+    ".docx": MimeTypes.DOCX,
+    ".pptx": MimeTypes.PPTX,
 }
 
 

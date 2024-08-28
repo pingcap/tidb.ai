@@ -1,10 +1,13 @@
 import logging
+import docx
+import pptx
 from pydantic import BaseModel
 from typing import Generator, IO
 from pypdf import PdfReader
 
 from app.models import Document, Upload
 from app.file_storage import default_file_storage
+from app.types import MimeTypes
 from .base import BaseDataSource
 
 logger = logging.getLogger(__name__)
@@ -30,9 +33,15 @@ class FileDataSource(BaseDataSource):
                 continue
 
             with default_file_storage.open(upload.path) as f:
-                if upload.mime_type == "application/pdf":
+                if upload.mime_type == MimeTypes.PDF:
                     content = extract_text_from_pdf(f)
-                    mime_type = "text/plain"
+                    mime_type = MimeTypes.PLAIN_TXT
+                elif upload.mime_type == MimeTypes.DOCX:
+                    content = extract_text_from_docx(f)
+                    mime_type = MimeTypes.PLAIN_TXT
+                elif upload.mime_type == MimeTypes.PPTX:
+                    content = extract_text_from_pptx(f)
+                    mime_type = MimeTypes.PLAIN_TXT
                 else:
                     content = f.read()
                     mime_type = upload.mime_type
@@ -52,3 +61,21 @@ class FileDataSource(BaseDataSource):
 def extract_text_from_pdf(file: IO) -> str:
     reader = PdfReader(file)
     return "\n\n".join([page.extract_text() for page in reader.pages])
+
+
+def extract_text_from_docx(file: IO) -> str:
+    document = docx.Document(file)
+    full_text = []
+    for paragraph in document.paragraphs:
+        full_text.append(paragraph.text)
+    return "\n\n".join(full_text)
+
+
+def extract_text_from_pptx(file: IO) -> str:
+    presentation = pptx.Presentation(file)
+    full_text = []
+    for slide in presentation.slides:
+        for shape in slide.shapes:
+            if hasattr(shape, "text"):
+                full_text.append(shape.text)
+    return "\n\n".join(full_text)

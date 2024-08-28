@@ -23,3 +23,11 @@ class RerankerProvider(str, enum.Enum):
     COHERE = "cohere"
     BAISHENG = "baisheng"
     LOCAL = "local"
+
+
+class MimeTypes(str, enum.Enum):
+    PLAIN_TXT = "text/plain"
+    MARKDOWN = "text/markdown"
+    PDF = "application/pdf"
+    DOCX = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    PPTX = "application/vnd.openxmlformats-officedocument.presentationml.presentation"

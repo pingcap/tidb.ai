@@ -10,9 +10,11 @@ from sqlmodel import (
     Text,
     DateTime,
     JSON,
+    String,
 )
 
 from .base import UpdatableBaseModel
+from app.types import MimeTypes
 
 
 class DocIndexTaskStatus(str, enum.Enum):
@@ -28,7 +30,7 @@ class Document(UpdatableBaseModel, table=True):
     hash: str = Field(max_length=32)
     name: str = Field(max_length=256)
     content: str = Field(sa_column=Column(MEDIUMTEXT))
-    mime_type: str = Field(max_length=64)
+    mime_type: MimeTypes = Field(sa_column=Column(String(128), nullable=False))
     source_uri: str = Field(max_length=512)
     meta: dict | list = Field(default={}, sa_column=Column(JSON))
     # the last time the document was modified in the source system

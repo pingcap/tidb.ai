@@ -49,6 +49,8 @@ dependencies = [
     "llama-index-embeddings-ollama<=0.3.0",
     "llama-index-embeddings-jinaai<=0.3.0",
     "llama-index-embeddings-cohere<=0.3.0",
+    "python-docx>=1.1.2",
+    "python-pptx>=1.0.2",
 ]
 readme = "README.md"
 requires-python = ">= 3.8"

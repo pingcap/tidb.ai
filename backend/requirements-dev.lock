@@ -367,6 +367,9 @@ llama-index-readers-llama-parse==0.1.6
     # via llama-index
 llama-parse==0.4.4
     # via llama-index-readers-llama-parse
+lxml==5.3.0
+    # via python-docx
+    # via python-pptx
 makefun==1.15.2
     # via fastapi-users
 mako==1.3.5
@@ -465,6 +468,7 @@ parameterized==0.9.0
 pillow==10.3.0
     # via llama-index-core
     # via llama-index-llms-gemini
+    # via python-pptx
 playwright==1.45.1
 pluggy==1.5.0
     # via pytest
@@ -551,12 +555,14 @@ python-dateutil==2.9.0.post0
     # via celery
     # via google-cloud-bigquery
     # via pandas
+python-docx==1.1.2
 python-dotenv==1.0.1
     # via pydantic-settings
     # via uvicorn
 python-multipart==0.0.9
     # via fastapi
     # via fastapi-users
+python-pptx==1.0.2
 pytz==2024.1
     # via flower
     # via pandas
@@ -690,6 +696,8 @@ typing-extensions==4.12.2
     # via pydantic
     # via pydantic-core
     # via pyee
+    # via python-docx
+    # via python-pptx
     # via sqlalchemy
     # via typer
     # via typing-inspect
@@ -727,6 +735,8 @@ wrapt==1.16.0
     # via deprecated
     # via langfuse
     # via llama-index-core
+xlsxwriter==3.2.0
+    # via python-pptx
 xxhash==3.4.1
     # via datasets
 yarl==1.9.4
