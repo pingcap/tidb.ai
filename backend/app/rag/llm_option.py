@@ -11,6 +11,8 @@ class LLMOption(BaseModel):
     provider_url: str | None = None
     default_llm_model: str
     llm_model_description: str
+    default_config: dict = {}
+    config_description: str = ""
     default_credentials: str | dict = ""
     credentials_display_name: str
     credentials_description: str
@@ -33,8 +35,13 @@ admin_llm_options: List[LLMOption] = [
     LLMOption(
         provider=LLMProvider.OPENAI_LIKE,
         provider_display_name="OpenAI Like",
-        default_llm_model="gpt-4o",
+        default_llm_model="",
         llm_model_description="",
+        default_config={
+            "api_base": "https://open.bigmodel.cn/api/paas/v4/",
+            "is_chat_model": True
+        },
+        config_description="Ensure that the AI server API adheres to the OpenAI format.",
         credentials_display_name="API Key",
         credentials_description="The API key of the third-party OpenAI-like service, such as OpenRouter, you can find it in their official website",
         credentials_type="str",
@@ -59,6 +66,10 @@ admin_llm_options: List[LLMOption] = [
         provider_url="https://ollama.com",
         default_llm_model="llama3.1",
         llm_model_description="Find more in https://ollama.com/library",
+        default_config={
+            "api_base": "http://localhost:11434",
+        },
+        config_description="`api_base` is the base URL of the Ollama server, ensure it can be accessed from this server.",
         credentials_display_name="Ollama API Key",
         credentials_description="Ollama doesn't require an API key, set a dummy string here is ok",
         credentials_type="str",
@@ -67,7 +78,7 @@ admin_llm_options: List[LLMOption] = [
     LLMOption(
         provider=LLMProvider.ANTHROPIC_VERTEX,
         provider_display_name="Anthropic Vertex AI",
-        provider_description="Anthropic’s Claude models are now generally available through Vertex AI.",
+        provider_description="Anthropic's Claude models are now generally available through Vertex AI.",
         provider_url="https://docs.anthropic.com/en/api/claude-on-vertex-ai",
         default_llm_model="claude-3-5-sonnet@20240620",
         llm_model_description="",

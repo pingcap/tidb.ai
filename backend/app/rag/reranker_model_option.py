@@ -13,6 +13,8 @@ class RerankerModelOption(BaseModel):
     reranker_model_description: str
     default_top_n: int = 10
     default_credentials: str | dict = ""
+    default_config: dict = {}
+    config_description: str = ""
     credentials_display_name: str
     credentials_description: str
     credentials_type: str = "str"
@@ -63,6 +65,10 @@ admin_reranker_model_options: List[RerankerModelOption] = [
         default_reranker_model="BAAI/bge-reranker-v2-m3",
         reranker_model_description="Find more models in huggingface.",
         default_top_n=10,
+        default_config={
+            "api_url": "http://127.0.0.1:5001/api/v1/reranker",
+        },
+        config_description="api_url is the url of the tidb ai local reranker server.",
         credentials_display_name="Local Reranker API Key",
         credentials_description="Local Reranker server doesn't require an API key, set a dummy string here is ok.",
         credentials_type="str",

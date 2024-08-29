@@ -12,6 +12,8 @@ class EmbeddingModelOption(BaseModel):
     provider_url: str | None = None
     default_embedding_model: str
     embedding_model_description: str
+    default_config: dict = {}
+    config_description: str = ""
     default_credentials: str | dict = ""
     credentials_display_name: str
     credentials_description: str
@@ -62,6 +64,10 @@ admin_embed_model_options: List[EmbeddingModelOption] = [
         provider_url="https://ollama.com",
         default_embedding_model="nomic-embed-text",
         embedding_model_description=f"https://ollama.com/blog/embedding-models, we need a model with {settings.EMBEDDING_DIMS} dimensions.",
+        default_config={
+            "api_base": "http://localhost:11434",
+        },
+        config_description="api_base is the base URL of the Ollama server, ensure it can be accessed from this server.",
         credentials_display_name="Ollama API Key",
         credentials_description="Ollama doesn't require an API key, set a dummy string here is ok",
         credentials_type="str",
@@ -73,6 +79,10 @@ admin_embed_model_options: List[EmbeddingModelOption] = [
         provider_description="TIDB.AI's local embedding server, deployed on your own infrastructure and powered by sentence-transformers.",
         default_embedding_model="BAAI/bge-m3",
         embedding_model_description="Find more models in huggingface.",
+        default_config={
+            "api_url": "http://127.0.0.1:5001/api/v1/embedding",
+        },
+        config_description="api_url is the url of the tidb ai local embedding server.",
         credentials_display_name="Local Embedding API Key",
         credentials_description="Local Embedding server doesn't require an API key, set a dummy string here is ok.",
         credentials_type="str",
