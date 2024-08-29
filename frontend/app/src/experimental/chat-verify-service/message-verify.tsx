@@ -26,6 +26,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
   const message_id = useChatMessageField(assistant, 'id');
   const chat_id = useChatMessageField(assistant, 'chat_id');
 
+  const externalRequestId = `${chat_id}_${message_id}`;
 
   const me = useAuth();
   const [verifyId, setVerifyId] = useState<string>();
@@ -43,6 +44,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
       revalidateOnFocus: false,
       errorRetryCount: 0,
       refreshInterval: data => {
+        console.log(data);
         if (!data) {
           return 0;
         }
@@ -59,13 +61,13 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
   useEffect(() => {
     if (enabled && !verifyId && question && answer && messageFinished && !verifying) {
       setVerifying(true);
-      verify(question, answer, message_id, chat_id)
+      verify({ question, answer, external_request_id: externalRequestId })
         .then(result => setVerifyId(result.job_id), error => setVerifyError(error))
         .finally(() => {
           setVerifying(false);
         });
     }
-  }, [enabled, verifyId, messageFinished, question, answer, verifying, message_id, chat_id]);
+  }, [enabled, verifyId, messageFinished, question, answer, verifying, externalRequestId]);
 
   useEffect(() => {
     console.debug(`[message-verify]`, result);
