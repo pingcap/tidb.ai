@@ -50,13 +50,26 @@ const getVerifyResponse = z.object({
   })),
 }) satisfies ZodType<MessageVerifyResponse, any, any>;
 
-export async function verify (question: string, answer: string) {
+export interface VerifyParams {
+  question: string
+  answer: string
+  external_request_id?: string
+}
+
+export async function verify({
+  question,
+  answer,
+  external_request_id,
+}: VerifyParams) {
   return await fetch(`${HOST}/api/v1/sqls-validation`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ qa_content: `User question: ${question}\n\nAnswer:\n${answer}` }),
+    body: JSON.stringify({
+      external_request_id: external_request_id,
+      qa_content: `User question: ${question}\n\nAnswer:\n${answer}`,
+    }),
   }).then(handleResponse(verifyResponse));
 }
 
