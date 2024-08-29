@@ -1,0 +1,54 @@
+.tidb-ai-widget#tidb-ai-widget {
+  .remark-content {
+    sup a[data-footnote-ref=true] {
+      @apply bg-primary text-primary-foreground px-1 mx-0.5 rounded-full no-underline;
+    }
+
+    sup a[data-footnote-ref=true] + a[data-footnote-ref=true] {
+      @apply ml-0.5;
+    }
+
+    [data-footnote-backref] {
+      @apply sr-only;
+    }
+
+    pre:has(> code) {
+      position: relative;
+
+      > div[data-role="codeblock-addon"] {
+        @apply text-foreground;
+      }
+    }
+
+    pre:has(> code.hljs) {
+      padding: 0;
+    }
+
+    pre > code.hljs {
+      background-color: #fafafa;
+    }
+
+    pre:has(> code:not(.hljs)) {
+      background: #fafafa;
+
+      > code {
+        color: #24292e;
+      }
+    }
+  }
+
+  .dark .remark-content {
+    pre > code.hljs {
+      background-color: #18181b;
+    }
+
+
+    pre:has(> code:not(.hljs)) {
+      background: #18181b;
+
+      > code {
+        color: #c9d1d9;
+      }
+    }
+  }
+}

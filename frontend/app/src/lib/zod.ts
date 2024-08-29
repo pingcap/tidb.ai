@@ -1,5 +1,5 @@
 import { parseJSON } from 'date-fns';
-import { z } from 'zod';
+import { z, ZodType } from 'zod';
 
 export function zodJsonDate (message?: string) {
   return z.string().pipe(d);
@@ -34,3 +34,27 @@ const d = z
   .transform(out => {
     return parseJSON(out);
   });
+
+
+export interface PageParams {
+  page?: number; // 1 based
+  size?: number;
+}
+
+export interface Page<T> {
+  items: T[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+
+export function zodPage<Z extends ZodType> (itemSchema: Z) {
+  return z.object({
+    items: itemSchema.array(),
+    total: z.number(),
+    page: z.number(),
+    size: z.number(),
+    pages: z.number(),
+  });
+}

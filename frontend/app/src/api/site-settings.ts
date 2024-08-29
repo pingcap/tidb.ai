@@ -107,5 +107,6 @@ export async function updateSiteSetting (name: string, value: any) {
 export async function getPublicSiteSettings (): Promise<PublicWebsiteSettings> {
   return fetch(`${BASE_URL}/api/v1/site-config`, {
     headers: await authenticationHeaders(),
+    credentials: 'include',
   }).then(handleErrors).then(res => res.json());
 }
