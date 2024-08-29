@@ -18,7 +18,8 @@ export const LLMSelect = forwardRef<any, Omit<FormSelectProps, 'config'> & { rev
         options: llms?.items ?? [],
         loading: isLoading,
         error,
-        renderOption: option => (<span><LlmInfo reverse={reverse} id={option.id} /></span>),
+        renderValue: option => (<span><LlmInfo reverse={reverse} id={option.id} /></span>),
+        renderOption: option => (<span><LlmInfo detailed reverse={reverse} id={option.id} /></span>),
         key: 'id',
       } satisfies FormSelectConfig<LLM>}
     />
@@ -38,7 +39,8 @@ export const RerankerSelect = forwardRef<any, Omit<FormSelectProps, 'config'> & 
         options: rerankers?.items ?? [],
         loading: isLoading,
         error,
-        renderOption: option => (<span><RerankerInfo reverse={reverse} id={option.id} /></span>),
+        renderValue: option => (<span><RerankerInfo reverse={reverse} id={option.id} /></span>),
+        renderOption: option => (<span><RerankerInfo detailed reverse={reverse} id={option.id} /></span>),
         key: 'id',
       } satisfies FormSelectConfig<Reranker>}
     />
