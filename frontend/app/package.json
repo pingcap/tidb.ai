@@ -137,13 +137,21 @@
   },
   "imports": {
     "#*": {
+      "react-server": [
+        "./src/*.react-server",
+        "./src/*.react-server.js",
+        "./src/*.react-server.ts",
+        "./src/*.react-server.tsx"
+      ],
       "storybook": [
         "./src/*.mock",
+        "./src/*.mock.js",
         "./src/*.mock.ts",
         "./src/*.mock.tsx"
       ],
       "default": [
         "./src/*",
+        "./src/*.js",
         "./src/*.ts",
         "./src/*.tsx"
       ]

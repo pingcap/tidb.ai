@@ -38,6 +38,7 @@ export async function getBootstrapStatus (): Promise<BootstrapStatus> {
     headers: {
       ...await authenticationHeaders(),
     },
+    credentials: 'include',
   }).then(handleResponse(bootstrapStatusSchema));
 }
 

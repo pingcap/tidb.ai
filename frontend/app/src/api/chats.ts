@@ -131,6 +131,7 @@ export async function postFeedback (chatMessageId: number, feedback: FeedbackPar
       ...await authenticationHeaders(),
       'Content-Type': 'application/json',
     },
+    credentials: 'include',
     body: JSON.stringify(feedback),
   }).then(handleErrors);
 }
@@ -138,6 +139,7 @@ export async function postFeedback (chatMessageId: number, feedback: FeedbackPar
 export async function getChatMessageSubgraph (chatMessageId: number): Promise<KnowledgeGraph> {
   return await fetch(BASE_URL + `/api/v1/chat-messages/${chatMessageId}/subgraph`, {
     headers: await authenticationHeaders(),
+    credentials: 'include',
   })
     .then(handleResponse(knowledgeGraphSchema));
 }
@@ -169,6 +171,7 @@ export async function* chat ({ chat_id, chat_engine, content, headers: headersIn
   const response = await fetch(BASE_URL + `/api/v1/chats`, {
     method: 'POST',
     headers,
+    credentials: 'include',
     body: JSON.stringify({
       chat_id,
       chat_engine,

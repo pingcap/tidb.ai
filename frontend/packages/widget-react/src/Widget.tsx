@@ -7,18 +7,35 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogDescription, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
-import { useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import './Widget.css';
 
 export interface WidgetProps {
+  trigger?: HTMLElement | true | null;
   bootstrapStatus: BootstrapStatus;
   exampleQuestions: string[];
   buttonLabel: string;
   buttonIcon: string;
   icon: string;
+  disableAutoThemeDetect?: boolean;
 }
 
-export function Widget ({ bootstrapStatus, exampleQuestions, icon, buttonIcon, buttonLabel }: WidgetProps) {
-  const [, setDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches);
+export interface WidgetInstance {
+  open: boolean;
+  dark: boolean;
+}
+
+export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ trigger, disableAutoThemeDetect = false, bootstrapStatus, exampleQuestions, icon, buttonIcon, buttonLabel }, ref) => {
+  const [open, setOpen] = useState(false);
+  const [dark, setDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches);
+  const openRef = useRef(open);
+  const darkRef = useRef(dark);
+
+  useEffect(() => {
+    openRef.current = open;
+    darkRef.current = dark;
+  });
+
   const container = useRef<HTMLDivElement>();
   if (!container.current) {
     container.current = document.getElementById('tidb-ai-widget')! as never;
@@ -26,14 +43,12 @@ export function Widget ({ bootstrapStatus, exampleQuestions, icon, buttonIcon, b
 
   const toggleDark = (dark: boolean) => {
     setDark(dark);
-    if (dark) {
-      container.current?.classList.add('dark');
-    } else {
-      container.current?.classList.remove('dark');
-    }
   };
 
   useEffect(() => {
+    if (disableAutoThemeDetect) {
+      return;
+    }
     const match = matchMedia('(prefers-color-scheme: dark)');
     const change = () => {
       toggleDark(match.matches);
@@ -43,9 +58,12 @@ export function Widget ({ bootstrapStatus, exampleQuestions, icon, buttonIcon, b
     return () => {
       match.removeEventListener('change', change);
     };
-  }, []);
+  }, [disableAutoThemeDetect]);
 
   useEffect(() => {
+    if (disableAutoThemeDetect) {
+      return;
+    }
     const mo = new MutationObserver(() => {
       toggleDark(document.documentElement.classList.contains('dark'));
     });
@@ -58,21 +76,54 @@ export function Widget ({ bootstrapStatus, exampleQuestions, icon, buttonIcon, b
     return () => {
       mo.disconnect();
     };
-  }, []);
+  }, [disableAutoThemeDetect]);
+
+  useEffect(() => {
+    if (dark) {
+      container.current?.classList.add('dark');
+    } else {
+      container.current?.classList.remove('dark');
+    }
+  }, [dark]);
+
+  useEffect(() => {
+    if (trigger && trigger !== true) {
+      const open = () => setOpen(true);
+      trigger.addEventListener('click', open);
+      return () => {
+        trigger.removeEventListener('click', open);
+      };
+    }
+  }, [trigger]);
+
+  useImperativeHandle(ref, () => ({
+    get open () {
+      return openRef.current;
+    },
+    set open (o) {
+      setOpen(o);
+    },
+    get dark () {
+      return darkRef.current;
+    },
+    set dark (d) {
+      setDark(d);
+    },
+  }), []);
 
   return (
     <PortalProvider container={container.current}>
       <BootstrapStatusProvider bootstrapStatus={bootstrapStatus}>
         <ChatsProvider>
-          <Dialog>
-            <DialogTrigger asChild>
+          <Dialog open={open} onOpenChange={setOpen}>
+            {!trigger && <DialogTrigger asChild>
               <Button id="tidb-ai-widget-trigger" className="hidden sm:flex fixed right-8 bottom-8 gap-2 items-center">
                 <img src={buttonIcon} alt="Logo" className="size-4" />
                 <span>
-              {buttonLabel}
-            </span>
+                  {buttonLabel}
+                </span>
               </Button>
-            </DialogTrigger>
+            </DialogTrigger>}
             <DialogPortal container={container.current}>
               <DialogOverlay />
               <DialogPrimitive.Content
@@ -120,7 +171,7 @@ export function Widget ({ bootstrapStatus, exampleQuestions, icon, buttonIcon, b
                   </div>
                 </ScrollArea>
                 <div className="text-muted-foreground text-xs">
-                  Powered by <a className='underline' href="https://github.com/pingcap/tidb.ai" target="_blank">pingcap/tidb.ai</a>, deploy your own for free.
+                  Powered by <a className="underline" href="https://github.com/pingcap/tidb.ai" target="_blank">pingcap/tidb.ai</a>, deploy your own for free.
                 </div>
               </DialogPrimitive.Content>
             </DialogPortal>
@@ -129,4 +180,4 @@ export function Widget ({ bootstrapStatus, exampleQuestions, icon, buttonIcon, b
       </BootstrapStatusProvider>
     </PortalProvider>
   );
-}
+});

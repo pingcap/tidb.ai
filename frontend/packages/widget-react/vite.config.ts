@@ -5,12 +5,11 @@ import { defineConfig } from 'vite';
 import injectCss from 'vite-plugin-css-injected-by-js';
 
 const overriding = [
-  'components/chat/style.css',
+  'components/remark-content/style.scss',
+  'components/code-theme/style.scss',
 ];
 
-const overridingPackages = [
-  'next/headers',
-];
+const overridingPackages: string[] = [];
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -48,7 +47,7 @@ export default defineConfig({
     ],
   },
   define: {
-    'process.env.BASE_URL': '""',
+    'process.env.BASE_URL': process.env.NODE_ENV === 'development' ? '"https://tidbai-dev.htapdb.com"' : '""',
     'process.env.NEXT_PUBLIC_BASE_URL': '""',
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     'process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL': 'false',
@@ -57,6 +56,7 @@ export default defineConfig({
     'process.env.__NEXT_ROUTER_BASEPATH': '""',
   },
   server: {
+    port: 3000,
     proxy: {
       '/api': 'https://tidbai-dev.htapdb.com',
     },

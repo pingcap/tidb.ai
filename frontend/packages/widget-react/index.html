@@ -1,12 +1,17 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React + TS</title>
-  </head>
-  <body>
-    <div id="tidb-ai-widget" class="tidb-ai-widget"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vite + React + TS</title>
+</head>
+<body>
+<div id="tidb-ai-widget" class="tidb-ai-widget"></div>
+<script>
+  window.addEventListener('tidbaiinitialized', ev => {
+    console.log(ev.detail)
+  })
+</script>
+<script async data-api-base="https://tidbai-dev.htapdb.com" src="dist/widget.js"></script>
+</body>
 </html>
