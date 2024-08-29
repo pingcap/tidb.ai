@@ -72,7 +72,7 @@ export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: b
         ...form.getValues(),
         model: provider.default_llm_model,
         credentials: provider.credentials_type === 'dict' ? undefined : '',
-        config: '{}',
+        config: JSON.stringify(provider.default_config, undefined, 2),
       });
     } else {
       const { name, is_default } = form.getValues();
@@ -129,7 +129,7 @@ export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: b
                     Advanced Settings
                   </AccordionTrigger>
                   <AccordionContent className="px-4">
-                    <FormFieldBasicLayout name="config" label="Config">
+                    <FormFieldBasicLayout name="config" label="Config" description={provider.config_description}>
                       <CodeInput language="json" />
                     </FormFieldBasicLayout>
                   </AccordionContent>

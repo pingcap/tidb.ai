@@ -75,7 +75,7 @@ export function CreateRerankerForm ({ transitioning, onCreated }: { transitionin
         model: provider.default_reranker_model,
         credentials: provider.credentials_type === 'dict' ? undefined : '',
         top_n: provider.default_top_n,
-        config: '{}',
+        config: JSON.stringify(provider.default_config, undefined, 2),
       });
     } else {
       const { name, is_default } = form.getValues();
@@ -133,7 +133,7 @@ export function CreateRerankerForm ({ transitioning, onCreated }: { transitionin
                     Advanced Settings
                   </AccordionTrigger>
                   <AccordionContent className="px-4">
-                    <FormFieldBasicLayout name="config" label="Config">
+                    <FormFieldBasicLayout name="config" label="Config" description={provider.config_description}>
                       <CodeInput language="json" />
                     </FormFieldBasicLayout>
                   </AccordionContent>

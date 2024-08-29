@@ -68,7 +68,7 @@ export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transi
         ...form.getValues(),
         model: provider.default_embedding_model,
         credentials: provider.credentials_type === 'dict' ? undefined : '',
-        config: '{}',
+        config: JSON.stringify(provider.default_config, undefined, 2),
       });
     } else {
       const { name } = form.getValues();
@@ -124,7 +124,7 @@ export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transi
                     Advanced Settings
                   </AccordionTrigger>
                   <AccordionContent className="px-4">
-                    <FormFieldBasicLayout name="config" label="Config">
+                    <FormFieldBasicLayout name="config" label="Config" description={provider.config_description}>
                       <CodeInput language="json" />
                     </FormFieldBasicLayout>
                   </AccordionContent>

@@ -9,6 +9,8 @@ export interface ProviderOption {
   credentials_description: string;
   credentials_type: 'str' | 'dict';
   default_credentials: any;
+  default_config: object;
+  config_description: string;
 }
 
 export const providerOptionSchema = z.object({
@@ -18,6 +20,8 @@ export const providerOptionSchema = z.object({
   provider_url: z.string().nullable(),
   credentials_display_name: z.string(),
   credentials_description: z.string(),
+  default_config: z.object({}).passthrough(),
+  config_description: z.string(),
 }).and(z.discriminatedUnion('credentials_type', [
   z.object({
     credentials_type: z.literal('str'),
