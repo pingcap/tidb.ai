@@ -7,7 +7,7 @@ if (!script) {
   throw new Error('Cannot locate document.currentScript');
 }
 
-loadConfig().then(({ settings, bootstrapStatus }) => {
+loadConfig().then(({ settings, bootstrapStatus, experimentalFeatures }) => {
   const div = document.createElement('div');
 
   div.id = 'tidb-ai-widget';
@@ -34,6 +34,7 @@ loadConfig().then(({ settings, bootstrapStatus }) => {
       buttonIcon={settings.custom_js_button_img_src}
       icon={settings.custom_js_logo_src}
       bootstrapStatus={bootstrapStatus}
+      experimentalFeatures={experimentalFeatures}
     />,
   );
 });

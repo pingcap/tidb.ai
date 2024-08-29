@@ -2,6 +2,7 @@ import { getPublicSiteSettings } from '@/api/site-settings';
 import { getBootstrapStatus } from '@/api/system';
 import { RootProviders } from '@/app/RootProviders';
 import { SystemWizardDialog } from '@/components/system/SystemWizardDialog';
+import { experimentalFeatures } from '@/experimental/experimental-features';
 import { auth } from '@/lib/auth';
 import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata } from 'next';
@@ -41,7 +42,7 @@ export default async function RootLayout ({
   return (
     <html lang="en" suppressHydrationWarning>
     <body className={inter.className}>
-    <RootProviders me={me} settings={settings} bootstrapStatus={bootstrapStatus}>
+    <RootProviders me={me} settings={settings} bootstrapStatus={bootstrapStatus} experimentalFeatures={experimentalFeatures()}>
       {children}
       <SystemWizardDialog />
     </RootProviders>

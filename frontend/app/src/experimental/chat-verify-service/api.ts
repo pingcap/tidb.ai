@@ -1,8 +1,6 @@
 import { handleResponse } from '@/lib/request';
 import { z, type ZodType } from 'zod';
 
-const HOST = 'https://verify.tidb.ai';
-
 export const enum VerifyStatus {
   CREATED = 'CREATED',
   EXTRACTING = 'EXTRACTING',
@@ -56,12 +54,12 @@ export interface VerifyParams {
   external_request_id?: string
 }
 
-export async function verify({
+export async function verify(service: string | undefined, {
   question,
   answer,
   external_request_id,
 }: VerifyParams) {
-  return await fetch(`${HOST}/api/v1/sqls-validation`, {
+  return await fetch(`${service}/api/v1/sqls-validation`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -73,8 +71,9 @@ export async function verify({
   }).then(handleResponse(verifyResponse));
 }
 
-export async function getVerify (id: string) {
-  return await fetch(`${HOST}/api/v1/sqls-validation/${id}`).then(handleResponse(getVerifyResponse));
+export async function getVerify (service: string | undefined, id: string) {
+  assertEnabled(service);
+  return await fetch(`${service}/api/v1/sqls-validation/${id}`).then(handleResponse(getVerifyResponse));
 }
 
 export function isFinalVerifyState (state: VerifyStatus) {
@@ -83,4 +82,10 @@ export function isFinalVerifyState (state: VerifyStatus) {
 
 export function isVisibleVerifyState (state: VerifyStatus) {
   return [VerifyStatus.SUCCESS, VerifyStatus.FAILED].includes(state);
+}
+
+function assertEnabled (value: string | undefined): asserts value is string {
+  if (!value) {
+    throw new Error('Experimental message verify not enabled.');
+  }
 }

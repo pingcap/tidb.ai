@@ -4,7 +4,7 @@ import './index.css';
 import { loadConfig } from './load-config';
 import { Widget } from './Widget';
 
-const { settings, bootstrapStatus } = await loadConfig();
+const { settings, bootstrapStatus, experimentalFeatures } = await loadConfig();
 
 ReactDOM.createRoot(document.getElementById('tidb-ai-widget')!).render(
   <React.StrictMode>
@@ -14,6 +14,7 @@ ReactDOM.createRoot(document.getElementById('tidb-ai-widget')!).render(
       buttonIcon={settings.custom_js_button_img_src}
       icon={settings.custom_js_logo_src}
       bootstrapStatus={bootstrapStatus}
+      experimentalFeatures={experimentalFeatures}
     />
   </React.StrictMode>,
 );

@@ -5,6 +5,7 @@ import type { ChatMessageController } from '@/components/chat/chat-message-contr
 import { isNotFinished } from '@/components/chat/utils';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { useExperimentalFeatures } from '@/experimental/experimental-features-provider';
 import { getErrorMessage } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -33,18 +34,17 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState<unknown>();
 
-  const enabled = useExperimentalMessageVerifyFeature();
+  const serviceUrl = useExperimentalFeatures().message_verify_service;
   const isSuperuser = !!me.me?.is_superuser;
 
-  const shouldPoll = enabled && !!verifyId && !!assistant && isSuperuser;
+  const shouldPoll = serviceUrl && !!verifyId && !!assistant && isSuperuser;
   const { data: result, isLoading: isLoadingResult, error: pollError } = useSWR(
-    shouldPoll && `experimental.chat-message.${assistant.id}.verify`, () => getVerify(verifyId!),
+    shouldPoll && `experimental.chat-message.${assistant.id}.verify`, () => getVerify(serviceUrl, verifyId!),
     {
       revalidateOnMount: true,
       revalidateOnFocus: false,
       errorRetryCount: 0,
       refreshInterval: data => {
-        console.log(data);
         if (!data) {
           return 0;
         }
@@ -59,21 +59,21 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
   const error: unknown = verifyError ?? pollError;
 
   useEffect(() => {
-    if (enabled && !verifyId && question && answer && messageFinished && !verifying) {
+    if (serviceUrl && !verifyId && question && answer && messageFinished && !verifying) {
       setVerifying(true);
-      verify({ question, answer, external_request_id: externalRequestId })
+      verify(serviceUrl, { question, answer, external_request_id: externalRequestId })
         .then(result => setVerifyId(result.job_id), error => setVerifyError(error))
         .finally(() => {
           setVerifying(false);
         });
     }
-  }, [enabled, verifyId, messageFinished, question, answer, verifying, externalRequestId]);
+  }, [serviceUrl, verifyId, messageFinished, question, answer, verifying, externalRequestId]);
 
   useEffect(() => {
     console.debug(`[message-verify]`, result);
   }, [result]);
 
-  if (!isSuperuser || !enabled || !messageFinished) {
+  if (!isSuperuser || !serviceUrl || !messageFinished) {
     return null;
   }
 
@@ -219,14 +219,4 @@ function MessageVerifyRun ({ run }: { run: MessageVerifyResponse.Run }) {
        </pre>
     </div>
   );
-}
-
-function useExperimentalMessageVerifyFeature () {
-  const [enabled, setEnabled] = useState(false);
-
-  useEffect(() => {
-    setEnabled(localStorage.getItem('tidbai.experimental.verify-chat-message') === 'on');
-  }, []);
-
-  return enabled;
 }
