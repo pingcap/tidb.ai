@@ -48,7 +48,7 @@ echo -e "$TAG Execute bootstrap"
 docker compose run --rm backend /bin/sh -c "python bootstrap.py" > bootstrap.stdout
 
 echo -e "$TAG Extract initial username and password"
-cat bootstrap.stdout | grep IMPORTANT | sed 's/^.*email: \(.*\) and password: \(.*\),.*$/USERNAME=\1\nPASSWORD=\2/' > .credentials
+cat bootstrap.stdout | grep IMPORTANT | sed 's/^.*email: \(.*\) and password: \(.*\)$/USERNAME=\1\nPASSWORD=\2/' > .credentials
 cat .credentials
 
 echo -e "$TAG Start components"
