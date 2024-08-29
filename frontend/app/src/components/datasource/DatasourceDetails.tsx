@@ -67,13 +67,6 @@ function DatasourceProgress ({ id }: { id: number }) {
           <Link className="flex gap-2 items-center" href={`/datasources/${id}/documents`}>All documents <ArrowRightIcon className="size-3" /></Link>
         </TotalCard>
         <TotalCard title="Chunks" icon={<PuzzleIcon className="h-4 w-4 text-muted-foreground" />} total={progress?.chunks.total} />
-        {datasource?.build_kg_index && <TotalCard
-          title="Entities"
-          icon={<MapPinIcon className="h-4 w-4 text-muted-foreground" />}
-          total={progress?.entities?.total}
-        >
-          <Link className="flex gap-2 items-center" href="/knowledge-graph">Graph Editor <ArrowRightIcon className="size-3" /></Link>
-        </TotalCard>}
         {datasource?.build_kg_index && <TotalCard title="Relationships" icon={<RouteIcon className="h-4 w-4 text-muted-foreground" />} total={progress?.relationships?.total} />}
       </div>
       <div className="mt-4 grid grid-cols-2 gap-4">

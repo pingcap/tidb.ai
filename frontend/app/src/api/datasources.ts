@@ -30,7 +30,6 @@ export type DataSourceIndexProgress = {
   documents: IndexTotalStats
   chunks: IndexTotalStats
   kg_index?: IndexProgress
-  entities?: IndexTotalStats
   relationships?: IndexTotalStats
 }
 
@@ -125,7 +124,6 @@ const datasourceOverviewSchema = z.object({
   documents: totalSchema,
   chunks: totalSchema,
   kg_index: indexSchema.optional(),
-  entities: totalSchema.optional(),
   relationships: totalSchema.optional(),
 }) satisfies ZodType<DataSourceIndexProgress>;
 
