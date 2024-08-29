@@ -20,6 +20,9 @@ loadConfig().then(({ settings, bootstrapStatus }) => {
 
   const refFn = (current: WidgetInstance) => {
     window.dispatchEvent(new CustomEvent('tidbaiinitialized', { detail: current }));
+    Object.defineProperty(window, 'tidbai', {
+      value: current,
+    });
   };
 
   ReactDOM.createRoot(div).render(

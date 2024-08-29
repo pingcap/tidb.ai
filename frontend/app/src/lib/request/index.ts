@@ -1,8 +1,4 @@
-import { authenticationHeaders } from '#lib/request/authenticationHeaders';
-
-console.log(authenticationHeaders);
-
-export { authenticationHeaders };
+export { authenticationHeaders } from '#lib/request/authenticationHeaders';
 export * from './base-url';
 export * from './response-handlers';
 export * from './errors';
