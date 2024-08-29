@@ -2,6 +2,7 @@ import secrets
 import asyncio
 from sqlmodel import select, func
 from sqlmodel.ext.asyncio.session import AsyncSession
+from colorama import Fore, Style
 
 from app.core.db import get_db_async_session_context
 from app.models import User, ChatEngine
@@ -23,13 +24,14 @@ async def ensure_admin_user(session: AsyncSession) -> None:
             is_verified=True,
             is_superuser=True,
         )
-        print("\n" + "!" * 80)
-        print(
+        print(Fore.RED + "\n" + "!" * 80)
+        print(Fore.RED +
             "[IMPORTANT] Admin user created with email: "
-            f"{admin_email} and password: {admin_password}, "
-            "please change the password after login"
+            f"{admin_email} and password: {admin_password}"
         )
-        print("!" * 80 + "\n")
+        print(Fore.RED + "!" * 80 + "\n" + Style.RESET_ALL)
+    else:
+        print(Fore.YELLOW + "Admin user already exists, skipping...")
 
 
 async def ensure_default_chat_engine(session: AsyncSession) -> None:
@@ -45,6 +47,8 @@ async def ensure_default_chat_engine(session: AsyncSession) -> None:
         session.add(chat_engine)
         await session.commit()
         print("Default chat engine created.")
+    else:
+        print(Fore.YELLOW + "Default chat engine already exists, skipping...")
 
 
 async def bootstrap() -> None:
@@ -54,6 +58,6 @@ async def bootstrap() -> None:
 
 
 if __name__ == "__main__":
-    print("Bootstrapping the application...")
+    print(Fore.GREEN + "Bootstrapping the application..." + Style.RESET_ALL)
     asyncio.run(bootstrap())
-    print("Bootstrapping completed.")
+    print(Fore.GREEN + "Bootstrapping completed." + Style.RESET_ALL)
