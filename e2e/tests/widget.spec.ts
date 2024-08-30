@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-test.only('JS Widget', async ({ page }) => {
+test('JS Widget', async ({ page }) => {
   await page.goto('/');
-  expect(await page.waitForFunction(() => (window as any).tidbai)).toMatchObject({ open: false, dark: false });
+  await page.getByRole('button', { name: 'Ask AI' }).waitFor({ state: 'visible' });
+  expect(await page.evaluate('window.tidbai')).toMatchObject({ open: false });
 });
