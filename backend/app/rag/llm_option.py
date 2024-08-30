@@ -67,9 +67,9 @@ admin_llm_options: List[LLMOption] = [
         default_llm_model="llama3.1",
         llm_model_description="Find more in https://ollama.com/library",
         default_config={
-            "api_base": "http://localhost:11434",
+            "base_url": "http://localhost:11434",
         },
-        config_description="`api_base` is the base URL of the Ollama server, ensure it can be accessed from this server.",
+        config_description="`base_url` is the base URL of the Ollama server, ensure it can be accessed from this server.",
         credentials_display_name="Ollama API Key",
         credentials_description="Ollama doesn't require an API key, set a dummy string here is ok",
         credentials_type="str",

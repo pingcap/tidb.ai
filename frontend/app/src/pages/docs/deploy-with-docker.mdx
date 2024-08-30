@@ -16,6 +16,22 @@ This document provides instructions for deploying the entire RAG using Docker Co
     cd tidb.ai
     ```
 
+2. Select an embedding model for TiDB.AI.
+
+    We recommend using the OpenAI text-embedding-3-small model for TiDB.AI, but you can also use other supported embedding models.
+
+    - OpenAI
+        - text-embedding-3-small: EMBEDDING_DIMS=1536, EMBEDDING_MAX_TOKENS=8191
+    - JinaAI
+        - jina-clip-v1: EMBEDDING_DIMS=768, EMBEDDING_MAX_TOKENS=8192
+        - find more in https://jina.ai/embeddings/
+    - Local Embedding Server
+        - BAAI/bge-m3: EMBEDDING_DIMS=1024, EMBEDDING_MAX_TOKENS=8192
+
+<Callout>
+Note: The Embedding Model will be configured at the beggining of the deployment process.  You can not change the embedding model after the deployment.
+</Callout>
+
 2. Copy and edit the `.env` file:
 
     ```bash
@@ -28,6 +44,7 @@ This document provides instructions for deploying the entire RAG using Docker Co
     - `TIDB_HOST`, `TIDB_USER`, `TIDB_PASSWORD` and `TIDB_DATABASE`: get them from your [TiDB Serverless cluster](https://tidbcloud.com/)
 
       - Note: TiDB Serverless will provide a default database name called `test`, if you want to use another database name, you need to create a new database in the TiDB Serverless console.
+    - `EMBEDDING_DIMS` and `EMBEDDING_MAX_TOKENS`: set them according to the embedding model you choose before, it can not be changed after the deployment.
 
 3. Migrate the database schema:
 
@@ -47,6 +64,12 @@ This document provides instructions for deploying the entire RAG using Docker Co
 
     ```bash
     docker compose up
+    ```
+
+    To use the local embedding model, start with the following command:
+
+    ```bash
+    docker compose --profile local-embedding-reranker up
     ```
 
 6. Open your browser and visit `http://localhost:3000` to access the web interface.
@@ -69,18 +92,18 @@ After you deploy the tool, you need to initialize the tool by following the popu
 
 This section will help you upgrade tidb.ai to the new version.
 
-Suppose you want to upgrade tidb.ai from 0.1 to version 0.2
+Suppose you want to upgrade tidb.ai from 0.1.0 to version 0.2.0
 
 1. Edit your docker-compose.yml file to use the new image version.
 
     ```yaml
     services:
       backend:
-        image: tidbai/backend:0.2
+        image: tidbai/backend:0.2.0
       frontend:
-        image: tidbai/frontend:0.2
+        image: tidbai/frontend:0.2.0
       background:
-        image: tidbai/backend:0.2
+        image: tidbai/backend:0.2.0
     ```
 
 2. Pull the new image:
