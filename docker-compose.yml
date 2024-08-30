@@ -58,13 +58,21 @@ services:
         max-file: "6"
 
   local-embedding-reranker:
-    image: tidbai/local-embedding-reranker:v1
+    image: tidbai/local-embedding-reranker:v2
     ports:
       - 5001:5001
-    # If you are in China, you can set the following environment variable to speed up the download of models
+    # If you are in China, you can uncomment the following environment to speed up the download of models
     # environment:
     #   - HF_ENDPOINT=https://hf-mirror.com
     volumes:
       - ./local-embedding-reranker:/root/.cache/huggingface
+    # If you are using NVIDIA GPU, you can uncomment the following lines to enable GPU support
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
     profiles:
       - local-embedding-reranker
