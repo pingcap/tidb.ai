@@ -21,17 +21,24 @@ This document provides instructions for deploying the entire RAG using Docker Co
     We recommend using the OpenAI text-embedding-3-small model for TiDB.AI, but you can also use other supported embedding models.
 
     - OpenAI
-        - text-embedding-3-small: EMBEDDING_DIMS=1536, EMBEDDING_MAX_TOKENS=8191
+        - text-embedding-3-small
+            - EMBEDDING_DIMS: 1536
+            - EMBEDDING_MAX_TOKENS: 8191
     - JinaAI
-        - jina-clip-v1: EMBEDDING_DIMS=768, EMBEDDING_MAX_TOKENS=8192
-        - find more in https://jina.ai/embeddings/
+        - jina-clip-v1
+            - EMBEDDING_DIMS: 768
+            - EMBEDDING_MAX_TOKENS: 8192
+        - find more models in https://jina.ai/embeddings/
     - Local Embedding Server
-        - BAAI/bge-m3: EMBEDDING_DIMS=1024, EMBEDDING_MAX_TOKENS=8192
+        - BAAI/bge-m3
+            - EMBEDDING_DIMS: 1024
+            - EMBEDDING_MAX_TOKENS: 8192
 
 import { Callout } from 'nextra/components'
 
 <Callout>
-Note: The Embedding Model will be configured at the beggining of the deployment process.  You can not change the embedding model after the deployment.
+Note: You cannot change the embedding model after deployment because different models have varying vector dimensions and generate different vectors for the same input text.
+If you want to use a different embedding model after deployment, you need to recreate the app and database.
 </Callout>
 
 3. Copy and edit the `.env` file:
