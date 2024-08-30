@@ -34,7 +34,7 @@ import { Callout } from 'nextra/components'
 Note: The Embedding Model will be configured at the beggining of the deployment process.  You can not change the embedding model after the deployment.
 </Callout>
 
-2. Copy and edit the `.env` file:
+3. Copy and edit the `.env` file:
 
     ```bash
     cp .env.example .env
@@ -48,13 +48,13 @@ Note: The Embedding Model will be configured at the beggining of the deployment 
       - Note: TiDB Serverless will provide a default database name called `test`, if you want to use another database name, you need to create a new database in the TiDB Serverless console.
     - `EMBEDDING_DIMS` and `EMBEDDING_MAX_TOKENS`: set them according to the embedding model you choose before, it can not be changed after the deployment.
 
-3. Migrate the database schema:
+4. Migrate the database schema:
 
     ```bash
     docker compose run backend /bin/sh -c "alembic upgrade head"
     ```
 
-4. Bootstrap the database with initial data:
+5. Bootstrap the database with initial data:
 
     ```bash
     docker compose run backend /bin/sh -c "python bootstrap.py"
@@ -62,7 +62,7 @@ Note: The Embedding Model will be configured at the beggining of the deployment 
 
     Running the bootstrap script creates an admin user. You can find the username and password in the output.
 
-5. Start the services:
+6. Start the services:
 
     ```bash
     docker compose up
@@ -74,7 +74,7 @@ Note: The Embedding Model will be configured at the beggining of the deployment 
     docker compose --profile local-embedding-reranker up
     ```
 
-6. Open your browser and visit `http://localhost:3000` to access the web interface.
+7. Open your browser and visit `http://localhost:3000` to access the web interface.
 
 That's it! You can now use TiDB.AI locally. You can also go to https://tidb.ai to experience the live demo.
 

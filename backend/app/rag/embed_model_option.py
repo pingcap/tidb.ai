@@ -80,7 +80,7 @@ admin_embed_model_options: List[EmbeddingModelOption] = [
         default_embedding_model="BAAI/bge-m3",
         embedding_model_description="Find more models in huggingface.",
         default_config={
-            "api_url": "http://127.0.0.1:5001/api/v1/embedding",
+            "api_url": "http://local-embedding-reranker:5001/api/v1/embedding",
         },
         config_description="api_url is the url of the tidb ai local embedding server.",
         credentials_display_name="Local Embedding API Key",

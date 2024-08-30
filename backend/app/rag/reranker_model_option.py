@@ -66,7 +66,7 @@ admin_reranker_model_options: List[RerankerModelOption] = [
         reranker_model_description="Find more models in huggingface.",
         default_top_n=10,
         default_config={
-            "api_url": "http://127.0.0.1:5001/api/v1/reranker",
+            "api_url": "http://local-embedding-reranker:5001/api/v1/reranker",
         },
         config_description="api_url is the url of the tidb ai local reranker server.",
         credentials_display_name="Local Reranker API Key",
