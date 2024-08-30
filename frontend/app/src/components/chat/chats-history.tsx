@@ -43,7 +43,7 @@ export function ChatsHistory () {
             <DangerousActionButton
               asChild
               action={async () => {
-                await deleteChat(chat.id);
+                await deleteChat(chat.id).finally(() => mutate(history => history, { revalidate: true }));
               }}
               dialogTitle={`Are you sure to delete ${chat.title}?`}
               dialogDescription="This action cannot be undone."
