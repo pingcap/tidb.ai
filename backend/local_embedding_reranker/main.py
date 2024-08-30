@@ -1,9 +1,17 @@
 import os
+import sys
+import logging
 import uvicorn
 from pydantic import BaseModel
 from fastapi import FastAPI, APIRouter
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from contextlib import asynccontextmanager
+
+logging.basicConfig(
+    format="%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s",
+    level=logging.INFO,
+)
+logger = logging.getLogger(__name__)
 
 
 DEFAULT_EMBEDDING_MODEL = os.environ.get("DEFAULT_EMBEDDING_MODEL", "BAAI/bge-m3")
@@ -40,6 +48,7 @@ def get_reranker_model(model_name: str) -> CrossEncoder:
     if not reranker_model:
         reranker_model = CrossEncoder(
             model_name=model_name,
+            automodel_args={"torch_dtype": "auto"},
             trust_remote_code=True,
         )
         RERANKER_MODEL_DICT[model_name] = reranker_model
@@ -85,15 +94,16 @@ class RerankerResponse(BaseModel):
 def reranker_texts(request: RerankerRequest) -> RerankerResponse:
     reranker_model = get_reranker_model(request.model)
     sentence_pairs = [(request.query, p) for p in request.passages]
-    scores = reranker_model.predict(sentence_pairs)
+    scores = reranker_model.predict(sentence_pairs, convert_to_tensor=True)
     return RerankerResponse(model=request.model, scores=scores.tolist())
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # warm up models
+    logger.info("Loading default embedding and reranker models...")
     get_embedding_model(DEFAULT_EMBEDDING_MODEL)
     get_reranker_model(DEFAULT_RERANKER_MODEL)
+    logger.info("Default embedding and reranker models loaded")
     yield
 
 
