@@ -35,6 +35,7 @@ class _APICaller:
                 "normalize_embeddings": self.normalize_embeddings,
             },
         )
+        resp.raise_for_status()
         resp_json = resp.json()
         if "embeddings" not in resp_json:
             raise RuntimeError(

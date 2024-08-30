@@ -82,11 +82,13 @@ class LocalRerank(BaseNodePostprocessor):
                     "model": self.model,
                     "passages": texts,
                 },
-            ).json()
-            if "scores" not in resp:
-                raise RuntimeError(f"Got error from reranker: {resp}")
+            )
+            resp.raise_for_status()
+            resp_json = resp.json()
+            if "scores" not in resp_json:
+                raise RuntimeError(f"Got error from reranker: {resp_json}")
 
-            results = zip(range(len(nodes)), resp["scores"])
+            results = zip(range(len(nodes)), resp_json["scores"])
             results = sorted(results, key=lambda x: x[1], reverse=True)[: self.top_n]
 
             new_nodes = []
