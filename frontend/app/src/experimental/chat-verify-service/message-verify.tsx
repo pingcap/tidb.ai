@@ -58,8 +58,10 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
   const creating = verifying || !!(verifyId && !result && isLoadingResult);
   const error: unknown = verifyError ?? pollError;
 
+  const triedCreateVerify = !!(verifying || verifyId || verifyError);
+
   useEffect(() => {
-    if (serviceUrl && !verifyId && question && answer && messageFinished && !verifying) {
+    if (serviceUrl && !triedCreateVerify && question && answer && messageFinished) {
       setVerifying(true);
       verify(serviceUrl, { question, answer, external_request_id: externalRequestId })
         .then(result => setVerifyId(result.job_id), error => setVerifyError(error))
@@ -67,7 +69,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
           setVerifying(false);
         });
     }
-  }, [serviceUrl, verifyId, messageFinished, question, answer, verifying, externalRequestId]);
+  }, [serviceUrl, triedCreateVerify, messageFinished, question, answer, externalRequestId]);
 
   useEffect(() => {
     console.debug(`[message-verify]`, result);
