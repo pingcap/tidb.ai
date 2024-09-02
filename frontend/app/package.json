@@ -137,24 +137,10 @@
   },
   "imports": {
     "#*": {
-      "react-server": [
-        "./src/*.react-server",
-        "./src/*.react-server.ts",
-        "./src/*.react-server.tsx",
-        "./src/*.react-server.js"
-      ],
-      "storybook": [
-        "./src/*.mock",
-        "./src/*.mock.ts",
-        "./src/*.mock.tsx",
-        "./src/*.mock.js"
-      ],
-      "default": [
-        "./src/*",
-        "./src/*.ts",
-        "./src/*.tsx",
-        "./src/*.js"
-      ]
+      "react-server": "./src/*.react-server.ts",
+      "storybook": "./src/*.mock.ts",
+      "tidbai-widget": "./src/*.tidbai-widget.ts",
+      "default": "./src/*.ts"
     }
   }
 }

@@ -31,6 +31,7 @@ export default defineConfig({
   },
   publicDir: '../../app/public',
   resolve: {
+    conditions: ['tidbai-widget'],
     alias: [
       ...overriding.map(override => ({
         find: path.join('@', override),
@@ -48,7 +49,6 @@ export default defineConfig({
   },
   define: {
     'process.env.BASE_URL': process.env.NODE_ENV === 'development' ? '"https://tidbai-dev.htapdb.com"' : '""',
-    'process.env.NEXT_PUBLIC_BASE_URL': '""',
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     'process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL': 'false',
     'process.env.NEXT_PUBLIC_MOCKING_CHAT': 'false',

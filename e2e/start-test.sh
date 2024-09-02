@@ -60,8 +60,13 @@ do
   sleep 1
 done
 
+npm run serve-html &
+export SERVE_HTML_PID=$!
+
 npx playwright test ${PLAYWRIGHT_ARGS}
 
 if [ ! "${CI}" ]; then
   npx playwright show-report
 fi
+
+kill ${SERVE_HTML_PID}

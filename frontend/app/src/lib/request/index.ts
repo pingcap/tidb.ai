@@ -1,5 +1,5 @@
 export { authenticationHeaders } from '#lib/request/authenticationHeaders';
-export * from './base-url';
+export * from '#lib/request/base-url';
 export * from './response-handlers';
 export * from './errors';
 export * from './params';
