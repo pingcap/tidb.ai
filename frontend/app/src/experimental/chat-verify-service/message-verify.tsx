@@ -37,7 +37,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
   const serviceUrl = useExperimentalFeatures().message_verify_service;
   const isSuperuser = !!me.me?.is_superuser;
 
-  const shouldPoll = serviceUrl && !!verifyId && !!assistant && isSuperuser;
+  const shouldPoll = serviceUrl && !!verifyId && !!assistant; // Remove isSuperuser check
   const { data: result, isLoading: isLoadingResult, error: pollError } = useSWR(
     shouldPoll && `experimental.chat-message.${assistant.id}.verify`, () => getVerify(serviceUrl, verifyId!),
     {
@@ -75,7 +75,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
     console.debug(`[message-verify]`, result);
   }, [result]);
 
-  if (!isSuperuser || !serviceUrl || !messageFinished) {
+  if (!serviceUrl || !messageFinished) { // Remove isSuperuser check
     return null;
   }
 
