@@ -1,5 +1,5 @@
 import { type IndexProgress, indexSchema, type IndexTotalStats, totalSchema } from '@/api/rag';
-import { authenticationHeaders, BASE_URL, buildUrlParams, handleErrors, handleResponse, type Page, type PageParams, zodPage } from '@/lib/request';
+import { authenticationHeaders, handleErrors, handleResponse, type Page, type PageParams, requestUrl, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
 
@@ -141,32 +141,32 @@ const kgIndexErrorSchema = z.object({
 }) satisfies ZodType<DatasourceKgIndexError, any, any>;
 
 export async function listDataSources ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<Datasource>> {
-  return fetch(`${BASE_URL}/api/v1/admin/datasources?${buildUrlParams({ page, size }).toString()}`, {
+  return fetch(requestUrl('/api/v1/admin/datasources', { page, size }), {
     headers: await authenticationHeaders(),
   }).then(handleResponse(zodPage(datasourceSchema)));
 }
 
 export async function getDatasource (id: number): Promise<Datasource> {
-  return fetch(`${BASE_URL}/api/v1/admin/datasources/${id}`, {
+  return fetch(requestUrl(`/api/v1/admin/datasources/${id}`), {
     headers: await authenticationHeaders(),
   }).then(handleResponse(datasourceSchema));
 }
 
 export async function deleteDatasource (id: number): Promise<void> {
-  await fetch(`${BASE_URL}/api/v1/admin/datasources/${id}`, {
+  await fetch(requestUrl(`/api/v1/admin/datasources/${id}`), {
     method: 'DELETE',
     headers: await authenticationHeaders(),
   }).then(handleErrors);
 }
 
 export async function getDatasourceOverview (id: number): Promise<DataSourceIndexProgress> {
-  return fetch(`${BASE_URL}/api/v1/admin/datasources/${id}/overview`, {
+  return fetch(requestUrl(`/api/v1/admin/datasources/${id}/overview`), {
     headers: await authenticationHeaders(),
   }).then(handleResponse(datasourceOverviewSchema));
 }
 
 export async function createDatasource (params: CreateDatasourceParams) {
-  return fetch(`${BASE_URL}/api/v1/admin/datasources`, {
+  return fetch(requestUrl(`/api/v1/admin/datasources`), {
     method: 'POST',
     headers: {
       ...await authenticationHeaders(),
@@ -182,7 +182,7 @@ export async function uploadFiles (files: File[]) {
     formData.append('files', file);
   });
 
-  return fetch(`${BASE_URL}/api/v1/admin/uploads`, {
+  return fetch(requestUrl(`/api/v1/admin/uploads`), {
     method: 'POST',
     headers: {
       ...await authenticationHeaders(),
@@ -192,19 +192,19 @@ export async function uploadFiles (files: File[]) {
 }
 
 export async function listDatasourceVectorIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}) {
-  return fetch(`${BASE_URL}/api/v1/admin/datasources/${id}/vector-index-errors?${buildUrlParams({ page, size }).toString()}`, {
+  return fetch(requestUrl(`/api/v1/admin/datasources/${id}/vector-index-errors`, { page, size }), {
     headers: await authenticationHeaders(),
   }).then(handleResponse(zodPage(vectorIndexErrorSchema)));
 }
 
 export async function listDatasourceKgIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}) {
-  return fetch(`${BASE_URL}/api/v1/admin/datasources/${id}/kg-index-errors?${buildUrlParams({ page, size }).toString()}`, {
+  return fetch(requestUrl(`/api/v1/admin/datasources/${id}/kg-index-errors`, { page, size }), {
     headers: await authenticationHeaders(),
   }).then(handleResponse(zodPage(kgIndexErrorSchema)));
 }
 
 export async function retryDatasourceAllFailedTasks (id: number) {
-  return fetch(`${BASE_URL}/api/v1/admin/datasources/${id}/retry-failed-tasks`, {
+  return fetch(requestUrl(`/api/v1/admin/datasources/${id}/retry-failed-tasks`), {
     method: 'POST',
     headers: {
       ...await authenticationHeaders(),

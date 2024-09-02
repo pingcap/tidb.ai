@@ -1,7 +1,7 @@
 import { getPublicSiteSettings } from '@/api/site-settings';
 import { getBootstrapStatus } from '@/api/system';
 import type { ExperimentalFeatures } from '@/experimental/experimental-features-provider';
-import { BASE_URL } from '@/lib/request';
+import { requestUrl } from '@/lib/request';
 
 export async function loadConfig () {
   const [settings, bootstrapStatus, experimentalFeatures] = await Promise.all([
@@ -13,7 +13,7 @@ export async function loadConfig () {
       console.error('TiDB.ai service not bootstrapped', error);
       return Promise.reject(error);
     }),
-    fetch(`${BASE_URL}/experimental-features`).then(res => res.json() as Promise<Partial<ExperimentalFeatures>>),
+    fetch(requestUrl(`/experimental-features`)).then(res => res.json() as Promise<Partial<ExperimentalFeatures>>),
   ]);
 
   return { settings, bootstrapStatus, experimentalFeatures };

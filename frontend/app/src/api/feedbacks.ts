@@ -1,4 +1,4 @@
-import { authenticationHeaders, BASE_URL, buildUrlParams, handleResponse, type Page, type PageParams, zodPage } from '@/lib/request';
+import { authenticationHeaders, handleResponse, type Page, type PageParams, requestUrl, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
 
@@ -36,7 +36,7 @@ const feedbackSchema = z.object({
 }) satisfies ZodType<Feedback, any, any>;
 
 export async function listFeedbacks ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<Feedback>> {
-  return await fetch(BASE_URL + '/api/v1/admin/feedbacks' + '?' + buildUrlParams({ page, size }), {
+  return await fetch(requestUrl('/api/v1/admin/feedbacks', { page, size }), {
     headers: await authenticationHeaders(),
   })
     .then(handleResponse(zodPage(feedbackSchema)));

@@ -1,7 +1,7 @@
 import type { ChatEngineOptions } from '@/api/chat-engines';
 import { type KnowledgeGraph, knowledgeGraphSchema } from '@/api/graph';
 import { bufferedReadableStreamTransformer } from '@/lib/buffered-readable-stream';
-import { authenticationHeaders, BASE_URL, buildUrlParams, handleErrors, handleResponse, type Page, type PageParams, zodPage } from '@/lib/request';
+import { authenticationHeaders, handleErrors, handleResponse, type Page, type PageParams, requestUrl, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { parseStreamPart } from 'ai';
 import { z, type ZodType } from 'zod';
@@ -104,28 +104,28 @@ export interface PostChatParams {
 }
 
 export async function listChats ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<Chat>> {
-  return await fetch(BASE_URL + '/api/v1/chats' + '?' + buildUrlParams({ page, size }), {
+  return await fetch(requestUrl('/api/v1/chats', { page, size }), {
     headers: await authenticationHeaders(),
   })
     .then(handleResponse(zodPage(chatSchema)));
 }
 
 export async function getChat (id: string): Promise<ChatDetail> {
-  return await fetch(BASE_URL + `/api/v1/chats/${id}`, {
+  return await fetch(requestUrl(`/api/v1/chats/${id}`), {
     headers: await authenticationHeaders(),
   })
     .then(handleResponse(chatDetailSchema));
 }
 
 export async function deleteChat (id: string): Promise<void> {
-  await fetch(BASE_URL + `/api/v1/chats/${id}`, {
+  await fetch(requestUrl(`/api/v1/chats/${id}`), {
     method: 'delete',
     headers: await authenticationHeaders(),
   }).then(handleErrors);
 }
 
 export async function postFeedback (chatMessageId: number, feedback: FeedbackParams) {
-  return await fetch(BASE_URL + `/api/v1/chat-messages/${chatMessageId}/feedback`, {
+  return await fetch(requestUrl(`/api/v1/chat-messages/${chatMessageId}/feedback`), {
     method: 'post',
     headers: {
       ...await authenticationHeaders(),
@@ -137,7 +137,7 @@ export async function postFeedback (chatMessageId: number, feedback: FeedbackPar
 }
 
 export async function getChatMessageSubgraph (chatMessageId: number): Promise<KnowledgeGraph> {
-  return await fetch(BASE_URL + `/api/v1/chat-messages/${chatMessageId}/subgraph`, {
+  return await fetch(requestUrl(`/api/v1/chat-messages/${chatMessageId}/subgraph`), {
     headers: await authenticationHeaders(),
     credentials: 'include',
   })
@@ -168,7 +168,7 @@ export async function* chat ({ chat_id, chat_engine, content, headers: headersIn
     headers.set(key, value);
   }
 
-  const response = await fetch(BASE_URL + `/api/v1/chats`, {
+  const response = await fetch(requestUrl(`/api/v1/chats`), {
     method: 'POST',
     headers,
     credentials: 'include',

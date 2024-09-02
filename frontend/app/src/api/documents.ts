@@ -1,4 +1,4 @@
-import { authenticationHeaders, BASE_URL, buildUrlParams, handleResponse, type Page, type PageParams, zodPage } from '@/lib/request';
+import { authenticationHeaders, handleResponse, type Page, type PageParams, requestUrl, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
 
@@ -35,7 +35,7 @@ const documentSchema = z.object({
 }) satisfies ZodType<Document, any, any>;
 
 export async function listDocuments ({ page = 1, size = 10, query, data_source_id }: PageParams & { data_source_id?: number, query?: string } = {}): Promise<Page<Document>> {
-  return await fetch(BASE_URL + '/api/v1/admin/documents' + '?' + buildUrlParams({ page, size, data_source_id, query }), {
+  return await fetch(requestUrl('/api/v1/admin/documents', { page, size, data_source_id, query }), {
     headers: await authenticationHeaders(),
   })
     .then(handleResponse(zodPage(documentSchema)));

@@ -1,4 +1,4 @@
-import { authenticationHeaders, BASE_URL, buildUrlParams, handleResponse } from '@/lib/request';
+import { authenticationHeaders, handleResponse, requestUrl } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
 
@@ -88,7 +88,7 @@ export interface GraphSearchParams {
 }
 
 export async function search (params: GraphSearchParams) {
-  return await fetch(`${BASE_URL}/api/v1/admin/graph/search`, {
+  return await fetch(requestUrl(`/api/v1/admin/graph/search`), {
     method: 'post',
     headers: {
       ...await authenticationHeaders(),
@@ -99,7 +99,7 @@ export async function search (params: GraphSearchParams) {
 }
 
 export async function searchEntity (query: string, top_k: number = 10) {
-  return await fetch(`${BASE_URL}/api/v1/admin/graph/entities/search?${buildUrlParams({ query, top_k }).toString()}`, {
+  return await fetch(requestUrl(`/api/v1/admin/graph/entities/search`, { query, top_k }), {
     headers: {
       ...await authenticationHeaders(),
     },
@@ -108,7 +108,7 @@ export async function searchEntity (query: string, top_k: number = 10) {
 }
 
 export async function getEntity (id: number) {
-  return await fetch(`${BASE_URL}/api/v1/admin/graph/entities/${id}`, {
+  return await fetch(requestUrl(`/api/v1/admin/graph/entities/${id}`), {
     headers: {
       ...await authenticationHeaders(),
     },
@@ -117,7 +117,7 @@ export async function getEntity (id: number) {
 }
 
 export async function updateEntity (id: number, params: UpdateEntityParams) {
-  return await fetch(`${BASE_URL}/api/v1/admin/graph/entities/${id}`, {
+  return await fetch(requestUrl(`/api/v1/admin/graph/entities/${id}`), {
     method: 'put',
     headers: {
       ...await authenticationHeaders(),
@@ -128,7 +128,7 @@ export async function updateEntity (id: number, params: UpdateEntityParams) {
 }
 
 export async function createSynopsisEntity (params: CreateSynopsisEntityParams) {
-  return await fetch(`${BASE_URL}/api/v1/admin/graph/entities/synopsis`, {
+  return await fetch(requestUrl(`/api/v1/admin/graph/entities/synopsis`), {
     method: 'post',
     headers: {
       ...await authenticationHeaders(),
@@ -139,7 +139,7 @@ export async function createSynopsisEntity (params: CreateSynopsisEntityParams) 
 }
 
 export async function getEntitySubgraph (id: number) {
-  return await fetch(`${BASE_URL}/api/v1/admin/graph/entities/${id}/subgraph`, {
+  return await fetch(requestUrl(`/api/v1/admin/graph/entities/${id}/subgraph`), {
     headers: {
       ...await authenticationHeaders(),
     },
@@ -148,7 +148,7 @@ export async function getEntitySubgraph (id: number) {
 }
 
 export async function getRelationship (id: number) {
-  return await fetch(`${BASE_URL}/api/v1/admin/graph/relationships/${id}`, {
+  return await fetch(requestUrl(`/api/v1/admin/graph/relationships/${id}`), {
     headers: {
       ...await authenticationHeaders(),
     },
@@ -157,7 +157,7 @@ export async function getRelationship (id: number) {
 }
 
 export async function updateRelationship (id: number, params: UpdateRelationshipParams) {
-  return await fetch(`${BASE_URL}/api/v1/admin/graph/relationships/${id}`, {
+  return await fetch(requestUrl(`/api/v1/admin/graph/relationships/${id}`), {
     method: 'put',
     headers: {
       ...await authenticationHeaders(),

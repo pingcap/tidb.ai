@@ -1,5 +1,5 @@
 import { type ProviderOption, providerOptionSchema } from '@/api/providers';
-import { authenticationHeaders, BASE_URL, handleNullableResponse, handleResponse } from '@/lib/request';
+import { authenticationHeaders, handleNullableResponse, handleResponse, requestUrl } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType, type ZodTypeDef } from 'zod';
 
@@ -42,21 +42,21 @@ const embeddingModelOptionSchema = providerOptionSchema.and(z.object({
 })) satisfies ZodType<EmbeddingModelOption, any, any>;
 
 export async function listEmbeddingModelOptions () {
-  return await fetch(`${BASE_URL}/api/v1/admin/embedding-model/options`, {
+  return await fetch(requestUrl(`/api/v1/admin/embedding-model/options`), {
     headers: await authenticationHeaders(),
   })
     .then(handleResponse(embeddingModelOptionSchema.array()));
 }
 
 export async function getEmbeddingModel () {
-  return await fetch(`${BASE_URL}/api/v1/admin/embedding-model`, {
+  return await fetch(requestUrl(`/api/v1/admin/embedding-model`), {
     headers: await authenticationHeaders(),
   })
     .then(handleNullableResponse(embeddingModelSchema));
 }
 
 export async function createEmbeddingModel (create: CreateEmbeddingModel) {
-  return await fetch(BASE_URL + `/api/v1/admin/embedding-model`, {
+  return await fetch(requestUrl(`/api/v1/admin/embedding-model`), {
     method: 'POST',
     body: JSON.stringify(create),
     headers: {
@@ -67,7 +67,7 @@ export async function createEmbeddingModel (create: CreateEmbeddingModel) {
 }
 
 export async function testEmbeddingModel (createEmbeddingModel: CreateEmbeddingModel) {
-  return await fetch(`${BASE_URL}/api/v1/admin/embedding-model/test`, {
+  return await fetch(requestUrl(`/api/v1/admin/embedding-model/test`), {
     method: 'POST',
     body: JSON.stringify(createEmbeddingModel),
     headers: {

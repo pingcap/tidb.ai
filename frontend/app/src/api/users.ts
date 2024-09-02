@@ -1,4 +1,4 @@
-import { authenticationHeaders, BASE_URL, handleResponse } from '@/lib/request';
+import { authenticationHeaders, handleResponse, requestUrl } from '@/lib/request';
 import { z } from 'zod';
 
 export interface MeInfo {
@@ -18,7 +18,7 @@ const userSchema = z.object({
 });
 
 export async function getMe (): Promise<MeInfo> {
-  return await fetch(BASE_URL + '/api/v1/users/me', {
+  return await fetch(requestUrl('/api/v1/users/me'), {
     headers: await authenticationHeaders(),
   })
     .then(handleResponse(userSchema));

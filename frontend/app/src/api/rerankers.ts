@@ -1,5 +1,5 @@
 import { type ProviderOption, providerOptionSchema } from '@/api/providers';
-import { authenticationHeaders, BASE_URL, buildUrlParams, handleErrors, handleResponse, type Page, type PageParams, zodPage } from '@/lib/request';
+import { authenticationHeaders, handleErrors, handleResponse, type Page, type PageParams, requestUrl, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType, type ZodTypeDef } from 'zod';
 
@@ -50,7 +50,7 @@ const rerankerOptionSchema = providerOptionSchema.and(z.object({
 })) satisfies ZodType<RerankerOption, any, any>;
 
 export async function listRerankerOptions () {
-  return await fetch(`${BASE_URL}/api/v1/admin/reranker-models/options`, {
+  return await fetch(requestUrl(`/api/v1/admin/reranker-models/options`), {
     headers: {
       ...await authenticationHeaders(),
     },
@@ -59,20 +59,20 @@ export async function listRerankerOptions () {
 }
 
 export async function listRerankers ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<Reranker>> {
-  return await fetch(BASE_URL + '/api/v1/admin/reranker-models' + '?' + buildUrlParams({ page, size }), {
+  return await fetch(requestUrl('/api/v1/admin/reranker-models', { page, size }), {
     headers: await authenticationHeaders(),
   })
     .then(handleResponse(zodPage(rerankerSchema)));
 }
 
 export async function getReranker (id: number): Promise<Reranker> {
-  return await fetch(BASE_URL + `/api/v1/admin/reranker-models/${id}`, {
+  return await fetch(requestUrl(`/api/v1/admin/reranker-models/${id}`), {
     headers: await authenticationHeaders(),
   }).then(handleResponse(rerankerSchema));
 }
 
 export async function createReranker (create: CreateRERANKER) {
-  return await fetch(BASE_URL + `/api/v1/admin/reranker-models`, {
+  return await fetch(requestUrl(`/api/v1/admin/reranker-models`), {
     method: 'POST',
     body: JSON.stringify(create),
     headers: {
@@ -83,14 +83,14 @@ export async function createReranker (create: CreateRERANKER) {
 }
 
 export async function deleteReranker (id: number) {
-  await fetch(BASE_URL + `/api/v1/admin/reranker-models/${id}`, {
+  await fetch(requestUrl(`/api/v1/admin/reranker-models/${id}`), {
     method: 'DELETE',
     headers: await authenticationHeaders(),
   }).then(handleErrors);
 }
 
 export async function testReranker (createRERANKER: CreateRERANKER) {
-  return await fetch(`${BASE_URL}/api/v1/admin/reranker-models/test`, {
+  return await fetch(requestUrl(`/api/v1/admin/reranker-models/test`), {
     method: 'POST',
     body: JSON.stringify(createRERANKER),
     headers: {

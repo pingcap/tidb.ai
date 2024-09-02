@@ -1,4 +1,4 @@
-import { authenticationHeaders, BASE_URL, handleErrors, handleResponse } from '@/lib/request';
+import { authenticationHeaders, handleErrors, handleResponse, requestUrl } from '@/lib/request';
 import { z } from 'zod';
 
 interface SettingItemBase<K, T> {
@@ -86,7 +86,7 @@ const settingsItemSchema = z.object({
 export type AllSettings = Record<string, SettingItem>
 
 export async function getAllSiteSettings (): Promise<AllSettings> {
-  return await fetch(`${BASE_URL}/api/v1/admin/site-settings`,
+  return await fetch(requestUrl(`/api/v1/admin/site-settings`),
     {
       headers: await authenticationHeaders(),
     })
@@ -94,7 +94,7 @@ export async function getAllSiteSettings (): Promise<AllSettings> {
 }
 
 export async function updateSiteSetting (name: string, value: any) {
-  await fetch(`${BASE_URL}/api/v1/admin/site-settings/${name}`, {
+  await fetch(requestUrl(`/api/v1/admin/site-settings/${name}`), {
     method: 'PUT',
     headers: {
       ...await authenticationHeaders(),
@@ -105,7 +105,7 @@ export async function updateSiteSetting (name: string, value: any) {
 }
 
 export async function getPublicSiteSettings (): Promise<PublicWebsiteSettings> {
-  return fetch(`${BASE_URL}/api/v1/site-config`, {
+  return fetch(requestUrl(`/api/v1/site-config`), {
     headers: await authenticationHeaders(),
     credentials: 'include',
   }).then(handleErrors).then(res => res.json());

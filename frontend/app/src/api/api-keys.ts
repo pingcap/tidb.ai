@@ -1,4 +1,4 @@
-import { authenticationHeaders, BASE_URL, buildUrlParams, handleErrors, handleResponse, type Page, type PageParams, zodPage } from '@/lib/request';
+import { authenticationHeaders, handleErrors, handleResponse, type Page, type PageParams, requestUrl, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType, type ZodTypeDef } from 'zod';
 
@@ -35,14 +35,14 @@ const createApiKeyResponseSchema = z.object({
 }) satisfies ZodType<CreateApiKeyResponse>;
 
 export async function listApiKeys ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<ApiKey>> {
-  return await fetch(BASE_URL + '/api/v1/api-keys' + '?' + buildUrlParams({ page, size }), {
+  return await fetch(requestUrl('/api/v1/api-keys', { page, size }), {
     headers: await authenticationHeaders(),
   })
     .then(handleResponse(zodPage(apiKeySchema)));
 }
 
 export async function createApiKey (create: CreateApiKey): Promise<CreateApiKeyResponse> {
-  return await fetch(BASE_URL + '/api/v1/api-keys', {
+  return await fetch(requestUrl('/api/v1/api-keys'), {
     method: 'POST',
     headers: {
       ...await authenticationHeaders(),
@@ -53,7 +53,7 @@ export async function createApiKey (create: CreateApiKey): Promise<CreateApiKeyR
 }
 
 export async function deleteApiKey (id: number): Promise<void> {
-  await fetch(BASE_URL + `/api/v1/api-keys/${id}`, {
+  await fetch(requestUrl(`/api/v1/api-keys/${id}`), {
     method: 'DELETE',
     headers: {
       ...await authenticationHeaders(),

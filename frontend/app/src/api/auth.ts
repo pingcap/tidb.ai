@@ -1,4 +1,4 @@
-import { authenticationHeaders, BASE_URL, buildUrlParams, handleErrors } from '@/lib/request';
+import { authenticationHeaders, buildUrlParams, handleErrors, requestUrl } from '@/lib/request';
 
 export interface LoginParams {
   username: string;
@@ -8,7 +8,7 @@ export interface LoginParams {
 export async function login (params: LoginParams) {
   const usp = buildUrlParams(params);
 
-  await fetch(BASE_URL + '/api/v1/auth/login', {
+  await fetch(requestUrl('/api/v1/auth/login'), {
     method: 'POST',
     body: usp,
     headers: {
@@ -19,7 +19,7 @@ export async function login (params: LoginParams) {
 }
 
 export async function logout () {
-  await fetch(BASE_URL + '/api/v1/auth/logout', {
+  await fetch(requestUrl('/api/v1/auth/logout'), {
     headers: {
       ...await authenticationHeaders(),
     },
