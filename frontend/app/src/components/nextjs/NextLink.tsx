@@ -20,6 +20,10 @@ export const NextLink = forwardRef<HTMLAnchorElement, NextLinkProps>(({ classNam
       event.preventDefault();
       return;
     }
+    if (event.ctrlKey || event.shiftKey || event.metaKey || event.altKey) {
+      event.persist()
+      return;
+    }
     onClick?.(event);
     if (event.defaultPrevented) {
       return;
