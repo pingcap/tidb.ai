@@ -41,12 +41,10 @@ COPY . .
 WORKDIR /tidb.ai/frontend
 
 ENV BASE_URL=""
-ENV NEXT_PUBLIC_BASE_URL=""
 ENV SITE_URL=""
 
 RUN rm -f app/.env
 RUN echo BASE_URL=${BASE_URL:-'""'} >> app/.env.production
-RUN echo NEXT_PUBLIC_BASE_URL=${NEXT_PUBLIC_BASE_URL:-'""'} >> app/.env.production
 
 RUN corepack enable pnpm
 RUN pnpm run build:docker
