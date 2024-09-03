@@ -18,14 +18,14 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
     In this project, we use both llama-index and dspy, both of them have their own LLM implementation.
     This function can help us reduce the complexity of the code by converting the llama LLM to the dspy LLM.
     """
-    if isinstance(llama_llm, OpenAI):
+    if type(llama_llm) is OpenAI:
         return dspy.OpenAI(
             model=llama_llm.model,
             max_tokens=llama_llm.max_tokens or 4096,
             api_key=llama_llm.api_key,
             api_base=enforce_trailing_slash(llama_llm.api_base),
         )
-    elif isinstance(llama_llm, OpenAILike):
+    elif type(llama_llm) is OpenAILike:
         return dspy.OpenAI(
             model=llama_llm.model,
             max_tokens=llama_llm.max_tokens or 4096,
@@ -33,14 +33,14 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
             api_base=enforce_trailing_slash(llama_llm.api_base),
             model_type="chat" if llama_llm.is_chat_model else "text",
         )
-    elif isinstance(llama_llm, Gemini):
+    elif type(llama_llm) is Gemini:
         # Don't need to configure the api_key again,
         # it has already been configured to `genai` by the llama_llm.
         return dspy.Google(
             model=llama_llm.model.split("models/")[1],
             max_output_tokens=llama_llm.max_tokens or 8192,
         )
-    elif isinstance(llama_llm, Bedrock):
+    elif type(llama_llm) is Bedrock:
         # Notice: dspy.Bedrock currently does not support configuring access keys through parameters.
         # Using environment variables for configuration risks contaminating global variables.
         os.environ["AWS_ACCESS_KEY_ID"] = llama_llm.aws_access_key_id
@@ -66,9 +66,9 @@ def get_dspy_lm_by_llama_llm(llama_llm: BaseLLM) -> dspy.LM:
             raise ValueError(
                 "Bedrock model " + llama_llm.model + " is not supported by dspy."
             )
-    elif isinstance(llama_llm, AnthropicVertex):
+    elif type(llama_llm) is AnthropicVertex:
         raise ValueError("AnthropicVertex is not supported by dspy.")
-    elif isinstance(llama_llm, Ollama):
+    elif type(llama_llm) is Ollama:
         return dspy.OllamaLocal(
             model=llama_llm.model,
             base_url=llama_llm.base_url,
