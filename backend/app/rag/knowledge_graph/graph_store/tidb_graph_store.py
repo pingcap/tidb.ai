@@ -592,9 +592,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         # Create a subquery with a larger limit
         subquery = (
             select(DBEntity)
-            .order_by(
-                DBEntity.description_vec.cosine_distance(embedding).label("distance")
-            )
+            .order_by(DBEntity.description_vec.cosine_distance(embedding))
             .limit(
                 post_filter_multiplier * top_k
                 if entity_type != EntityType.original
