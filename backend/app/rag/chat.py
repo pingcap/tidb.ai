@@ -1,7 +1,8 @@
 import logging
 from uuid import UUID
 from typing import List, Generator, Optional, Tuple
-from datetime import datetime, timezone
+from datetime import datetime, UTC
+
 import jinja2
 from sqlmodel import Session, select, func
 from llama_index.core import VectorStoreIndex, ServiceContext
@@ -125,7 +126,7 @@ class ChatService:
             )
             chat_id = self.db_chat_obj.id
             # slack/discord may create a new chat with history messages
-            now = datetime.now(timezone.utc)
+            now = datetime.now(UTC)
             for i, m in enumerate(chat_history):
                 chat_repo.create_message(
                     session=self.db_session,
@@ -402,8 +403,8 @@ class ChatService:
 
         db_assistant_message.sources = source_documents
         db_assistant_message.content = response_text
-        db_assistant_message.updated_at = datetime.now(timezone.utc)
-        db_assistant_message.finished_at = datetime.now(timezone.utc)
+        db_assistant_message.updated_at = datetime.now(UTC)
+        db_assistant_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_assistant_message)
         self.db_session.commit()
 

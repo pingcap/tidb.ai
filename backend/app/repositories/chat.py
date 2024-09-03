@@ -1,6 +1,6 @@
 from uuid import UUID
 from typing import Optional, List
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 
 from sqlmodel import select, Session, or_
 from fastapi_pagination import Params, Page
@@ -41,7 +41,7 @@ class ChatRepo(BaseRepo):
         ).first()
 
     def delete(self, session: Session, chat: Chat):
-        chat.deleted_at = datetime.now(timezone.utc)
+        chat.deleted_at = datetime.now(UTC)
         session.add(chat)
         session.commit()
 

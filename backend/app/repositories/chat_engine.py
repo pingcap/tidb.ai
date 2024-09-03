@@ -1,5 +1,5 @@
 from typing import Optional
-from datetime import datetime, timezone
+from datetime import datetime, UTC
 from sqlmodel import select, Session, update
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
@@ -75,7 +75,7 @@ class ChatEngineRepo(BaseRepo):
         return chat_engine
 
     def delete(self, session: Session, chat_engine: ChatEngine) -> ChatEngine:
-        chat_engine.deleted_at = datetime.now(timezone.utc)
+        chat_engine.deleted_at = datetime.now(UTC)
         session.commit()
         session.refresh(chat_engine)
         return chat_engine
