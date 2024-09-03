@@ -584,17 +584,37 @@ class TiDBGraphStore(KnowledgeGraphStore):
         top_k: int = 5,
         entity_type: EntityType = EntityType.original,
         session: Optional[Session] = None,
+        post_filter_multiplier: int = 10,
     ):
         new_entity_set = set()
-
-        # Retrieve entities based on their ID and similarity to the embedding
         session = session or self._session
-        for entity in session.exec(
+
+        # Create a subquery with a larger limit
+        subquery = (
             select(DBEntity)
-            .where(DBEntity.entity_type == entity_type)
-            .order_by(DBEntity.description_vec.cosine_distance(embedding))
-            .limit(top_k)
-        ).all():
+            .order_by(
+                DBEntity.description_vec.cosine_distance(embedding).label("distance")
+            )
+            .limit(
+                post_filter_multiplier * top_k
+                if entity_type != EntityType.original
+                else top_k
+            )
+            .subquery()
+        )
+
+        # Apply filter only for non-original entity types
+        if entity_type != EntityType.original:
+            query = (
+                select(subquery)
+                .where(subquery.c.entity_type == entity_type)
+                .order_by(asc(subquery.c.distance))
+                .limit(top_k)
+            )
+        else:
+            query = select(subquery)
+
+        for entity in session.exec(query).all():
             new_entity_set.add(entity)
 
         return new_entity_set
