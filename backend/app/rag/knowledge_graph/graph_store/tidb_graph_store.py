@@ -363,7 +363,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
                 if search_ratio != 1:
                     progress += search_ratio
 
-        synopsis_entities = self.fetch_similar_entities(
+        synopsis_entities = self.fetch_similar_entities_by_post_filter(
             embedding, top_k=2, entity_type=EntityType.synopsis, session=session
         )
         all_entities.update(synopsis_entities)
@@ -578,7 +578,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
 
         return relationship_set, entity_set
 
-    def fetch_similar_entities(
+    def fetch_similar_entities_by_post_filter(
         self,
         embedding: list,
         top_k: int = 5,
@@ -593,7 +593,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         subquery = (
             select(
                 DBEntity,
-                DBEntity.description_vec.cosine_distance(embedding).label("distance")
+                DBEntity.description_vec.cosine_distance(embedding).label("distance"),
             )
             .order_by(asc("distance"))
             .limit(
@@ -605,17 +605,35 @@ class TiDBGraphStore(KnowledgeGraphStore):
         )
 
         # Apply filter only for non-original entity types
-        if entity_type != EntityType.original:
-            query = (
-                select(subquery)
-                .where(subquery.c.entity_type == entity_type)
-                .order_by(asc(subquery.c.distance))
-                .limit(top_k)
-            )
-        else:
-            query = select(subquery)
+        query = (
+            select(DBEntity)
+            .where(subquery.c.entity_type == entity_type)
+            .order_by(asc(subquery.c.distance))
+            .limit(top_k)
+        )
 
-        for entity, _ in session.exec(query).all():
+        for row in session.exec(query).all():
+            new_entity_set.add(row)
+
+        return new_entity_set
+
+    def fetch_similar_entities(
+        self,
+        embedding: list,
+        top_k: int = 5,
+        entity_type: EntityType = EntityType.original,
+        session: Optional[Session] = None,
+    ):
+        new_entity_set = set()
+
+        # Retrieve entities based on their ID and similarity to the embedding
+        session = session or self._session
+        for entity in session.exec(
+            select(DBEntity)
+            .where(DBEntity.entity_type == entity_type)
+            .order_by(DBEntity.description_vec.cosine_distance(embedding))
+            .limit(top_k)
+        ).all():
             new_entity_set.add(entity)
 
         return new_entity_set
