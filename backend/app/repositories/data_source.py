@@ -1,5 +1,5 @@
 from typing import Optional
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 
 from sqlmodel import select, Session, func, update
 from fastapi_pagination import Params, Page
@@ -44,7 +44,7 @@ class DataSourceRepo(BaseRepo):
         ).first()
 
     def delete(self, session: Session, data_source: DataSource) -> None:
-        data_source.deleted_at = datetime.now(UTC)
+        data_source.deleted_at = datetime.now(timezone.utc)
         session.add(data_source)
         session.commit()
 

@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 from typing import Generator
 from playwright.sync_api import sync_playwright
 from bs4 import BeautifulSoup
@@ -46,7 +46,7 @@ def load_web_documents(
                 mime_type="text/plain",
                 data_source_id=data_source_id,
                 source_uri=final_url,
-                last_modified_at=datetime.now(UTC),
+                last_modified_at=datetime.now(timezone.utc),
             )
             yield document
         browser.close()

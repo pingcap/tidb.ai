@@ -5,6 +5,7 @@ from dspy.functional import TypedPredictor
 from deepdiff import DeepDiff
 from typing import List, Optional, Tuple, Dict, Set
 from collections import defaultdict
+from sqlalchemy.dialects import mysql
 
 from llama_index.core.embeddings.utils import EmbedType, resolve_embed_model
 from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
@@ -363,7 +364,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
                 if search_ratio != 1:
                     progress += search_ratio
 
-        synopsis_entities = self.fetch_similar_entities_by_post_filter(
+        synopsis_entities = self.fetch_similar_entities(
             embedding, top_k=2, entity_type=EntityType.synopsis, session=session
         )
         all_entities.update(synopsis_entities)
@@ -628,12 +629,24 @@ class TiDBGraphStore(KnowledgeGraphStore):
 
         # Retrieve entities based on their ID and similarity to the embedding
         session = session or self._session
-        for entity in session.exec(
-            select(DBEntity)
-            .where(DBEntity.entity_type == entity_type)
-            .order_by(DBEntity.description_vec.cosine_distance(embedding))
-            .limit(top_k)
-        ).all():
+
+        query = select(DBEntity).where(DBEntity.entity_type == entity_type)
+
+        if entity_type == EntityType.synopsis:
+            hint = text("/*+ read_from_storage(tikv[entities]) */")
+            query = query.prefix_with(hint)
+
+        query = query.order_by(
+            DBEntity.description_vec.cosine_distance(embedding)
+        ).limit(top_k)
+
+        # Debug: Print the SQL query
+        compiled_query = query.compile(
+            dialect=mysql.dialect(), compile_kwargs={"literal_binds": True}
+        )
+        print(f"Debug - SQL Query: {compiled_query}")
+
+        for entity in session.exec(query).all():
             new_entity_set.add(entity)
 
         return new_entity_set

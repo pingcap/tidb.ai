@@ -1,6 +1,5 @@
 from typing import Optional
-from datetime import datetime, UTC
-
+from datetime import datetime, timezone
 from sqlmodel import SQLModel, Field, Column, JSON, func
 from sqlalchemy.dialects.mysql import DATETIME
 
@@ -21,7 +20,7 @@ class SiteSetting(SQLModel, table=True):
             # so we use mysql.DATETIME rather than base.UpdatableBaseModel
             DATETIME(timezone=True, fsp=6),
             server_default=func.now(),
-            onupdate=datetime.now(UTC),
+            onupdate=datetime.now(timezone.utc),
         ),
     )
 
