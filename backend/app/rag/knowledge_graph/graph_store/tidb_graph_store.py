@@ -363,7 +363,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
                 if search_ratio != 1:
                     progress += search_ratio
 
-        synopsis_entities = self.fetch_similar_entities_by_post_filter(
+        synopsis_entities = self.fetch_similar_entities(
             embedding, top_k=2, entity_type=EntityType.synopsis, session=session
         )
         all_entities.update(synopsis_entities)
@@ -628,12 +628,28 @@ class TiDBGraphStore(KnowledgeGraphStore):
 
         # Retrieve entities based on their ID and similarity to the embedding
         session = session or self._session
-        for entity in session.exec(
-            select(DBEntity)
-            .where(DBEntity.entity_type == entity_type)
-            .order_by(DBEntity.description_vec.cosine_distance(embedding))
-            .limit(top_k)
-        ).all():
+
+        query = select(DBEntity)
+
+        if entity_type == EntityType.synopsis:
+            query = query.where(DBEntity.entity_type == entity_type)
+            hint = text("/*+ read_from_storage(tikv[entities]) */")
+            query = query.prefix_with(hint)
+
+        query = query.order_by(
+            DBEntity.description_vec.cosine_distance(embedding)
+        ).limit(top_k)
+
+        # Debug: Print the SQL query
+        """
+        from sqlalchemy.dialects import mysql
+        compiled_query = query.compile(
+            dialect=mysql.dialect(), compile_kwargs={"literal_binds": True}
+        )
+        print(f"Debug - SQL Query: {compiled_query}")
+        """
+
+        for entity in session.exec(query).all():
             new_entity_set.add(entity)
 
         return new_entity_set
