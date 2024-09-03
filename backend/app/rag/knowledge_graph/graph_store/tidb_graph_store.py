@@ -363,7 +363,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
                 if search_ratio != 1:
                     progress += search_ratio
 
-        synopsis_entities = self.fetch_similar_entities(
+        synopsis_entities = self.fetch_similar_entities_by_post_filter(
             embedding, top_k=2, entity_type=EntityType.synopsis, session=session
         )
         all_entities.update(synopsis_entities)
@@ -577,6 +577,45 @@ class TiDBGraphStore(KnowledgeGraphStore):
             entity_set.add(r.target_entity)
 
         return relationship_set, entity_set
+
+    def fetch_similar_entities_by_post_filter(
+        self,
+        embedding: list,
+        top_k: int = 5,
+        entity_type: EntityType = EntityType.original,
+        session: Optional[Session] = None,
+        post_filter_multiplier: int = 10,
+    ):
+        new_entity_set = set()
+        session = session or self._session
+
+        # Create a subquery with a larger limit and include the distance
+        subquery = (
+            select(
+                DBEntity,
+                DBEntity.description_vec.cosine_distance(embedding).label("distance"),
+            )
+            .order_by(asc("distance"))
+            .limit(
+                post_filter_multiplier * top_k
+                if entity_type != EntityType.original
+                else top_k
+            )
+            .subquery()
+        )
+
+        # Apply filter only for non-original entity types
+        query = (
+            select(DBEntity)
+            .where(subquery.c.entity_type == entity_type)
+            .order_by(asc(subquery.c.distance))
+            .limit(top_k)
+        )
+
+        for row in session.exec(query).all():
+            new_entity_set.add(row)
+
+        return new_entity_set
 
     def fetch_similar_entities(
         self,
