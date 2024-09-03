@@ -589,10 +589,13 @@ class TiDBGraphStore(KnowledgeGraphStore):
         new_entity_set = set()
         session = session or self._session
 
-        # Create a subquery with a larger limit
+        # Create a subquery with a larger limit and include the distance
         subquery = (
-            select(DBEntity)
-            .order_by(DBEntity.description_vec.cosine_distance(embedding))
+            select(
+                DBEntity,
+                DBEntity.description_vec.cosine_distance(embedding).label("distance")
+            )
+            .order_by(asc("distance"))
             .limit(
                 post_filter_multiplier * top_k
                 if entity_type != EntityType.original
@@ -612,7 +615,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         else:
             query = select(subquery)
 
-        for entity in session.exec(query).all():
+        for entity, _ in session.exec(query).all():
             new_entity_set.add(entity)
 
         return new_entity_set
