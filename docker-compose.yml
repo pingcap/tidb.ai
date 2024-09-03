@@ -13,7 +13,7 @@ services:
     depends_on:
       - redis
     ports:
-      - "5000:80"
+      - "8000:80"
     env_file:
       - .env
     volumes:
