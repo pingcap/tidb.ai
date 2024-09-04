@@ -7,7 +7,7 @@ project. If you have a question that isn't answered here, please
 export function FAQBox({ title, children }) {
   return (
     <details
-      open
+      close
       className="last-of-type:mb-0 rounded-lg p-2 mt-4"
     >
       <summary>
@@ -45,8 +45,8 @@ export function FAQBox({ title, children }) {
 <FAQBox title="Can I use a different embedding/reranker API?">
   Yes
 
-- [Change Default Reranker](/docs/reranker)
-- [Change Default Embedding API](/docs/embedding)
+- [Change Default Reranker](/docs/reranker-model)
+- [Change Default Embedding API](/docs/embedding-model)
 
 </FAQBox>
 
