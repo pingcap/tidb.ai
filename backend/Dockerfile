@@ -11,6 +11,8 @@ RUN PYTHONDONTWRITEBYTECODE=1 pip install --no-cache-dir -r /app/requirements.lo
     playwright install chromium && \
     playwright install-deps chromium
 
+RUN python -c 'import nltk; nltk.download("stopwords", quiet=True); nltk.download("punkt_tab", quiet=True)'
+
 ENV PYTHONPATH=/app
 
 COPY . /app/
