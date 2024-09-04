@@ -4,11 +4,6 @@ import dspy
 from llama_index.core import VectorStoreIndex
 from llama_index.core.llms.llm import LLM
 from llama_index.core.node_parser import SentenceSplitter
-from llama_index.core.extractors import (
-    SummaryExtractor,
-    KeywordExtractor,
-    QuestionsAnsweredExtractor,
-)
 from sqlmodel import Session
 
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
@@ -54,12 +49,7 @@ class BuildService:
                 chunk_size=settings.EMBEDDING_MAX_TOKENS,
             )
 
-        _transformations = [
-            spliter,
-            SummaryExtractor(llm=self._llm),
-            KeywordExtractor(llm=self._llm),
-            QuestionsAnsweredExtractor(llm=self._llm),
-        ]
+        _transformations = [spliter]
         """
         Build vector index and graph index from document.
         """
