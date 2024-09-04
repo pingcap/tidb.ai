@@ -38,8 +38,8 @@ admin_llm_options: List[LLMOption] = [
         default_llm_model="",
         llm_model_description="",
         default_config={
-            "api_base": "https://open.bigmodel.cn/api/paas/v4/",
-            "is_chat_model": True
+            "api_base": "https://openrouter.ai/api/v1/",
+            "is_chat_model": True,
         },
         config_description="Ensure that the AI server API adheres to the OpenAI format.",
         credentials_display_name="API Key",
@@ -68,8 +68,14 @@ admin_llm_options: List[LLMOption] = [
         llm_model_description="Find more in https://ollama.com/library",
         default_config={
             "base_url": "http://localhost:11434",
+            "context_window": 4096,
+            "request_timeout": 60 * 10,
         },
-        config_description="`base_url` is the base URL of the Ollama server, ensure it can be accessed from this server.",
+        config_description=(
+            "`base_url` is the base URL of the Ollama server, ensure it can be accessed from this server; "
+            "`context_window` is the maximum number of input tokens and output tokens; "
+            "`request_timeout` is the maximum time to wait for a generate response."
+        ),
         credentials_display_name="Ollama API Key",
         credentials_description="Ollama doesn't require an API key, set a dummy string here is ok",
         credentials_type="str",

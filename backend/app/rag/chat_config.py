@@ -215,7 +215,7 @@ def get_llm(
                 config.update(max_tokens=4096)
             return AnthropicVertex(model=model, credentials=google_creds, **config)
         case LLMProvider.OLLAMA:
-            config.setdefault("request_timeout", 60 * 5)
+            config.setdefault("request_timeout", 60 * 10)
             config.setdefault("context_window", 4096)
             return Ollama(model=model, **config)
         case _:

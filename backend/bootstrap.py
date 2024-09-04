@@ -25,8 +25,8 @@ async def ensure_admin_user(session: AsyncSession) -> None:
             is_superuser=True,
         )
         print(Fore.RED + "\n" + "!" * 80)
-        print(Fore.RED +
-            "[IMPORTANT] Admin user created with email: "
+        print(
+            Fore.RED + "[IMPORTANT] Admin user created with email: "
             f"{admin_email} and password: {admin_password}"
         )
         print(Fore.RED + "!" * 80 + "\n" + Style.RESET_ALL)

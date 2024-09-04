@@ -102,6 +102,10 @@ class Extractor(dspy.Module):
             return {
                 "response_format": {"type": "json_object"},
             }
+        elif "ollama" in self.dspy_lm.provider.lower():
+            # ollama support set format=json in the top-level request config, but not in the request's option
+            # https://github.com/ollama/ollama/blob/5e2653f9fe454e948a8d48e3c15c21830c1ac26b/api/types.go#L70
+            return {}
         else:
             return {
                 "response_mime_type": "application/json",
