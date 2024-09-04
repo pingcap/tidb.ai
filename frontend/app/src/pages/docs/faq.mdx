@@ -26,9 +26,9 @@ export function FAQBox({ title, children }) {
 </FAQBox>
 
 <FAQBox title="Is this RAG app free?">
-- The code of this RAG app is open source, it's free to use;
-- The database of this RAG app is free for **25GiB storage** as we use [TiDB Serverless](https://tidb.cloud);
-- **But** the token of OpenAI is paid, you should have an account of https://platform.openai.com for an API token.
+- [Free] The code of this RAG app is open source, it's free to use;
+- [Free] The database of this RAG app is free for **25GiB storage** as we use [TiDB Serverless](https://tidb.cloud);
+- [Paid] **But** the token of OpenAI is paid, you should have an account of https://platform.openai.com for an API token.
 </FAQBox>
 
 <FAQBox title="Can I use a different chat model?">
@@ -48,4 +48,10 @@ export function FAQBox({ title, children }) {
 - [Change Default Reranker](/docs/reranker)
 - [Change Default Embedding API](/docs/embedding)
 
+</FAQBox>
+
+<FAQBox title="Why use TiDB which is a MySQL compatible database to store Knowledge Graph?">
+  - TiDB is a distributed MySQL SQL database, it's easy to scale out and has a good performance;
+  - TiDB is a multi-model database, it supports MySQL SQL, JSON, Vector, and more;
+  - The performance of TiDB is enough to store and query the Knowledge Graph, as we just search the first-level or second-level neighbors of the node.
 </FAQBox>
