@@ -33,9 +33,7 @@ def extract_urls_from_sitemap(sitemap_url: str) -> list[str]:
         for loc_tag in soup.find_all("loc")
     ]
     if not result:
-        raise ValueError(
-            f"No URLs found in sitemap {sitemap_url}. Try using the 'single' or 'recursive' scraping options instead."
-        )
+        raise ValueError(f"No URLs found in sitemap {sitemap_url}")
     return result
 
 
@@ -46,5 +44,5 @@ class WebSitemapDataSource(BaseDataSource):
     def load_documents(self) -> Generator[Document, None, None]:
         sitemap_url = self.config["url"]
         urls = extract_urls_from_sitemap(sitemap_url)
-
+        logger.info(f"Found {len(urls)} URLs in sitemap {sitemap_url}")
         yield from load_web_documents(self.data_source_id, urls)
