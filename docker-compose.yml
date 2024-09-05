@@ -6,6 +6,7 @@ services:
     restart: always
     volumes:
       - ./redis-data:/data
+    command: ["redis-server", "--loglevel", "warning"]
 
   backend:
     image: tidbai/backend:0.2.5
