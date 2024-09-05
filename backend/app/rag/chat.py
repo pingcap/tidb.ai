@@ -401,6 +401,9 @@ class ChatService:
                 payload=word,
             )
 
+        if not response_text:
+            raise Exception("Got empty response from LLM")
+
         db_assistant_message.sources = source_documents
         db_assistant_message.content = response_text
         db_assistant_message.updated_at = datetime.now(UTC)
