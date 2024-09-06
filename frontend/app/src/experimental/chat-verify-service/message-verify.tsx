@@ -1,6 +1,6 @@
 import { getVerify, isFinalVerifyState, isVisibleVerifyState, type MessageVerifyResponse, verify, VerifyStatus } from '#experimental/chat-verify-service/api';
 import { useAuth } from '@/components/auth/AuthProvider';
-import { useChatMessageField, useChatMessageStreamState } from '@/components/chat/chat-hooks';
+import { useChatMessageField, useChatMessageStreamState, useCurrentChatController } from '@/components/chat/chat-hooks';
 import type { ChatMessageController } from '@/components/chat/chat-message-controller';
 import { isNotFinished } from '@/components/chat/utils';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import Highlight from 'highlight.js/lib/core';
 import sql from 'highlight.js/lib/languages/sql';
-import { CheckCircle2Icon, CheckIcon, ChevronDownIcon, CircleMinus, Loader2Icon, TriangleAlertIcon, XIcon } from 'lucide-react';
+import { CheckCircle2Icon, CheckIcon, ChevronDownIcon, CircleMinus, Loader2Icon, RefreshCwIcon, TriangleAlertIcon, XIcon } from 'lucide-react';
 import { type ReactElement, useEffect, useMemo, useState } from 'react';
 import { format } from 'sql-formatter';
 import useSWR from 'swr';
@@ -21,6 +21,7 @@ Highlight.registerLanguage('sql', sql);
 
 export function MessageVerify ({ user, assistant }: { user: ChatMessageController | undefined, assistant: ChatMessageController | undefined }) {
   const [open, setOpen] = useState(false);
+  const controller = useCurrentChatController();
   const messageState = useChatMessageStreamState(assistant);
   const question = useChatMessageField(user, 'content');
   const answer = useChatMessageField(assistant, 'content');
@@ -112,6 +113,20 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
                 </li>
               )))}
             </ul>
+            {result.status === VerifyStatus.FAILED && controller.inputEnabled && (
+              <Button
+                size="sm"
+                className="gap-1 text-xs px-2 py-1 h-max"
+                variant="ghost"
+                onClick={() => {
+                  controller.input = result.message ?? '';
+                }}
+                disabled
+              >
+                <RefreshCwIcon size="1em" />
+                Regenerate
+              </Button>
+            )}
           </motion.div>}
         </AnimatePresence>
       </CollapsibleContent>

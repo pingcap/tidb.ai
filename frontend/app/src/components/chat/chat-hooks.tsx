@@ -5,7 +5,7 @@ import { ChatMessageController, type OngoingState, type OngoingStateHistoryItem 
 import type { AppChatStreamState } from '@/components/chat/chat-stream-state';
 import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { useLatestRef } from '@/components/use-latest-ref';
-import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
+import { createContext, type ReactNode, type RefObject, useContext, useEffect, useState } from 'react';
 
 export interface ChatsProviderValues {
   chats: Map<string, ChatController>;
@@ -84,7 +84,12 @@ export interface ChatMessageGroup {
   assistant: ChatMessageController | undefined;
 }
 
-export function useChatController (id: string | undefined, initialChat: Chat | undefined, initialMessages: ChatMessage[] | undefined) {
+export function useChatController (
+  id: string | undefined,
+  initialChat: Chat | undefined,
+  initialMessages: ChatMessage[] | undefined,
+  messageInputRef?: RefObject<HTMLInputElement | HTMLTextAreaElement>,
+) {
   const { chats, newChat } = useChats();
 
   // Create essential chat controller
@@ -92,12 +97,12 @@ export function useChatController (id: string | undefined, initialChat: Chat | u
     if (id) {
       let controller = chats.get(id);
       if (!controller) {
-        controller = new ChatController(initialChat, initialMessages);
+        controller = new ChatController(initialChat, initialMessages, undefined, messageInputRef);
         chats.set(id, controller);
       }
       return controller;
     } else {
-      return new ChatController(undefined, undefined, undefined);
+      return new ChatController(undefined, undefined, undefined, messageInputRef);
     }
   });
 

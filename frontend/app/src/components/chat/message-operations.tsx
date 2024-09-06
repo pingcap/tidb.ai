@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import copy from 'copy-to-clipboard';
-import { ClipboardCheckIcon, ClipboardIcon, MessageSquareHeartIcon, MessageSquarePlusIcon, RefreshCwIcon } from 'lucide-react';
+import { ClipboardCheckIcon, ClipboardIcon, MessageSquareHeartIcon, MessageSquarePlusIcon } from 'lucide-react';
 import { useState } from 'react';
 
 export function MessageOperations ({ message }: { message: ChatMessageController }) {
@@ -22,16 +22,16 @@ export function MessageOperations ({ message }: { message: ChatMessageController
   return (
     <TooltipProvider>
       <div className="flex items-center gap-2">
-        <Button
-          size="sm"
-          className="gap-1 text-xs px-2 py-1 h-max"
-          variant="ghost"
-          onClick={() => controller.regenerate(message.id)}
-          disabled
-        >
-          <RefreshCwIcon size="1em" />
-          Regenerate
-        </Button>
+        {/*<Button*/}
+        {/*  size="sm"*/}
+        {/*  className="gap-1 text-xs px-2 py-1 h-max"*/}
+        {/*  variant="ghost"*/}
+        {/*  onClick={() => controller.regenerate(message.id)}*/}
+        {/*  disabled*/}
+        {/*>*/}
+        {/*  <RefreshCwIcon size="1em" />*/}
+        {/*  Regenerate*/}
+        {/*</Button>*/}
 
         <MessageFeedback
           initial={feedbackData}

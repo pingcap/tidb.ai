@@ -4,6 +4,7 @@ import { AppChatStreamState, chatDataPartSchema, type ChatMessageAnnotation, fix
 import { getErrorMessage } from '@/lib/errors';
 import { type JSONValue, type StreamPart } from 'ai';
 import EventEmitter from 'eventemitter3';
+import type { RefObject } from 'react';
 
 export interface ChatControllerEventsMap {
   'created': [Chat];
@@ -40,7 +41,12 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
     };
   }
 
-  constructor (chat: Chat | undefined = undefined, messages: ChatMessage[] | undefined = [], initialPost: Omit<PostChatParams, 'chat_id'> | undefined = undefined) {
+  constructor (
+    chat: Chat | undefined = undefined,
+    messages: ChatMessage[] | undefined = [],
+    initialPost: Omit<PostChatParams, 'chat_id'> | undefined = undefined,
+    private messageInputRef?: RefObject<HTMLInputElement | HTMLTextAreaElement>,
+  ) {
     super();
     if (chat) {
       this.chat = chat;
@@ -51,6 +57,33 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
     if (initialPost) {
       this.post(initialPost);
     }
+  }
+
+  get inputEnabled () {
+    const inputElement = this.messageInputRef?.current;
+
+    if (!inputElement) {
+      return false;
+    }
+
+    return !inputElement.disabled;
+  }
+
+  get input (): string {
+    return this.messageInputRef?.current?.value ?? '';
+  }
+
+  set input (value: string) {
+    const inputElement = this.messageInputRef?.current;
+    if (!inputElement) {
+      console.warn('Input element is not exists.');
+      return;
+    }
+    if (inputElement.disabled) {
+      console.warn('Input element is disabled currently.');
+      return;
+    }
+    inputElement.value = value;
   }
 
   get messages (): ChatMessageController[] {

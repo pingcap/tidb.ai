@@ -8,8 +8,7 @@ import { MessageInput } from '@/components/chat/message-input';
 import { SecuritySettingContext, withReCaptcha } from '@/components/security-setting-provider';
 import { useSize } from '@/components/use-size';
 import { cn } from '@/lib/utils';
-import { type ChangeEvent, type FormEvent, type ReactNode, useContext, useEffect, useState } from 'react';
-
+import { type ChangeEvent, type FormEvent, type ReactNode, useContext, useRef, useState } from 'react';
 
 export interface ConversationProps {
   chatId?: string;
@@ -26,7 +25,9 @@ export interface ConversationProps {
 }
 
 export function Conversation ({ open, chat, chatId, history, placeholder, preventMutateBrowserHistory = false, preventShiftMessageInput = false, className }: ConversationProps) {
-  const controller = useChatController(chatId, chat, history);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const controller = useChatController(chatId, chat, history, inputRef);
   const postState = useChatPostState(controller);
   const groups = useChatMessageGroups(useChatMessageControllers(controller));
 
@@ -70,7 +71,7 @@ export function Conversation ({ open, chat, chatId, history, placeholder, preven
         <div className="h-24"></div>
       </div>
       {size && open && <form className={cn('block h-max p-4 fixed bottom-0', preventShiftMessageInput && 'absolute pb-0')} onSubmit={submitWithReCaptcha} style={{ left: preventShiftMessageInput ? 0 : size.x, width: size.width }}>
-        <MessageInput className="w-full transition-all" disabled={disabled} inputProps={{ value: input, onChange: handleInputChange, disabled }} />
+        <MessageInput inputRef={inputRef} className="w-full transition-all" disabled={disabled} inputProps={{ value: input, onChange: handleInputChange, disabled }} />
       </form>}
     </ChatControllerProvider>
   );
