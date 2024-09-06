@@ -4,7 +4,6 @@ import { AppChatStreamState, chatDataPartSchema, type ChatMessageAnnotation, fix
 import { getErrorMessage } from '@/lib/errors';
 import { type JSONValue, type StreamPart } from 'ai';
 import EventEmitter from 'eventemitter3';
-import type { RefObject } from 'react';
 
 export interface ChatControllerEventsMap {
   'created': [Chat];
@@ -22,6 +21,12 @@ export interface ChatControllerEventsMap {
   'post-initialized': [];
   'post-finished': [];
   'post-error': [error: unknown];
+
+  /**
+   * Experimental
+   */
+  'ui:input-mount': [HTMLTextAreaElement | HTMLInputElement];
+  'ui:input-unmount': [HTMLTextAreaElement | HTMLInputElement];
 }
 
 export class ChatController extends EventEmitter<ChatControllerEventsMap> {
@@ -32,6 +37,8 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
   private _postParams: Omit<PostChatParams, 'chat_id'> | undefined = undefined;
   private _postError: unknown = undefined;
   private _postInitialized: boolean = false;
+
+  private _inputElement: HTMLTextAreaElement | HTMLInputElement | null = null;
 
   get postState () {
     return {
@@ -45,7 +52,7 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
     chat: Chat | undefined = undefined,
     messages: ChatMessage[] | undefined = [],
     initialPost: Omit<PostChatParams, 'chat_id'> | undefined = undefined,
-    private messageInputRef?: RefObject<HTMLInputElement | HTMLTextAreaElement>,
+    inputElement: HTMLInputElement | HTMLTextAreaElement | null,
   ) {
     super();
     if (chat) {
@@ -57,33 +64,81 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
     if (initialPost) {
       this.post(initialPost);
     }
-  }
-
-  get inputEnabled () {
-    const inputElement = this.messageInputRef?.current;
-
-    if (!inputElement) {
-      return false;
+    this._inputElement = inputElement;
+    if (inputElement) {
+      this.emit('ui:input-mount', inputElement);
     }
-
-    return !inputElement.disabled;
   }
 
-  get input (): string {
-    return this.messageInputRef?.current?.value ?? '';
+  get inputElement () {
+    return this._inputElement;
   }
 
-  set input (value: string) {
-    const inputElement = this.messageInputRef?.current;
-    if (!inputElement) {
+  set inputElement (value: HTMLInputElement | HTMLTextAreaElement | null) {
+    if (this._inputElement) {
+      if (value) {
+        if (value !== this._inputElement) {
+          const old = this._inputElement;
+          this._inputElement = null;
+          this.emit('ui:input-unmount', old);
+
+          this._inputElement = value;
+          this.emit('ui:input-mount', value);
+        }
+      } else {
+        const old = this._inputElement;
+        this._inputElement = null;
+        this.emit('ui:input-unmount', old);
+      }
+    } else {
+      if (value) {
+        this._inputElement = value;
+        this.emit('ui:input-mount', value);
+      }
+    }
+  }
+
+  private get _enabledInputElement () {
+    if (!this._inputElement) {
       console.warn('Input element is not exists.');
       return;
     }
-    if (inputElement.disabled) {
+    if (this._inputElement.disabled) {
       console.warn('Input element is disabled currently.');
       return;
     }
-    inputElement.value = value;
+
+    return this._inputElement;
+  }
+
+  get inputEnabled () {
+    if (!this._inputElement) {
+      return false;
+    }
+
+    return !this._inputElement.disabled;
+  }
+
+  get input (): string {
+    return this._inputElement?.value ?? '';
+  }
+
+  set input (value: string) {
+    const inputElement = this._enabledInputElement;
+    if (inputElement) {
+      // https://stackoverflow.com/questions/23892547/what-is-the-best-way-to-trigger-change-or-input-event-in-react-js
+      const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!;
+      set.call(inputElement, value);
+      const event = new Event('input', { bubbles: true });
+      inputElement.dispatchEvent(event);
+    }
+  }
+
+  focusInput () {
+    const inputElement = this._enabledInputElement;
+    if (inputElement) {
+      inputElement.focus();
+    }
   }
 
   get messages (): ChatMessageController[] {

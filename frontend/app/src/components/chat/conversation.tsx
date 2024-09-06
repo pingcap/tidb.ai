@@ -25,9 +25,9 @@ export interface ConversationProps {
 }
 
 export function Conversation ({ open, chat, chatId, history, placeholder, preventMutateBrowserHistory = false, preventShiftMessageInput = false, className }: ConversationProps) {
-  const inputRef = useRef<HTMLTextAreaElement>(null);
+  const [inputElement, setInputElement] = useState<HTMLTextAreaElement | null>(null);
 
-  const controller = useChatController(chatId, chat, history, inputRef);
+  const controller = useChatController(chatId, chat, history, inputElement);
   const postState = useChatPostState(controller);
   const groups = useChatMessageGroups(useChatMessageControllers(controller));
 
@@ -71,7 +71,7 @@ export function Conversation ({ open, chat, chatId, history, placeholder, preven
         <div className="h-24"></div>
       </div>
       {size && open && <form className={cn('block h-max p-4 fixed bottom-0', preventShiftMessageInput && 'absolute pb-0')} onSubmit={submitWithReCaptcha} style={{ left: preventShiftMessageInput ? 0 : size.x, width: size.width }}>
-        <MessageInput inputRef={inputRef} className="w-full transition-all" disabled={disabled} inputProps={{ value: input, onChange: handleInputChange, disabled }} />
+        <MessageInput inputRef={setInputElement} className="w-full transition-all" disabled={disabled} inputProps={{ value: input, onChange: handleInputChange, disabled }} />
       </form>}
     </ChatControllerProvider>
   );
