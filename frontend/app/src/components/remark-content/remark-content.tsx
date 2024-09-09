@@ -11,8 +11,8 @@ import { unified } from 'unified';
 import { getRehypeReactOptions } from './components';
 import { RemarkContentContext } from './context';
 import { rehypeHighlightOptions } from './highlight';
-import '../code-theme.scss';
-import './style.scss';
+import '@/components/code-theme.scss';
+import '@/components/remark-content/style.scss';
 
 export function RemarkContent ({ children = '' }: { children: string | undefined }) {
   const portalContainer = usePortalContainer();
