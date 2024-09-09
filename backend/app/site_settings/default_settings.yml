@@ -105,3 +105,13 @@ chat:
     data_type: str
     description: "The host of Langfuse."
     client: false
+  enable_post_verifications:
+    default: true
+    data_type: bool
+    description: "Enable post verification for all chats."
+    client: true
+  enable_post_verifications_for_widgets:
+    default: false
+    data_type: bool
+    description: "Enable post verification for chats from js widgets."
+    client: true

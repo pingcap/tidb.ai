@@ -16,5 +16,9 @@ export async function loadConfig () {
     fetch(requestUrl(`/experimental-features`)).then(res => res.json() as Promise<Partial<ExperimentalFeatures>>),
   ]);
 
+  if (!settings.enable_post_verifications || !settings.enable_post_verifications_for_widgets) {
+    delete experimentalFeatures.message_verify_service;
+  }
+
   return { settings, bootstrapStatus, experimentalFeatures };
 }
