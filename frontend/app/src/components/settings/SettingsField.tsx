@@ -115,7 +115,7 @@ export function SettingsField ({ name, item, arrayItemSchema, objectSchema, onCh
           el = <Input {...props} placeholder={item.default} />;
           break;
         case 'bool':
-          el = <Switch {...props} onChange={undefined} checked={props.value} onCheckedChange={props.onChange} />;
+          el = <Switch className='block' {...props} onChange={undefined} checked={props.value} onCheckedChange={props.onChange} />;
           break;
         case 'dict':
         case 'list':

@@ -2,14 +2,12 @@
 
 import type { AllSettings } from '@/api/site-settings';
 import { SettingsField } from '@/components/settings/SettingsField';
-import { useExperimentalFeatures } from '@/experimental/experimental-features-provider';
 
-export function IntegrationsSettings ({ schema }: { schema: AllSettings }) {
-
+export function IntegrationsSettings ({ schema, showPostVerificationSettings }: { schema: AllSettings, showPostVerificationSettings: boolean }) {
   return (
     <div className="space-y-8 max-w-screen-md">
       <LangfuseSettings schema={schema} />
-      <ExperimentalPostVerificationSettings schema={schema} />
+      {showPostVerificationSettings && <ExperimentalPostVerificationSettings schema={schema} />}
     </div>
   );
 }
@@ -26,12 +24,6 @@ export function LangfuseSettings ({ schema, hideTitle, disabled, onChanged }: { 
 }
 
 export function ExperimentalPostVerificationSettings ({ schema, hideTitle, disabled, onChanged }: { schema: AllSettings, hideTitle?: boolean, disabled?: boolean, onChanged?: () => void }) {
-  const { message_verify_service } = useExperimentalFeatures();
-
-  if (!message_verify_service) {
-    return null;
-  }
-
   return (
     <section className="space-y-6">
       {!hideTitle && <h2 className="text-lg font-medium">[Experimental] Post verifications</h2>}
