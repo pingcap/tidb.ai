@@ -46,6 +46,7 @@ from app.site_settings import SiteSetting
 
 logger = logging.getLogger(__name__)
 
+
 class ChatService:
     def __init__(
         self,
@@ -78,7 +79,6 @@ class ChatService:
         self.enable_langfuse = (
             self.langfuse_host and self.langfuse_secret_key and self.langfuse_public_key
         )
-
 
     def chat(
         self, chat_messages: List[ChatMessage], chat_id: Optional[UUID] = None
