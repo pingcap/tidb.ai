@@ -2,6 +2,7 @@ import { chat, type Chat, type ChatMessage, type PostChatParams } from '@/api/ch
 import { ChatMessageController, type OngoingState } from '@/components/chat/chat-message-controller';
 import { AppChatStreamState, chatDataPartSchema, type ChatMessageAnnotation, fixChatInitialData } from '@/components/chat/chat-stream-state';
 import { getErrorMessage } from '@/lib/errors';
+import { trigger } from '@/lib/react';
 import { type JSONValue, type StreamPart } from 'ai';
 import EventEmitter from 'eventemitter3';
 
@@ -126,11 +127,7 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
   set input (value: string) {
     const inputElement = this._enabledInputElement;
     if (inputElement) {
-      // https://stackoverflow.com/questions/23892547/what-is-the-best-way-to-trigger-change-or-input-event-in-react-js
-      const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!;
-      set.call(inputElement, value);
-      const event = new Event('input', { bubbles: true });
-      inputElement.dispatchEvent(event);
+      trigger(inputElement as HTMLTextAreaElement, HTMLTextAreaElement, value);
     }
   }
 

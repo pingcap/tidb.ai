@@ -41,6 +41,8 @@ export default async function RootLayout ({
 
   const _experimentalFeatures = experimentalFeatures();
 
+  console.log(settings);
+
   if (!settings.enable_post_verifications) {
     delete _experimentalFeatures.message_verify_service;
   }
