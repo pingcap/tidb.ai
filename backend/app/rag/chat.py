@@ -46,6 +46,13 @@ from app.site_settings import SiteSetting
 
 logger = logging.getLogger(__name__)
 
+langfuse_host = SiteSetting.langfuse_host
+langfuse_secret_key = SiteSetting.langfuse_secret_key
+langfuse_public_key = SiteSetting.langfuse_public_key
+enable_langfuse = (
+  langfuse_host and langfuse_secret_key and langfuse_public_key
+)
+
 
 class ChatService:
     def __init__(
@@ -72,13 +79,6 @@ class ChatService:
         else:
             self._node_postprocessors = [self._metadata_filter]
             self._similarity_top_k = 10
-
-        self.langfuse_host = SiteSetting.langfuse_host
-        self.langfuse_secret_key = SiteSetting.langfuse_secret_key
-        self.langfuse_public_key = SiteSetting.langfuse_public_key
-        self.enable_langfuse = (
-            self.langfuse_host and self.langfuse_secret_key and self.langfuse_public_key
-        )
 
     def chat(
         self, chat_messages: List[ChatMessage], chat_id: Optional[UUID] = None
@@ -141,11 +141,11 @@ class ChatService:
                     ),
                 )
 
-        if self.enable_langfuse:
+        if enable_langfuse:
             langfuse = Langfuse(
-                host=self.langfuse_host,
-                secret_key=self.langfuse_secret_key,
-                public_key=self.langfuse_public_key,
+                host=langfuse_host,
+                secret_key=langfuse_secret_key,
+                public_key=langfuse_public_key,
             )
             observation = langfuse.trace(
                 name="chat",
@@ -197,7 +197,7 @@ class ChatService:
             # track:
             #   - https://github.com/langfuse/langfuse/issues/2015
             #   - https://langfuse.com/blog/2024-04-python-decorator
-            if self.enable_langfuse:
+            if enable_langfuse:
                 observation = langfuse.trace(id=trace_id)
                 langfuse_handler = LlamaIndexCallbackHandler()
                 langfuse_handler.set_root(observation)
@@ -505,6 +505,31 @@ def get_chat_message_subgraph(
 ) -> Tuple[List, List]:
     if chat_message.role != MessageRole.USER:
         return [], []
+
+    # try to get subgraph from langfuse trace
+    trace_url = chat_message.trace_url
+    if enable_langfuse and trace_url is not None and trace_url != "":
+        langfuse_client = Langfuse(
+            secret_key=langfuse_secret_key,
+            public_key=langfuse_public_key,
+            host=langfuse_host
+        )
+        trace_id = trace_url.split("/trace/")[-1]
+        ob_data = langfuse_client.fetch_observations(trace_id=trace_id)
+
+        all_entities = []
+        all_relationships = []
+
+        for obd in ob_data.data:
+            if obd.name == "graph_semantic_search":
+                for _, sg in obd.output['queries'].items():
+                    all_entities.extend(sg['entities'])
+                    all_relationships.extend(sg['relationships'])
+
+        unique_entities = {e["id"]: e for e in all_entities}.values()
+        unique_relationships = {r["id"]: r for r in all_relationships}.values()
+
+        return list(unique_entities), list(unique_relationships)
 
     chat: DBChat = chat_message.chat
     chat_engine_config = ChatEngineConfig.load_from_db(session, chat.engine.name)
