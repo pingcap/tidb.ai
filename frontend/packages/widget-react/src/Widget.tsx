@@ -13,6 +13,7 @@ import './Widget.css';
 
 export interface WidgetProps {
   trigger?: HTMLElement | true | null;
+  container: HTMLElement;
   bootstrapStatus: BootstrapStatus;
   experimentalFeatures: Partial<ExperimentalFeatures>;
   exampleQuestions: string[];
@@ -27,7 +28,7 @@ export interface WidgetInstance {
   dark: boolean;
 }
 
-export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ trigger, experimentalFeatures, disableAutoThemeDetect = false, bootstrapStatus, exampleQuestions, icon, buttonIcon, buttonLabel }, ref) => {
+export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trigger, experimentalFeatures, disableAutoThemeDetect = false, bootstrapStatus, exampleQuestions, icon, buttonIcon, buttonLabel }, ref) => {
   const [open, setOpen] = useState(false);
   const [dark, setDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches);
   const openRef = useRef(open);
@@ -37,11 +38,6 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ trigger, experi
     openRef.current = open;
     darkRef.current = dark;
   });
-
-  const container = useRef<HTMLDivElement>();
-  if (!container.current) {
-    container.current = document.getElementById('tidb-ai-widget')! as never;
-  }
 
   const toggleDark = (dark: boolean) => {
     setDark(dark);
@@ -82,9 +78,9 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ trigger, experi
 
   useEffect(() => {
     if (dark) {
-      container.current?.classList.add('dark');
+      container.classList.add('dark');
     } else {
-      container.current?.classList.remove('dark');
+      container.classList.remove('dark');
     }
   }, [dark]);
 
@@ -114,7 +110,7 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ trigger, experi
   }), []);
 
   return (
-    <PortalProvider container={container.current}>
+    <PortalProvider container={container}>
       <BootstrapStatusProvider bootstrapStatus={bootstrapStatus}>
         <ExperimentalFeaturesProvider features={experimentalFeatures}>
           <ChatsProvider>
@@ -127,7 +123,7 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ trigger, experi
                 </span>
                 </Button>
               </DialogTrigger>}
-              <DialogPortal container={container.current}>
+              <DialogPortal container={container}>
                 <DialogOverlay />
                 <DialogPrimitive.Content
                   className="fixed left-[50%] top-[50%] z-50 grid translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg w-[calc(100%-32px)] lg:w-[50vw] h-max">

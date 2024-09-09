@@ -14,8 +14,16 @@ export function MessageAnswer ({ message }: { message: ChatMessageController | u
   return (
     <>
       <div className="font-normal text-lg flex items-center gap-2">
-        <img className="dark:hidden h-4" src="/answer-black.svg" alt="logo" />
-        <img className="hidden dark:block h-4" src="/answer-white.svg" alt="logo" />
+        <svg className="dark:hidden size-4" viewBox="0 0 745 745" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="12" y="12" width="721" height="721" rx="108" stroke="#212121" stroke-width="24" />
+          <rect x="298" y="172" width="150" height="150" rx="24" fill="#212121" />
+          <rect x="298" y="422" width="150" height="150" rx="24" fill="#212121" />
+        </svg>
+        <svg className="hidden dark:block size-4" viewBox="0 0 745 745" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect x="12" y="12" width="721" height="721" rx="108" stroke="white" stroke-width="24" />
+          <rect x="298" y="172" width="150" height="150" rx="24" fill="white" />
+          <rect x="298" y="422" width="150" height="150" rx="24" fill="white" />
+        </svg>
         Answer
       </div>
       <MessageContent message={message} />

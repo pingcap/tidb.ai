@@ -28,6 +28,7 @@ loadConfig().then(({ settings, bootstrapStatus, experimentalFeatures }) => {
   ReactDOM.createRoot(div).render(
     <Widget
       ref={refFn}
+      container={div}
       trigger={trigger}
       exampleQuestions={settings.custom_js_example_questions}
       buttonLabel={settings.custom_js_button_label}
@@ -37,4 +38,9 @@ loadConfig().then(({ settings, bootstrapStatus, experimentalFeatures }) => {
       experimentalFeatures={experimentalFeatures}
     />,
   );
+}).catch((error) => {
+  window.dispatchEvent(new CustomEvent('tidbaierror', { detail: error }));
+  Object.defineProperty(window, 'tidbai', {
+    value: undefined,
+  });
 });
