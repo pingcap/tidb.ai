@@ -1,3 +1,4 @@
+import time
 import logging
 from uuid import UUID
 from typing import List, Generator, Optional, Tuple
@@ -507,6 +508,7 @@ def get_chat_message_subgraph(
         return [], []
 
     # try to get subgraph from langfuse trace
+    start_time = time.time()
     trace_url = chat_message.trace_url
     langfuse_host = SiteSetting.langfuse_host
     langfuse_secret_key = SiteSetting.langfuse_secret_key
@@ -514,6 +516,9 @@ def get_chat_message_subgraph(
     enable_langfuse = (
         langfuse_host and langfuse_secret_key and langfuse_public_key
     )
+    current_time = time.time()
+    logger.info(f"fetch config from site setting: {current_time - start_time}s")
+    start_time = current_time
     if enable_langfuse and trace_url is not None and trace_url != "":
         langfuse_client = Langfuse(
             secret_key=langfuse_secret_key,
@@ -522,7 +527,9 @@ def get_chat_message_subgraph(
         )
         trace_id = trace_url.split("/trace/")[-1]
         ob_data = langfuse_client.fetch_observations(trace_id=trace_id)
-
+        current_time = time.time()
+        logger.info(f"fetch trace {trace_id} from langfuse: {current_time - start_time}s")
+        start_time = current_time
         all_entities = []
         all_relationships = []
 
@@ -534,6 +541,8 @@ def get_chat_message_subgraph(
 
         unique_entities = {e["id"]: e for e in all_entities}.values()
         unique_relationships = {r["id"]: r for r in all_relationships}.values()
+
+        logger.info(f"fetch trace {trace_id} from langfuse: {time.time() - start_time}s, {len(unique_relationships)}")
 
         if len(unique_relationships) > 0:
             return list(unique_entities), list(unique_relationships)
