@@ -174,6 +174,7 @@ class ChatService:
             chat=self.db_chat_obj,
             chat_message=DBChatMessage(
                 role=MessageRole.USER.value,
+                trace_url=trace_url,
                 content=user_question,
             ),
         )
@@ -518,10 +519,7 @@ def get_chat_message_subgraph(
     )
     current_time = time.time()
     logger.info(f"Graph Load - Fetch langfuse configs from site setting, time cost: {current_time - start_time}s")
-    logger.info(f"Graph Load - trace_url: {trace_url}, enable_langfuse: {enable_langfuse}")
-    logger.info(
-        f"Graph Load - langfuse_host: {langfuse_host}, langfuse_secret_key: {langfuse_secret_key}, langfuse_public_key: {langfuse_public_key}"
-    )
+    logger.debug(f"Graph Load - message: {chat_message.id} and {trace_url}, enable_langfuse: {enable_langfuse}")
     start_time = current_time
     if enable_langfuse and trace_url is not None and trace_url != "":
         langfuse_client = Langfuse(
