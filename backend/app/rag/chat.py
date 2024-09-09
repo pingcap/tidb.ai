@@ -242,7 +242,7 @@ class ChatService:
                     event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
                     payload=ChatStreamMessagePayload(
                         state=ChatMessageSate.KG_RETRIEVAL,
-                        display="Decompose the question",
+                        display="Identifying Your Question's Core Intents",
                     ),
                 )
                 graph_index._callback_manager = _get_llamaindex_callback_manager()
@@ -254,7 +254,7 @@ class ChatService:
                     event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
                     payload=ChatStreamMessagePayload(
                         state=ChatMessageSate.TRACE,
-                        display="Search knowledge graph",
+                        display="Searching the Knowledge Graph for Relevant Context",
                         context={"langfuse_url": trace_url},
                     ),
                 )
@@ -278,7 +278,7 @@ class ChatService:
                     event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
                     payload=ChatStreamMessagePayload(
                         state=ChatMessageSate.TRACE,
-                        display="Search knowledge graph",
+                        display="Searching the Knowledge Graph for Relevant Context",
                         context={"langfuse_url": trace_url},
                     ),
                 )
@@ -307,7 +307,7 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
                 state=ChatMessageSate.REFINE_QUESTION,
-                display="Refine the question",
+                display="Query Rewriting for Enhanced Information Retrieval",
             ),
         )
         callback_manager = _get_llamaindex_callback_manager()
@@ -340,9 +340,9 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
                 state=ChatMessageSate.SEARCH_RELATED_DOCUMENTS,
-                display="Search and rerank related documents"
+                display="Retrieving and Reranking the Best-Matching Data"
                 if self._reranker
-                else "Search related documents",
+                else "Retrieving the Most Relevant Data",
             ),
         )
         callback_manager = _get_llamaindex_callback_manager()
@@ -389,7 +389,7 @@ class ChatService:
             event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
                 state=ChatMessageSate.GENERATE_ANSWER,
-                display="Generate answer",
+                display="Generating a Precise Answer with AI",
             ),
         )
 
