@@ -39,10 +39,16 @@ export default async function RootLayout ({
     getBootstrapStatus(),
   ]);
 
+  const _experimentalFeatures = experimentalFeatures();
+
+  if (!settings.enable_post_verifications) {
+    delete _experimentalFeatures.message_verify_service;
+  }
+
   return (
     <html lang="en" suppressHydrationWarning>
     <body className={inter.className}>
-    <RootProviders me={me} settings={settings} bootstrapStatus={bootstrapStatus} experimentalFeatures={experimentalFeatures()}>
+    <RootProviders me={me} settings={settings} bootstrapStatus={bootstrapStatus} experimentalFeatures={_experimentalFeatures}>
       {children}
       <SystemWizardDialog />
     </RootProviders>

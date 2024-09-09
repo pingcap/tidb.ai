@@ -42,6 +42,8 @@ export interface PublicWebsiteSettings {
   'custom_js_button_img_src': string;
   'custom_js_logo_src': string;
   'ga_id': string | null;
+  'enable_post_verifications': boolean;
+  'enable_post_verifications_for_widgets': boolean;
 }
 
 const settingsItemSchema = z.object({
@@ -69,7 +71,7 @@ const settingsItemSchema = z.object({
   z.object({
     data_type: z.literal('bool'),
     value: z.boolean().nullable(),
-    default: z.boolean(),
+    default: z.coerce.boolean(),
   }),
   z.object({
     data_type: z.literal('list'),
