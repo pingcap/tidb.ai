@@ -242,7 +242,7 @@ class ChatService:
                     event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
                     payload=ChatStreamMessagePayload(
                         state=ChatMessageSate.KG_RETRIEVAL,
-                        display="Understanding Your Question's Core Intents",
+                        display="Identifying Your Question's Core Intents",
                     ),
                 )
                 graph_index._callback_manager = _get_llamaindex_callback_manager()
