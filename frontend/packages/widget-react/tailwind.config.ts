@@ -13,6 +13,7 @@ const config: Config = {
     './src/**/*.{ts,tsx}',
     '../../app/src/components/chat/**/*.{ts,tsx}',
     '../../app/src/components/ui/**/*.{ts,tsx}',
+    '../../app/src/components/remark-content/**/*.{ts,tsx}',
   ],
   prefix: '',
   theme: {
