@@ -46,14 +46,6 @@ from app.site_settings import SiteSetting
 
 logger = logging.getLogger(__name__)
 
-langfuse_host = SiteSetting.langfuse_host
-langfuse_secret_key = SiteSetting.langfuse_secret_key
-langfuse_public_key = SiteSetting.langfuse_public_key
-enable_langfuse = (
-  langfuse_host and langfuse_secret_key and langfuse_public_key
-)
-
-
 class ChatService:
     def __init__(
         self,
@@ -79,6 +71,14 @@ class ChatService:
         else:
             self._node_postprocessors = [self._metadata_filter]
             self._similarity_top_k = 10
+
+        self.langfuse_host = SiteSetting.langfuse_host
+        self.langfuse_secret_key = SiteSetting.langfuse_secret_key
+        self.langfuse_public_key = SiteSetting.langfuse_public_key
+        self.enable_langfuse = (
+            self.langfuse_host and self.langfuse_secret_key and self.langfuse_public_key
+        )
+
 
     def chat(
         self, chat_messages: List[ChatMessage], chat_id: Optional[UUID] = None
@@ -141,11 +141,11 @@ class ChatService:
                     ),
                 )
 
-        if enable_langfuse:
+        if self.enable_langfuse:
             langfuse = Langfuse(
-                host=langfuse_host,
-                secret_key=langfuse_secret_key,
-                public_key=langfuse_public_key,
+                host=self.langfuse_host,
+                secret_key=self.langfuse_secret_key,
+                public_key=self.langfuse_public_key,
             )
             observation = langfuse.trace(
                 name="chat",
@@ -197,7 +197,7 @@ class ChatService:
             # track:
             #   - https://github.com/langfuse/langfuse/issues/2015
             #   - https://langfuse.com/blog/2024-04-python-decorator
-            if enable_langfuse:
+            if self.enable_langfuse:
                 observation = langfuse.trace(id=trace_id)
                 langfuse_handler = LlamaIndexCallbackHandler()
                 langfuse_handler.set_root(observation)
@@ -508,6 +508,12 @@ def get_chat_message_subgraph(
 
     # try to get subgraph from langfuse trace
     trace_url = chat_message.trace_url
+    langfuse_host = SiteSetting.langfuse_host
+    langfuse_secret_key = SiteSetting.langfuse_secret_key
+    langfuse_public_key = SiteSetting.langfuse_public_key
+    enable_langfuse = (
+        langfuse_host and langfuse_secret_key and langfuse_public_key
+    )
     if enable_langfuse and trace_url is not None and trace_url != "":
         langfuse_client = Langfuse(
             secret_key=langfuse_secret_key,
