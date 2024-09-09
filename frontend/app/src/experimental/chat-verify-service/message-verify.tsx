@@ -1,6 +1,5 @@
 import { getVerify, isFinalVerifyState, isVisibleVerifyState, type MessageVerifyResponse, verify, VerifyStatus } from '#experimental/chat-verify-service/api';
-import { useAuth } from '@/components/auth/AuthProvider';
-import { useChatMessageField, useChatMessageStreamState } from '@/components/chat/chat-hooks';
+import { useChatMessageField, useChatMessageStreamState, useCurrentChatController } from '@/components/chat/chat-hooks';
 import type { ChatMessageController } from '@/components/chat/chat-message-controller';
 import { isNotFinished } from '@/components/chat/utils';
 import { Button } from '@/components/ui/button';
@@ -11,7 +10,7 @@ import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import Highlight from 'highlight.js/lib/core';
 import sql from 'highlight.js/lib/languages/sql';
-import { CheckCircle2Icon, CheckIcon, ChevronDownIcon, CircleMinus, Loader2Icon, TriangleAlertIcon, XIcon } from 'lucide-react';
+import { CheckCircle2Icon, CheckIcon, ChevronDownIcon, CircleMinus, Loader2Icon, RefreshCwIcon, TriangleAlertIcon, XIcon } from 'lucide-react';
 import { type ReactElement, useEffect, useMemo, useState } from 'react';
 import { format } from 'sql-formatter';
 import useSWR from 'swr';
@@ -21,6 +20,7 @@ Highlight.registerLanguage('sql', sql);
 
 export function MessageVerify ({ user, assistant }: { user: ChatMessageController | undefined, assistant: ChatMessageController | undefined }) {
   const [open, setOpen] = useState(false);
+  const controller = useCurrentChatController();
   const messageState = useChatMessageStreamState(assistant);
   const question = useChatMessageField(user, 'content');
   const answer = useChatMessageField(assistant, 'content');
@@ -29,15 +29,13 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
 
   const externalRequestId = `${chat_id}_${message_id}`;
 
-  const me = useAuth();
   const [verifyId, setVerifyId] = useState<string>();
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState<unknown>();
 
   const serviceUrl = useExperimentalFeatures().message_verify_service;
-  const isSuperuser = !!me.me?.is_superuser;
 
-  const shouldPoll = serviceUrl && !!verifyId && !!assistant; // Remove isSuperuser check
+  const shouldPoll = serviceUrl && !!verifyId && !!assistant;
   const { data: result, isLoading: isLoadingResult, error: pollError } = useSWR(
     shouldPoll && `experimental.chat-message.${assistant.id}.verify`, () => getVerify(serviceUrl, verifyId!),
     {
@@ -115,8 +113,24 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
           </motion.div>}
         </AnimatePresence>
       </CollapsibleContent>
-      <div className="my-2 px-4 text-xs text-muted-foreground">
-        Powered by <a className="underline font-bold" href="https://www.pingcap.com/tidb-serverless/" target="_blank">TiDB Serverless</a>
+      <div className="my-2 px-4 flex items-center flex-wrap justify-between">
+        <div className="text-xs text-muted-foreground">
+          Powered by <a className="underline font-bold" href="https://www.pingcap.com/tidb-serverless/" target="_blank">TiDB Serverless</a>
+        </div>
+        {result?.status === VerifyStatus.FAILED && controller.inputEnabled && (
+          <Button
+            size="sm"
+            className="gap-1 text-xs px-2 py-1 h-max"
+            variant="ghost"
+            onClick={() => {
+              controller.input = composeRegenerateMessage(result);
+              controller.focusInput();
+            }}
+          >
+            <RefreshCwIcon size="1em" />
+            Regenerate with validation messages
+          </Button>
+        )}
       </div>
     </Collapsible>
   );
@@ -221,4 +235,15 @@ function MessageVerifyRun ({ run }: { run: MessageVerifyResponse.Run }) {
        </pre>
     </div>
   );
+}
+
+function composeRegenerateMessage (result: MessageVerifyResponse) {
+  return `Below are the results of my verification of the SQL examples mentioned in the above answer on TiDB Serverless. I hope to use this to verify the correctness of the answer:
+
+${result.runs.map(run => (`Explain: ${run.explanation}
+SQL: ${run.sql}
+SQL Result: ${(run.sql_error_code || run.sql_error_message) ? `${run.sql_error_code ?? '?????'} ${run.sql_error_message}` : JSON.stringify(run.results)}
+Validation Result: ${run.success ? 'Success' : 'Failed'}`)).join('\n\n')}
+`;
+
 }

@@ -21,7 +21,7 @@ export function useAsk (onFinish?: () => void) {
       toastError('Failed to chat', getErrorMessage(error));
     };
 
-    const controller = newChat(undefined, undefined, { content: message, chat_engine: engineRef.current, headers: options?.headers });
+    const controller = newChat(undefined, undefined, { content: message, chat_engine: engineRef.current, headers: options?.headers }, null);
 
     controller.once('created', chat => {
       controller.off('post-error', handleInitialError);

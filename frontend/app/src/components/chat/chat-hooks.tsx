@@ -84,22 +84,31 @@ export interface ChatMessageGroup {
   assistant: ChatMessageController | undefined;
 }
 
-export function useChatController (id: string | undefined, initialChat: Chat | undefined, initialMessages: ChatMessage[] | undefined) {
-  const { chats, newChat } = useChats();
+export function useChatController (
+  id: string | undefined,
+  initialChat: Chat | undefined,
+  initialMessages: ChatMessage[] | undefined,
+  inputElement: HTMLInputElement | HTMLTextAreaElement | null = null,
+) {
+  const { chats } = useChats();
 
   // Create essential chat controller
-  const [controller, setController] = useState(() => {
+  const [controller] = useState(() => {
     if (id) {
       let controller = chats.get(id);
       if (!controller) {
-        controller = new ChatController(initialChat, initialMessages);
+        controller = new ChatController(initialChat, initialMessages, undefined, inputElement);
         chats.set(id, controller);
       }
       return controller;
     } else {
-      return new ChatController(undefined, undefined, undefined);
+      return new ChatController(undefined, undefined, undefined, inputElement);
     }
   });
+
+  useEffect(() => {
+    controller.inputElement = inputElement;
+  }, [controller, inputElement]);
 
   return controller;
 }
