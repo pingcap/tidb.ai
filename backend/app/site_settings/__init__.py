@@ -76,7 +76,7 @@ class SiteSettingProxy:
             default_setting = getattr(default_settings, name)
             self.update_db_cache()
             db_value = self.__db_cache.get(name)
-            return db_value if db_value else default_setting.default
+            return db_value if db_value is not None else default_setting.default
         else:
             raise AttributeError(f"Setting {name} does not exist.")
 
@@ -92,7 +92,7 @@ class SiteSettingProxy:
                 result[default_setting.name] = SettingValue(
                     name=default_setting.name,
                     default=default_setting.default,
-                    value=db_value if db_value else default_setting.default,
+                    value=db_value if db_value is not None else default_setting.default,
                     data_type=default_setting.data_type,
                     description=default_setting.description,
                     group=default_setting.group,
