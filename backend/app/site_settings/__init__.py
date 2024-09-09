@@ -2,6 +2,7 @@ import time
 import threading
 import logging
 from sqlmodel import Session, select
+from datetime import datetime, UTC
 
 from app.models import SiteSetting as DBSiteSetting
 from app.core.db import engine
@@ -122,6 +123,7 @@ class SiteSettingProxy:
         ).first()
         if db_setting_obj:
             db_setting_obj.value = value
+            db_setting_obj.updated_at = datetime.now(UTC)
         else:
             db_setting_obj = DBSiteSetting(
                 name=name, value=value, data_type=_default_setting.data_type
