@@ -527,7 +527,7 @@ def get_chat_message_subgraph(
         all_relationships = []
 
         for obd in ob_data.data:
-            if obd.name == "graph_semantic_search":
+            if obd.name == MyCBEventType.GRAPH_SEMANTIC_SEARCH:
                 for _, sg in obd.output['queries'].items():
                     all_entities.extend(sg['entities'])
                     all_relationships.extend(sg['relationships'])
@@ -535,7 +535,8 @@ def get_chat_message_subgraph(
         unique_entities = {e["id"]: e for e in all_entities}.values()
         unique_relationships = {r["id"]: r for r in all_relationships}.values()
 
-        return list(unique_entities), list(unique_relationships)
+        if len(unique_relationships) > 0:
+            return list(unique_entities), list(unique_relationships)
 
     chat: DBChat = chat_message.chat
     chat_engine_config = ChatEngineConfig.load_from_db(session, chat.engine.name)
