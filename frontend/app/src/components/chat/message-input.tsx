@@ -8,14 +8,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { cn } from '@/lib/utils';
 import isHotkey from 'is-hotkey';
 import { ArrowRightIcon } from 'lucide-react';
-import { type ChangeEvent, type RefObject, useCallback, useRef, useState } from 'react';
+import { type ChangeEvent, type Ref, type RefObject, useCallback, useRef, useState } from 'react';
 import TextareaAutosize, { type TextareaAutosizeProps } from 'react-textarea-autosize';
 import useSWR from 'swr';
 
 export interface MessageInputProps {
   className?: string,
   disabled?: boolean,
-  inputRef?: RefObject<HTMLTextAreaElement>,
+  inputRef?: Ref<HTMLTextAreaElement>,
   inputProps?: TextareaAutosizeProps,
   engine?: string,
   onEngineChange?: (name: string) => void,
