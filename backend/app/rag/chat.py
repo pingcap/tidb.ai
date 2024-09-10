@@ -515,6 +515,7 @@ def user_can_view_chat(chat: DBChat, user: Optional[User]) -> bool:
 
 
 def get_graph_data_from_langfuse(trace_url: str):
+    start_time = time.time()
     langfuse_host = SiteSetting.langfuse_host
     langfuse_secret_key = SiteSetting.langfuse_secret_key
     langfuse_public_key = SiteSetting.langfuse_public_key
