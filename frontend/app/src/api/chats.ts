@@ -43,6 +43,7 @@ export interface ChatMessage {
   content: string;
   sources: ChatMessageSource[];
   chat_id: string;
+  graph_data: Record<string, any>; // Add this line
 }
 
 export interface ChatMessageSource {
@@ -82,6 +83,7 @@ export const chatMessageSchema = z.object({
   content: z.string(),
   sources: chatMessageSourceSchema.array(),
   chat_id: z.string(),
+  graph_data: z.record(z.string(), z.any()),
 }) satisfies ZodType<ChatMessage, any, any>;
 
 const chatDetailSchema = z.object({
