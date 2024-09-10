@@ -1,7 +1,5 @@
 import { expect, type Page, type Request, test } from '@playwright/test';
 
-test.setTimeout(60000);
-
 const QUESTION = 'What is the content of sample.pdf?';
 
 test.describe('Chat', () => {
@@ -57,10 +55,7 @@ async function testNewChat (page: Page, chatRequest: Request) {
     expect(chatResponse.ok()).toBe(true);
 
     // Feedback button indicates chat ends.
-    await page.locator('button', { has: page.locator('svg.lucide-message-square-plus') }).waitFor({
-      state: 'visible',
-      timeout: 60000
-    });
+    await page.locator('button', { has: page.locator('svg.lucide-message-square-plus') }).waitFor({ state: 'visible' });
 
     return await chatResponse.text();
   });
