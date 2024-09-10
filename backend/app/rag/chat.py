@@ -33,7 +33,7 @@ from app.rag.chat_stream_protocol import (
     ChatEvent,
 )
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
-from app.rag.knowledge_graph.graph_store import TiDBGraphStore
+from app.rag.knowledge_graph.graph_store import TiDBGraphStore, tidb_graph_editor as editor
 from app.rag.knowledge_graph import KnowledgeGraphIndex
 from app.rag.chat_config import ChatEngineConfig, get_default_embedding_model
 from app.rag.types import (
@@ -416,11 +416,13 @@ class ChatService:
             raise Exception("Got empty response from LLM")
 
         db_assistant_message.sources = source_documents
-        db_assistant_message.graph_data_source_ids = graph_data_source_ids
+        db_assistant_message.graph_data = graph_data_source_ids
         db_assistant_message.content = response_text
         db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_assistant_message)
+        db_user_message.graph_data = graph_data_source_ids
+        self.db_session.add(db_user_message)
         self.db_session.commit()
 
         yield ChatEvent(
@@ -512,15 +514,7 @@ def user_can_view_chat(chat: DBChat, user: Optional[User]) -> bool:
     return True
 
 
-def get_chat_message_subgraph(
-    session: Session, chat_message: DBChatMessage
-) -> Tuple[List, List]:
-    if chat_message.role != MessageRole.USER:
-        return [], []
-
-    # try to get subgraph from langfuse trace
-    start_time = time.time()
-    trace_url = chat_message.trace_url
+def get_graph_data_from_langfuse(trace_url: str):
     langfuse_host = SiteSetting.langfuse_host
     langfuse_secret_key = SiteSetting.langfuse_secret_key
     langfuse_public_key = SiteSetting.langfuse_public_key
@@ -528,8 +522,8 @@ def get_chat_message_subgraph(
         langfuse_host and langfuse_secret_key and langfuse_public_key
     )
     current_time = time.time()
-    logger.info(f"Graph Load - Fetch langfuse configs from site setting, time cost: {current_time - start_time}s")
-    logger.debug(f"Graph Load - message: {chat_message.id} and {trace_url}, enable_langfuse: {enable_langfuse}")
+    logger.debug(f"Graph Load - Fetch langfuse configs from site setting, time cost: {current_time - start_time}s")
+    logger.debug(f"Graph Load - trace_url: {trace_url}, enable_langfuse: {enable_langfuse}")
     start_time = current_time
     if enable_langfuse and trace_url is not None and trace_url != "":
         langfuse_client = Langfuse(
@@ -540,7 +534,7 @@ def get_chat_message_subgraph(
         trace_id = trace_url.split("/trace/")[-1]
         ob_data = langfuse_client.fetch_observations(trace_id=trace_id)
         current_time = time.time()
-        logger.info(f"Graph Load - Fetch trace({trace_id}) from langfuse, time cost: {current_time - start_time}s")
+        logger.debug(f"Graph Load - Fetch trace({trace_id}) from langfuse, time cost: {current_time - start_time}s")
         start_time = current_time
         all_entities = []
         all_relationships = []
@@ -554,12 +548,39 @@ def get_chat_message_subgraph(
         unique_entities = {e["id"]: e for e in all_entities}.values()
         unique_relationships = {r["id"]: r for r in all_relationships}.values()
 
-        logger.info(
+        logger.debug(
             f"Graph Load - Fetch trace({trace_id}) from langfuse, relationships: {len(unique_relationships)}, time cost: {time.time() - start_time}s"
         )
 
-        if len(unique_relationships) > 0:
-            return list(unique_entities), list(unique_relationships)
+        return list(unique_entities), list(unique_relationships)
+    else:
+        return [], []
+
+
+def get_chat_message_subgraph(
+    session: Session, chat_message: DBChatMessage
+) -> Tuple[List, List]:
+    if chat_message.role != MessageRole.USER:
+        return [], []
+
+    # try to get subgraph from chat_message.graph_data
+    if (
+        chat_message.graph_data
+        and "relationships" in chat_message.graph_data
+        and len(chat_message.graph_data["relationships"]) > 0
+    ):
+        relationship_ids = chat_message.graph_data["relationships"]
+        return editor.get_entities_and_relationships_by_ids(
+            session,
+            relationship_ids
+        )
+
+    # try to get subgraph from langfuse trace
+    entities, relationships = get_graph_data_from_langfuse(
+        chat_message.trace_url
+    )
+    if len(relationships) > 0:
+        return list(entities), list(relationships)
 
     chat: DBChat = chat_message.chat
     chat_engine_config = ChatEngineConfig.load_from_db(session, chat.engine.name)
