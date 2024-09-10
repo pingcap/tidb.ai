@@ -416,7 +416,7 @@ class ChatService:
             raise Exception("Got empty response from LLM")
 
         db_assistant_message.sources = source_documents
-        db_assistant_message.graph_data = graph_data_source_ids
+        # db_assistant_message.graph_data = graph_data_source_ids
         db_assistant_message.content = response_text
         db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
