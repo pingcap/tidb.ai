@@ -108,14 +108,15 @@ def get_relationship_by_ids(session: Session, ids: list[int]) -> List[Relationsh
     entities = []
     entities_set = set()
     for relationship in relationships_queryset:
+        print
         entities_set.add(relationship.source_entity)
         entities_set.add(relationship.target_entity)
-        relationships.append(relationship.screenshot())
+        relationships.append(relationship)
 
     for entity in entities_set:
-        entities.append(entity.screenshot())
+        entities.append(entity)
 
-    return relationships, entities
+    return entities, relationships
 
 
 def update_relationship(

@@ -564,23 +564,53 @@ def get_chat_message_subgraph(
         return [], []
 
     # try to get subgraph from chat_message.graph_data
-    if (
-        chat_message.graph_data
-        and "relationships" in chat_message.graph_data
-        and len(chat_message.graph_data["relationships"]) > 0
-    ):
-        relationship_ids = chat_message.graph_data["relationships"]
-        return editor.get_relationship_by_ids(
-            session,
-            relationship_ids
-        )
+    try:
+        if (
+            chat_message.graph_data
+            and "relationships" in chat_message.graph_data
+            and len(chat_message.graph_data["relationships"]) > 0
+        ):
+            relationship_ids = chat_message.graph_data["relationships"]
+            all_entities, all_relationships = editor.get_relationship_by_ids(
+                session,
+                relationship_ids
+            )
+            entities = [
+                {
+                    "id": e.id,
+                    "name": e.name,
+                    "description": e.description,
+                    "meta": e.meta,
+                    "entity_type": e.entity_type,
+                }
+                for e in all_entities
+            ]
+            relationships = [
+                {
+                    "id": r.id,
+                    "source_entity_id": r.source_entity_id,
+                    "target_entity_id": r.target_entity_id,
+                    "description": r.description,
+                    "rag_description": f"{r.source_entity.name} -> {r.description} -> {r.target_entity.name}",
+                    "meta": r.meta,
+                    "weight": r.weight,
+                    "last_modified_at": r.last_modified_at,
+                }
+                for r in all_relationships
+            ]
+            return entities, relationships
+    except Exception as e:
+        logger.error(f"Failed to get subgraph from chat_message.graph_data: {e}")
 
     # try to get subgraph from langfuse trace
-    entities, relationships = get_graph_data_from_langfuse(
-        chat_message.trace_url
-    )
-    if len(relationships) > 0:
-        return list(entities), list(relationships)
+    try:
+        entities, relationships = get_graph_data_from_langfuse(
+            chat_message.trace_url
+        )
+        if len(relationships) > 0:
+            return list(entities), list(relationships)
+    except Exception as e:
+        logger.error(f"Failed to get subgraph from langfuse trace: {e}")
 
     chat: DBChat = chat_message.chat
     chat_engine_config = ChatEngineConfig.load_from_db(session, chat.engine.name)
