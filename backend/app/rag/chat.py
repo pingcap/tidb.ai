@@ -269,10 +269,12 @@ class ChatService:
 
                 entities = result["graph"]["entities"]
                 relations = result["graph"]["relationships"]
+                """
                 graph_data_source_ids = {
                     "entities": [e["id"] for e in entities],
                     "relationships": [r["id"] for r in relations],
                 }
+                """
 
                 graph_knowledges = get_prompt_by_jinja2_template(
                     self.chat_engine_config.llm.intent_graph_knowledge,
@@ -298,10 +300,12 @@ class ChatService:
                     relationship_meta_filters=kg_config.relationship_meta_filters,
                     with_chunks=False,
                 )
+                """
                 graph_data_source_ids = {
                     "entities": [e["id"] for e in entities],
                     "relationships": [r["id"] for r in relations],
                 }
+                """
                 graph_knowledges = get_prompt_by_jinja2_template(
                     self.chat_engine_config.llm.normal_graph_knowledge,
                     entities=entities,
@@ -310,7 +314,7 @@ class ChatService:
                 graph_knowledges_context = graph_knowledges.template
         else:
             entities, relations, chunks = [], [], []
-            graph_data_source_ids = {}
+            # graph_data_source_ids = {}
             graph_knowledges_context = ""
 
         # 2. Refine the user question using graph information and chat history
@@ -416,13 +420,13 @@ class ChatService:
             raise Exception("Got empty response from LLM")
 
         db_assistant_message.sources = source_documents
-        db_assistant_message.graph_data = graph_data_source_ids
+        # db_assistant_message.graph_data = graph_data_source_ids
         db_assistant_message.content = response_text
         db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_assistant_message)
-        db_user_message.graph_data = graph_data_source_ids
-        self.db_session.add(db_user_message)
+        # db_user_message.graph_data = graph_data_source_ids
+        # self.db_session.add(db_user_message)
         self.db_session.commit()
 
         yield ChatEvent(
@@ -565,6 +569,7 @@ def get_chat_message_subgraph(
         return [], []
 
     # try to get subgraph from chat_message.graph_data
+    """
     try:
         if (
             chat_message.graph_data
@@ -602,6 +607,7 @@ def get_chat_message_subgraph(
             return entities, relationships
     except Exception as e:
         logger.error(f"Failed to get subgraph from chat_message.graph_data: {e}")
+    """
 
     # try to get subgraph from langfuse trace
     try:
