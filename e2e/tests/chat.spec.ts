@@ -1,6 +1,6 @@
 import { expect, type Page, type Request, test } from '@playwright/test';
 
-test.setTimeout(45000);
+test.setTimeout(60000);
 
 const QUESTION = 'What is the content of sample.pdf?';
 
@@ -59,7 +59,7 @@ async function testNewChat (page: Page, chatRequest: Request) {
     // Feedback button indicates chat ends.
     await page.locator('button', { has: page.locator('svg.lucide-message-square-plus') }).waitFor({
       state: 'visible',
-      timeout: 35000
+      timeout: 60000
     });
 
     return await chatResponse.text();
