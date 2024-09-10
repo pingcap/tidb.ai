@@ -21,6 +21,7 @@ class ChatMessage(UpdatableBaseModel, table=True):
     content: str = Field(sa_column=Column(Text))
     error: Optional[str] = Field(sa_column=Column(Text))
     sources: List = Field(default=[], sa_column=Column(JSON))
+    graph_data: dict = Field(default={}, sa_column=Column(JSON))
     trace_url: Optional[str] = Field(max_length=512)
     finished_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime))
     chat_id: UUID = Field(foreign_key="chats.id")
