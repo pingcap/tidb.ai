@@ -569,7 +569,6 @@ def get_chat_message_subgraph(
         return [], []
 
     # try to get subgraph from chat_message.graph_data
-    """
     try:
         if (
             chat_message.graph_data
@@ -607,7 +606,6 @@ def get_chat_message_subgraph(
             return entities, relationships
     except Exception as e:
         logger.error(f"Failed to get subgraph from chat_message.graph_data: {e}")
-    """
 
     # try to get subgraph from langfuse trace
     try:
