@@ -570,7 +570,7 @@ def get_chat_message_subgraph(
         and len(chat_message.graph_data["relationships"]) > 0
     ):
         relationship_ids = chat_message.graph_data["relationships"]
-        return editor.get_entities_and_relationships_by_ids(
+        return editor.get_relationship_by_ids(
             session,
             relationship_ids
         )
