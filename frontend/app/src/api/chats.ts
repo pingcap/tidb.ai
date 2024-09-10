@@ -83,7 +83,7 @@ export const chatMessageSchema = z.object({
   content: z.string(),
   sources: chatMessageSourceSchema.array(),
   chat_id: z.string(),
-  graph_data: z.record(z.string(), z.any()).nullable(),
+  graph_data: z.record(z.string(), z.any()).nullable().default({}),
 }) satisfies ZodType<ChatMessage, any, any>;
 
 const chatDetailSchema = z.object({
