@@ -94,6 +94,31 @@ def get_relationship(session: Session, relationship_id: int) -> Optional[Relatio
     return session.get(Relationship, relationship_id)
 
 
+def get_relationship_by_ids(session: Session, ids: list[int]) -> List[Relationship]:
+    relationships_queryset = session.exec(
+        select(Relationship)
+        .where(Relationship.id.in_(ids))
+        .options(
+            joinedload(Relationship.source_entity),
+            joinedload(Relationship.target_entity)
+        )
+    )
+
+    relationships = []
+    entities = []
+    entities_set = set()
+    for relationship in relationships_queryset:
+        print
+        entities_set.add(relationship.source_entity)
+        entities_set.add(relationship.target_entity)
+        relationships.append(relationship)
+
+    for entity in entities_set:
+        entities.append(entity)
+
+    return entities, relationships
+
+
 def update_relationship(
     session: Session, relationship: Relationship, new_relationship: dict
 ) -> Relationship:
