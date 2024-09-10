@@ -421,7 +421,7 @@ class ChatService:
         db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_assistant_message)
-        # db_user_message.graph_data = graph_data_source_ids
+        db_user_message.graph_data = graph_data_source_ids
         self.db_session.add(db_user_message)
         self.db_session.commit()
 
