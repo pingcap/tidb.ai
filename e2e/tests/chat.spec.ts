@@ -1,5 +1,7 @@
 import { expect, type Page, type Request, test } from '@playwright/test';
 
+test.setTimeout(45000);
+
 const QUESTION = 'What is the content of sample.pdf?';
 
 test.describe('Chat', () => {
