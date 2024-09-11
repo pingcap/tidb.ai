@@ -20,7 +20,8 @@ export default defineConfig({
   build: {
     lib: {
       entry: 'src/library.tsx',
-      formats: ['cjs'],
+      formats: ['iife'],
+      name: '__this_name_should_never_exists_on_window__',
       fileName: () => 'widget.js',
     },
     rollupOptions: {
