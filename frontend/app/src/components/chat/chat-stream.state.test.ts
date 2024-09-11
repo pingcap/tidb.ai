@@ -26,7 +26,6 @@ it('pass', () => {
       'error': null,
       'sources': [],
       'chat_id': '019091e3-5cfc-74a3-b5e0-653a73f52af2',
-      'graph_data': {},
     },
     'assistant_message': {
       'id': 60034,
@@ -78,7 +77,6 @@ it('pass', () => {
         },
       ],
       'chat_id': '019091e3-5cfc-74a3-b5e0-653a73f52af2',
-      'graph_data': {},
     },
   } as any));
 

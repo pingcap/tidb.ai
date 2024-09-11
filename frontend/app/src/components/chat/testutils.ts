@@ -12,7 +12,6 @@ export function createExampleInitialChatMessage (): ChatMessage {
     error: null,
     role: ChatMessageRole.assistant,
     sources: [],
-    graph_data: {},
     trace_url: '',
     user_id: 'example_user',
   };
