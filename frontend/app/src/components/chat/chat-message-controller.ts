@@ -124,6 +124,7 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
   applyError (error: string) {
     if (!this._ongoing || this._ongoing.finished) {
       console.warn('message already finished');
+      console.error('Error in ChatMessageController (on finished message):', error);
       return;
     }
     this._ongoing = {
