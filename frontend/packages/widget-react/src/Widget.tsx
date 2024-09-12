@@ -1,4 +1,6 @@
 import type { BootstrapStatus } from '@/api/system';
+import { ManualScrollVoter } from '@/components/auto-scroll';
+import { AutoScroll } from '@/components/auto-scroll/auto-scroll';
 import { ChatsProvider } from '@/components/chat/chat-hooks';
 import { Conversation } from '@/components/chat/conversation';
 import { PortalProvider } from '@/components/portal-provider';
@@ -33,6 +35,7 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
   const [dark, setDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches);
   const openRef = useRef(open);
   const darkRef = useRef(dark);
+  const [scrollTarget, setScrollTarget] = useState<HTMLDivElement | null>(null);
 
   useEffect(() => {
     openRef.current = open;
@@ -131,47 +134,50 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
                     <DialogTitle className="flex items-center gap-4">
                       <img className="h-8" src={icon} alt="logo" height={32} />
                       <span className="w-[1px] h-full py-2">
-                  <span className="bg-border w-full h-full block" />
-                </span>
+                        <span className="bg-border w-full h-full block" />
+                      </span>
                       <span>
-                  Ask AI
-                </span>
+                        Ask AI
+                      </span>
                     </DialogTitle>
                     <DialogDescription className="sr-only">
                       .
                     </DialogDescription>
                   </DialogHeader>
-                  <ScrollArea className="relative h-[60vh] w-[calc(100vw-82px)] lg:w-[calc(50vw-50px)]">
-                    <div className="w-[calc(100vw-82px)] lg:w-[calc(50vw-50px)]">
-                      <Conversation
-                        className="w-full overflow-hidden md:max-w-[unset] md:min-h-[unset] md:p-0 [&>div>section]:pt-4 [&>div>section]:pb-0"
-                        open
-                        chat={undefined}
-                        history={[]}
-                        placeholder={(myChat) => (
-                          <div className="mt-4 space-y-6">
-                            <div className="font-medium text-lg">Example questions:</div>
-                            <div className="flex gap-4 flex-wrap">
-                              {exampleQuestions.map((question, index) => (
-                                <Button
-                                  key={index}
-                                  variant="secondary"
-                                  disabled={!!myChat.postState.params}
-                                  onClick={() => myChat.post({ content: question })}>
-                                  {question}
-                                </Button>
-                              ))}
+                  <AutoScroll target={scrollTarget} edgePixels={12}>
+                    <ManualScrollVoter />
+                    <ScrollArea viewportRef={setScrollTarget} className="relative h-[60vh] w-[calc(100vw-82px)] lg:w-[calc(50vw-50px)]">
+                      <div className="w-[calc(100vw-82px)] lg:w-[calc(50vw-50px)]">
+                        <Conversation
+                          className="w-full overflow-hidden md:max-w-[unset] md:min-h-[unset] md:p-0 [&>div>section]:pt-4 [&>div>section]:pb-0"
+                          open
+                          chat={undefined}
+                          history={[]}
+                          placeholder={(myChat) => (
+                            <div className="mt-4 space-y-6">
+                              <div className="font-medium text-lg">Example questions:</div>
+                              <div className="flex gap-4 flex-wrap">
+                                {exampleQuestions.map((question, index) => (
+                                  <Button
+                                    key={index}
+                                    variant="secondary"
+                                    disabled={!!myChat.postState.params}
+                                    onClick={() => myChat.post({ content: question })}>
+                                    {question}
+                                  </Button>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                        )}
-                        preventMutateBrowserHistory
-                        preventShiftMessageInput
-                      />
+                          )}
+                          preventMutateBrowserHistory
+                          preventShiftMessageInput
+                        />
+                      </div>
+                    </ScrollArea>
+                    <div className="text-muted-foreground text-xs">
+                      Powered by <a className="underline" href="https://github.com/pingcap/tidb.ai" target="_blank">pingcap/tidb.ai</a>, deploy your own for free.
                     </div>
-                  </ScrollArea>
-                  <div className="text-muted-foreground text-xs">
-                    Powered by <a className="underline" href="https://github.com/pingcap/tidb.ai" target="_blank">pingcap/tidb.ai</a>, deploy your own for free.
-                  </div>
+                  </AutoScroll>
                 </DialogPrimitive.Content>
               </DialogPortal>
             </Dialog>

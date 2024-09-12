@@ -22,6 +22,7 @@ loadConfig().then(({ settings, bootstrapStatus, experimentalFeatures }) => {
     window.dispatchEvent(new CustomEvent('tidbaiinitialized', { detail: current }));
     Object.defineProperty(window, 'tidbai', {
       value: current,
+      configurable: true,
     });
   };
 
@@ -39,6 +40,7 @@ loadConfig().then(({ settings, bootstrapStatus, experimentalFeatures }) => {
     />,
   );
 }).catch((error) => {
+  console.error(error);
   window.dispatchEvent(new CustomEvent('tidbaierror', { detail: error }));
   Object.defineProperty(window, 'tidbai', {
     value: undefined,
