@@ -115,7 +115,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
       </CollapsibleContent>
       <div className="my-2 px-4 flex items-center flex-wrap justify-between">
         <div className="text-xs text-muted-foreground">
-          Powered by <a className="underline font-bold" href="https://www.pingcap.com/tidb-serverless/" target="_blank">TiDB Serverless</a>
+          Powered by <a className="underline font-bold" href="https://www.pingcap.com/tidb-cloud-serverless/?utm_source=tidb.ai&utm_medium=referral&utm_campaign=plg_tidb.ai" target="_blank">TiDB Serverless</a>
         </div>
         {result?.status === VerifyStatus.FAILED && controller.inputEnabled && (
           <Button
