@@ -50,7 +50,7 @@ test.describe('Datasource', () => {
     });
   });
 
-  test('Web Sitemap', () => {
+  test('Web Sitemap', async ({ page }) => {
     test.slow();
 
     await test.step('Login and visit page', async () => {
