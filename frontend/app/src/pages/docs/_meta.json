@@ -5,6 +5,7 @@
   },
   "index": "Introduction",
   "quick-start": "Quick Start",
+  "videos": "Videos",
   "faq": "FAQ",
   "-- Deploy This RAG": {
     "type": "separator",
