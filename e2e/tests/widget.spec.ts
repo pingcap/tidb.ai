@@ -4,7 +4,7 @@ import { getChatRequestPromise, QUESTION, testNewChat } from '../utils/chat';
 test('JS Widget', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Ask AI' }).waitFor({ state: 'visible' });
-  expect(await page.evaluate('window.tidbai')).toMatchObject({ open: false });
+  expect(await page.evaluate('tidbai')).toMatchObject({ open: false });
 });
 
 test('Embedded JS Widget with trigger button', async ({ page }) => {
@@ -12,7 +12,7 @@ test('Embedded JS Widget with trigger button', async ({ page }) => {
     await page.goto('http://localhost:4001/widget.html');
     const trigger = page.getByRole('button', { name: 'Ask AI' });
     await trigger.waitFor({ state: 'visible' });
-    expect(await page.evaluate('window.tidbai')).toMatchObject({ open: false });
+    expect(await page.evaluate('tidbai')).toMatchObject({ open: false });
     return trigger;
   });
 
@@ -28,6 +28,7 @@ test('Embedded JS Widget with trigger button', async ({ page }) => {
   await testWidgetChat(page, dialog);
 });
 
+// Used by docs.pingcap.com
 test('Embedded JS Widget controlled by js', async ({ page }) => {
   await test.step('Wait trigger visible and tidbai object ready', async () => {
     await page.goto('http://localhost:4001/widget-controlled.html');
@@ -36,8 +37,8 @@ test('Embedded JS Widget controlled by js', async ({ page }) => {
     expect(await page.evaluate('window.tidbai')).toMatchObject({ open: false });
   });
 
-  const dialog = await test.step('Click and show dialog', async () => {
-    await page.evaluate('window.tidbai = true');
+  const dialog = await test.step('JS api call and show dialog', async () => {
+    await page.evaluate('tidbai.open = true');
 
     const dialog = page.getByRole('dialog', { name: 'Ask AI' });
     await dialog.waitFor({ state: 'visible' });
@@ -55,7 +56,7 @@ async function testWidgetChat (page: Page, dialog: Locator) {
     await input.fill(QUESTION);
   });
 
-  const chatRequestPromise = await test.step('Trigger ask', async () => {
+  const chatRequestPromise = await test.step('Trigger ask by press ControlOrMeta+Enter', async () => {
     const chatRequestPromise = getChatRequestPromise(page, 'http://127.0.0.1:3000');
     await page.keyboard.press('ControlOrMeta+Enter');
 

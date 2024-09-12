@@ -6,11 +6,10 @@ export function getChatRequestPromise (page: Page, baseURL: string) {
  return page.waitForRequest(request => request.url() === `${baseURL}/api/v1/chats` && request.method() === 'POST');
 }
 
-export async function testNewChat (page: Page, chatRequest: Request, validatePageTitle: boolean) {
+export async function testNewChat (page: Page, chatRequest: Request, validatePageUrlAndTitle: boolean) {
   await test.step('Wait page changes', async () => {
-    await page.waitForURL(/\/c\/.+/);
-
-    if (validatePageTitle) {
+    if (validatePageUrlAndTitle) {
+      await page.waitForURL(/\/c\/.+/);
       expect(await page.title()).toContain(QUESTION);
     }
     await page.getByRole('heading', { name: QUESTION }).waitFor({ state: 'visible' });
