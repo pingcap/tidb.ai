@@ -26,6 +26,7 @@
 
     pre > code.hljs {
       background-color: #fafafa;
+      color: #24292e;
     }
 
     pre:has(> code:not(.hljs)) {
@@ -40,6 +41,7 @@
   .dark .remark-content {
     pre > code.hljs {
       background-color: #18181b;
+      color: #c9d1d9;
     }
 
 
