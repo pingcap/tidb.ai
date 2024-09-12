@@ -57,7 +57,7 @@ async function testWidgetChat (page: Page, dialog: Locator) {
   });
 
   const chatRequestPromise = await test.step('Trigger ask by press ControlOrMeta+Enter', async () => {
-    const chatRequestPromise = getChatRequestPromise(page, 'http://localhost:3000');
+    const chatRequestPromise = getChatRequestPromise(page, 'http://127.0.0.1:3000');
     await page.keyboard.press('ControlOrMeta+Enter');
 
     return chatRequestPromise;
