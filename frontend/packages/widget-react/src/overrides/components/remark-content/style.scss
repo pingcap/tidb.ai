@@ -38,7 +38,7 @@
     }
   }
 
-  .dark .remark-content {
+  &.dark .remark-content {
     pre > code.hljs {
       background-color: #18181b;
       color: #c9d1d9;
