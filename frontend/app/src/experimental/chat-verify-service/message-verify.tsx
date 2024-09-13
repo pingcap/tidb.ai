@@ -74,7 +74,6 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
 
   useEffect(() => {
     console.debug(`[message-verify]`, result);
-    requestScroll('bottom');
   }, [result]);
 
   if (!serviceUrl || !messageFinished) { // Remove isSuperuser check
