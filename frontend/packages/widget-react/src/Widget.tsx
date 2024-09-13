@@ -28,6 +28,7 @@ export interface WidgetProps {
 export interface WidgetInstance {
   open: boolean;
   dark: boolean;
+  initialized: true;
 }
 
 export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trigger, experimentalFeatures, disableAutoThemeDetect = false, bootstrapStatus, exampleQuestions, icon, buttonIcon, buttonLabel }, ref) => {
@@ -110,6 +111,7 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
     set dark (d) {
       setDark(d);
     },
+    get initialized (): true { return true; },
   }), []);
 
   return (

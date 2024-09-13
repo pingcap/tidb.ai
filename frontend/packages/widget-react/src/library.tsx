@@ -7,6 +7,9 @@ if (!script) {
   throw new Error('Cannot locate document.currentScript');
 }
 
+const controlled = script.dataset.controlled === 'true';
+const trigger = controlled ? true : document.getElementById('tidb-ai-trigger');
+
 loadConfig().then(({ settings, bootstrapStatus, experimentalFeatures }) => {
   const div = document.createElement('div');
 
@@ -14,16 +17,12 @@ loadConfig().then(({ settings, bootstrapStatus, experimentalFeatures }) => {
   div.className = 'tidb-ai-widget';
   document.body.appendChild(div);
 
-  const controlled = script.dataset.controlled === 'true';
-
-  const trigger = controlled ? true : document.getElementById('tidb-ai-trigger');
-
   const refFn = (current: WidgetInstance) => {
-    window.dispatchEvent(new CustomEvent('tidbaiinitialized', { detail: current }));
     Object.defineProperty(window, 'tidbai', {
+      writable: false,
       value: current,
-      configurable: true,
     });
+    window.dispatchEvent(new CustomEvent('tidbaiinitialized', { detail: current }));
   };
 
   ReactDOM.createRoot(div).render(
@@ -40,9 +39,15 @@ loadConfig().then(({ settings, bootstrapStatus, experimentalFeatures }) => {
     />,
   );
 }).catch((error) => {
-  console.error(error);
-  window.dispatchEvent(new CustomEvent('tidbaierror', { detail: error }));
+  console.error('Failed to initialize tidbai', error);
   Object.defineProperty(window, 'tidbai', {
-    value: undefined,
+    writable: false,
+    value: {
+      open: false,
+      dark: false,
+      initialized: false,
+      error,
+    },
   });
+  window.dispatchEvent(new CustomEvent('tidbaierror', { detail: error }));
 });
