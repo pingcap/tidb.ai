@@ -3,8 +3,7 @@ import type { ChatMessageController, OngoingState, OngoingStateHistoryItem } fro
 import { isNotFinished } from '@/components/chat/utils';
 import { DiffSeconds } from '@/components/diff-seconds';
 import { motion, type Target } from 'framer-motion';
-import { CheckCircleIcon, ChevronUpIcon, ClockIcon, Loader2Icon } from 'lucide-react';
-import { InformationCircleIcon } from 'nextra/icons';
+import { CheckCircleIcon, ChevronUpIcon, ClockIcon, InfoIcon, Loader2Icon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
 export function MessageAnnotationHistory ({ message }: { message: ChatMessageController | undefined }) {
@@ -65,7 +64,7 @@ export function MessageAnnotationHistory ({ message }: { message: ChatMessageCon
 }
 
 const CheckedCircle = motion(CheckCircleIcon);
-const InformationCircle = motion(InformationCircleIcon);
+const InformationCircle = motion(InfoIcon);
 
 const itemInitial: Target = { opacity: 0.5 };
 const itemAnimate: Target = { opacity: 1 };

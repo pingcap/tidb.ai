@@ -1,4 +1,5 @@
 import { getVerify, isFinalVerifyState, isVisibleVerifyState, type MessageVerifyResponse, verify, VerifyStatus } from '#experimental/chat-verify-service/api';
+import { useRequestScroll } from '@/components/auto-scroll';
 import { useChatMessageField, useChatMessageStreamState, useCurrentChatController } from '@/components/chat/chat-hooks';
 import type { ChatMessageController } from '@/components/chat/chat-message-controller';
 import { isNotFinished } from '@/components/chat/utils';
@@ -58,6 +59,8 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
 
   const triedCreateVerify = !!(verifying || verifyId || verifyError);
 
+  const requestScroll = useRequestScroll();
+
   useEffect(() => {
     if (serviceUrl && !triedCreateVerify && question && answer && messageFinished) {
       setVerifying(true);
@@ -71,6 +74,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
 
   useEffect(() => {
     console.debug(`[message-verify]`, result);
+    requestScroll('bottom');
   }, [result]);
 
   if (!serviceUrl || !messageFinished) { // Remove isSuperuser check

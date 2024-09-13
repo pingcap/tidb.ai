@@ -53,7 +53,7 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
     chat: Chat | undefined = undefined,
     messages: ChatMessage[] | undefined = [],
     initialPost: Omit<PostChatParams, 'chat_id'> | undefined = undefined,
-    inputElement: HTMLInputElement | HTMLTextAreaElement | null,
+    inputElement: HTMLInputElement | HTMLTextAreaElement | null = null,
   ) {
     super();
     if (chat) {

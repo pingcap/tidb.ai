@@ -2,6 +2,7 @@ import { type ChatMessageGroup, useChatPostState, useCurrentChatController } fro
 import { DebugInfo } from '@/components/chat/debug-info';
 import { MessageAnnotationHistory } from '@/components/chat/message-annotation-history';
 import { MessageAnswer } from '@/components/chat/message-answer';
+import { MessageAutoScroll } from '@/components/chat/message-auto-scroll';
 import { MessageContextSources } from '@/components/chat/message-content-sources';
 import { MessageError } from '@/components/chat/message-error';
 import { MessageOperations } from '@/components/chat/message-operations';
@@ -106,6 +107,7 @@ function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
 
       <MessageSection className="space-y-2" message={group.assistant}>
         <MessageAnswer message={group.assistant} />
+        {group.assistant && <MessageAutoScroll message={group.assistant} />}
       </MessageSection>
 
       {group.assistant && <MessageError message={group.assistant} />}

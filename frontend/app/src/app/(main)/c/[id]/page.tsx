@@ -1,4 +1,5 @@
 import { type Chat, type ChatMessage, getChat } from '@/api/chats';
+import { AutoScroll, ManualScrollVoter } from '@/components/auto-scroll';
 import { Conversation } from '@/components/chat/conversation';
 import { ErrorCard } from '@/components/error-card';
 import { Button } from '@/components/ui/button';
@@ -75,13 +76,16 @@ export default async function ChatDetailPage ({ params }: { params: { id: string
 
   return (
     <div className="xl:pr-side">
-      <Conversation
-        key={chat?.id}
-        chatId={id}
-        open={shouldOpen}
-        chat={chat}
-        history={messages}
-      />
+      <AutoScroll edgePixels={10}>
+        <ManualScrollVoter />
+        <Conversation
+          key={chat?.id}
+          chatId={id}
+          open={shouldOpen}
+          chat={chat}
+          history={messages}
+        />
+      </AutoScroll>
     </div>
   );
 }
