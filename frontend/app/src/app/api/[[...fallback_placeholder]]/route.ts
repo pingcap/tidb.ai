@@ -50,7 +50,7 @@ function originalUrl (request: NextRequest) {
   }
 }
 
-export { handler as GET, handler as POST, handler as DELETE, handler as HEAD, handler as PUT, handler as PATCH };
+export { handler as GET, handler as POST, handler as DELETE, handler as HEAD, handler as PUT, handler as PATCH, handler as OPTIONS };
 
 export const runtime = 'edge';
 
