@@ -6,15 +6,11 @@
   "author": "",
   "license": "ISC",
   "description": "",
-  "scripts": {
-    "serve-html": "serve -p 4001 test-html"
-  },
   "devDependencies": {
     "@playwright/test": "^1.46.0",
     "@types/node": "^22.2.0"
   },
   "dependencies": {
-    "dotenv": "^16.4.5",
-    "serve": "^14.2.3"
+    "dotenv": "^16.4.5"
   }
 }

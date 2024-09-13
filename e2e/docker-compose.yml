@@ -64,3 +64,11 @@ services:
       options:
         max-size: "50m"
         max-file: "6"
+
+  static-web-server:
+    image: joseluisq/static-web-server:2
+    restart: always
+    ports:
+      - "4001:80"
+    volumes:
+      - ./test-html:/public
