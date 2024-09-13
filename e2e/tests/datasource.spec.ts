@@ -60,7 +60,7 @@ test.describe('Datasource', () => {
       await expect(page.getByRole('heading', { name: 'Datasources' })).toBeVisible();
     });
 
-    await test.step('Add Single Page Datasource', async () => {
+    await test.step('Add Sitemap Datasource', async () => {
       await page.getByRole('button', { name: 'Create' }).click();
       await page.getByRole('tab', { name: 'Web Sitemap' }).click();
       await page.waitForURL('/datasources/create/web-sitemap');
@@ -68,7 +68,7 @@ test.describe('Datasource', () => {
       await page.getByLabel('Name').fill('example site from sitemap');
       await page.getByLabel('Description').fill('This is example sitemap');
 
-      await page.locator('input[name="url"]').fill('http://localhost:4001/example-sitemap.xml');
+      await page.locator('input[name="url"]').fill('http://static-web-server/example-sitemap.xml');
 
       await page.getByRole('button', { name: 'Create Datasource' }).click();
 
@@ -91,7 +91,8 @@ test.describe('Datasource', () => {
 
     await test.step('Check Documents Page', async () => {
       await page.goto('/documents');
-      await expect(page.getByRole('link', { name: 'http://localhost:4001/example-doc.html' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'http://static-web-server/example-doc-1.html' })).toBeVisible();
+      await expect(page.getByRole('link', { name: 'http://static-web-server/example-doc-2.html' })).toBeVisible();
     });
   });
 
