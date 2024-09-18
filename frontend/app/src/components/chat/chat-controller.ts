@@ -1,6 +1,7 @@
 import { chat, type Chat, type ChatMessage, type PostChatParams } from '@/api/chats';
 import { ChatMessageController, type OngoingState } from '@/components/chat/chat-message-controller';
 import { AppChatStreamState, chatDataPartSchema, type ChatMessageAnnotation, fixChatInitialData } from '@/components/chat/chat-stream-state';
+import type { GtagFn } from '@/components/gtag-provider';
 import { getErrorMessage } from '@/lib/errors';
 import { trigger } from '@/lib/react';
 import { type JSONValue, type StreamPart } from 'ai';
@@ -54,6 +55,7 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
     messages: ChatMessage[] | undefined = [],
     initialPost: Omit<PostChatParams, 'chat_id'> | undefined = undefined,
     inputElement: HTMLInputElement | HTMLTextAreaElement | null = null,
+    private readonly _gtagFn: GtagFn = () => {},
   ) {
     super();
     if (chat) {
@@ -147,6 +149,10 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
       throw new Error('previous not finished.');
     }
 
+    this._gtagFn('event', 'tidbai.events.message-start', {
+      'tidbai_appending_message': !!this.chat?.id,
+    });
+
     // Initialize post states
     this._postParams = params;
     this._postError = undefined;
@@ -176,10 +182,14 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
       this._postParams = undefined;
       this._postInitialized = false;
       this.emit('post-finished');
+
+      this._gtagFn('event', 'tidbai.events.message-finish', {});
     } catch (error) {
       ongoingMessageController?.applyError(getErrorMessage(error));
       this._postError = error;
       this.emit('post-error', error);
+
+      this._gtagFn('event', 'tidbai.events.message-error', {});
     }
   }
 

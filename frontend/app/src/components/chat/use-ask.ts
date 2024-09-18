@@ -1,10 +1,12 @@
 import { useChats } from '@/components/chat/chat-hooks';
+import { useGtagFn } from '@/components/gtag-provider';
 import { getErrorMessage } from '@/lib/errors';
 import { toastError } from '@/lib/ui-error';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useRef, useState, useTransition } from 'react';
 
 export function useAsk (onFinish?: () => void) {
+  const gtagFn = useGtagFn();
   const { newChat, disabled } = useChats();
   const router = useRouter();
   const [waiting, setWaiting] = useState(false);
@@ -21,7 +23,7 @@ export function useAsk (onFinish?: () => void) {
       toastError('Failed to chat', getErrorMessage(error));
     };
 
-    const controller = newChat(undefined, undefined, { content: message, chat_engine: engineRef.current, headers: options?.headers }, null);
+    const controller = newChat(undefined, undefined, { content: message, chat_engine: engineRef.current, headers: options?.headers }, null, gtagFn);
 
     controller.once('created', chat => {
       controller.off('post-error', handleInitialError);

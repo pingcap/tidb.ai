@@ -3,6 +3,7 @@ import { ManualScrollVoter } from '@/components/auto-scroll';
 import { AutoScroll } from '@/components/auto-scroll/auto-scroll';
 import { ChatsProvider } from '@/components/chat/chat-hooks';
 import { Conversation } from '@/components/chat/conversation';
+import { useGtagFn } from '@/components/gtag-provider';
 import { PortalProvider } from '@/components/portal-provider';
 import { BootstrapStatusProvider } from '@/components/system/BootstrapStatusProvider';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
   const openRef = useRef(open);
   const darkRef = useRef(dark);
   const [scrollTarget, setScrollTarget] = useState<HTMLDivElement | null>(null);
+  const gtagFn = useGtagFn();
 
   useEffect(() => {
     openRef.current = open;
@@ -90,7 +92,10 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
 
   useEffect(() => {
     if (trigger && trigger !== true) {
-      const open = () => setOpen(true);
+      const open = () => {
+        setOpen(true);
+        gtagFn('event', 'tidbai.events.open-widget-dialog');
+      };
       trigger.addEventListener('click', open);
       return () => {
         trigger.removeEventListener('click', open);
@@ -103,6 +108,9 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
       return openRef.current;
     },
     set open (o) {
+      if (o) {
+        gtagFn('event', 'tidbai.events.open-widget-dialog');
+      }
       setOpen(o);
     },
     get dark () {
@@ -119,9 +127,16 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
       <BootstrapStatusProvider bootstrapStatus={bootstrapStatus}>
         <ExperimentalFeaturesProvider features={experimentalFeatures}>
           <ChatsProvider>
-            <Dialog open={open} onOpenChange={setOpen}>
+            <Dialog open={open} onOpenChange={(open) => {
+              setOpen(open);
+              if (!open) {
+                gtagFn('event', 'tidbai.events.close-widget-dialog');
+              }
+            }}>
               {!trigger && <DialogTrigger asChild>
-                <Button id="tidb-ai-widget-trigger" className="hidden sm:flex fixed right-8 bottom-8 gap-2 items-center">
+                <Button id="tidb-ai-widget-trigger" className="hidden sm:flex fixed right-8 bottom-8 gap-2 items-center" onClick={() => {
+                  gtagFn('event', 'tidbai.events.open-widget-dialog');
+                }}>
                   <img src={buttonIcon} alt="Logo" className="size-4" />
                   <span>
                   {buttonLabel}

@@ -1,5 +1,7 @@
+import { GtagProvider } from '@/components/gtag-provider';
 import ReactDOM from 'react-dom/client';
 import { loadConfig } from './load-config';
+import { prepareGtag } from './prepare-gtag';
 import { Widget, type WidgetInstance } from './Widget';
 
 const script = document.currentScript;
@@ -10,7 +12,8 @@ if (!script) {
 const controlled = script.dataset.controlled === 'true';
 const trigger = controlled ? true : document.getElementById('tidb-ai-trigger');
 
-loadConfig().then(({ settings, bootstrapStatus, experimentalFeatures }) => {
+loadConfig().then(async ({ settings, bootstrapStatus, experimentalFeatures }) => {
+  const gtagConfigured = settings.ga_id ? prepareGtag(settings.ga_id) : false;
   const div = document.createElement('div');
 
   div.id = 'tidb-ai-widget';
@@ -26,17 +29,19 @@ loadConfig().then(({ settings, bootstrapStatus, experimentalFeatures }) => {
   };
 
   ReactDOM.createRoot(div).render(
-    <Widget
-      ref={refFn}
-      container={div}
-      trigger={trigger}
-      exampleQuestions={settings.custom_js_example_questions}
-      buttonLabel={settings.custom_js_button_label}
-      buttonIcon={settings.custom_js_button_img_src}
-      icon={settings.custom_js_logo_src}
-      bootstrapStatus={bootstrapStatus}
-      experimentalFeatures={experimentalFeatures}
-    />,
+    <GtagProvider configured={gtagConfigured} gtagId={settings.ga_id}>
+      <Widget
+        ref={refFn}
+        container={div}
+        trigger={trigger}
+        exampleQuestions={settings.custom_js_example_questions}
+        buttonLabel={settings.custom_js_button_label}
+        buttonIcon={settings.custom_js_button_img_src}
+        icon={settings.custom_js_logo_src}
+        bootstrapStatus={bootstrapStatus}
+        experimentalFeatures={experimentalFeatures}
+      />
+    </GtagProvider>,
   );
 }).catch((error) => {
   console.error('Failed to initialize tidbai', error);

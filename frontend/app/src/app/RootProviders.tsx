@@ -5,6 +5,7 @@ import type { BootstrapStatus } from '@/api/system';
 import { getMe, type MeInfo } from '@/api/users';
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ChatsProvider } from '@/components/chat/chat-hooks';
+import { GtagProvider } from '@/components/gtag-provider';
 import { BootstrapStatusProvider } from '@/components/system/BootstrapStatusProvider';
 import { Toaster } from '@/components/ui/sonner';
 import { SettingProvider } from '@/components/website-setting-provider';
@@ -41,12 +42,14 @@ export function RootProviders ({ me, settings, bootstrapStatus, experimentalFeat
         <SettingProvider
           value={settings}>
           <ExperimentalFeaturesProvider features={experimentalFeatures}>
-            <AuthProvider me={data} isLoading={isLoading} isValidating={isValidating} reload={() => mutate(data, { revalidate: true })}>
-              <ChatsProvider>
-                {children}
-                <Toaster cn={cn} />
-              </ChatsProvider>
-            </AuthProvider>
+            <GtagProvider gtagId={settings.ga_id} configured>
+              <AuthProvider me={data} isLoading={isLoading} isValidating={isValidating} reload={() => mutate(data, { revalidate: true })}>
+                <ChatsProvider>
+                  {children}
+                  <Toaster cn={cn} />
+                </ChatsProvider>
+              </AuthProvider>
+            </GtagProvider>
           </ExperimentalFeaturesProvider>
         </SettingProvider>
       </ThemeProvider>

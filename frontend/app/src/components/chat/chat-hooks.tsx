@@ -3,6 +3,7 @@ import { isBootstrapStatusPassed } from '@/api/system';
 import { ChatController } from '@/components/chat/chat-controller';
 import { ChatMessageController, type OngoingState, type OngoingStateHistoryItem } from '@/components/chat/chat-message-controller';
 import type { AppChatStreamState } from '@/components/chat/chat-stream-state';
+import { useGtagFn } from '@/components/gtag-provider';
 import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { useLatestRef } from '@/components/use-latest-ref';
 import { createContext, type ReactNode, useContext, useEffect, useState } from 'react';
@@ -90,6 +91,7 @@ export function useChatController (
   initialMessages: ChatMessage[] | undefined,
   inputElement: HTMLInputElement | HTMLTextAreaElement | null = null,
 ) {
+  const gtagFn = useGtagFn();
   const { chats } = useChats();
 
   // Create essential chat controller
@@ -97,12 +99,12 @@ export function useChatController (
     if (id) {
       let controller = chats.get(id);
       if (!controller) {
-        controller = new ChatController(initialChat, initialMessages, undefined, inputElement);
+        controller = new ChatController(initialChat, initialMessages, undefined, inputElement, gtagFn);
         chats.set(id, controller);
       }
       return controller;
     } else {
-      return new ChatController(undefined, undefined, undefined, inputElement);
+      return new ChatController(undefined, undefined, undefined, inputElement, gtagFn);
     }
   });
 

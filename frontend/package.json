@@ -12,7 +12,7 @@
     "build": "pnpm run --filter 'app' build",
     "verify": "pnpm run test && pnpm run build && pnpm run build:widget-react"
   },
-  "packageManager": "pnpm@9.6.0",
+  "packageManager": "pnpm@9.10.0",
   "pnpm": {
     "patchedDependencies": {
       "jest-runtime@29.7.0": "patches/jest-runtime@29.7.0.patch",
