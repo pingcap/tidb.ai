@@ -20,7 +20,7 @@ export async function testNewChat (page: Page, chatRequest: Request, validatePag
     expect(chatResponse.ok()).toBe(true);
 
     // Feedback button indicates chat ends.
-    await page.locator('button', { has: page.locator('svg.lucide-message-square-plus') }).waitFor({ state: 'visible' });
+    await page.locator('button', { has: page.locator('svg.lucide-thumbs-up') }).waitFor({ state: 'visible' });
 
     return await chatResponse.text();
   });
