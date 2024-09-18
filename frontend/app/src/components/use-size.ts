@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useLayoutEffect, useRef, useState } from 'react';
 
 export function useSize () {
   const [size, setSize] = useState<DOMRectReadOnly | undefined>(undefined);
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (el) {
       const ro = new ResizeObserver(() => {
@@ -21,5 +21,5 @@ export function useSize () {
 
   return {
     ref, size,
-  }
+  };
 }
