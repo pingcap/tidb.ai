@@ -5,27 +5,29 @@ import { act, render, screen } from '@testing-library/react';
 test('should disabled when input is empty', async () => {
   render(<Conversation chat={undefined} history={[]} open />);
 
-  const textarea = await act(async () => {
+  const { button, textarea } = await act(async () => {
     const textarea = await screen.findByPlaceholderText('Input your question here...') as HTMLTextAreaElement;
+    const button = await screen.findByRole('button') as HTMLButtonElement;
 
-    trigger(textarea as HTMLTextAreaElement, textarea.constructor as any, '');
-    return textarea;
+    return { button, textarea };
   });
-  expect(textarea.disabled).toBe(true);
+  act(() => {
+    trigger(textarea as HTMLTextAreaElement, textarea.constructor as any, '');
+  });
+  expect(button.disabled).toBe(true);
 
   act(() => {
     trigger(textarea as HTMLTextAreaElement, textarea.constructor as any, ' ');
   });
-  expect(textarea.disabled).toBe(true);
+  expect(button.disabled).toBe(true);
 
   act(() => {
     trigger(textarea as HTMLTextAreaElement, textarea.constructor as any, ' \t');
   });
-  expect(textarea.disabled).toBe(true);
-
+  expect(button.disabled).toBe(true);
 
   act(() => {
     trigger(textarea as HTMLTextAreaElement, textarea.constructor as any, 'foo');
   });
-  expect(textarea.disabled).toBe(false);
+  expect(button.disabled).toBe(false);
 });
