@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import isHotkey from 'is-hotkey';
-import { ArrowRightIcon } from 'lucide-react';
-import { type ChangeEvent, type Ref, type RefObject, useCallback, useRef, useState } from 'react';
+import { ArrowUpIcon } from 'lucide-react';
+import { type ChangeEvent, type Ref, useCallback, useRef, useState } from 'react';
 import TextareaAutosize, { type TextareaAutosizeProps } from 'react-textarea-autosize';
 import useSWR from 'swr';
 
@@ -75,7 +75,7 @@ export function MessageInput ({
         </SelectContent>
       </Select>}
       <Button size="icon" className="rounded-full flex-shrink-0 w-8 h-8 p-2" disabled={empty || disabled} ref={buttonRef}>
-        <ArrowRightIcon className="w-full h-full" />
+        <ArrowUpIcon className="w-full h-full" />
       </Button>
     </div>
   );
