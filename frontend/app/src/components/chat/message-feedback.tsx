@@ -1,19 +1,25 @@
 import type { FeedbackParams } from '@/api/chats';
 import { usePortalContainer } from '@/components/portal-provider';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Loader2Icon, ThumbsDownIcon, ThumbsUpIcon } from 'lucide-react';
-import { type ReactElement, useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 
-export function MessageFeedback ({ initial, onFeedback, children }: { initial?: FeedbackParams, onFeedback: (action: 'like' | 'dislike', comment: string) => Promise<void>, children: ReactElement }) {
+export function MessageFeedback ({ initial, onFeedback, defaultAction, children }: { initial?: FeedbackParams, defaultAction?: 'like' | 'dislike', onFeedback: (action: 'like' | 'dislike', comment: string) => Promise<void>, children: ReactNode }) {
   const [open, setOpen] = useState(false);
-  const [action, setAction] = useState<'like' | 'dislike'>(initial?.feedback_type ?? 'like');
+  const [action, setAction] = useState<'like' | 'dislike'>(initial?.feedback_type ?? defaultAction ?? 'like');
   // const [detail, setDetail] = useState<Record<string, 'like' | 'dislike'>>(() => (initial ?? {}));
   const [comment, setComment] = useState(initial?.comment ?? '');
   const [running, setRunning] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  useEffect(() => {
+    if (defaultAction && !initial) {
+      setAction(defaultAction);
+    }
+  }, [defaultAction, initial]);
 
   useEffect(() => {
     if (initial) {
@@ -30,9 +36,7 @@ export function MessageFeedback ({ initial, onFeedback, children }: { initial?: 
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      {children}
       <DialogContent container={container} className="space-y-4">
         <DialogHeader>
           <DialogTitle>
