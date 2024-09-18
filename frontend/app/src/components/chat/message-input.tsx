@@ -15,6 +15,7 @@ import useSWR from 'swr';
 export interface MessageInputProps {
   className?: string,
   disabled?: boolean,
+  actionDisabled?: boolean,
   inputRef?: Ref<HTMLTextAreaElement>,
   inputProps?: TextareaAutosizeProps,
   engine?: string,
@@ -24,6 +25,7 @@ export interface MessageInputProps {
 export function MessageInput ({
   className,
   disabled,
+  actionDisabled,
   inputRef,
   inputProps,
   engine,
@@ -31,12 +33,10 @@ export function MessageInput ({
 }: MessageInputProps) {
   const auth = useAuth();
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const [empty, setEmpty] = useState(true);
 
   const onChangeRef = useRef(inputProps?.onChange);
   onChangeRef.current = inputProps?.onChange;
   const handleChange = useCallback((ev: ChangeEvent<HTMLTextAreaElement>) => {
-    setEmpty(!ev.currentTarget.value.trim());
     onChangeRef.current?.(ev);
   }, []);
 
@@ -48,7 +48,7 @@ export function MessageInput ({
       <TextareaAutosize
         placeholder="Input your question here..."
         onKeyDown={e => {
-          if (!e.nativeEvent.isComposing && isHotkey('mod+Enter', e) && !disabled) {
+          if (!e.nativeEvent.isComposing && isHotkey('mod+Enter', e) && !actionDisabled) {
             e.preventDefault();
             buttonRef.current?.click();
           }
@@ -74,7 +74,7 @@ export function MessageInput ({
           ))}
         </SelectContent>
       </Select>}
-      <Button size="icon" className="rounded-full flex-shrink-0 w-8 h-8 p-2" disabled={empty || disabled} ref={buttonRef}>
+      <Button size="icon" className="rounded-full flex-shrink-0 w-8 h-8 p-2" disabled={actionDisabled || disabled} ref={buttonRef}>
         <ArrowUpIcon className="w-full h-full" />
       </Button>
     </div>

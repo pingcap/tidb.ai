@@ -149,6 +149,10 @@ export class ChatController extends EventEmitter<ChatControllerEventsMap> {
       throw new Error('previous not finished.');
     }
 
+    if (!params.content.trim()) {
+      throw new Error('Empty message');
+    }
+
     this._gtagFn('event', 'tidbai.events.message-start', {
       'tidbai_appending_message': !!this.chat?.id,
     });

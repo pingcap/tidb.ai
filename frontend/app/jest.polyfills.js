@@ -31,3 +31,15 @@ Object.defineProperties(globalThis, {
   Request: { value: Request },
   Response: { value: Response },
 })
+
+class ResizeObserver {
+  observe() {
+  }
+
+  disconnect() {
+  }
+}
+
+Object.defineProperties(globalThis, {
+  ResizeObserver: { value: ResizeObserver }
+})
