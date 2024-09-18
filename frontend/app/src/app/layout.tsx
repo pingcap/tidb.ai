@@ -53,7 +53,7 @@ export default async function RootLayout ({
       <SystemWizardDialog />
     </RootProviders>
     {settings.ga_id && <GoogleAnalytics gaId={settings.ga_id} />}
-    <Script async src="/widget.js" />
+    <Script async src="/widget.js" data-is-main-site="true" />
     </body>
     </html>
   );

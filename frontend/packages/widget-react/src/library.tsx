@@ -11,9 +11,10 @@ if (!script) {
 
 const controlled = script.dataset.controlled === 'true';
 const trigger = controlled ? true : document.getElementById('tidb-ai-trigger');
+const isMainSite = script.dataset.isMainSite === 'true';
 
 loadConfig().then(async ({ settings, bootstrapStatus, experimentalFeatures }) => {
-  const gtagConfigured = settings.ga_id ? prepareGtag(settings.ga_id) : false;
+  const gtagConfigured = settings.ga_id ? prepareGtag(settings.ga_id, !isMainSite) : false;
   const div = document.createElement('div');
 
   div.id = 'tidb-ai-widget';
