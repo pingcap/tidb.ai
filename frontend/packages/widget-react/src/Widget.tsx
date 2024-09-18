@@ -7,11 +7,12 @@ import { useGtagFn } from '@/components/gtag-provider';
 import { PortalProvider } from '@/components/portal-provider';
 import { BootstrapStatusProvider } from '@/components/system/BootstrapStatusProvider';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogDescription, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogClose, DialogDescription, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { type ExperimentalFeatures, ExperimentalFeaturesProvider } from '@/experimental/experimental-features-provider';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import { XIcon } from 'lucide-react'
 import './Widget.css';
 
 export interface WidgetProps {
@@ -147,7 +148,10 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
                 <DialogOverlay />
                 <DialogPrimitive.Content
                   className="fixed left-[50%] top-[50%] z-50 grid translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg w-[calc(100%-32px)] lg:w-[50vw]">
-                  <DialogHeader>
+                  <DialogHeader className='relative'>
+                    <DialogClose className='absolute right-0 top-0 transition-opacity opacity-70 hover:opacity-100'>
+                      <XIcon className='size-4' />
+                    </DialogClose>
                     <DialogTitle className="flex items-center gap-4">
                       <img className="h-8" src={icon} alt="logo" height={32} />
                       <span className="w-[1px] h-full py-2">
