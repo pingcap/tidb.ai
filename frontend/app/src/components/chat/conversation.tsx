@@ -8,7 +8,7 @@ import { MessageInput } from '@/components/chat/message-input';
 import { SecuritySettingContext, withReCaptcha } from '@/components/security-setting-provider';
 import { useSize } from '@/components/use-size';
 import { cn } from '@/lib/utils';
-import { type ChangeEvent, type FormEvent, type ReactNode, useContext, useRef, useState } from 'react';
+import { type ChangeEvent, type FormEvent, type ReactNode, useContext, useState } from 'react';
 
 export interface ConversationProps {
   chatId?: string;
@@ -58,7 +58,7 @@ export function Conversation ({ open, chat, chatId, history, placeholder, preven
     });
   };
 
-  const disabled = !!postState.params;
+  const disabled = !!postState.params || !input.trim();
 
   return (
     <ChatControllerProvider controller={controller}>
