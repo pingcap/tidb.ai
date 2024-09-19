@@ -38,6 +38,8 @@ class ChatRequest(BaseModel):
         for m in messages:
             if m.role not in [MessageRole.USER, MessageRole.ASSISTANT]:
                 raise ValueError("role must be either 'user' or 'assistant'")
+            if not m.content:
+                raise ValueError("message content cannot be empty")
             if len(m.content) > 10000:
                 raise ValueError("message content cannot exceed 1000 characters")
         if messages[-1].role != MessageRole.USER:
