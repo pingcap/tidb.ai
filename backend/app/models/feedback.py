@@ -51,6 +51,7 @@ class Feedback(BaseFeedback, table=True):
             "primaryjoin": "Feedback.user_id == User.id",
         },
     )
+    origin: str = Field(max_length=256, default=None, nullable=True)
 
     __tablename__ = "feedbacks"
 

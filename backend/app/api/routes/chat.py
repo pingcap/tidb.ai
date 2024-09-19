@@ -20,6 +20,7 @@ from app.rag.types import (
     ChatEventType,
     ChatMessageSate,
 )
+from app.exceptions import ChatNotFound
 
 router = APIRouter()
 
@@ -54,12 +55,29 @@ def chats(
     user: OptionalUserDep,
     chat_request: ChatRequest,
 ):
+    origin = request.headers.get("Origin") or request.headers.get("Referer")
     browser_id = request.state.browser_id
-    chat_svc = ChatService(session, user, browser_id, chat_request.chat_engine)
+
+    try:
+        chat_svc = ChatService(
+            db_session=session,
+            user=user,
+            browser_id=browser_id,
+            origin=origin,
+            chat_id=chat_request.chat_id,
+            chat_messages=chat_request.messages,
+            engine_name=chat_request.chat_engine,
+        )
+    except ChatNotFound:
+        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Chat not found")
+    except Exception as e:
+        raise HTTPException(
+            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
+        )
 
     if chat_request.stream:
         return StreamingResponse(
-            chat_svc.chat(chat_request.messages, chat_request.chat_id),
+            chat_svc.chat(),
             media_type="text/event-stream",
             headers={
                 "X-Content-Type-Options": "nosniff",
@@ -68,7 +86,7 @@ def chats(
     else:
         trace, sources, content = None, [], ""
         chat_id, message_id = None, None
-        for m in chat_svc.chat(chat_request.messages, chat_request.chat_id):
+        for m in chat_svc.chat():
             if m.event_type == ChatEventType.MESSAGE_ANNOTATIONS_PART:
                 if m.payload.state == ChatMessageSate.SOURCE_NODES:
                     sources = m.payload.context

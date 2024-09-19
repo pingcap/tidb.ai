@@ -33,5 +33,6 @@ class Chat(UUIDBaseModel, UpdatableBaseModel, table=True):
         },
     )
     browser_id: str = Field(max_length=50, nullable=True)
+    origin: str = Field(max_length=256, default=None, nullable=True)
 
     __tablename__ = "chats"
