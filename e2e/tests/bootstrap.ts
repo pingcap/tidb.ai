@@ -89,7 +89,6 @@ test('Bootstrap', async ({ page }) => {
 
       // Fill credentials
       const credentialsInput = await page.waitForSelector('[name=credentials]');
-      await credentialsInput.fill(E2E_LLM_CREDENTIALS.slice(0, 4) + '*'.repeat(E2E_LLM_CREDENTIALS.length - 4));
       await credentialsInput.fill(E2E_LLM_CREDENTIALS);
 
       // Toggle default switch
@@ -137,7 +136,6 @@ test('Bootstrap', async ({ page }) => {
 
       // Fill credentials
       const credentialsInput = await page.waitForSelector('[name=credentials]');
-      await credentialsInput.fill(E2E_EMBEDDING_CREDENTIALS.slice(0, 4) + '*'.repeat(E2E_EMBEDDING_CREDENTIALS.length - 4));
       await credentialsInput.fill(E2E_EMBEDDING_CREDENTIALS);
 
       // Click create button
@@ -180,7 +178,55 @@ test('Bootstrap', async ({ page }) => {
     }
   });
 
-  // TODO Setup reranker
+  // Setup reranker
+  await test.step(`Create Default Reranker (${E2E_RERANKER_PROVIDER} ${E2E_RERANKER_MODEL})`, async () => {
+    const header = page.getByText('Setup default Reranker');
+    if (await header.locator('.lucide-circle-alert').count() === 0) {
+      // Already configured.
+      console.warn('Default Reranker already configured.');
+    } else {
+      await header.click();
+
+      // Fill name
+      const nameInput = await page.waitForSelector('[name=name]');
+      await nameInput.fill('My Reranker');
+
+      // Select provider
+      await page.getByLabel('Provider').locator('..').locator('button').click();
+      await page.getByText(E2E_RERANKER_PROVIDER, { exact: true }).click();
+
+      // Fill model if provided
+      if (E2E_RERANKER_MODEL) {
+        const modelInput = await page.waitForSelector('[name=model]');
+        await modelInput.fill(E2E_RERANKER_MODEL);
+      }
+
+      // Fill credentials
+      if (E2E_RERANKER_CREDENTIALS) {
+        const credentialsInput = await page.waitForSelector('[name=credentials]');
+        await credentialsInput.fill(E2E_RERANKER_CREDENTIALS);
+      }
+
+      // Toggle default switch
+      // TODO: should enable by default and and readOnly
+      const toggleDefaultRerankerSwitchButton = page.getByRole('switch');
+      if ((await toggleDefaultRerankerSwitchButton.evaluate(node => node.getAttribute('aria-checked'))) !== 'true') {
+        await toggleDefaultRerankerSwitchButton.click();
+      }
+
+      // Click create button
+      const createButton = page.getByText('Create Reranker');
+      await createButton.scrollIntoViewIfNeeded();
+      await createButton.click();
+
+      // Wait for finish by check the alert icon in header disappear
+      try {
+        await header.locator('.lucide-circle-alert').waitFor({ state: 'detached', timeout: 10000 });
+      } catch (e) {
+        throw new Error(await page.getByText('Failed to').locator('..').textContent({ timeout: 1000 }));
+      }
+    }
+  });
 
   await test.step('Reload and check wizard dialog', async () => {
     await page.reload();
