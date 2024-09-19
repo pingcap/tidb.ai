@@ -157,6 +157,11 @@ jobs:
         - name: Install Playwright Browsers
           run: npx playwright install --with-deps
 
+        - name: Fetch Images
+          run: ./prepare-test.sh
+          env:
+            E2E_DOCKER_TAG: sha-${{ github.sha }}-dev
+
         - name: Run tests
           run: ./start-test.sh
           env:
