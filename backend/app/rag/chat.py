@@ -48,6 +48,7 @@ from app.rag.types import (
 )
 from app.repositories import chat_repo
 from app.site_settings import SiteSetting
+from app.exceptions import ChatNotFound
 
 logger = logging.getLogger(__name__)
 
@@ -55,18 +56,64 @@ logger = logging.getLogger(__name__)
 class ChatService:
     def __init__(
         self,
+        *,
         db_session: Session,
         user: User,
         browser_id: str,
+        origin: str,
+        chat_messages: List[ChatMessage],
         engine_name: str = "default",
+        chat_id: Optional[UUID] = None,
     ) -> None:
         self.db_session = db_session
         self.user = user
         self.browser_id = browser_id
         self.engine_name = engine_name
 
+        self.user_question, self.chat_history = self._parse_chat_messages(chat_messages)
         self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
         self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
+
+        if chat_id:
+            # FIXME:
+            #   only chat owner or superuser can access the chat,
+            #   anonymous user can only access anonymous chat by track_id
+            self.db_chat_obj = chat_repo.get(self.db_session, chat_id)
+            if not self.db_chat_obj:
+                raise ChatNotFound()
+            self.chat_history = [
+                ChatMessage(role=m.role, content=m.content, additional_kwargs={})
+                for m in chat_repo.get_messages(self.db_session, self.db_chat_obj)
+            ]
+        else:
+            self.db_chat_obj = chat_repo.create(
+                self.db_session,
+                DBChat(
+                    title=self.user_question[:100],
+                    engine_id=self.db_chat_engine.id,
+                    engine_options=self.chat_engine_config.screenshot(),
+                    user_id=self.user.id if self.user else None,
+                    browser_id=self.browser_id,
+                    origin=origin,
+                ),
+            )
+            chat_id = self.db_chat_obj.id
+            # slack/discord may create a new chat with history messages
+            now = datetime.now(UTC)
+            for i, m in enumerate(self.chat_history):
+                chat_repo.create_message(
+                    session=self.db_session,
+                    chat=self.db_chat_obj,
+                    chat_message=DBChatMessage(
+                        role=m.role,
+                        content=m.content,
+                        ordinal=i + 1,
+                        created_at=now,
+                        updated_at=now,
+                        finished_at=now,
+                    ),
+                )
+
         self._reranker = self.chat_engine_config.get_reranker(db_session)
         self._metadata_filter = self.chat_engine_config.get_metadata_filter()
         if self._reranker:
@@ -85,11 +132,9 @@ class ChatService:
             self.langfuse_host and self.langfuse_secret_key and self.langfuse_public_key
         )
 
-    def chat(
-        self, chat_messages: List[ChatMessage], chat_id: Optional[UUID] = None
-    ) -> Generator[ChatEvent, None, None]:
+    def chat(self) -> Generator[ChatEvent, None, None]:
         try:
-            for event in self._chat(chat_messages, chat_id):
+            for event in self._chat():
                 yield event
         except Exception as e:
             logger.exception(e)
@@ -98,54 +143,7 @@ class ChatService:
                 payload="Encountered an error while processing the chat. Please try again later.",
             )
 
-    def _chat(
-        self, chat_messages: List[ChatMessage], chat_id: Optional[UUID] = None
-    ) -> Generator[ChatEvent, None, None]:
-        user_question, chat_history = self._parse_chat_messages(chat_messages)
-
-        if chat_id:
-            # FIXME:
-            #   only chat owner or superuser can access the chat,
-            #   anonymous user can only access anonymous chat by track_id
-            self.db_chat_obj = chat_repo.get(self.db_session, chat_id)
-            if not self.db_chat_obj:
-                yield ChatEvent(
-                    event_type=ChatEventType.ERROR_PART,
-                    payload="Chat not found",
-                )
-                return
-            chat_history = [
-                ChatMessage(role=m.role, content=m.content, additional_kwargs={})
-                for m in chat_repo.get_messages(self.db_session, self.db_chat_obj)
-            ]
-        else:
-            self.db_chat_obj = chat_repo.create(
-                self.db_session,
-                DBChat(
-                    title=user_question[:100],
-                    engine_id=self.db_chat_engine.id,
-                    engine_options=self.chat_engine_config.screenshot(),
-                    user_id=self.user.id if self.user else None,
-                    browser_id=self.browser_id,
-                ),
-            )
-            chat_id = self.db_chat_obj.id
-            # slack/discord may create a new chat with history messages
-            now = datetime.now(UTC)
-            for i, m in enumerate(chat_history):
-                chat_repo.create_message(
-                    session=self.db_session,
-                    chat=self.db_chat_obj,
-                    chat_message=DBChatMessage(
-                        role=m.role,
-                        content=m.content,
-                        ordinal=i + 1,
-                        created_at=now,
-                        updated_at=now,
-                        finished_at=now,
-                    ),
-                )
-
+    def _chat(self) -> Generator[ChatEvent, None, None]:
         if self.enable_langfuse:
             langfuse = Langfuse(
                 host=self.langfuse_host,
@@ -163,8 +161,8 @@ class ChatService:
                 tags=[f"chat_engine:{self.engine_name}"],
                 release=settings.ENVIRONMENT,
                 input={
-                    "user_question": user_question,
-                    "chat_history": chat_history,
+                    "user_question": self.user_question,
+                    "chat_history": self.chat_history,
                 },
             )
             trace_id = observation.trace_id
@@ -179,7 +177,7 @@ class ChatService:
             chat_message=DBChatMessage(
                 role=MessageRole.USER.value,
                 trace_url=trace_url,
-                content=user_question,
+                content=self.user_question,
             ),
         )
         db_assistant_message = chat_repo.create_message(
@@ -253,8 +251,8 @@ class ChatService:
                 )
                 graph_index._callback_manager = _get_llamaindex_callback_manager()
                 intent_relationships = graph_index.intent_analyze(
-                    user_question,
-                    chat_history,
+                    self.user_question,
+                    self.chat_history,
                 )
                 yield ChatEvent(
                     event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
@@ -294,7 +292,7 @@ class ChatService:
                 )
                 graph_index._callback_manager = _get_llamaindex_callback_manager()
                 entities, relations, chunks = graph_index.retrieve_with_weight(
-                    user_question,
+                    self.user_question,
                     [],
                     depth=kg_config.depth,
                     include_meta=kg_config.include_meta,
@@ -329,14 +327,14 @@ class ChatService:
         with callback_manager.as_trace("condense_question"):
             with callback_manager.event(
                 MyCBEventType.CONDENSE_QUESTION,
-                payload={EventPayload.QUERY_STR: user_question},
+                payload={EventPayload.QUERY_STR: self.user_question},
             ) as event:
                 refined_question = _fast_llm.predict(
                     get_prompt_by_jinja2_template(
                         self.chat_engine_config.llm.condense_question_prompt,
                         graph_knowledges=graph_knowledges_context,
-                        chat_history=chat_history,
-                        question=user_question,
+                        chat_history=self.chat_history,
+                        question=self.user_question,
                     ),
                 )
                 event.on_end(payload={EventPayload.COMPLETION: refined_question})
@@ -364,12 +362,12 @@ class ChatService:
         text_qa_template = get_prompt_by_jinja2_template(
             self.chat_engine_config.llm.text_qa_prompt,
             graph_knowledges=graph_knowledges_context,
-            original_question=user_question,
+            original_question=self.user_question,
         )
         refine_template = get_prompt_by_jinja2_template(
             self.chat_engine_config.llm.refine_prompt,
             graph_knowledges=graph_knowledges_context,
-            original_question=user_question,
+            original_question=self.user_question,
         )
         vector_store = TiDBVectorStore(session=self.db_session)
         vector_index = VectorStoreIndex.from_vector_store(
