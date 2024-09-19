@@ -69,6 +69,8 @@ test.describe('API', () => {
 
     await expectGetOkStep('/api/v1/admin/reranker-models');
     await expectGetOkStep('/api/v1/admin/reranker-models/options');
+
+    await expectGetOkStep('/api/v1/admin/retrieve/documents?question=what%20is%20tidb&chat_engine=default&top_k=5');
   });
 });
 
