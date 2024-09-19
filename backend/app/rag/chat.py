@@ -33,7 +33,10 @@ from app.rag.chat_stream_protocol import (
     ChatEvent,
 )
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
-from app.rag.knowledge_graph.graph_store import TiDBGraphStore, tidb_graph_editor as editor
+from app.rag.knowledge_graph.graph_store import (
+    TiDBGraphStore,
+    tidb_graph_editor as editor,
+)
 from app.rag.knowledge_graph import KnowledgeGraphIndex
 from app.rag.chat_config import ChatEngineConfig, get_default_embedding_model
 from app.rag.types import (
@@ -521,32 +524,36 @@ def get_graph_data_from_langfuse(trace_url: str):
     langfuse_host = SiteSetting.langfuse_host
     langfuse_secret_key = SiteSetting.langfuse_secret_key
     langfuse_public_key = SiteSetting.langfuse_public_key
-    enable_langfuse = (
-        langfuse_host and langfuse_secret_key and langfuse_public_key
-    )
+    enable_langfuse = langfuse_host and langfuse_secret_key and langfuse_public_key
     current_time = time.time()
-    logger.debug(f"Graph Load - Fetch langfuse configs from site setting, time cost: {current_time - start_time}s")
-    logger.debug(f"Graph Load - trace_url: {trace_url}, enable_langfuse: {enable_langfuse}")
+    logger.debug(
+        f"Graph Load - Fetch langfuse configs from site setting, time cost: {current_time - start_time}s"
+    )
+    logger.debug(
+        f"Graph Load - trace_url: {trace_url}, enable_langfuse: {enable_langfuse}"
+    )
     start_time = current_time
     if enable_langfuse and trace_url is not None and trace_url != "":
         langfuse_client = Langfuse(
             secret_key=langfuse_secret_key,
             public_key=langfuse_public_key,
-            host=langfuse_host
+            host=langfuse_host,
         )
         trace_id = trace_url.split("/trace/")[-1]
         ob_data = langfuse_client.fetch_observations(trace_id=trace_id)
         current_time = time.time()
-        logger.debug(f"Graph Load - Fetch trace({trace_id}) from langfuse, time cost: {current_time - start_time}s")
+        logger.debug(
+            f"Graph Load - Fetch trace({trace_id}) from langfuse, time cost: {current_time - start_time}s"
+        )
         start_time = current_time
         all_entities = []
         all_relationships = []
 
         for obd in ob_data.data:
             if obd.name == MyCBEventType.GRAPH_SEMANTIC_SEARCH:
-                for _, sg in obd.output['queries'].items():
-                    all_entities.extend(sg['entities'])
-                    all_relationships.extend(sg['relationships'])
+                for _, sg in obd.output["queries"].items():
+                    all_entities.extend(sg["entities"])
+                    all_relationships.extend(sg["relationships"])
 
         unique_entities = {e["id"]: e for e in all_entities}.values()
         unique_relationships = {r["id"]: r for r in all_relationships}.values()
@@ -575,8 +582,7 @@ def get_chat_message_subgraph(
         ):
             relationship_ids = chat_message.graph_data["relationships"]
             all_entities, all_relationships = editor.get_relationship_by_ids(
-                session,
-                relationship_ids
+                session, relationship_ids
             )
             entities = [
                 {
@@ -607,9 +613,7 @@ def get_chat_message_subgraph(
 
     # try to get subgraph from langfuse trace
     try:
-        entities, relationships = get_graph_data_from_langfuse(
-            chat_message.trace_url
-        )
+        entities, relationships = get_graph_data_from_langfuse(chat_message.trace_url)
         if len(relationships) > 0:
             return list(entities), list(relationships)
     except Exception as e:

@@ -100,7 +100,7 @@ def get_relationship_by_ids(session: Session, ids: list[int]) -> List[Relationsh
         .where(Relationship.id.in_(ids))
         .options(
             joinedload(Relationship.source_entity),
-            joinedload(Relationship.target_entity)
+            joinedload(Relationship.target_entity),
         )
     )
 
