@@ -71,7 +71,7 @@ export function Conversation ({ open, chat, chatId, history, placeholder, preven
         <ConversationMessageGroups groups={groups} />
         <div className="h-24"></div>
       </div>
-      {size && open && <form className={cn('block h-max p-4 fixed bottom-0', preventShiftMessageInput && 'absolute pb-0')} onSubmit={submitWithReCaptcha} style={{ left: preventShiftMessageInput ? 0 : size.x, width: size.width }}>
+      {size && open && <form className={cn('block h-max p-4 fixed bottom-0', preventShiftMessageInput && 'absolute pb-0')} onSubmit={submitWithReCaptcha} style={{ left: (preventShiftMessageInput ? 0 : size.x) + 16, width: size.width - 32 }}>
         <MessageInput inputRef={setInputElement} className="w-full transition-all" disabled={disabled} actionDisabled={actionDisabled} inputProps={{ value: input, onChange: handleInputChange, disabled }} />
       </form>}
     </ChatControllerProvider>

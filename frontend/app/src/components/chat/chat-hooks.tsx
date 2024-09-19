@@ -83,6 +83,7 @@ export function useChats () {
 export interface ChatMessageGroup {
   user: ChatMessageController;
   assistant: ChatMessageController | undefined;
+  hasFirstAssistantMessage: boolean;
 }
 
 export function useChatController (
@@ -201,6 +202,7 @@ export function useChatMessageGroups (controllers: ChatMessageController[]) {
 function collectMessageGroups (messageControllers: ChatMessageController[]) {
   const groups: ChatMessageGroup[] = [];
 
+  let hasAssistant: boolean = false;
   let user: ChatMessageController | undefined;
 
   for (let messageController of messageControllers) {
@@ -213,7 +215,9 @@ function collectMessageGroups (messageControllers: ChatMessageController[]) {
           groups.push({
             user,
             assistant: messageController,
+            hasFirstAssistantMessage: !hasAssistant,
           });
+          hasAssistant = true;
         } else {
           console.warn('No matched user message, drop assistant message', messageController.message.id);
         }

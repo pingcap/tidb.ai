@@ -2,11 +2,13 @@ import { useChatMessageField, useChatMessageStreamState, useCurrentChatControlle
 import { ChatMessageController } from '@/components/chat/chat-message-controller';
 import { MessageFeedback } from '@/components/chat/message-feedback';
 import { useMessageFeedback } from '@/components/chat/use-message-feedback';
+import { usePortalContainer } from '@/components/portal-provider';
 import { Button } from '@/components/ui/button';
-import { TooltipProvider } from '@/components/ui/tooltip';
+import { DialogTrigger } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipPortal, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import copy from 'copy-to-clipboard';
-import { ClipboardCheckIcon, ClipboardIcon, MessageSquareHeartIcon, MessageSquarePlusIcon } from 'lucide-react';
+import { CopyCheckIcon, CopyIcon, ThumbsDownIcon, ThumbsUpIcon } from 'lucide-react';
 import { useState } from 'react';
 
 export function MessageOperations ({ message }: { message: ChatMessageController }) {
@@ -15,6 +17,8 @@ export function MessageOperations ({ message }: { message: ChatMessageController
   const streamState = useChatMessageStreamState(message);
   const { feedbackData, feedback: callFeedback, disabled } = useMessageFeedback(message.id, !!traceUrl);
   const [copied, setCopied] = useState(false);
+  const [clicked, setClicked] = useState<'like' | 'dislike'>('like');
+  const container = usePortalContainer();
 
   if (streamState) {
     return null;
@@ -35,25 +39,68 @@ export function MessageOperations ({ message }: { message: ChatMessageController
 
         <MessageFeedback
           initial={feedbackData}
+          defaultAction={clicked}
           onFeedback={async (action, comment) => callFeedback(action, comment)}
         >
-          <Button size="icon" variant="ghost" className="ml-auto rounded-full w-7 h-7" disabled={disabled}>
-            {feedbackData ? <MessageSquareHeartIcon className="w-4 h-4 text-green-500" /> : <MessageSquarePlusIcon className="w-4 h-4" />}
-          </Button>
+          {feedbackData
+            ? (<DialogTrigger asChild>
+              <Button size="icon" variant="ghost" className="ml-auto rounded-full w-7 h-7" disabled={disabled}>
+                {feedbackData.feedback_type === 'like' ? <ThumbsUpIcon className="w-4 h-4 text-green-500" /> : <ThumbsDownIcon className="w-4 h-4 text-red-500" />}
+              </Button>
+            </DialogTrigger>)
+            : (<>
+              <Tooltip>
+                <DialogTrigger asChild>
+                  <TooltipTrigger asChild>
+                    <Button size="icon" variant="ghost" className="ml-auto rounded-full w-7 h-7" disabled={disabled} onClick={() => { setClicked('like'); }}>
+                      <ThumbsUpIcon className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                </DialogTrigger>
+                <TooltipPortal container={container}>
+                  <TooltipContent>
+                    I like this answer :)
+                  </TooltipContent>
+                </TooltipPortal>
+              </Tooltip>
+              <Tooltip>
+                <DialogTrigger asChild>
+                  <TooltipTrigger asChild>
+                    <Button size="icon" variant="ghost" className="rounded-full w-7 h-7" disabled={disabled} onClick={() => { setClicked('dislike'); }}>
+                      <ThumbsDownIcon className="w-4 h-4" />
+                    </Button>
+                  </TooltipTrigger>
+                </DialogTrigger>
+                <TooltipPortal container={container}>
+                  <TooltipContent>
+                    I dislike this answer :(
+                  </TooltipContent>
+                </TooltipPortal>
+              </Tooltip>
+            </>)}
         </MessageFeedback>
 
-        <Button
-          size="icon"
-          variant="ghost"
-          className={cn('rounded-full w-7 h-7 transition-colors', copied && '!text-green-500 hover:bg-green-500/10')}
-          onClick={() => {
-            setCopied(copy(message.content));
-          }}
-        >
-          {copied
-            ? <ClipboardCheckIcon className="w-4 h-4" />
-            : <ClipboardIcon className="w-4 h-4" />}
-        </Button>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              size="icon"
+              variant="ghost"
+              className={cn('rounded-full w-7 h-7 transition-colors', copied && '!text-green-500 hover:bg-green-500/10')}
+              onClick={() => {
+                setCopied(copy(message.content));
+              }}
+            >
+              {copied
+                ? <CopyCheckIcon className="w-4 h-4" />
+                : <CopyIcon className="w-4 h-4" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipPortal container={container}>
+            <TooltipContent>
+              {copied ? 'Copied!' : 'Copy'}
+            </TooltipContent>
+          </TooltipPortal>
+        </Tooltip>
       </div>
     </TooltipProvider>
   );

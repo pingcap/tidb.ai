@@ -1,9 +1,10 @@
 import { useChatMessageField, useChatMessageStreamContainsState } from '@/components/chat/chat-hooks';
 import type { ChatMessageController } from '@/components/chat/chat-message-controller';
 import { AppChatStreamState } from '@/components/chat/chat-stream-state';
+import { MessageBetaAlert } from '@/components/chat/message-beta-alert';
 import { MessageContent } from '@/components/chat/message-content';
 
-export function MessageAnswer ({ message }: { message: ChatMessageController | undefined }) {
+export function MessageAnswer ({ message, showBetaAlert }: { message: ChatMessageController | undefined, showBetaAlert?: boolean }) {
   const content = useChatMessageField(message, 'content');
   const shouldShow = useChatMessageStreamContainsState(message, AppChatStreamState.GENERATE_ANSWER);
 
@@ -26,6 +27,7 @@ export function MessageAnswer ({ message }: { message: ChatMessageController | u
         </svg>
         Answer
       </div>
+      {showBetaAlert && <MessageBetaAlert />}
       <MessageContent message={message} />
     </>
   );

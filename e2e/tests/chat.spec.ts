@@ -12,7 +12,7 @@ test.describe('Chat', () => {
 
       // https://playwright.dev/docs/events#waiting-for-event
       const chatRequestPromise = getChatRequestPromise(page, baseURL);
-      const trigger = page.locator('button', { has: page.locator('svg.lucide-arrow-right') });
+      const trigger = page.locator('button', { has: page.locator('svg.lucide-arrow-up') });
       await trigger.click();
 
       await expect(trigger).toBeDisabled();

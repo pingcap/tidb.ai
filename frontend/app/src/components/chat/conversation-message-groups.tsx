@@ -106,7 +106,7 @@ function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
       </MessageSection>
 
       <MessageSection className="space-y-2" message={group.assistant}>
-        <MessageAnswer message={group.assistant} />
+        <MessageAnswer message={group.assistant} showBetaAlert={group.hasFirstAssistantMessage} />
         {group.assistant && <MessageAutoScroll message={group.assistant} />}
       </MessageSection>
 
