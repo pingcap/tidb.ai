@@ -57,6 +57,8 @@ def create_llm(
     session: SessionDep,
     user: CurrentSuperuserDep,
 ) -> AdminLLM:
+    if llm.is_default:
+        session.exec(update(LLM).values(is_default=False))
     session.add(llm)
     session.commit()
     session.refresh(llm)
@@ -299,6 +301,8 @@ def create_reranker_model(
     session: SessionDep,
     user: CurrentSuperuserDep,
 ) -> AdminRerankerModel:
+    if reranker_model.is_default:
+        session.exec(update(RerankerModel).values(is_default=False))
     session.add(reranker_model)
     session.commit()
     session.refresh(reranker_model)
