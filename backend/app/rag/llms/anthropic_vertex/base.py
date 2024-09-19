@@ -131,6 +131,22 @@ class AnthropicVertex(FunctionCallingLLM):
         additional_kwargs = additional_kwargs or {}
         callback_manager = callback_manager or CallbackManager([])
 
+        super().__init__(
+            temperature=temperature,
+            max_tokens=max_tokens,
+            additional_kwargs=additional_kwargs,
+            base_url=base_url,
+            timeout=timeout,
+            max_retries=max_retries,
+            model=model,
+            callback_manager=callback_manager,
+            system_prompt=system_prompt,
+            messages_to_prompt=messages_to_prompt,
+            completion_to_prompt=completion_to_prompt,
+            pydantic_program_mode=pydantic_program_mode,
+            output_parser=output_parser,
+        )
+
         self._client = anthropic.AnthropicVertex(
             region="us-east5",
             timeout=timeout,
@@ -149,22 +165,6 @@ class AnthropicVertex(FunctionCallingLLM):
             project_id=credentials.project_id,
         )
         self._aclient._credentials = credentials
-
-        super().__init__(
-            temperature=temperature,
-            max_tokens=max_tokens,
-            additional_kwargs=additional_kwargs,
-            base_url=base_url,
-            timeout=timeout,
-            max_retries=max_retries,
-            model=model,
-            callback_manager=callback_manager,
-            system_prompt=system_prompt,
-            messages_to_prompt=messages_to_prompt,
-            completion_to_prompt=completion_to_prompt,
-            pydantic_program_mode=pydantic_program_mode,
-            output_parser=output_parser,
-        )
 
     @classmethod
     def class_name(cls) -> str:

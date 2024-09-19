@@ -6,12 +6,13 @@ from datetime import datetime, UTC
 
 import jinja2
 from sqlmodel import Session, select, func
-from llama_index.core import VectorStoreIndex, ServiceContext
+from llama_index.core import VectorStoreIndex
 from llama_index.core.base.llms.base import ChatMessage
 from llama_index.core.prompts.base import PromptTemplate
 from llama_index.core.base.response.schema import StreamingResponse
 from llama_index.core.callbacks.schema import EventPayload
 from llama_index.core.callbacks import CallbackManager
+from llama_index.core.response_synthesizers import get_response_synthesizer
 from langfuse import Langfuse
 from langfuse.llama_index import LlamaIndexCallbackHandler
 
@@ -370,25 +371,28 @@ class ChatService:
             graph_knowledges=graph_knowledges_context,
             original_question=user_question,
         )
-        service_context = ServiceContext.from_defaults(
-            llm=_llm,
-            embed_model=_embed_model,
-            callback_manager=callback_manager,
-        )
         vector_store = TiDBVectorStore(session=self.db_session)
         vector_index = VectorStoreIndex.from_vector_store(
             vector_store,
-            service_context=service_context,
+            embed_model=_embed_model,
+            callback_manager=callback_manager,
+        )
+        response_synthesizer = get_response_synthesizer(
+            llm=_llm,
+            text_qa_template=text_qa_template,
+            refine_template=refine_template,
+            streaming=True,
+            callback_manager=callback_manager,
         )
         query_engine = vector_index.as_query_engine(
             llm=_llm,
+            response_synthesizer=response_synthesizer,
             node_postprocessors=self._node_postprocessors,
-            streaming=True,
-            text_qa_template=text_qa_template,
-            refine_template=refine_template,
             similarity_top_k=self._similarity_top_k,
-            service_context=service_context,
         )
+        query_engine.callback_manager = callback_manager
+        for _np in self._node_postprocessors:
+            _np.callback_manager = callback_manager
         response: StreamingResponse = query_engine.query(refined_question)
         source_documents = self._get_source_documents(response)
 
