@@ -26,7 +26,13 @@ Currently we support the following LLMs:
     - [OpenRouter](https://openrouter.ai/)
         - Default config: `{"api_base": "https://openrouter.ai/api/v1/"}`
     - [BigModel](https://open.bigmodel.cn/)
-        - Default config: `{"api_base": "https://open.bigmodel.cn/api/paas/v4/"}`
+        - Default config:
+        ```json
+        {
+            "api_base": "https://open.bigmodel.cn/api/paas/v4/",
+            "is_chat_model": true
+        }
+        ```
 - [Bedrock](https://aws.amazon.com/bedrock/)
 - [Anthropic Vertex AI](https://cloud.google.com/vertex-ai/generative-ai/docs/partner-models/use-claude)
 - [Ollama](https://ollama.com/)
