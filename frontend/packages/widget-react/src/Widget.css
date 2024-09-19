@@ -10,3 +10,7 @@
 #tidb-ai-widget-trigger {
   z-index: 9999;
 }
+
+#tidb-ai-widget {
+  font-size: 16px;
+}

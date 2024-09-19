@@ -2,6 +2,7 @@ import type { ChatEngine, ChatEngineLLMOptions } from '@/api/chat-engines';
 import { EditOptionsLlmPromptForm } from '@/components/chat-engine/edit-options-llm-prompt-form';
 import { PromptViewer } from '@/components/chat-engine/prompt-viewer';
 import { OptionDetail } from '@/components/option-detail';
+import { usePortalContainer } from '@/components/portal-provider';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -19,6 +20,8 @@ export function ChatEngineLLMDetails ({ editable, options }: { editable?: ChatEn
 }
 
 function PromptPreviewDialog ({ title, value }: { title: string, value: string }) {
+  const container = usePortalContainer();
+
   return (
     <Dialog>
       <DialogTrigger asChild>
@@ -26,7 +29,7 @@ function PromptPreviewDialog ({ title, value }: { title: string, value: string }
           Show prompt
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-[720px] w-full">
+      <DialogContent className="max-w-[720px] w-full" container={container}>
         <DialogHeader>
           <DialogTitle>
             {title}

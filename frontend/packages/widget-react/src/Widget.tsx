@@ -147,9 +147,9 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
               <DialogPortal container={container}>
                 <DialogOverlay />
                 <DialogPrimitive.Content
-                  className="fixed left-[50%] top-[50%] z-50 grid translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg w-[calc(100%-32px)] lg:w-[50vw]">
-                  <DialogHeader className='relative'>
-                    <DialogClose className='absolute right-0 top-0 transition-opacity opacity-70 hover:opacity-100'>
+                  className="fixed left-[50%] top-[50%] z-50 grid translate-x-[-50%] translate-y-[-50%] gap-4 border bg-background p-0 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg w-[calc(100%-32px)] lg:w-[50vw]">
+                  <DialogHeader className='relative p-8 pb-0'>
+                    <DialogClose className='absolute right-8 top-8 transition-opacity opacity-70 hover:opacity-100'>
                       <XIcon className='size-4' />
                     </DialogClose>
                     <DialogTitle className="flex items-center gap-4">
@@ -167,15 +167,15 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
                   </DialogHeader>
                   <AutoScroll target={scrollTarget} edgePixels={12}>
                     <ManualScrollVoter />
-                    <ScrollArea viewportRef={setScrollTarget} className="relative h-[60vh] w-[calc(100vw-82px)] lg:w-[calc(50vw-50px)]">
-                      <div className="w-[calc(100vw-82px)] lg:w-[calc(50vw-50px)]">
+                    <ScrollArea viewportRef={setScrollTarget} className="relative h-[60vh] w-full">
+                      <div className="w-[calc(100%-32px)] lg:w-[50vw]">
                         <Conversation
                           className="w-full overflow-hidden md:max-w-[unset] md:min-h-[unset] md:p-0 [&>div>section]:pt-4 [&>div>section]:pb-0"
                           open
                           chat={undefined}
                           history={[]}
                           placeholder={(myChat) => (
-                            <div className="mt-4 space-y-6">
+                            <div className="mt-4 space-y-6 px-8">
                               <div className="font-medium text-lg">Example questions:</div>
                               <div className="flex gap-4 flex-wrap">
                                 {exampleQuestions.map((question, index) => (
@@ -195,7 +195,7 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
                         />
                       </div>
                     </ScrollArea>
-                    <div className="text-muted-foreground text-xs">
+                    <div className="text-muted-foreground text-xs p-8 pt-0">
                       Powered by <a className="underline" href="https://github.com/pingcap/tidb.ai" target="_blank">pingcap/tidb.ai</a>, deploy your own for free.
                     </div>
                   </AutoScroll>

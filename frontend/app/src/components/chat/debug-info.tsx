@@ -4,8 +4,6 @@ import { KnowledgeGraphDebugInfo } from '@/components/chat/knowledge-graph-debug
 import { DateFormat } from '@/components/date-format';
 import { OptionDetail } from '@/components/option-detail';
 // import { MessageLangfuse } from '@/components/chat/message-langfuse';
-import { Dialog, DialogContent, DialogHeader, DialogPortal, DialogTrigger } from '@/components/ui/dialog';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { differenceInSeconds } from 'date-fns';
 import { WorkflowIcon } from 'lucide-react';
@@ -49,32 +47,5 @@ export function DebugInfo ({ group }: DebugInfoProps) {
         </div>
       )}
     </div>
-  );
-}
-
-interface PromptDialogProps {
-  title: string;
-  prompt: string;
-}
-
-function PromptDialog ({ title, prompt }: PromptDialogProps) {
-  return (
-    <li>
-      <Dialog>
-        <DialogTrigger asChild>
-          <button className="cursor-pointer underline">
-            {title}
-          </button>
-        </DialogTrigger>
-        <DialogPortal>
-          <DialogContent>
-            <DialogHeader>Prompt: {title}</DialogHeader>
-            <ScrollArea className="h-72">
-              <pre className="text-xs whitespace-pre-wrap">{prompt}</pre>
-            </ScrollArea>
-          </DialogContent>
-        </DialogPortal>
-      </Dialog>
-    </li>
   );
 }
