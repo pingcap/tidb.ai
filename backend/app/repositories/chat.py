@@ -1,8 +1,9 @@
 from uuid import UUID
 from typing import Optional, List
-from datetime import datetime, UTC
+from datetime import datetime, UTC, date
+from collections import defaultdict
 
-from sqlmodel import select, Session, or_
+from sqlmodel import select, Session, or_, func, case
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
@@ -94,6 +95,57 @@ class ChatRepo(BaseRepo):
         session.commit()
         session.refresh(chat_message)
         return chat_message
+
+    def chat_trend_by_user(
+        self, session: Session, start_date: date, end_date: date
+    ) -> List[dict]:
+        query = (
+            select(
+                func.date(Chat.created_at).label("date"),
+                func.sum(case((Chat.user_id.isnot(None), 1), else_=0)).label("user"),
+                func.sum(case((Chat.user_id.is_(None), 1), else_=0)).label("anonymous"),
+            )
+            .where(Chat.created_at.between(start_date, end_date))
+            .group_by(func.date(Chat.created_at))
+            .order_by(func.date(Chat.created_at))
+        )
+        result = session.exec(query)
+        return [
+            {"date": row.date, "user": int(row.user), "anonymous": int(row.anonymous)}
+            for row in result
+        ]
+
+    def chat_trend_by_origin(
+        self, session: Session, start_date: date, end_date: date
+    ) -> List[dict]:
+        query = (
+            select(
+                func.count(Chat.id).label("count"),
+                func.date(Chat.created_at).label("date"),
+                Chat.origin,
+            )
+            .where(Chat.created_at.between(start_date, end_date))
+            .group_by(func.date(Chat.created_at), Chat.origin)
+            .order_by(func.date(Chat.created_at))
+        )
+        result = session.exec(query)
+
+        date_origin_counts = defaultdict(lambda: defaultdict(int))
+        origins = set()
+
+        for row in result:
+            date_origin_counts[row.date][row.origin] = row.count
+            origins.add(row.origin)
+
+        stats = []
+        for date, origin_counts in date_origin_counts.items():
+            stat = {"date": date}
+            for origin in origins:
+                stat[origin] = origin_counts[origin]
+            stats.append(stat)
+
+        stats.sort(key=lambda x: x["date"])
+        return stats
 
 
 chat_repo = ChatRepo()
