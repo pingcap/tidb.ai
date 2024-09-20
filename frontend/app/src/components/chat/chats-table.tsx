@@ -26,6 +26,7 @@ const columns = [
   helper.accessor('title', {
     cell: link({ url: chat => `/c/${chat.id}` }),
   }),
+  helper.accessor('origin', {}),
   helper.accessor('created_at', { cell: datetime }),
   helper.accessor('engine_id', {}),
   helper.accessor('engine_options', { cell: metadataCell }),

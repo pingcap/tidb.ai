@@ -33,6 +33,7 @@ export function DebugInfo ({ group }: DebugInfoProps) {
         <section className="space-y-2">
           <div className="space-y-2 text-sm">
             <div className="space-y-2 text-sm">
+              <OptionDetail title="Origin" value={chat.origin} />
               <OptionDetail title="Chat Created At" value={<DateFormat date={chat.created_at} />} />
               <OptionDetail title="Message Created At" value={<DateFormat date={createdAt} />} />
               <OptionDetail title="Message Finished In" value={(createdAt && finishedAt) && `${differenceInSeconds(finishedAt, createdAt)} seconds`} />

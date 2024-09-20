@@ -18,6 +18,7 @@ export interface Chat {
   updated_at: Date;
   created_at: Date;
   id: string;
+  origin: string | null;
 }
 
 export interface ChatDetail {
@@ -61,6 +62,7 @@ export const chatSchema = z.object({
   updated_at: zodJsonDate(),
   created_at: zodJsonDate(),
   id: z.string(),
+  origin: z.string().nullable(),
 }) satisfies ZodType<Chat, any, any>;
 
 const chatMessageSourceSchema = z.object({
