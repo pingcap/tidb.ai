@@ -38,6 +38,9 @@ class ChatEngine(UpdatableBaseModel, table=True):
     post_verification_url: Optional[str] = Field(
         max_length=256, default=None, nullable=True
     )
+    post_verification_token: Optional[str] = Field(
+        max_length=256, default=None, nullable=True
+    )
     is_default: bool = Field(default=False)
     deleted_at: Optional[datetime] = Field(default=None, sa_column=Column(DateTime))
 

@@ -1,4 +1,5 @@
 import os
+import json
 import logging
 from typing import Optional
 
@@ -147,7 +148,7 @@ class ChatEngineConfig(BaseModel):
         return get_metadata_post_filter(self.vector_search.metadata_post_filters)
 
     def screenshot(self) -> dict:
-        return self.model_dump_json(
+        data = self.model_dump(
             exclude={
                 "llm": [
                     "condense_question_prompt",
@@ -156,6 +157,8 @@ class ChatEngineConfig(BaseModel):
                 ]
             }
         )
+        data["post_verification_url"] = self._db_chat_engine.post_verification_token
+        return json.dumps(data)
 
 
 def get_llm(

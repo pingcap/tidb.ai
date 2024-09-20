@@ -4,6 +4,7 @@ from uuid import UUID
 from typing import List, Generator, Optional, Tuple
 from datetime import datetime, UTC
 
+import requests
 import jinja2
 from sqlmodel import Session, select, func
 from llama_index.core import VectorStoreIndex
@@ -439,6 +440,13 @@ class ChatService:
             ),
         )
 
+        self._post_verification(
+            self.user_question,
+            response_text,
+            self.db_chat_obj.id,
+            db_assistant_message.id,
+        )
+
         yield ChatEvent(
             event_type=ChatEventType.DATA_PART,
             payload=ChatStreamDataPayload(
@@ -487,6 +495,35 @@ class ChatService:
                     }
                 )
         return source_documents
+
+    def _post_verification(
+        self, user_question: str, response_text: str, chat_id: UUID, message_id: int
+    ):
+        post_verification_url = self.db_chat_engine.post_verification_url
+        post_verification_token = self.db_chat_engine.post_verification_token
+
+        if not post_verification_url:
+            return
+
+        external_request_id = f"{chat_id}_{message_id}"
+        qa_content = f"User question: {user_question}\n\nAnswer:\n{response_text}"
+        try:
+            resp = requests.post(
+                post_verification_url,
+                json={
+                    "external_request_id": external_request_id,
+                    "qa_content": qa_content,
+                },
+                headers={
+                    "Authorization": f"Bearer {post_verification_token}",
+                }
+                if post_verification_token
+                else {},
+                timeout=10,
+            )
+            resp.raise_for_status()
+        except Exception:
+            logger.exception("Failed to post verification")
 
 
 def get_prompt_by_jinja2_template(template_string: str, **kwargs) -> PromptTemplate:
