@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useHref } from '@/components/use-href';
-import { BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, FilesIcon, GaugeIcon, HomeIcon, KeyRoundIcon, LibraryIcon, MenuIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon, WaypointsIcon } from 'lucide-react';
+import { ActivitySquareIcon, BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, FilesIcon, GaugeIcon, HomeIcon, KeyRoundIcon, LibraryIcon, MenuIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon, WaypointsIcon } from 'lucide-react';
 import Link from 'next/link';
 
 export function Nav () {
@@ -36,6 +36,7 @@ export function Nav () {
       title: 'Admin',
       items: [
         // { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon, disabled: true },
+        { href: '/stats/trending', title: 'Stats', icon: ActivitySquareIcon },
         { href: '/feedbacks', title: 'Feedbacks', icon: MessageCircleQuestionIcon },
         { href: '/documents', title: 'Documents', icon: FilesIcon },
         { href: '/datasources', title: 'Datasources', icon: LibraryIcon },
