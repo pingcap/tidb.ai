@@ -157,7 +157,7 @@ class ChatEngineConfig(BaseModel):
                 ]
             }
         )
-        data["post_verification_url"] = self._db_chat_engine.post_verification_token
+        data["post_verification_url"] = self._db_chat_engine.post_verification_url
         return json.dumps(data)
 
 
