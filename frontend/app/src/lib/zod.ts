@@ -1,5 +1,13 @@
-import { parseJSON } from 'date-fns';
+import { parse, parseJSON, startOfToday } from 'date-fns';
 import { z, ZodType } from 'zod';
+
+const BASE_DATE = startOfToday();
+
+export function zodDateOnlyString () {
+  return z.string().regex(/^\d\d\d\d-\d\d-\d\d$/).transform(str => {
+    return parse(str, 'yyyy-MM-dd', BASE_DATE);
+  });
+}
 
 export function zodJsonDate (message?: string) {
   return z.string().pipe(d);
@@ -34,7 +42,6 @@ const d = z
   .transform(out => {
     return parseJSON(out);
   });
-
 
 export interface PageParams {
   page?: number; // 1 based

@@ -8,6 +8,7 @@ import { GoogleAnalytics } from '@next/third-parties/google';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import './globals.css';
+import './chart-theme.css';
 import Script from 'next/script';
 import { cache, type ReactNode } from 'react';
 
