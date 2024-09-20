@@ -99,13 +99,15 @@ class ChatRepo(BaseRepo):
     def chat_trend_by_user(
         self, session: Session, start_date: date, end_date: date
     ) -> List[dict]:
+        start_at = datetime.combine(start_date, datetime.min.time(), UTC)
+        end_at = datetime.combine(end_date, datetime.max.time(), UTC)
         query = (
             select(
                 func.date(Chat.created_at).label("date"),
                 func.sum(case((Chat.user_id.isnot(None), 1), else_=0)).label("user"),
                 func.sum(case((Chat.user_id.is_(None), 1), else_=0)).label("anonymous"),
             )
-            .where(Chat.created_at.between(start_date, end_date))
+            .where(Chat.created_at.between(start_at, end_at))
             .group_by(func.date(Chat.created_at))
             .order_by(func.date(Chat.created_at))
         )
@@ -118,13 +120,15 @@ class ChatRepo(BaseRepo):
     def chat_trend_by_origin(
         self, session: Session, start_date: date, end_date: date
     ) -> List[dict]:
+        start_at = datetime.combine(start_date, datetime.min.time(), UTC)
+        end_at = datetime.combine(end_date, datetime.max.time(), UTC)
         query = (
             select(
                 func.count(Chat.id).label("count"),
                 func.date(Chat.created_at).label("date"),
                 Chat.origin,
             )
-            .where(Chat.created_at.between(start_date, end_date))
+            .where(Chat.created_at.between(start_at, end_at))
             .group_by(func.date(Chat.created_at), Chat.origin)
             .order_by(func.date(Chat.created_at))
         )

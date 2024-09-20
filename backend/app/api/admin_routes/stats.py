@@ -13,12 +13,6 @@ class DateRangeStats(BaseModel):
     end_date: date
 
 
-class ChatTrendStatsValue(BaseModel):
-    date: date
-    user: int
-    anonymous: int
-
-
 class ChatStats(DateRangeStats):
     values: list
 
