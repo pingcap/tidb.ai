@@ -12,6 +12,7 @@ it('pass', () => {
       'browser_id': null,
       'created_at': '2024-07-08T10:28:39',
       'deleted_at': null,
+      'origin': null,
     },
     'user_message': {
       'id': 60033,
