@@ -38,5 +38,9 @@ class ChatMessage(UpdatableBaseModel, table=True):
             "primaryjoin": "ChatMessage.user_id == User.id",
         },
     )
+    post_verification_result_url: Optional[str] = Field(
+        max_length=512,
+        nullable=True,
+    )
 
     __tablename__ = "chat_messages"

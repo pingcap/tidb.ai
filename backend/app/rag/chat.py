@@ -3,6 +3,7 @@ import logging
 from uuid import UUID
 from typing import List, Generator, Optional, Tuple
 from datetime import datetime, UTC
+from urllib.parse import urljoin
 
 import requests
 import jinja2
@@ -421,9 +422,24 @@ class ChatService:
         if not response_text:
             raise Exception("Got empty response from LLM")
 
+        yield ChatEvent(
+            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.FINISHED,
+            ),
+        )
+
+        post_verification_result_url = self._post_verification(
+            self.user_question,
+            response_text,
+            self.db_chat_obj.id,
+            db_assistant_message.id,
+        )
+
         db_assistant_message.sources = source_documents
         db_assistant_message.graph_data = graph_data_source_ids
         db_assistant_message.content = response_text
+        db_assistant_message.post_verification_result_url = post_verification_result_url
         db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_assistant_message)
@@ -432,20 +448,6 @@ class ChatService:
         db_user_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_user_message)
         self.db_session.commit()
-
-        yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-            payload=ChatStreamMessagePayload(
-                state=ChatMessageSate.FINISHED,
-            ),
-        )
-
-        self._post_verification(
-            self.user_question,
-            response_text,
-            self.db_chat_obj.id,
-            db_assistant_message.id,
-        )
 
         yield ChatEvent(
             event_type=ChatEventType.DATA_PART,
@@ -498,7 +500,8 @@ class ChatService:
 
     def _post_verification(
         self, user_question: str, response_text: str, chat_id: UUID, message_id: int
-    ):
+    ) -> Optional[str]:
+        # post verification to external service, will return the post verification result url
         post_verification_url = self.chat_engine_config.post_verification_url
         post_verification_token = self.chat_engine_config.post_verification_token
 
@@ -522,6 +525,8 @@ class ChatService:
                 timeout=10,
             )
             resp.raise_for_status()
+            job_id = resp.json()["job_id"]
+            return urljoin(f"{post_verification_url}/", str(job_id))
         except Exception:
             logger.exception("Failed to post verification")
 
