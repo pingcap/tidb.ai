@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 from sqlmodel import Session, select, func
 
 from llama_index.core.embeddings.utils import EmbedType, resolve_embed_model
-from llama_index.core.settings import Settings
+from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
 
 from app.core.db import engine
 from app.models import SemanticCache
@@ -81,32 +81,26 @@ class SemanticCacheManager:
     def __init__(
         self,
         dspy_llm: dspy.LM,
-        session: Optional[Session] = None,
         embed_model: Optional[EmbedType] = None,
         complied_sc_search_program_path: Optional[str] = None,
     ):
-        self._session = session
-        self._owns_session = session is None
-        if self._session is None:
-            self._session = Session(engine)
         self._dspy_lm = dspy_llm
-        self._embed_model = (
-            resolve_embed_model(embed_model) if embed_model else Settings.embed_model
-        )
+        if embed_model:
+            self._embed_model = resolve_embed_model(embed_model)
+        else:
+            self._embed_model = OpenAIEmbedding(
+                model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL
+            )
         self.prog = SemanticSearchProgram(dspy_lm=dspy_llm)
         if complied_sc_search_program_path is not None:
             self.prog.load(complied_sc_search_program_path)
-
-    def close_session(self) -> None:
-        # Always call this method is necessary to make sure the session is closed
-        if self._owns_session:
-            self._session.close()
 
     def get_query_embedding(self, query: str):
         return self._embed_model.get_query_embedding(query)
 
     def add_cache(
         self,
+        session: Session,
         item: SemanticItem,
         namespace: str,
         metadata: Optional[dict] = None,
@@ -123,10 +117,12 @@ class SemanticCacheManager:
             value_vec=self.get_query_embedding(item.answer),
             meta=metadata,
         )
-        self._session.add(object)
-        self._session.commit()
+        session.add(object)
+        session.commit()
 
-    def search(self, query: str, namespace: Optional[str] = None) -> QASemanticOutput:
+    def search(
+        self, session: Session, query: str, namespace: Optional[str] = None
+    ) -> QASemanticOutput:
         embedding = self.get_query_embedding(query)
         sql = (
             select(
@@ -142,7 +138,7 @@ class SemanticCacheManager:
                 func.json_extract(SemanticCache.meta, "$.namespace") == namespace
             )
 
-        results = self._session.execute(sql).all()
+        results = session.execute(sql).all()
         candidates = SemanticGroup(
             items=[
                 SemanticItem(
