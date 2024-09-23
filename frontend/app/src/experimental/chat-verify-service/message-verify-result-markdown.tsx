@@ -12,6 +12,7 @@ import remarkDirective from 'remark-directive';
 import remarkGfm from 'remark-gfm';
 import remarkParse from 'remark-parse';
 import remarkRehype from 'remark-rehype';
+import { format } from 'sql-formatter';
 import { unified } from 'unified';
 import { visit } from 'unist-util-visit';
 import '@/components/remark-content/style.scss';
@@ -27,8 +28,9 @@ export function MessageVerifyResultMarkdown ({ content }: { content: string }) {
 const processor = unified()
   .use(remarkParse)
   .use(remarkGfm)
+  .use(formatSqlPlugin)
   .use(remarkDirective)
-  .use(myRemarkPlugin)
+  .use(handleDirectivePlugin)
   .use(remarkRehype)
   .use(rehypeHighlight, rehypeHighlightOptions)
   .use(rehypeReact, {
@@ -81,11 +83,22 @@ interface TextDirective extends Node {
   attributes: Record<string, string>;
 }
 
-// This plugin is an example to let users write HTML with directives.
-// It’s informative but rather useless.
-// See below for others examples.
-function myRemarkPlugin () {
+function formatSqlPlugin () {
+  return function (tree: Root) {
+    visit(tree, function (node) {
+      if (node.type === 'code') {
+        if (node.lang === 'sql') {
+          try {
+            node.value = format(node.value, { language: 'mysql' });
+          } catch {
+          }
+        }
+      }
+    });
+  };
+}
 
+function handleDirectivePlugin () {
   return function (tree: Root) {
     visit(tree, function (node) {
       if (
