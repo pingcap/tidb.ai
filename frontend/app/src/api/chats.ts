@@ -8,10 +8,12 @@ import { z, type ZodType } from 'zod';
 
 const mockChat = !!process.env.NEXT_PUBLIC_MOCKING_CHAT;
 
+type ClientEngineOptions = Omit<ChatEngineOptions, 'post_verification_token'>;
+
 export interface Chat {
   title: string;
   engine_id: number;
-  engine_options: ChatEngineOptions;
+  engine_options: ClientEngineOptions;
   deleted_at: Date | null;
   user_id: string | null;
   browser_id: string | null;
@@ -44,6 +46,7 @@ export interface ChatMessage {
   content: string;
   sources: ChatMessageSource[];
   chat_id: string;
+  post_verification_result_url: string | null;
 }
 
 export interface ChatMessageSource {
@@ -84,6 +87,7 @@ export const chatMessageSchema = z.object({
   content: z.string(),
   sources: chatMessageSourceSchema.array(),
   chat_id: z.string(),
+  post_verification_result_url: z.string().url().nullable(),
 }) satisfies ZodType<ChatMessage, any, any>;
 
 const chatDetailSchema = z.object({

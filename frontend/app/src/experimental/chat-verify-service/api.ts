@@ -13,7 +13,7 @@ export const enum VerifyStatus {
 export interface MessageVerifyResponse {
   status: VerifyStatus;
   message?: string | null;
-  runs: MessageVerifyResponse.Run[];
+  runs_report: string | null;
 }
 
 export namespace MessageVerifyResponse {
@@ -29,51 +29,14 @@ export namespace MessageVerifyResponse {
   }
 }
 
-const verifyResponse = z.object({
-  job_id: z.string(),
-});
-
 const getVerifyResponse = z.object({
   status: z.enum([VerifyStatus.CREATED, VerifyStatus.EXTRACTING, VerifyStatus.VALIDATING, VerifyStatus.SUCCESS, VerifyStatus.FAILED, VerifyStatus.SKIPPED]),
   message: z.string().nullish(),
-  runs: z.array(z.object({
-    sql: z.string(),
-    explanation: z.string(),
-    success: z.boolean(),
-    results: z.any().array().array().optional(),
-    sql_error_code: z.number().nullish(),
-    sql_error_message: z.string().nullish(),
-    llm_verification: z.string().nullish(),
-    warnings: z.string().array().optional(),
-  })),
+  runs_report: z.string().nullable(),
 }) satisfies ZodType<MessageVerifyResponse, any, any>;
 
-export interface VerifyParams {
-  question: string
-  answer: string
-  external_request_id?: string
-}
-
-export async function verify(service: string | undefined, {
-  question,
-  answer,
-  external_request_id,
-}: VerifyParams) {
-  return await fetch(`${service}/api/v1/sqls-validation`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      external_request_id: external_request_id,
-      qa_content: `User question: ${question}\n\nAnswer:\n${answer}`,
-    }),
-  }).then(handleResponse(verifyResponse));
-}
-
-export async function getVerify (service: string | undefined, id: string) {
-  assertEnabled(service);
-  return await fetch(`${service}/api/v1/sqls-validation/${id}`).then(handleResponse(getVerifyResponse));
+export async function getVerify (url: string) {
+  return await fetch(url).then(handleResponse(getVerifyResponse));
 }
 
 export function isFinalVerifyState (state: VerifyStatus) {

@@ -34,7 +34,7 @@ export function EditPropertyForm<T, P extends keyof T & string> ({ className, ob
     resolver,
     disabled,
     defaultValues: {
-      [property]: object[property],
+      [property]: object[property] ?? '',
     } as DefaultValues<Record<P, T[P]>>,
   });
 

@@ -4,6 +4,8 @@ import { EditBooleanForm } from '@/components/chat-engine/edit-boolean-form';
 import { EditLlmForm } from '@/components/chat-engine/edit-llm-form';
 import { EditNameForm } from '@/components/chat-engine/edit-name-form';
 import { EditRerankerForm } from '@/components/chat-engine/edit-reranker-form';
+import { EditTokenForm } from '@/components/chat-engine/edit-token-form';
+import { EditUrlForm } from '@/components/chat-engine/edit-url-form';
 import { LlmInfo } from '@/components/llm/LlmInfo';
 import { OptionDetail } from '@/components/option-detail';
 import { RerankerInfo } from '@/components/reranker/RerankerInfo';

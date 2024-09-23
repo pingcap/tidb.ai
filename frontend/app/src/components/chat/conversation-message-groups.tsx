@@ -112,7 +112,7 @@ function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
 
       {group.assistant && <MessageError message={group.assistant} />}
 
-      <MessageVerify user={group.user} assistant={group.assistant} />
+      <MessageVerify assistant={group.assistant} />
 
       {group.assistant && <MessageOperations message={group.assistant} />}
     </section>

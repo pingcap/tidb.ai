@@ -17,7 +17,7 @@ export async function loadConfig () {
   ]);
 
   if (!settings.enable_post_verifications || !settings.enable_post_verifications_for_widgets) {
-    delete experimentalFeatures.message_verify_service;
+    experimentalFeatures.enable_message_post_verification = false;
   }
 
   return { settings, bootstrapStatus, experimentalFeatures };

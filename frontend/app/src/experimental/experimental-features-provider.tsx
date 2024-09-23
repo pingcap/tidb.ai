@@ -3,7 +3,7 @@
 import { createContext, type ReactNode, useContext } from 'react';
 
 export interface ExperimentalFeatures {
-  message_verify_service: string;
+  enable_message_post_verification: boolean;
 }
 
 const ExperimentalFeaturesContext = createContext<Partial<ExperimentalFeatures>>({});
