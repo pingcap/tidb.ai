@@ -121,7 +121,7 @@ class ChatService:
             self._node_postprocessors = [self._metadata_filter, self._reranker]
             # Set initial similarity_top_k to a large number,
             # reranker will filter out irrelevant nodes after the retrieval
-            self._similarity_top_k = 80
+            self._similarity_top_k = 60
         else:
             self._node_postprocessors = [self._metadata_filter]
             self._similarity_top_k = 10
