@@ -32,7 +32,7 @@ class QASemanticOutput(BaseModel):
             "For all other cases, classify the match as 'no_match', 'similar_match'."
         )
     )
-    item: List[SemanticItem] = Field(
+    items: List[SemanticItem] = Field(
         description=(
             "The question-answer pair that matches the query. "
             "If the match_type is 'no_match', return an empty list. "
@@ -61,7 +61,7 @@ class QASemanticSearchModule(dspy.Signature):
         description="A collection of frequently asked questions and their corresponding answers to search through."
     )
 
-    output: SemanticItem = dspy.OutputField(
+    output: QASemanticOutput = dspy.OutputField(
         description="The question-answer pair that best matches the query string. "
     )
 
@@ -153,7 +153,7 @@ class SemanticCacheManager:
 
         # filter the matched items and it's metadata
         matched_items = []
-        for item in pred.output:
+        for item in pred.output.items:
             question = item.question
             # find the matched item in the results
             for result in results:
@@ -167,4 +167,7 @@ class SemanticCacheManager:
                     )
                     break
 
-        return matched_items
+        return {
+            "match_type": pred.output.match_type,
+            "items": matched_items
+        }
