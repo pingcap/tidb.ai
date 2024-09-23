@@ -43,7 +43,7 @@ export default async function RootLayout ({
   const _experimentalFeatures = experimentalFeatures();
 
   if (!settings.enable_post_verifications) {
-    delete _experimentalFeatures.message_verify_service;
+    _experimentalFeatures.enable_message_post_verification = false;
   }
 
   return (

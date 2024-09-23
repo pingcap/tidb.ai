@@ -1,44 +1,32 @@
-import { getVerify, isFinalVerifyState, isVisibleVerifyState, type MessageVerifyResponse, verify, VerifyStatus } from '#experimental/chat-verify-service/api';
-import { useRequestScroll } from '@/components/auto-scroll';
-import { useChatMessageField, useChatMessageStreamState, useCurrentChatController } from '@/components/chat/chat-hooks';
+import { getVerify, isFinalVerifyState, isVisibleVerifyState, type MessageVerifyResponse, VerifyStatus } from '#experimental/chat-verify-service/api';
+import { useChatMessageField, useCurrentChatController } from '@/components/chat/chat-hooks';
 import type { ChatMessageController } from '@/components/chat/chat-message-controller';
-import { isNotFinished } from '@/components/chat/utils';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useExperimentalFeatures } from '@/experimental/experimental-features-provider';
+import { Skeleton } from '@/components/ui/skeleton';
+import { MessageVerifyResultMarkdown } from '@/experimental/chat-verify-service/message-verify-result-markdown';
 import { getErrorMessage } from '@/lib/errors';
+import { isServerError } from '@/lib/request';
 import { cn } from '@/lib/utils';
 import { AnimatePresence, motion } from 'framer-motion';
 import Highlight from 'highlight.js/lib/core';
 import sql from 'highlight.js/lib/languages/sql';
-import { CheckCircle2Icon, CheckIcon, ChevronDownIcon, CircleMinus, Loader2Icon, RefreshCwIcon, TriangleAlertIcon, XIcon } from 'lucide-react';
-import { type ReactElement, useEffect, useMemo, useState } from 'react';
-import { format } from 'sql-formatter';
+import { CheckCircle2Icon, ChevronDownIcon, CircleMinus, Loader2Icon, RefreshCwIcon, TriangleAlertIcon } from 'lucide-react';
+import { type ReactElement, type ReactNode, useEffect, useState } from 'react';
 import useSWR from 'swr';
 import '@/components/code-theme.scss';
 
 Highlight.registerLanguage('sql', sql);
 
-export function MessageVerify ({ user, assistant }: { user: ChatMessageController | undefined, assistant: ChatMessageController | undefined }) {
+export function MessageVerify ({ assistant }: { assistant: ChatMessageController | undefined }) {
   const [open, setOpen] = useState(false);
+  const [notFound, setNotFound] = useState(false);
+
   const controller = useCurrentChatController();
-  const messageState = useChatMessageStreamState(assistant);
-  const question = useChatMessageField(user, 'content');
-  const answer = useChatMessageField(assistant, 'content');
-  const message_id = useChatMessageField(assistant, 'id');
-  const chat_id = useChatMessageField(assistant, 'chat_id');
+  const messageVerifyUrl = useChatMessageField(assistant, 'post_verification_result_url');
 
-  const externalRequestId = `${chat_id}_${message_id}`;
-
-  const [verifyId, setVerifyId] = useState<string>();
-  const [verifying, setVerifying] = useState(false);
-  const [verifyError, setVerifyError] = useState<unknown>();
-
-  const serviceUrl = useExperimentalFeatures().message_verify_service;
-
-  const shouldPoll = serviceUrl && !!verifyId && !!assistant;
   const { data: result, isLoading: isLoadingResult, error: pollError } = useSWR(
-    shouldPoll && `experimental.chat-message.${assistant.id}.verify`, () => getVerify(serviceUrl, verifyId!),
+    messageVerifyUrl && `experimental.chat-message.post-verification.${messageVerifyUrl}`, () => getVerify(messageVerifyUrl!),
     {
       revalidateOnMount: true,
       revalidateOnFocus: false,
@@ -49,34 +37,25 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
         }
         return !isFinalVerifyState(data.status) ? 1000 : 0;
       },
+      onError: err => {
+        if (isServerError(err, 404)) {
+          setNotFound(true);
+        }
+
+        console.log(err);
+      },
     },
   );
 
-  const messageFinished = !isNotFinished(messageState);
   const canOpen = result ? isVisibleVerifyState(result.status) : false;
-  const creating = verifying || !!(verifyId && !result && isLoadingResult);
-  const error: unknown = verifyError ?? pollError;
-
-  const triedCreateVerify = !!(verifying || verifyId || verifyError);
-
-  const requestScroll = useRequestScroll();
-
-  useEffect(() => {
-    if (serviceUrl && !triedCreateVerify && question && answer && messageFinished) {
-      setVerifying(true);
-      verify(serviceUrl, { question, answer, external_request_id: externalRequestId })
-        .then(result => setVerifyId(result.job_id), error => setVerifyError(error))
-        .finally(() => {
-          setVerifying(false);
-        });
-    }
-  }, [serviceUrl, triedCreateVerify, messageFinished, question, answer, externalRequestId]);
+  const creating = (!result && isLoadingResult);
+  const error: unknown = pollError;
 
   useEffect(() => {
     console.debug(`[message-verify]`, result);
   }, [result]);
 
-  if (!serviceUrl || !messageFinished) { // Remove isSuperuser check
+  if (!messageVerifyUrl || notFound) { // Remove isSuperuser check
     return null;
   }
 
@@ -88,7 +67,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
       disabled={!canOpen}
     >
       <CollapsibleTrigger asChild>
-        <Button className="group gap-2 w-full" variant="ghost">
+        <Button className="group gap-2 w-full break-words max-w-full text-wrap text-left h-max" variant="ghost">
           <MessageVerifyHeader result={result} creating={creating} error={error} />
         </Button>
       </CollapsibleTrigger>
@@ -106,16 +85,11 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
             style={{ width: 'var(--radix-collapsible-content-width)' }}
             layout="size"
           >
-            <ul className="space-y-4 px-2">
-              {result.runs.map(((run, index) => (
-                <li key={index}>
-                  <MessageVerifyRun run={run} />
-                </li>
-              )))}
-            </ul>
+            <MessageVerifyResultMarkdown content={result.runs_report ?? ''} />
           </motion.div>}
         </AnimatePresence>
       </CollapsibleContent>
+      {!!error && <div className="px-4 text-destructive text-xs">{getErrorMessage(error) ?? defaultMessages.error}</div>}
       <div className="my-2 px-4 flex items-center flex-wrap justify-between">
         <div className="text-xs text-muted-foreground">
           Powered by <a className="underline font-bold" href="https://www.pingcap.com/tidb-cloud-serverless/?utm_source=tidb.ai&utm_medium=referral&utm_campaign=plg_tidb.ai" target="_blank">TiDB Serverless</a>
@@ -126,7 +100,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
             className="gap-1 text-xs px-2 py-1 h-max"
             variant="ghost"
             onClick={() => {
-              controller.input = composeRegenerateMessage(result);
+              controller.input = result.runs_report ?? '';
               controller.focusInput();
             }}
           >
@@ -141,7 +115,7 @@ export function MessageVerify ({ user, assistant }: { user: ChatMessageControlle
 
 const defaultMessages = {
   'creating': 'Prepare to validate message...',
-  'error': 'Failed to validate message.',
+  'error': 'Unknown error',
   [VerifyStatus.CREATED]: 'Prepare to validate message...',
   [VerifyStatus.EXTRACTING]: 'Extracting SQL...',
   [VerifyStatus.VALIDATING]: 'Validation SQL...',
@@ -158,15 +132,15 @@ const errorIcon = <TriangleAlertIcon className="size-4 text-destructive" />;
 
 function MessageVerifyHeader ({ creating, error, result }: { creating?: boolean, error: unknown, result: MessageVerifyResponse | undefined }) {
   let icon: ReactElement | undefined;
-  let message: string | undefined;
+  let message: ReactNode | undefined;
   const indicatorVisible = result ? isVisibleVerifyState(result.status) : false;
 
   if (creating) {
-    icon = loadingIcon;
-    message = defaultMessages.creating;
+    icon = <Skeleton className="block w-4 h-4 my-0.5 rounded-full bg-muted-foreground/30" />;
+    message = <Skeleton className="inline-block w-48 h-4 my-0.5 rounded bg-muted-foreground/30" />;
   } else if (error) {
     icon = errorIcon;
-    message = getErrorMessage(error) ?? defaultMessages.error;
+    message = 'Failed to get post validation result.';
   } else {
     switch (result?.status) {
       case VerifyStatus.CREATED:
@@ -197,56 +171,4 @@ function MessageVerifyHeader ({ creating, error, result }: { creating?: boolean,
       <ChevronDownIcon className={cn('size-4 ml-auto transition-transform group-data-[state=open]:rotate-180', indicatorVisible ? 'visible' : 'invisible')} />
     </>
   );
-}
-
-function MessageVerifyRun ({ run }: { run: MessageVerifyResponse.Run }) {
-  const formattedSql = useMemo(() => {
-    try {
-      return format(run.sql, { language: 'tidb' });
-    } catch {
-      return run.sql;
-    }
-  }, [run.sql]);
-
-  const highlightedSql = useMemo(() => {
-    try {
-      const result = Highlight.highlight(formattedSql, { language: 'sql' });
-      return result.value;
-    } catch {
-      return formattedSql;
-    }
-  }, [formattedSql]);
-
-  return (
-    <div className="p-2 space-y-2">
-      <p className="text-sm">
-        {run.explanation}
-      </p>
-      {run.llm_verification && <div className={cn('p-2 rounded text-xs', run.success ? 'bg-green-500/10' : 'bg-red-500/10')}>
-        {run.success ? <CheckIcon className="text-green-500 inline-block size-3 align-middle mr-1" /> : <XIcon className="text-red-500 inline-block size-3 align-middle mr-1" />}
-        <span>{run.llm_verification}</span>
-      </div>}
-      <pre className="whitespace-pre-wrap text-xs">
-        <div>
-          <code className="hljs text-xs" dangerouslySetInnerHTML={{ __html: highlightedSql }} />
-        </div>
-        <div className="text-muted-foreground p-3">
-          {(run.sql_error_code || run.sql_error_message)
-            ? <><span className="font-bold">Error: </span>{`${run.sql_error_code} ${run.sql_error_message}`}</>
-            : <>{JSON.stringify(run.results)}</>}
-        </div>
-       </pre>
-    </div>
-  );
-}
-
-function composeRegenerateMessage (result: MessageVerifyResponse) {
-  return `Below are the results of my verification of the SQL examples mentioned in the above answer on TiDB Serverless. I hope to use this to verify the correctness of the answer:
-
-${result.runs.map(run => (`Explain: ${run.explanation}
-SQL: ${run.sql}
-SQL Result: ${(run.sql_error_code || run.sql_error_message) ? `${run.sql_error_code ?? '?????'} ${run.sql_error_message}` : JSON.stringify(run.results)}
-Validation Result: ${run.success ? 'Success' : 'Failed'}`)).join('\n\n')}
-`;
-
 }

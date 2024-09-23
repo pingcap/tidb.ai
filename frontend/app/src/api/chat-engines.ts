@@ -18,6 +18,8 @@ export interface ChatEngine {
 export interface ChatEngineOptions {
   knowledge_graph: ChatEngineKnowledgeGraphOptions;
   llm: ChatEngineLLMOptions;
+  post_verification_url?: string | null;
+  post_verification_token?: string | null;
 }
 
 export interface ChatEngineKnowledgeGraphOptions {
@@ -64,6 +66,8 @@ const llmOptionsSchema =
 const chatEngineOptionsSchema = z.object({
   knowledge_graph: kgOptionsSchema,
   llm: llmOptionsSchema,
+  post_verification_url: z.string().nullable().optional(),
+  post_verification_token: z.string().nullable().optional(),
 }) satisfies ZodType<ChatEngineOptions, any, any>;
 
 const chatEngineSchema = z.object({
