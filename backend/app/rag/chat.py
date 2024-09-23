@@ -499,8 +499,8 @@ class ChatService:
     def _post_verification(
         self, user_question: str, response_text: str, chat_id: UUID, message_id: int
     ):
-        post_verification_url = self.db_chat_engine.post_verification_url
-        post_verification_token = self.db_chat_engine.post_verification_token
+        post_verification_url = self.chat_engine_config.post_verification_url
+        post_verification_token = self.chat_engine_config.post_verification_token
 
         if not post_verification_url:
             return

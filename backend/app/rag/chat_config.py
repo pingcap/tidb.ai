@@ -76,6 +76,8 @@ class ChatEngineConfig(BaseModel):
     llm: LLMOption = LLMOption()
     knowledge_graph: KnowledgeGraphOption = KnowledgeGraphOption()
     vector_search: VectorSearchOption = VectorSearchOption()
+    post_verification_url: Optional[str] = None
+    post_verification_token: Optional[str] = None
 
     _db_chat_engine: Optional[DBChatEngine] = None
     _db_llm: Optional[DBLLM] = None
@@ -148,17 +150,16 @@ class ChatEngineConfig(BaseModel):
         return get_metadata_post_filter(self.vector_search.metadata_post_filters)
 
     def screenshot(self) -> dict:
-        data = self.model_dump(
+        return self.model_dump_json(
             exclude={
                 "llm": [
                     "condense_question_prompt",
                     "text_qa_prompt",
                     "refine_prompt",
-                ]
+                ],
+                "post_verification_token": True,
             }
         )
-        data["post_verification_url"] = self._db_chat_engine.post_verification_url
-        return json.dumps(data)
 
 
 def get_llm(
