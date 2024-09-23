@@ -14,6 +14,7 @@ const config: Config = {
     '../../app/src/components/chat/**/*.{ts,tsx}',
     '../../app/src/components/ui/**/*.{ts,tsx}',
     '../../app/src/components/remark-content/**/*.{ts,tsx}',
+    '../../app/src/experimental/chat-verify-service/**/*.{ts,tsx}',
   ],
   prefix: '',
   theme: {
