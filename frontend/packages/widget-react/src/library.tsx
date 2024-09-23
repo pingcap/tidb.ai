@@ -12,6 +12,7 @@ if (!script) {
 const controlled = script.dataset.controlled === 'true';
 const trigger = controlled ? true : document.getElementById('tidb-ai-trigger');
 const isMainSite = script.dataset.isMainSite === 'true';
+const chatEngine = script.dataset.chatEngine;
 
 loadConfig().then(async ({ settings, bootstrapStatus, experimentalFeatures }) => {
   const gtagConfigured = settings.ga_id ? prepareGtag(settings.ga_id, !isMainSite) : false;
@@ -41,6 +42,7 @@ loadConfig().then(async ({ settings, bootstrapStatus, experimentalFeatures }) =>
         icon={settings.custom_js_logo_src}
         bootstrapStatus={bootstrapStatus}
         experimentalFeatures={experimentalFeatures}
+        chatEngine={chatEngine}
       />
     </GtagProvider>,
   );

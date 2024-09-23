@@ -25,6 +25,7 @@ export interface WidgetProps {
   buttonIcon: string;
   icon: string;
   disableAutoThemeDetect?: boolean;
+  chatEngine?: string
 }
 
 export interface WidgetInstance {
@@ -33,7 +34,7 @@ export interface WidgetInstance {
   initialized: true;
 }
 
-export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trigger, experimentalFeatures, disableAutoThemeDetect = false, bootstrapStatus, exampleQuestions, icon, buttonIcon, buttonLabel }, ref) => {
+export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trigger, experimentalFeatures, disableAutoThemeDetect = false, bootstrapStatus, exampleQuestions, icon, buttonIcon, buttonLabel, chatEngine }, ref) => {
   const [open, setOpen] = useState(false);
   const [dark, setDark] = useState(() => matchMedia('(prefers-color-scheme: dark)').matches);
   const openRef = useRef(open);
@@ -183,7 +184,7 @@ export const Widget = forwardRef<WidgetInstance, WidgetProps>(({ container, trig
                                     key={index}
                                     variant="secondary"
                                     disabled={!!myChat.postState.params}
-                                    onClick={() => myChat.post({ content: question })}>
+                                    onClick={() => myChat.post({ content: question, chat_engine: chatEngine })}>
                                     {question}
                                   </Button>
                                 ))}
