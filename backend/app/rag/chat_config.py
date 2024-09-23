@@ -98,7 +98,7 @@ class ChatEngineConfig(BaseModel):
             logger.warning(
                 f"Chat engine {engine_name} not found in DB, using default engine"
             )
-            return cls()
+            db_chat_engine = chat_engine_repo.get_default_engine(session)
 
         obj = cls.model_validate(db_chat_engine.engine_options)
         obj._db_chat_engine = db_chat_engine
