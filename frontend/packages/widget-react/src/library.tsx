@@ -11,11 +11,10 @@ if (!script) {
 
 const controlled = script.dataset.controlled === 'true';
 const trigger = controlled ? true : document.getElementById('tidb-ai-trigger');
-const isMainSite = script.dataset.isMainSite === 'true';
 const chatEngine = script.dataset.chatEngine;
 
 loadConfig().then(async ({ settings, bootstrapStatus, experimentalFeatures }) => {
-  const gtagConfigured = settings.ga_id ? prepareGtag(settings.ga_id, !isMainSite) : false;
+  const gtagFn = settings.ga_id ? prepareGtag(settings.ga_id) : undefined;
   const div = document.createElement('div');
 
   div.id = 'tidb-ai-widget';
@@ -31,7 +30,7 @@ loadConfig().then(async ({ settings, bootstrapStatus, experimentalFeatures }) =>
   };
 
   ReactDOM.createRoot(div).render(
-    <GtagProvider configured={gtagConfigured} gtagId={settings.ga_id}>
+    <GtagProvider configured gtagFn={gtagFn} gtagId={settings.ga_id}>
       <Widget
         ref={refFn}
         container={div}
