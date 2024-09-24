@@ -1,4 +1,6 @@
+import time
 import dspy
+import logging
 from typing import List, Literal, Optional
 from pydantic import BaseModel, Field
 from sqlmodel import Session, select, func
@@ -6,8 +8,9 @@ from sqlmodel import Session, select, func
 from llama_index.core.embeddings.utils import EmbedType, resolve_embed_model
 from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
 
-from app.core.db import engine
 from app.models import SemanticCache
+
+logger = logging.getLogger(__name__)
 
 
 class SemanticItem(BaseModel):
@@ -123,7 +126,13 @@ class SemanticCacheManager:
     def search(
         self, session: Session, query: str, namespace: Optional[str] = None
     ) -> QASemanticOutput:
+        start_time = time.time()
         embedding = self.get_query_embedding(query)
+        logger.info(
+            f"[search_semantic_cache] Get query embedding {time.time() - start_time:.2f} seconds"
+        )
+        start_time = time.time()
+
         sql = (
             select(
                 SemanticCache,
@@ -148,6 +157,10 @@ class SemanticCacheManager:
                 for result in results
             ]
         )
+        logger.info(
+            f"[search_semantic_cache] Search semantic cache {time.time() - start_time:.2f} seconds"
+        )
+        start_time = time.time()
 
         if len(candidates.items) == 0:
             return {
@@ -156,6 +169,10 @@ class SemanticCacheManager:
             }
 
         pred = self.prog(query=query, candidats=candidates)
+        logger.info(
+            f"[search_semantic_cache] Predict semantic cache {time.time() - start_time:.2f} seconds"
+        )
+
         # filter the matched items and it's metadata
         matched_items = []
         for item in pred.output.items:
