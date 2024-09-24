@@ -1,3 +1,3 @@
-from .base import SemanticCacheManager, QA
+from .base import SemanticCacheManager, SemanticItem
 
-__all__ = ["SemanticCacheManager", "QA"]
+__all__ = ["SemanticCacheManager", "SemanticItem"]
