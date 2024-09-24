@@ -8,9 +8,6 @@ from app.rag.semantic_cache import SemanticCacheManager, SemanticItem
 
 router = APIRouter()
 
-scm = SemanticCacheManager()
-
-
 @router.post("/admin/semantic_cache")
 async def retrieve_documents(
     session: SessionDep,
