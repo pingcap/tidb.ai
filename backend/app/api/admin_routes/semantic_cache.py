@@ -54,16 +54,12 @@ async def search_semantic_cache(
     query: str,
     namespace: str = "default",
     chat_engine: str = "default",
-    using_fast_dspy_lm: bool = False,
 ) -> Dict:
 
     start_time = time.time()
     chat_engine_config = ChatEngineConfig.load_from_db(session, chat_engine)
-    if using_fast_dspy_lm:
-        _dspy_lm = chat_engine_config.get_fast_dspy_lm(session)
-    else:
-        _dspy_lm = chat_engine_config.get_dspy_lm(session)
-    logger.info(
+    _dspy_lm = chat_engine_config.get_dspy_lm(session)
+    logger.debug(
         f"[search_semantic_cache] Loading dspy_lm took {time.time() - start_time:.2f} seconds"
     )
 
@@ -77,7 +73,7 @@ async def search_semantic_cache(
         query=query,
         namespace=namespace,
     )
-    logger.info(
+    logger.debug(
         f"[search_semantic_cache] Searching semantic cache took {time.time() - start_time:.2f} seconds"
     )
     return response

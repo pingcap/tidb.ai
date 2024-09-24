@@ -136,7 +136,7 @@ class SemanticCacheManager:
     ) -> QASemanticOutput:
         start_time = time.time()
         embedding = self.get_query_embedding(query)
-        logger.info(
+        logger.debug(
             f"[search_semantic_cache] Get query embedding {time.time() - start_time:.2f} seconds"
         )
         start_time = time.time()
@@ -164,7 +164,7 @@ class SemanticCacheManager:
                 for result in results
             ]
         )
-        logger.info(
+        logger.debug(
             f"[search_semantic_cache] Search semantic cache {time.time() - start_time:.2f} seconds"
         )
         start_time = time.time()
@@ -176,10 +176,10 @@ class SemanticCacheManager:
             }
 
         pred = self.prog(query=query, candidats=candidates)
-        logger.info(
+        logger.debug(
             f"[search_semantic_cache] Predict semantic cache {time.time() - start_time:.2f} seconds"
         )
-        logger.info(f"[search_semantic_cache] Predict semantic cache {pred.output}")
+        logger.debug(f"[search_semantic_cache] Predict semantic cache {pred.output}")
 
         # filter the matched items and it's metadata
         matched_items = []
