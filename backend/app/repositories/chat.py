@@ -1,3 +1,4 @@
+import enum
 from uuid import UUID
 from typing import Optional, List
 from datetime import datetime, UTC, date
@@ -48,6 +49,8 @@ class ChatRepo(BaseRepo):
         chat_update: ChatUpdate,
     ) -> Chat:
         for field, value in chat_update.model_dump(exclude_unset=True).items():
+            if isinstance(value, enum.Enum):
+                value = value.value
             setattr(chat, field, value)
         session.commit()
         session.refresh(chat)
