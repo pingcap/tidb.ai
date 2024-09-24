@@ -143,7 +143,7 @@ class SemanticCacheManager:
             items=[
                 SemanticItem(
                     question=result.SemanticCache.query,
-                    answer=result.SemanticCache.value,
+                    answer="",
                 )
                 for result in results
             ]
