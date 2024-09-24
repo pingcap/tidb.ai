@@ -19,6 +19,7 @@ class SemanticItem(BaseModel):
     question: str = Field(description="The question in the question-answer pair.")
     answer: str = Field(description="The answer corresponding to the question.")
 
+
 class SemanticCandidate(BaseModel):
     """A single question pair for semantic search."""
 
@@ -36,8 +37,9 @@ class QASemanticOutput(BaseModel):
 
     match_type: Literal["exact_match", "no_match", "similar_match"] = Field(
         description=(
-            "The type of match found during the search. Use 'exact_match' if the query perfectly matches a question. "
-            "For all other cases, classify the match as 'no_match', 'similar_match'."
+            "The type of match found during the search. Use 'exact_match' if the query semantically matches the same "
+            "question, meaning it is asking about the exact same topic. "
+            "For all other cases, classify the match as 'no_match' or 'similar_match'."
         )
     )
     items: List[SemanticCandidate] = Field(
@@ -45,18 +47,19 @@ class QASemanticOutput(BaseModel):
             "The question-answer pair that matches the query. "
             "If the match_type is 'no_match', return an empty list. "
             "If the match_type is 'similar_match', return the most relevant questions."
-            "If the match_type is 'exact_match', return the question that is exactly matched."
+            "If the match_type is 'exact_match', return the question that is semantically identical to the query."
         )
     )
 
 
 class QASemanticSearchModule(dspy.Signature):
-    """This module performs a semantic search to identify the best matching question-answer pairs from a given set of candidates.
+    """
+    This module performs a semantic search to identify the best matching question-answer pairs from a given set of candidates.
 
     The semantic search process includes:
     - Comparing the query against a set of candidate question-answer pairs.
-    - Returning an 'exact_match' if the query perfectly matches a candidate question.
-    - Returning a 'similar_match' if the query is related to a candidate question but not an exact match.
+    - Returning an 'exact_match' if the query semantically matches a candidate question, meaning it is asking the exact same question.
+    - Returning a 'similar_match' if the query is related to a candidate question but does not semantically match exactly.
     - Returning a 'no_match' if the query does not match any candidate question.
 
     Note: The output items must be selected from the provided candidates.
@@ -66,7 +69,7 @@ class QASemanticSearchModule(dspy.Signature):
         description="The query string to search for within the candidates."
     )
     candidats: SemanticGroup = dspy.InputField(
-        description="A collection of frequently asked questions and their corresponding answers to search through."
+        description="A collection of frequently asked questions to search through."
     )
 
     output: QASemanticOutput = dspy.OutputField(
@@ -176,9 +179,7 @@ class SemanticCacheManager:
         logger.info(
             f"[search_semantic_cache] Predict semantic cache {time.time() - start_time:.2f} seconds"
         )
-        logger.info(
-            f"[search_semantic_cache] Predict semantic cache {pred.output}"
-        )
+        logger.info(f"[search_semantic_cache] Predict semantic cache {pred.output}")
 
         # filter the matched items and it's metadata
         matched_items = []
