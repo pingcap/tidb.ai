@@ -149,8 +149,13 @@ class SemanticCacheManager:
             ]
         )
 
-        pred = self.prog(query=query, candidats=candidates)
+        if len(candidates.items) == 0:
+            return {
+                "match_type": "no_match",
+                "items": [],
+            }
 
+        pred = self.prog(query=query, candidats=candidates)
         # filter the matched items and it's metadata
         matched_items = []
         for item in pred.output.items:
@@ -167,7 +172,4 @@ class SemanticCacheManager:
                     )
                     break
 
-        return {
-            "match_type": pred.output.match_type,
-            "items": matched_items
-        }
+        return {"match_type": pred.output.match_type, "items": matched_items}

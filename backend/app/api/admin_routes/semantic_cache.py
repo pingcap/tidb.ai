@@ -1,12 +1,15 @@
-from typing import Optional, List, Dict
+from typing import Optional, Dict
+import time
+import logging
 
-from fastapi import APIRouter
-from app.models import Document
+from fastapi import APIRouter, Body
 from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.rag.chat_config import ChatEngineConfig
 from app.rag.semantic_cache import SemanticCacheManager, SemanticItem
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 
 @router.post("/admin/semantic_cache")
@@ -16,8 +19,8 @@ async def add_semantic_cache(
     question: str,
     answer: str,
     namespace: str = "default",
-    metadata: Optional[dict] = None,
     chat_engine: str = "default",
+    metadata: Optional[dict] = Body(None),
 ) -> Dict:
     chat_engine_config = ChatEngineConfig.load_from_db(session, chat_engine)
     _dspy_lm = chat_engine_config.get_dspy_lm(session)
@@ -52,15 +55,25 @@ async def search_semantic_cache(
     namespace: str = "default",
     chat_engine: str = "default",
 ) -> Dict:
+
+    start_time = time.time()
     chat_engine_config = ChatEngineConfig.load_from_db(session, chat_engine)
     _dspy_lm = chat_engine_config.get_dspy_lm(session)
+    logger.info(
+        f"[search_semantic_cache] Loading dspy_lm took {time.time() - start_time:.2f} seconds"
+    )
 
     scm = SemanticCacheManager(
         dspy_llm=_dspy_lm,
     )
 
-    return scm.search(
+    start_time = time.time()
+    response = scm.search(
         session=session,
         query=query,
         namespace=namespace,
     )
+    logger.info(
+        f"[search_semantic_cache] Searching semantic cache took {time.time() - start_time:.2f} seconds"
+    )
+    return response
