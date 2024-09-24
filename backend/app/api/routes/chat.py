@@ -145,7 +145,9 @@ def get_chat(session: SessionDep, user: OptionalUserDep, chat_id: UUID):
 
 
 @router.put("/chats/{chat_id}")
-def update_chat(session: SessionDep, user: CurrentUserDep, chat_id: UUID, chat_update: ChatUpdate):
+def update_chat(
+    session: SessionDep, user: CurrentUserDep, chat_id: UUID, chat_update: ChatUpdate
+):
     chat = chat_repo.get(session, chat_id)
     if not chat:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Chat not found")

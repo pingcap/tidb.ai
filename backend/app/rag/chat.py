@@ -98,7 +98,9 @@ class ChatService:
                     user_id=self.user.id if self.user else None,
                     browser_id=self.browser_id,
                     origin=origin,
-                    visibility=ChatVisibility.PUBLIC if not self.user else ChatVisibility.PRIVATE,
+                    visibility=ChatVisibility.PUBLIC
+                    if not self.user
+                    else ChatVisibility.PRIVATE,
                 ),
             )
             chat_id = self.db_chat_obj.id
