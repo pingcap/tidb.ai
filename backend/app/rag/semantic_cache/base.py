@@ -172,6 +172,9 @@ class SemanticCacheManager:
         logger.info(
             f"[search_semantic_cache] Predict semantic cache {time.time() - start_time:.2f} seconds"
         )
+        logger.info(
+            f"[search_semantic_cache] Predict semantic cache {pred.output}"
+        )
 
         # filter the matched items and it's metadata
         matched_items = []
