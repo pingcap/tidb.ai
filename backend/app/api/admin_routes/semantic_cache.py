@@ -22,16 +22,14 @@ async def retrieve_documents(
     chat_engine: str = "default",
 ) -> List[Document]:
     chat_engine_config = ChatEngineConfig.load_from_db(session, chat_engine)
-    _embed_model = get_default_embedding_model(session)
     _dspy_lm = chat_engine_config.get_dspy_lm(session)
 
     scm = SemanticCacheManager(
         dspy_llm=_dspy_lm,
-        session=session,
-        embed_model=_embed_model,
     )
 
     return scm.add_cache(
+        session,
         item=SemanticItem(question=question, answer=answer),
         namespace=namespace,
         metadata=metadata,
@@ -47,16 +45,14 @@ async def retrieve_documents(
     chat_engine: str = "default",
 ) -> List[Document]:
     chat_engine_config = ChatEngineConfig.load_from_db(session, chat_engine)
-    _embed_model = get_default_embedding_model(session)
     _dspy_lm = chat_engine_config.get_dspy_lm(session)
 
     scm = SemanticCacheManager(
         dspy_llm=_dspy_lm,
-        session=session,
-        embed_model=_embed_model,
     )
 
-    return scm.search_cache(
+    return scm.search(
+        session=session,
         query=query,
         namespace=namespace,
     )
