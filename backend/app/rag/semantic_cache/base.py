@@ -116,7 +116,6 @@ class SemanticCacheManager:
         namespace: str,
         metadata: Optional[dict] = None,
     ):
-
         if metadata is None:
             metadata = {}
         metadata["namespace"] = namespace
