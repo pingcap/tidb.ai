@@ -58,7 +58,7 @@ export interface ChatMessageSource {
 export const chatSchema = z.object({
   title: z.string(),
   engine_id: z.number(),
-  engine_options: z.string().transform(value => JSON.parse(value) as ChatEngineOptions),
+  engine_options: z.any().transform(value => value as ChatEngineOptions),
   deleted_at: zodJsonDate().nullable(),
   user_id: z.string().nullable(),
   browser_id: z.string().nullable(),

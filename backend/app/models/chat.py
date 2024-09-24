@@ -1,5 +1,7 @@
+import enum
 from uuid import UUID
 from typing import Optional, Dict
+from pydantic import BaseModel
 from datetime import datetime
 
 from sqlmodel import (
@@ -7,10 +9,16 @@ from sqlmodel import (
     Column,
     DateTime,
     JSON,
+    SmallInteger,
     Relationship as SQLRelationship,
 )
 
 from .base import UUIDBaseModel, UpdatableBaseModel
+
+
+class ChatVisibility(int, enum.Enum):
+    PRIVATE = 0
+    PUBLIC = 1
 
 
 class Chat(UUIDBaseModel, UpdatableBaseModel, table=True):
@@ -34,5 +42,13 @@ class Chat(UUIDBaseModel, UpdatableBaseModel, table=True):
     )
     browser_id: str = Field(max_length=50, nullable=True)
     origin: str = Field(max_length=256, default=None, nullable=True)
+    visibility: ChatVisibility = Field(
+        sa_column=Column(SmallInteger, default=ChatVisibility.PRIVATE, nullable=False)
+    )
 
     __tablename__ = "chats"
+
+
+class ChatUpdate(BaseModel):
+    title: Optional[str] = None
+    visibility: Optional[ChatVisibility] = None

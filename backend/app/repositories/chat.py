@@ -7,7 +7,7 @@ from sqlmodel import select, Session, or_, func, case
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
-from app.models import Chat, User, ChatMessage
+from app.models import Chat, User, ChatMessage, ChatUpdate
 from app.repositories.base_repo import BaseRepo
 
 
@@ -40,6 +40,18 @@ class ChatRepo(BaseRepo):
         return session.exec(
             select(Chat).where(Chat.id == chat_id, Chat.deleted_at == None)
         ).first()
+
+    def update(
+        self,
+        session: Session,
+        chat: Chat,
+        chat_update: ChatUpdate,
+    ) -> Chat:
+        for field, value in chat_update.model_dump(exclude_unset=True).items():
+            setattr(chat, field, value)
+        session.commit()
+        session.refresh(chat)
+        return chat
 
     def delete(self, session: Session, chat: Chat):
         chat.deleted_at = datetime.now(UTC)
