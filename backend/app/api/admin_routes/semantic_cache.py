@@ -58,7 +58,7 @@ async def search_semantic_cache(
 
     start_time = time.time()
     chat_engine_config = ChatEngineConfig.load_from_db(session, chat_engine)
-    _dspy_lm = chat_engine_config.get_dspy_lm(session)
+    _dspy_lm = chat_engine_config.get_fast_dspy_lm(session)
     logger.info(
         f"[search_semantic_cache] Loading dspy_lm took {time.time() - start_time:.2f} seconds"
     )
