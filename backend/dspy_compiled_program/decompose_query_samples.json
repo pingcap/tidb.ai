@@ -110,5 +110,26 @@
       "target_entity":"TiDB 6.5 to Newest Version",
       "relationship_desc":"The performance improvement from TiDB 6.5 to the newest version.",
       "reasoning":"The main question the user is asking."
+    },
+    {
+      "query":"What are the feature changes in the latest version compared to v7.0 for TiDB?",
+      "source_entity":"TiDB",
+      "target_entity":"Latest Version",
+      "relationship_desc":"What is the latest version of TiDB?",
+      "reasoning":"The prerequist question need to be figured out."
+    },
+    {
+      "query":"What are the feature changes in the latest version compared to v7.0 for TiDB?",
+      "source_entity":"New and Deprecated Features",
+      "target_entity":"TiDB v7.0",
+      "relationship_desc":"what are the new features added and any features that have been deprecated or removed since TiDB v7.0.",
+      "reasoning":"The sub question to answer the main question."
+    },
+    {
+      "query":"What are the feature changes in the latest version compared to v7.0 for TiDB?",
+      "source_entity":"Feature Changes",
+      "target_entity":"TiDB 7.0 to Latest Version",
+      "relationship_desc":"The feature changes from TiDB 7.0 to the latest version.",
+      "reasoning":"The main question the user is asking."
     }
   ]

@@ -23,7 +23,7 @@ class DecomposedFactors(BaseModel):
     """Decomposed factors extracted from the query to form the knowledge graph"""
 
     relationships: List[RelationshipReasoning] = Field(
-        description="List of relationships representing the user's step-by-step intentions extracted from the query."
+        description="List of relationships representing the user's prerequisite and step-by-step intentions extracted from the query."
     )
 
 
@@ -32,8 +32,8 @@ class DecomposeQuery(dspy.Signature):
 
     ## Instructions:
 
-    - Decompose the user's query into a sequence of step-by-step intentions.
-    - Represent each intention as a relationship: (Source Entity) - [Relationship] -> (Target Entity).
+    - Break down the user's query into a sequence of prerequisite questions (e.g., identifying specific versions) and step-by-step intentions.
+    - Represent each prerequisite and intention as a relationship: (Source Entity) - [Relationship] -> (Target Entity).
     - Provide reasoning for each relationship, explaining the user's intention at that step.
     - Limit to no more than 5 relationships.
     - Ensure that the extracted relationships accurately reflect the user's real intentions.
