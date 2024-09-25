@@ -67,9 +67,9 @@ class RetrieveService:
             )
 
             if kg_config.using_intent_search:
-                intent_relationships = graph_index.intent_analyze(question)
+                sub_queries = graph_index.prerequisite_analyze(question)
                 result = graph_index.intent_based_search(
-                    intent_relationships, include_meta=True
+                    sub_queries, include_meta=True
                 )
 
                 graph_knowledges = get_prompt_by_jinja2_template(

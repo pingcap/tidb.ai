@@ -252,7 +252,7 @@ class ChatService:
                     ),
                 )
                 graph_index._callback_manager = _get_llamaindex_callback_manager()
-                intent_relationships = graph_index.intent_analyze(
+                sub_queries = graph_index.prerequisite_analyze(
                     self.user_question,
                     self.chat_history,
                 )
@@ -265,8 +265,8 @@ class ChatService:
                     ),
                 )
                 graph_index._callback_manager = _get_llamaindex_callback_manager()
-                result = graph_index.intent_based_search(
-                    intent_relationships,
+                result = graph_index.graph_semantic_search(
+                    sub_queries,
                     include_meta=True,
                     relationship_meta_filters=kg_config.relationship_meta_filters,
                 )

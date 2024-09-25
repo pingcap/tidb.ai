@@ -13,13 +13,13 @@ class Prerequisites(BaseModel):
         description="List of prerequisite questions necessary for answering the main query."
     )
 
-class DecomposeQueryPrerequisites(dspy.Signature):
+class DecomposePrerequisites(dspy.Signature):
     """You are an expert in query analysis and decomposition. Your task is to identify any prerequisite questions that need to be answered in order to fully address the main query.
 
     Step-by-Step Analysis:
 
     1. Analyze the main query to identify terms, references, or concepts that are unclear, ambiguous, or require additional information.
-       - Focus on entities like versions, specific terminologies, or any references that may not be immediately clear.
+        - Focus on entities like versions, specific terminologies, or any references that may not be immediately clear.
     2. Formulate clear and concise prerequisite questions that, when answered, will provide the necessary information to address the main query effectively.
 
     ## Instructions:
@@ -37,11 +37,11 @@ class DecomposeQueryPrerequisites(dspy.Signature):
         desc="The decomposed prerequisite questions extracted from the main query."
     )
 
-class DecomposeQueryPrerequisitesModule(dspy.Module):
+class DecomposePrerequisitesModule(dspy.Module):
     def __init__(self, dspy_lm: dspy.LM):
         super().__init__()
         self.dspy_lm = dspy_lm
-        self.prog = TypedChainOfThought(DecomposeQueryPrerequisites)
+        self.prog = TypedChainOfThought(DecomposePrerequisites)
 
     def forward(self, query):
         with dspy.settings.context(lm=self.dspy_lm):
@@ -49,7 +49,7 @@ class DecomposeQueryPrerequisitesModule(dspy.Module):
 
 class PrerequisiteAnalyzer:
     def __init__(self, dspy_lm: dspy.LM, compiled_program_path: Optional[str] = None):
-        self.prerequisite_analysis_prog = DecomposeQueryPrerequisitesModule(dspy_lm=dspy_lm)
+        self.prerequisite_analysis_prog = DecomposePrerequisitesModule(dspy_lm=dspy_lm)
         if compiled_program_path is not None:
             self.prerequisite_analysis_prog.load(compiled_program_path)
 
