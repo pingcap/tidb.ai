@@ -13,7 +13,7 @@ export function prepareGtag (id: string) {
   };
 
   fn('js', new Date());
-  fn('config', id, { page_view: false });
+  fn('config', id, { send_page_view: false });
 
   // To ensure not polluting the host gtag environments, we use an internal data layer variable in the widget project.
   // https://developers.google.com/tag-platform/tag-manager/datalayer#rename_the_data_layer
