@@ -25,6 +25,7 @@ const exampleData = {
     updated_at: new Date,
     browser_id: null,
     deleted_at: null,
+    origin: "None",
     engine_options: {
       llm: {
         condense_question_prompt: '',
@@ -58,7 +59,7 @@ const exampleData = {
     trace_url: '',
     updated_at: new Date(),
     user_id: '0',
-
+    post_verification_result_url: null,
   },
   user_message: {
     chat_id: 'mock',
@@ -73,6 +74,7 @@ const exampleData = {
     trace_url: '',
     updated_at: new Date(),
     user_id: '0',
+    post_verification_result_url: null,
   },
 } satisfies ChatInitialData;
 

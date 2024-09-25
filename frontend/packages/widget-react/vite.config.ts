@@ -52,7 +52,6 @@ export default defineConfig({
     'process.env.BASE_URL': process.env.NODE_ENV === 'development' ? '"https://tidbai-dev.htapdb.com"' : '""',
     'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV),
     'process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL': 'false',
-    'process.env.NEXT_PUBLIC_MOCKING_CHAT': 'false',
     'process.env.NEXT_PUBLIC_IS_WIDGET': 'true',
     'process.env.__NEXT_ROUTER_BASEPATH': '""',
   },
