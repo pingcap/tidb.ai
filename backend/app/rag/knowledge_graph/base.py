@@ -18,6 +18,7 @@ import llama_index.core.instrumentation as instrument
 
 from app.rag.knowledge_graph.extractor import SimpleGraphExtractor
 from app.rag.knowledge_graph.intent import IntentAnalyzer, RelationshipReasoning
+from app.rag.knowledge_graph.prerequisite import PrerequisiteAnalyzer, Prerequisites
 from app.rag.types import MyCBEventType
 from app.core.config import settings
 from app.core.db import Scoped_Session
@@ -87,6 +88,10 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
         self._intents = IntentAnalyzer(
             dspy_lm=dspy_lm,
             complied_program_path=settings.COMPLIED_INTENT_ANALYSIS_PROGRAM_PATH,
+        )
+        self._prerequisites_analyzer = PrerequisiteAnalyzer(
+            dspy_lm=dspy_lm,
+            compiled_program_path=settings.COMPLIED_PREREQUISITE_ANALYSIS_PROGRAM_PATH,
         )
 
         super().__init__(
@@ -210,7 +215,7 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
         self,
         query: str,
         chat_history: list = [],
-    ) -> List[RelationshipReasoning]:
+    ) -> List[str]:
         """Analyze the intent of the query."""
         chat_content = query
         if len(chat_history) > 0:
@@ -230,12 +235,44 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
                 payload={EventPayload.QUERY_STR: chat_content},
             ) as event:
                 intents = self._intents.analyze(chat_content)
-                event.on_end(payload={"relationships": intents.relationships})
-        return intents.relationships
+                semantic_queries = [
+                    f"{r.source_entity} -> {r.relationship_desc} -> {r.target_entity}"
+                    for r in intents.relationships
+                ]
+                event.on_end(payload={"semantic_queries": semantic_queries})
 
-    def intent_based_search(
+        return semantic_queries
+
+    def prerequisite_analyze(
         self,
-        intent_relationships: List[RelationshipReasoning],
+        query: str,
+        chat_history: list = [],
+    ) -> List[str]:
+        """Analyze the prerequisite of the query."""
+        chat_content = query
+        if len(chat_history) > 0:
+            chat_history_strings = [
+                f"{message.role.value}: {message.content}" for message in chat_history
+            ]
+            query_with_history = (
+                "++++ Chat History ++++\n"
+                + "\n".join(chat_history_strings)
+                + "++++ Chat History ++++\n"
+            )
+            chat_content = query_with_history + "\n\nThen the user asksq:\n" + query
+
+        with self._callback_manager.as_trace("prerequisites_based_search"):
+            with self._callback_manager.event(
+                MyCBEventType.INTENT_DECOMPOSITION,
+                payload={EventPayload.QUERY_STR: chat_content},
+            ) as event:
+                prerequisites = self._prerequisites_analyzer.analyze(chat_content)
+                event.on_end(payload={"semantic_queries": prerequisites.questions})
+        return prerequisites.questions
+
+    def graph_semantic_search(
+        self,
+        semantic_queries: List[str],
         depth: int = 2,
         include_meta: bool = False,
         relationship_meta_filters: Dict = {},
@@ -271,11 +308,6 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
                             "last_modified_at": r["last_modified_at"],
                         }
                     )
-
-        semantic_queries = [
-            f"{r.source_entity} -> {r.relationship_desc} -> {r.target_entity}"
-            for r in intent_relationships
-        ]
 
         def process_query(sub_query):
             logger.info(f"Processing query: {sub_query}")

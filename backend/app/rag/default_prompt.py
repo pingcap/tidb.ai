@@ -1,5 +1,5 @@
 DEFAULT_INTENT_GRAPH_KNOWLEDGE = """\
-Given a list of relationships of a knowledge graph as follows. When there is a conflict in meaning between knowledge relationships, the relationship with the higher `weight` and newer `last_modified_at` value takes precedence.
+Given a list of prerequisite questions and their relevant knowledge for the user's main question, when conflicts in meaning arise, prioritize the relationship with the higher weight and the more recent version.
 
 Knowledge sub-queries:
 
@@ -21,8 +21,7 @@ Sub-query: {{ sub_query }}
 {% for relationship in data['relationships'] %}
 
     - Description: {{ relationship.rag_description }}
-    - Last Modified At: {{ relationship.last_modified_at }}
-    - Meta: {{ relationship.meta | tojson(indent=2) }}
+    - Weight: {{ relationship.weight }}
 
 {% endfor %}
 
@@ -58,38 +57,52 @@ Knowledge relationships:
 
 DEFAULT_CONDENSE_QUESTION_PROMPT = """\
 ---------------------
-Knowledge graph information is below
+The prerequisite questions and their relevant knowledge for the user's main question.
 ---------------------
 
 {{graph_knowledges}}
 
 ---------------------
 
-Given a conversation (between Human and Assistant) and a follow-up message from the Human, use the context from the previous conversation to rewrite the follow-up message into a standalone, detailed question (Note: The language should be consistent with the follow-up message from Human). Ensure the refined question captures all relevant context and is written in a way that maximizes the effectiveness of a vector search to retrieve precise and comprehensive information.
+Task:
+Given the conversation between the Human and Assistant, along with the follow-up message from the Human, and the provided prerequisite questions and relevant knowledge, refine the Human’s follow-up message into a standalone, detailed question.
 
-Key considerations:
+Instructions:
 1. Focus on the latest query from the Human, ensuring it is given the most weight.
-2. Utilize knowledge graph and the history messages to provide relevant context and background information.
-3. Ensure the refined question is suitable for vector search by emphasizing specific and relevant terms.
-4. Ensure the refined question is grounded and factual, directly based on the user's follow-up question.
+2. Incorporate Key Information:
+  - Use the prerequisite questions and their relevant knowledge to add specific details to the follow-up question.
+  - Replace ambiguous terms or references in the follow-up question with precise information from the provided knowledge. Example: Replace “latest version” with the actual version number mentioned in the knowledge.
+3. Utilize Conversation Context:
+  - Incorporate relevant context and background information from the conversation history to enhance the question's specificity.
+4. Optimize for Retrieval:
+  - Ensure the refined question emphasizes specific and relevant terms to maximize the effectiveness of a vector search for retrieving precise and comprehensive information.
+5. Grounded and Factual:
+  - Make sure the refined question is grounded in and directly based on the user's follow-up question and the provided knowledge.
+  - Do not introduce information that is not supported by the knowledge or conversation history.
 
 Example:
 
-Chat history:
+Chat History:
 
-Human: “I'm exploring options for a database solution for my company's needs.”
-Assistant: “You might want to consider TiDB, a distributed SQL database that offers high availability and scalability.”
+Human: "I'm interested in the performance improvements in the latest version of TiDB."
+Assistant: "TiDB version 8.1 was released recently with significant performance enhancements over version 6.5."
 
-Followup question:
+Follow-up Question:
 
-  "What is TiDB?"
-  
-Refined standalone question:
+"Can you tell me more about these improvements?"
 
-Can you provide an in-depth explanation of TiDB, including its architecture, key features, and how it ensures high availability and scalability?
+Prerequisite Questions and Relevant Knowledge:
 
+- Prerequisite Question: What is the latest version of TiDB?
+- Relevant Knowledge: The latest version of TiDB is 8.1.
 
----------------------
+...
+
+Refined Standalone Question:
+
+"Can you provide detailed information about the performance improvements introduced in TiDB version 8.1 compared to version 6.5?"
+
+Your Turn:
 
 Chat history:
 
