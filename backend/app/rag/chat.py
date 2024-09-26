@@ -256,7 +256,7 @@ class ChatService:
                     ),
                 )
                 graph_index._callback_manager = _get_llamaindex_callback_manager()
-                sub_queries = graph_index.prerequisite_analyze(
+                sub_queries = graph_index.intent_analyze(
                     self.user_question,
                     self.chat_history,
                 )

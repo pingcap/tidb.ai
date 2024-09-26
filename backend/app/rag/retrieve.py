@@ -67,7 +67,7 @@ class RetrieveService:
             )
 
             if kg_config.using_intent_search:
-                sub_queries = graph_index.prerequisite_analyze(question)
+                sub_queries = graph_index.intent_analyze(question)
                 result = graph_index.graph_semantic_search(
                     sub_queries, include_meta=True
                 )
