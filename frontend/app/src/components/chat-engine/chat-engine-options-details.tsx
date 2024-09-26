@@ -31,7 +31,7 @@ export function ChatEngineOptionsDetails ({
         <div className="text-base font-medium">Post Verification</div>
         <div className="space-y-2 text-sm">
           <OptionDetail title="Post Validation URL" value={options.post_verification_url} editPanel={editable && <EditUrlForm chatEngine={editable} property="post_verification_url" />} />
-          <OptionDetail title="Post Validation Token" value="[HIDDEN]" editPanel={editable && <EditTokenForm chatEngine={editable} property="post_verification_token" />} />
+          {editable && <OptionDetail title="Post Validation Token" value="[HIDDEN]" editPanel={editable && <EditTokenForm chatEngine={editable} property="post_verification_token" />} />}
         </div>
       </section>
     </>

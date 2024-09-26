@@ -6,8 +6,6 @@ import { zodJsonDate } from '@/lib/zod';
 import { parseStreamPart } from 'ai';
 import { z, type ZodType } from 'zod';
 
-const mockChat = !!process.env.NEXT_PUBLIC_MOCKING_CHAT;
-
 type ClientEngineOptions = Omit<ChatEngineOptions, 'post_verification_token'>;
 
 export interface Chat {
@@ -58,7 +56,7 @@ export interface ChatMessageSource {
 export const chatSchema = z.object({
   title: z.string(),
   engine_id: z.number(),
-  engine_options: z.string().transform(value => JSON.parse(value) as ChatEngineOptions),
+  engine_options: z.object({}).passthrough().transform(value => value as never as ChatEngineOptions),
   deleted_at: zodJsonDate().nullable(),
   user_id: z.string().nullable(),
   browser_id: z.string().nullable(),
@@ -151,22 +149,6 @@ export async function getChatMessageSubgraph (chatMessageId: number): Promise<Kn
 }
 
 export async function* chat ({ chat_id, chat_engine, content, headers: headersInit, signal }: PostChatParams, onResponse?: (response: Response) => void) {
-  if (mockChat) {
-    const res = await fetch('/chats.mock.txt');
-    const text = await res.text();
-    for (let line of text.split('\n')) {
-      if (line.startsWith('0:')) {
-        await new Promise(resolve => setTimeout(resolve, 0));
-      } else {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-      }
-      if (line) {
-        yield parseStreamPart(line + '\n');
-      }
-    }
-    return;
-  }
-
   const headers = new Headers(headersInit);
   headers.set('Content-Type', 'application/json');
 

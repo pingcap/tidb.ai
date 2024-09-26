@@ -1,18 +1,15 @@
-import { type BaseCreateDatasourceParams, createDatasource, type Datasource } from '@/api/datasources';
+import { createDatasource, type Datasource } from '@/api/datasources';
 import { BasicCreateDatasourceFormLayout } from '@/components/datasource/BasicCreateDatasourceForm';
+import { createDatasourceBaseSchema } from '@/components/datasource/schema';
 import { FormInput } from '@/components/form/control-widget';
 import { FormPrimitiveArrayFieldBasicLayout } from '@/components/form/field-layout';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { z, type ZodType } from 'zod';
+import { z } from 'zod';
 
-const schema = z.object({
-  name: z.string(),
-  description: z.string(),
-  build_kg_index: z.boolean(),
+const schema = createDatasourceBaseSchema.extend({
   urls: z.string().url().array().min(1),
-  llm_id: z.number().nullable(),
-}) satisfies ZodType<BaseCreateDatasourceParams, any, any>;
+});
 
 export interface CreateWebSinglePageDatasourceFormProps {
   excludesLLM?: boolean;

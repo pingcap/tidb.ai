@@ -53,6 +53,9 @@ admin_reranker_model_options: List[RerankerModelOption] = [
         default_reranker_model="bge-reranker-v2-m3",
         reranker_model_description="",
         default_top_n=10,
+        default_config={
+            "api_url": "http://api.chat.prd.yumc.local/chat/v1/reranker",
+        },
         credentials_display_name="BaiSheng API Key",
         credentials_description="",
         credentials_type="str",

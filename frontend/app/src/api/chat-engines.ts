@@ -41,7 +41,7 @@ export type ChatEngineLLMOptions = {
   // provider: string;
   // reranker_provider: string;
   // reranker_top_k: number;
-} & Record<`${string}_chat_model`, string | undefined>
+}
 
 const kgOptionsSchema = z.object({
   depth: z.number(),

@@ -1,3 +1,4 @@
+import { useAuth } from '@/components/auth/AuthProvider';
 import { type ChatMessageGroup, useChatPostState, useCurrentChatController } from '@/components/chat/chat-hooks';
 import { DebugInfo } from '@/components/chat/debug-info';
 import { MessageAnnotationHistory } from '@/components/chat/message-annotation-history';
@@ -67,7 +68,8 @@ export function ConversationMessageGroups ({ groups }: { groups: ChatMessageGrou
 }
 
 function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
-  const enableDebug = !process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL;
+  const { me } = useAuth();
+  const enableDebug = !!me && !process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL;
 
   const [debugInfoOpen, setDebugInfoOpen] = useState(false);
   const [highlight, setHighlight] = useState(false);

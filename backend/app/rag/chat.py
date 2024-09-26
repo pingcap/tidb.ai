@@ -22,6 +22,7 @@ from app.models import (
     User,
     Document,
     Chunk,
+    ChatVisibility,
     Chat as DBChat,
     ChatMessage as DBChatMessage,
     LLM as DBLLM,
@@ -97,6 +98,9 @@ class ChatService:
                     user_id=self.user.id if self.user else None,
                     browser_id=self.browser_id,
                     origin=origin,
+                    visibility=ChatVisibility.PUBLIC.value
+                    if not self.user
+                    else ChatVisibility.PRIVATE.value,
                 ),
             )
             chat_id = self.db_chat_obj.id
@@ -556,11 +560,19 @@ def get_prompt_by_jinja2_template(template_string: str, **kwargs) -> PromptTempl
 
 
 def user_can_view_chat(chat: DBChat, user: Optional[User]) -> bool:
-    # Anonymous chat can be accessed by anyone
-    # Chat with owner can only be accessed by owner or superuser
-    if chat.user_id and not (user and (user.is_superuser or chat.user_id == user.id)):
+    # Anonymous or pulic chat can be accessed by anyone
+    # Non-anonymous chat can be accessed by owner or superuser
+    if not chat.user_id or chat.visibility == ChatVisibility.PUBLIC:
+        return True
+    return user is not None and (user.is_superuser or chat.user_id == user.id)
+
+
+def user_can_edit_chat(chat: DBChat, user: Optional[User]) -> bool:
+    if user is None:
         return False
-    return True
+    if user.is_superuser:
+        return True
+    return chat.user_id == user.id
 
 
 def get_graph_data_from_langfuse(trace_url: str):

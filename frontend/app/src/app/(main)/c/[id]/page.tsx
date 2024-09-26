@@ -11,8 +11,6 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { cache } from 'react';
 
-const mockChat = !!process.env.NEXT_PUBLIC_MOCKING_CHAT;
-
 const cachedGetChat = cache((id: string) => getChat(id)
   .then(res => {
     return res;
@@ -33,41 +31,37 @@ export default async function ChatDetailPage ({ params }: { params: { id: string
   let chat: Chat | undefined;
   let messages: ChatMessage[];
 
-  if (mockChat && id === '00000000-0000-0000-0000-00000000000') {
-    messages = [];
-  } else {
-    try {
-      const detail = await cachedGetChat(id);
-      chat = detail.chat;
-      messages = detail.messages;
-    } catch (error) {
-      if (isServerError(error, 403)) {
-        return (
-          <div className="h-screen flex items-center justify-center xl:pr-side bg-accent">
-            <ErrorCard
-              title="Access denied"
-              message="This chat is private"
-            >
-              <div className="flex gap-2 items-center mt-8">
-                {!me && (
-                  <Button asChild>
-                    <Link href="/auth/login">
-                      Login to continue
-                    </Link>
-                  </Button>
-                )}
-                <Button variant="ghost" asChild>
-                  <Link href="/">
-                    Back to homepage
+  try {
+    const detail = await cachedGetChat(id);
+    chat = detail.chat;
+    messages = detail.messages;
+  } catch (error) {
+    if (isServerError(error, 403)) {
+      return (
+        <div className="h-screen flex items-center justify-center xl:pr-side bg-accent">
+          <ErrorCard
+            title="Access denied"
+            message="This chat is private"
+          >
+            <div className="flex gap-2 items-center mt-8">
+              {!me && (
+                <Button asChild>
+                  <Link href="/auth/login">
+                    Login to continue
                   </Link>
                 </Button>
-              </div>
-            </ErrorCard>
-          </div>
-        );
-      }
-      throw error;
+              )}
+              <Button variant="ghost" asChild>
+                <Link href="/">
+                  Back to homepage
+                </Link>
+              </Button>
+            </div>
+          </ErrorCard>
+        </div>
+      );
     }
+    throw error;
   }
 
   const shouldOpen = me
@@ -91,11 +85,6 @@ export default async function ChatDetailPage ({ params }: { params: { id: string
 }
 
 export async function generateMetadata ({ params }: { params: { id: string } }): Promise<Metadata> {
-  if (mockChat && params.id === '00000000-0000-0000-0000-00000000000') {
-    return {
-      title: 'Mocking chat... | tidb.ai',
-    };
-  }
   try {
     const chat = await cachedGetChat(params.id);
 

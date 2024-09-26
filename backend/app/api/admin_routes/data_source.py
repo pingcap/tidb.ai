@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi_pagination import Params, Page
 
@@ -26,6 +26,12 @@ class DataSourceCreate(BaseModel):
     config: dict | list
     build_kg_index: bool = False
     llm_id: int | None = None
+
+    @field_validator("name")
+    def name_must_not_be_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("Please provide a name for the data source")
+        return v
 
 
 @router.post("/admin/datasources")
