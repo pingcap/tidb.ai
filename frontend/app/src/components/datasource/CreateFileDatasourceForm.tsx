@@ -1,19 +1,15 @@
-import { type BaseCreateDatasourceParams, createDatasource, type Datasource, uploadFiles } from '@/api/datasources';
+import { createDatasource, type Datasource, uploadFiles } from '@/api/datasources';
 import { BasicCreateDatasourceFormLayout } from '@/components/datasource/BasicCreateDatasourceForm';
+import { createDatasourceBaseSchema } from '@/components/datasource/schema';
 import { FormFieldBasicLayout } from '@/components/form/field-layout';
 import { FilesInput } from '@/components/form/widgets/FilesInput';
 import { zodFile } from '@/lib/zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
-import { z, type ZodType } from 'zod';
 
-const schema = z.object({
-  name: z.string(),
-  description: z.string(),
-  files: zodFile().array(),
-  build_kg_index: z.boolean(),
-  llm_id: z.number().nullable(),
-}) satisfies ZodType<BaseCreateDatasourceParams, any, any>;
+const schema = createDatasourceBaseSchema.extend({
+  files: zodFile().array().min(1),
+});
 
 export interface CreateFileDatasourceFormProps {
   excludesLLM?: boolean;
