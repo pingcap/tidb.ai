@@ -13,7 +13,8 @@
 
 #tidb-ai-widget {
   font-size: 16px;
-  h1, h2, h3, h4, h5, h6, span, b, strong, em, i {
+  h1, h2, h3, h4, h5, h6, span, b, strong, em, i, code {
     color: inherit;
+    background-color: inherit;
   }
 }
