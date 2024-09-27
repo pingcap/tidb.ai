@@ -43,6 +43,7 @@ from app.rag.knowledge_graph.graph_store import (
 )
 from app.rag.knowledge_graph import KnowledgeGraphIndex
 from app.rag.chat_config import ChatEngineConfig, get_default_embedding_model
+from app.rag.router import QueryRouter
 from app.rag.types import (
     MyCBEventType,
     ChatMessageSate,

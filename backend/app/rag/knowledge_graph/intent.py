@@ -3,6 +3,7 @@ import dspy
 from dspy.functional import TypedChainOfThought, TypedPredictor
 from typing import List, Optional
 from pydantic import BaseModel, Field
+from llama_index.core.tools import FunctionTool
 
 from app.rag.knowledge_graph.schema import Relationship
 
@@ -13,9 +14,7 @@ class RelationshipReasoning(Relationship):
     """Relationship between two entities extracted from the query"""
 
     reasoning: str = Field(
-        description=(
-            "Explanation of the user's intention for this step."
-        )
+        description=("Explanation of the user's intention for this step.")
     )
 
 
@@ -67,3 +66,23 @@ class IntentAnalyzer:
 
     def analyze(self, query: str) -> DecomposedFactors:
         return self.intent_anlysis_prog(query=query).factors
+
+    def as_tool_call(self):
+        def breakDownQuery(query: str) -> list[str]:
+            """
+            Break down a complex user query into sub-questions and solve them step-by-step.
+
+            If the query is complex, this function decomposes it into smaller sub-questions
+            and solves them individually. For simple and straightforward queries,
+            avoid calling this function.
+
+            Args:
+            query (str): The user's input query.
+
+            Returns:
+            str: The final result after solving all sub-questions.
+            """
+
+            return [query]
+
+        return FunctionTool.from_defaults(fn=breakDownQuery)
