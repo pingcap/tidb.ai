@@ -70,7 +70,7 @@ class IntentAnalyzer:
     def as_tool_call(self):
         def breakDownQuery(query: str) -> list[str]:
             """
-            Break down a complex user query into sub-questions and solve them step-by-step.
+            Break down the complex user query into sub-questions and solve them step-by-step.
 
             If the query is complex, this function decomposes it into smaller sub-questions
             and solves them individually. For simple and straightforward queries,
@@ -86,3 +86,13 @@ class IntentAnalyzer:
             return [query]
 
         return FunctionTool.from_defaults(fn=breakDownQuery)
+
+    def as_tool_call2(self):
+        def resolveSubQuestions(sub_questions: list[str]) -> str:
+            """
+            Resolve each sub-question individually and return their answer.
+            """
+
+            return ""
+
+        return FunctionTool.from_defaults(fn=resolveSubQuestions)
