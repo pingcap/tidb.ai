@@ -27,12 +27,12 @@ class DecomposedFactors(BaseModel):
 
 
 class DecomposeQuery(dspy.Signature):
-    """You are a knowledge base graph expert and are very good at building knowledge graphs. Now you are assigned to extract the user's step-by-step intentions from the query.
+    """You are a knowledge base graph expert and are very good at building knowledge graphs. Now you are assigned to extract the user's step-by-step questions from the query.
 
     ## Instructions:
 
-    - Break down the user's query into a sequence of prerequisite questions (e.g., identifying specific versions) and step-by-step intentions.
-    - Represent each prerequisite and intention as a relationship: (Source Entity) - [Relationship] -> (Target Entity).
+    - Break down the user's query into a sequence of prerequisite questions (e.g., identifying specific versions) and step-by-step questions.
+    - Represent each questions as a relationship: (Source Entity) - [Relationship] -> (Target Entity).
     - Provide reasoning for each relationship, explaining the user's intention at that step.
     - Limit to no more than 5 relationships.
     - Ensure that the extracted relationships accurately reflect the user's real intentions.
@@ -40,10 +40,10 @@ class DecomposeQuery(dspy.Signature):
     """
 
     query: str = dspy.InputField(
-        desc="The query text to extract the user's step-by-step intentions."
+        desc="The query text to extract the user's step-by-step questions."
     )
     factors: DecomposedFactors = dspy.OutputField(
-        desc="Representation of the user's step-by-step intentions extracted from the query."
+        desc="Representation of the user's step-by-step questions extracted from the query."
     )
 
 
@@ -87,12 +87,3 @@ class IntentAnalyzer:
 
         return FunctionTool.from_defaults(fn=breakDownQuery)
 
-    def as_tool_call2(self):
-        def resolveSubQuestions(sub_questions: list[str]) -> str:
-            """
-            Resolve each sub-question individually and return their answer.
-            """
-
-            return ""
-
-        return FunctionTool.from_defaults(fn=resolveSubQuestions)
