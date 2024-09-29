@@ -17,8 +17,8 @@ from llama_index.core.schema import BaseNode, TransformComponent
 import llama_index.core.instrumentation as instrument
 
 from app.rag.knowledge_graph.extractor import SimpleGraphExtractor
-from app.rag.knowledge_graph.intent import IntentAnalyzer, RelationshipReasoning
-from app.rag.knowledge_graph.prerequisite import PrerequisiteAnalyzer, Prerequisites
+from app.rag.knowledge_graph.intent import IntentAnalyzer
+from app.rag.knowledge_graph.prerequisite import PrerequisiteAnalyzer
 from app.rag.types import MyCBEventType
 from app.core.config import settings
 from app.core.db import Scoped_Session
@@ -236,8 +236,8 @@ class KnowledgeGraphIndex(BaseIndex[IndexLPG]):
             ) as event:
                 intents = self._intents.analyze(chat_content)
                 semantic_queries = [
-                    f"{r.source_entity} -> {r.relationship_desc} -> {r.target_entity}"
-                    for r in intents.relationships
+                    r.question
+                    for r in intents.questions
                 ]
                 event.on_end(payload={"semantic_queries": semantic_queries})
 

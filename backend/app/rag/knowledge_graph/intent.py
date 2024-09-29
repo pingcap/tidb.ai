@@ -10,19 +10,22 @@ from app.rag.knowledge_graph.schema import Relationship
 logger = logging.getLogger(__name__)
 
 
-class RelationshipReasoning(Relationship):
-    """Relationship between two entities extracted from the query"""
+class SubQuestion(BaseModel):
+    """Representation of a single step-by-step question extracted from the user query."""
 
+    question: str = Field(
+        description="A step-by-step question to address the user query."
+    )
     reasoning: str = Field(
-        description=("Explanation of the user's intention for this step.")
+        description="The rationale behind the relationship connecting the entities."
     )
 
 
 class SubQuestions(BaseModel):
     """Representation of the user's step-by-step questions extracted from the query."""
 
-    questions: List[RelationshipReasoning] = Field(
-        description="List of relationships representing the user's prerequisite and step-by-step intentions extracted from the query."
+    questions: List[SubQuestion] = Field(
+        description="List of questions representing a plan to address the user query."
     )
 
 
@@ -34,8 +37,8 @@ class DecomposeQuery(dspy.Signature):
 
     1. Dependency Analysis:
 
-	  - Analyze the user's query to identify the underlying dependencies and relationships between different components.
-	  - Construct a dependency graph that visually represents these relationships.
+          - Analyze the user's query to identify the underlying dependencies and relationships between different components.
+          - Construct a dependency graph that visually represents these relationships.
 
     2. Question Breakdown: Divide the query into a sequence of step-by-step questions necessary to address the main query comprehensively.
 
@@ -47,9 +50,9 @@ class DecomposeQuery(dspy.Signature):
     4. Provide Reasoning: Explain the rationale behind each relationship.
 
     5. Constraints:
-	  - Limit the output to no more than 5 relationships to maintain focus and relevance.
-	  - Ensure accuracy by reflecting the user's true intentions based on the provided query.
-	  - Ground all relationships and intentions in factual information derived directly from the user's input.
+          - Limit the output to no more than 5 relationships to maintain focus and relevance.
+          - Ensure accuracy by reflecting the user's true intentions based on the provided query.
+          - Ground all relationships and intentions in factual information derived directly from the user's input.
     """
 
     query: str = dspy.InputField(
@@ -99,4 +102,3 @@ class IntentAnalyzer:
             return [query]
 
         return FunctionTool.from_defaults(fn=breakDownQuery)
-
