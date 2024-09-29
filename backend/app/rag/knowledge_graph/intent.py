@@ -42,7 +42,7 @@ class DecomposeQuery(dspy.Signature):
 
     3. Provide Reasoning: Explain the rationale behind each question.
 
-    5. Constraints:
+    4. Constraints:
         - Limit the output to no more than 5 questions to maintain focus and relevance.
         - Ensure accuracy by reflecting the user's true intentions based on the provided query.
         - Ground all questions in factual information derived directly from the user's input.
