@@ -19,7 +19,7 @@ test.describe('Chat', () => {
       return await chatRequestPromise;
     });
 
-    await testNewChat(page, chatRequest, true);
+    await testNewChat(page, chatRequest, true, true);
   });
 
   test('From Keyboard Shortcut', async ({ page, baseURL }) => {
@@ -37,6 +37,6 @@ test.describe('Chat', () => {
       return await chatRequestPromise;
     });
 
-    await testNewChat(page, chatRequest, true);
+    await testNewChat(page, chatRequest, true, false);
   });
 });

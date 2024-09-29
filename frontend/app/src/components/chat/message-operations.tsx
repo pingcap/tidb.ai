@@ -52,7 +52,7 @@ export function MessageOperations ({ message }: { message: ChatMessageController
               <Tooltip>
                 <DialogTrigger asChild>
                   <TooltipTrigger asChild>
-                    <Button size="icon" variant="ghost" className="ml-auto rounded-full w-7 h-7" disabled={disabled} onClick={() => { setClicked('like'); }}>
+                    <Button size="icon" variant="ghost" className="ml-auto rounded-full w-7 h-7" disabled={disabled} onClick={() => { setClicked('like'); }} aria-label="Like This Answer">
                       <ThumbsUpIcon className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
@@ -66,7 +66,7 @@ export function MessageOperations ({ message }: { message: ChatMessageController
               <Tooltip>
                 <DialogTrigger asChild>
                   <TooltipTrigger asChild>
-                    <Button size="icon" variant="ghost" className="rounded-full w-7 h-7" disabled={disabled} onClick={() => { setClicked('dislike'); }}>
+                    <Button size="icon" variant="ghost" className="rounded-full w-7 h-7" disabled={disabled} onClick={() => { setClicked('dislike'); }} aria-label="Dislike This Answer">
                       <ThumbsDownIcon className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
