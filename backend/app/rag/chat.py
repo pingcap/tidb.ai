@@ -207,77 +207,78 @@ class ChatService:
             _embed_model,
         )
 
-        try:
-            cached_response = _semantic_cache_manager.search(
-                self.db_session,
-                self.user_question,
-            )
-            if cached_response['match_type'] == 'exact_match' and len(cached_response['items']) == 1 and 'meta' in cached_response['items'][0]:
-                # simple cache hit, return the cached response
-                cached_chat = cached_response['items'][0]['meta'].get('chat_detail', None)
-                if cached_chat and cached_chat.get('user_message_id', None) and cached_chat.get('assistant_message_id', None):
-                    # get the identical user message from the db
-                    cached_db_user_message = chat_repo.get_message(self.db_session, cached_chat.get('user_message_id', None))
-                    # get the identical assistant message from the db
-                    cached_db_assistant_message = chat_repo.get_message(self.db_session, cached_chat.get('assistant_message_id', None))
+        if settings.ENABLE_SEMANTIC_CACHE:
+            try:
+                cached_response = _semantic_cache_manager.search(
+                    self.db_session,
+                    self.user_question,
+                )
+                if cached_response['match_type'] == 'exact_match' and len(cached_response['items']) == 1 and 'meta' in cached_response['items'][0]:
+                    # simple cache hit, return the cached response
+                    cached_chat = cached_response['items'][0]['meta'].get('chat_detail', None)
+                    if cached_chat and cached_chat.get('user_message_id', None) and cached_chat.get('assistant_message_id', None):
+                        # get the identical user message from the db
+                        cached_db_user_message = chat_repo.get_message(self.db_session, cached_chat.get('user_message_id', None))
+                        # get the identical assistant message from the db
+                        cached_db_assistant_message = chat_repo.get_message(self.db_session, cached_chat.get('assistant_message_id', None))
 
-                    yield ChatEvent(
-                        event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-                        payload=ChatStreamMessagePayload(
-                            state=ChatMessageSate.TRACE,
-                            display="Searching from semantic sahce",
-                            context={"langfuse_url": cached_db_assistant_message.trace_url},
-                        ),
-                    )
-
-                    yield ChatEvent(
-                        event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-                        payload=ChatStreamMessagePayload(
-                            state=ChatMessageSate.SOURCE_NODES,
-                            context=cached_db_assistant_message.sources,
-                        ),
-                    )
-
-                    response_text = ""
-                    for word in cached_db_assistant_message.content:
-                        response_text += word
                         yield ChatEvent(
-                            event_type=ChatEventType.TEXT_PART,
-                            payload=word,
+                            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                            payload=ChatStreamMessagePayload(
+                                state=ChatMessageSate.TRACE,
+                                display="Searching from semantic sahce",
+                                context={"langfuse_url": cached_db_assistant_message.trace_url},
+                            ),
                         )
 
-                    yield ChatEvent(
-                        event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-                        payload=ChatStreamMessagePayload(
-                            state=ChatMessageSate.FINISHED,
-                        ),
-                    )
+                        yield ChatEvent(
+                            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                            payload=ChatStreamMessagePayload(
+                                state=ChatMessageSate.SOURCE_NODES,
+                                context=cached_db_assistant_message.sources,
+                            ),
+                        )
 
-                    db_assistant_message.sources = cached_db_assistant_message.sources
-                    db_assistant_message.graph_data = cached_db_assistant_message.graph_data
-                    db_assistant_message.content = cached_db_assistant_message.content
-                    db_assistant_message.post_verification_result_url = cached_db_assistant_message.post_verification_result_url
-                    db_assistant_message.updated_at = datetime.now(UTC)
-                    db_assistant_message.finished_at = datetime.now(UTC)
-                    self.db_session.add(db_assistant_message)
-                    db_user_message.graph_data = cached_db_user_message.graph_data
-                    db_user_message.updated_at = datetime.now(UTC)
-                    db_user_message.finished_at = datetime.now(UTC)
-                    self.db_session.add(db_user_message)
-                    self.db_session.commit()
+                        response_text = ""
+                        for word in cached_db_assistant_message.content:
+                            response_text += word
+                            yield ChatEvent(
+                                event_type=ChatEventType.TEXT_PART,
+                                payload=word,
+                            )
 
-                    yield ChatEvent(
-                        event_type=ChatEventType.DATA_PART,
-                        payload=ChatStreamDataPayload(
-                            chat=self.db_chat_obj,
-                            user_message=db_user_message,
-                            assistant_message=db_assistant_message,
-                        ),
-                    )
+                        yield ChatEvent(
+                            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                            payload=ChatStreamMessagePayload(
+                                state=ChatMessageSate.FINISHED,
+                            ),
+                        )
 
-                    return
-        except Exception as e:
-            logger.error(f"Failed to search from semantic cache: {e}")
+                        db_assistant_message.sources = cached_db_assistant_message.sources
+                        db_assistant_message.graph_data = cached_db_assistant_message.graph_data
+                        db_assistant_message.content = cached_db_assistant_message.content
+                        db_assistant_message.post_verification_result_url = cached_db_assistant_message.post_verification_result_url
+                        db_assistant_message.updated_at = datetime.now(UTC)
+                        db_assistant_message.finished_at = datetime.now(UTC)
+                        self.db_session.add(db_assistant_message)
+                        db_user_message.graph_data = cached_db_user_message.graph_data
+                        db_user_message.updated_at = datetime.now(UTC)
+                        db_user_message.finished_at = datetime.now(UTC)
+                        self.db_session.add(db_user_message)
+                        self.db_session.commit()
+
+                        yield ChatEvent(
+                            event_type=ChatEventType.DATA_PART,
+                            payload=ChatStreamDataPayload(
+                                chat=self.db_chat_obj,
+                                user_message=db_user_message,
+                                assistant_message=db_assistant_message,
+                            ),
+                        )
+
+                        return
+            except Exception as e:
+                logger.error(f"Failed to search from semantic cache: {e}")
 
         def _get_llamaindex_callback_manager():
             # Why we don't use high-level decorator `observe()` as \
