@@ -20,7 +20,7 @@ export async function testNewChat (page: Page, chatRequest: Request, validatePag
     expect(chatResponse.ok()).toBe(true);
 
     // Feedback button indicates chat ends.
-    await page.getByRole('button', { name: 'Like This Answer' }).waitFor({ state: 'visible' });
+    await page.getByRole('button', { name: 'Like This Answer', exact: true }).waitFor({ state: 'visible' });
 
     return await chatResponse.text();
   });
@@ -36,7 +36,7 @@ export async function testNewChat (page: Page, chatRequest: Request, validatePag
 
   if (typeof feedbackLike === 'boolean') {
     await test.step('Feedback', async () => {
-      const feedbackButton = page.getByRole('button', { name: feedbackLike ? 'Like This Answer' : 'Dislike This Answer' });
+      const feedbackButton = page.getByRole('button', { name: feedbackLike ? 'Like This Answer' : 'Dislike This Answer', exact: true });
       await feedbackButton.click();
       const dialog = page.getByRole('dialog', { name: 'Feedback' });
 
