@@ -5,8 +5,6 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 from llama_index.core.tools import FunctionTool
 
-from app.rag.knowledge_graph.schema import Relationship
-
 logger = logging.getLogger(__name__)
 
 
@@ -17,7 +15,7 @@ class SubQuestion(BaseModel):
         description="A step-by-step question to address the user query."
     )
     reasoning: str = Field(
-        description="The rationale behind the relationship connecting the entities."
+        description="The rationale behind the question to explain its relevance."
     )
 
 
@@ -42,17 +40,12 @@ class DecomposeQuery(dspy.Signature):
 
     2. Question Breakdown: Divide the query into a sequence of step-by-step questions necessary to address the main query comprehensively.
 
-    3. Relationship Representation:
-
-    - Express each question as a relationship using the following format: (Source Entity) - [Relationship] -> (Target Entity).
-    - Ensure clarity in how each relationship connects the entities involved.
-
-    4. Provide Reasoning: Explain the rationale behind each relationship.
+    3. Provide Reasoning: Explain the rationale behind each question.
 
     5. Constraints:
-        - Limit the output to no more than 5 relationships to maintain focus and relevance.
+        - Limit the output to no more than 5 questions to maintain focus and relevance.
         - Ensure accuracy by reflecting the user's true intentions based on the provided query.
-        - Ground all relationships and intentions in factual information derived directly from the user's input.
+        - Ground all questions in factual information derived directly from the user's input.
     """
 
     query: str = dspy.InputField(
