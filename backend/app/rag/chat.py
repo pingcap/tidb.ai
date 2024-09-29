@@ -212,9 +212,9 @@ class ChatService:
                 self.db_session,
                 self.user_question,
             )
-            if cached_response['match_type'] == 'exact_match' and len(cached_response['items']) == 1:
+            if cached_response['match_type'] == 'exact_match' and len(cached_response['items']) == 1 and 'meta' in cached_response['items'][0]:
                 # simple cache hit, return the cached response
-                cached_chat = cached_response['items'][0].get('chat_detail', None)
+                cached_chat = cached_response['items'][0]['meta'].get('chat_detail', None)
                 if cached_chat and cached_chat.get('user_message_id', None) and cached_chat.get('assistant_message_id', None):
                     # get the identical user message from the db
                     cached_db_user_message = chat_repo.get_message(self.db_session, cached_chat.get('user_message_id', None))
