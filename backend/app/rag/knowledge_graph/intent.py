@@ -5,44 +5,53 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 from llama_index.core.tools import FunctionTool
 
-from app.rag.knowledge_graph.schema import Relationship
-
 logger = logging.getLogger(__name__)
 
 
-class RelationshipReasoning(Relationship):
-    """Relationship between two entities extracted from the query"""
+class SubQuestion(BaseModel):
+    """Representation of a single step-by-step question extracted from the user query."""
 
+    question: str = Field(
+        description="A step-by-step question to address the user query."
+    )
     reasoning: str = Field(
-        description=("Explanation of the user's intention for this step.")
+        description="The rationale behind the question to explain its relevance."
     )
 
 
-class DecomposedFactors(BaseModel):
-    """Decomposed factors extracted from the query to form the knowledge graph"""
+class SubQuestions(BaseModel):
+    """Representation of the user's step-by-step questions extracted from the query."""
 
-    relationships: List[RelationshipReasoning] = Field(
-        description="List of relationships representing the user's prerequisite and step-by-step intentions extracted from the query."
+    questions: List[SubQuestion] = Field(
+        description="List of questions representing a plan to address the user query."
     )
 
 
 class DecomposeQuery(dspy.Signature):
-    """You are a knowledge base graph expert and are very good at building knowledge graphs. Now you are assigned to extract the user's step-by-step questions from the query.
+    """You are an expert in knowledge base graph construction, specializing in building comprehensive knowledge graphs.
+    Your current task is to deconstruct the user's query into a series of step-by-step questions.
 
     ## Instructions:
 
-    - Break down the user's query into a sequence of prerequisite questions (e.g., identifying specific versions) and step-by-step questions.
-    - Represent each questions as a relationship: (Source Entity) - [Relationship] -> (Target Entity).
-    - Provide reasoning for each relationship, explaining the user's intention at that step.
-    - Limit to no more than 5 relationships.
-    - Ensure that the extracted relationships accurately reflect the user's real intentions.
-    - Ensure that the relationships and intentions are grounded and factual, based on the information provided in the query.
+    1. Dependency Analysis:
+
+        - Analyze the user's query to identify the underlying dependencies and relationships between different components.
+        - Construct a dependency graph that visually represents these relationships.
+
+    2. Question Breakdown: Divide the query into a sequence of step-by-step questions necessary to address the main query comprehensively.
+
+    3. Provide Reasoning: Explain the rationale behind each question.
+
+    4. Constraints:
+        - Limit the output to no more than 5 questions to maintain focus and relevance.
+        - Ensure accuracy by reflecting the user's true intentions based on the provided query.
+        - Ground all questions in factual information derived directly from the user's input.
     """
 
     query: str = dspy.InputField(
         desc="The query text to extract the user's step-by-step questions."
     )
-    factors: DecomposedFactors = dspy.OutputField(
+    subquestions: SubQuestions = dspy.OutputField(
         desc="Representation of the user's step-by-step questions extracted from the query."
     )
 
@@ -64,8 +73,8 @@ class IntentAnalyzer:
         if complied_program_path is not None:
             self.intent_anlysis_prog.load(complied_program_path)
 
-    def analyze(self, query: str) -> DecomposedFactors:
-        return self.intent_anlysis_prog(query=query).factors
+    def analyze(self, query: str) -> SubQuestions:
+        return self.intent_anlysis_prog(query=query).subquestions
 
     def as_tool_call(self):
         def breakDownQuery(query: str) -> list[str]:
@@ -86,4 +95,3 @@ class IntentAnalyzer:
             return [query]
 
         return FunctionTool.from_defaults(fn=breakDownQuery)
-
