@@ -1,4 +1,4 @@
-import { useChatMessageField, useChatMessageStreamState, useCurrentChatController } from '@/components/chat/chat-hooks';
+import { useChatMessageStreamState } from '@/components/chat/chat-hooks';
 import { ChatMessageController } from '@/components/chat/chat-message-controller';
 import { MessageFeedback } from '@/components/chat/message-feedback';
 import { useMessageFeedback } from '@/components/chat/use-message-feedback';
@@ -12,10 +12,8 @@ import { CopyCheckIcon, CopyIcon, ThumbsDownIcon, ThumbsUpIcon } from 'lucide-re
 import { useState } from 'react';
 
 export function MessageOperations ({ message }: { message: ChatMessageController }) {
-  const controller = useCurrentChatController();
-  const traceUrl = useChatMessageField(message, 'trace_url');
   const streamState = useChatMessageStreamState(message);
-  const { feedbackData, feedback: callFeedback, disabled } = useMessageFeedback(message.id, !!traceUrl);
+  const { feedbackData, feedback: callFeedback, disabled } = useMessageFeedback(message.id);
   const [copied, setCopied] = useState(false);
   const [clicked, setClicked] = useState<'like' | 'dislike'>('like');
   const container = usePortalContainer();
