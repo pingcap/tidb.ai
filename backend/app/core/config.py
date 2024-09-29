@@ -60,6 +60,18 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str = "TiDB.AI"
     SENTRY_DSN: HttpUrl | None = None
+    SENTRY_TRACES_SAMPLE_RATE: float = 1.0
+    SENTRY_PROFILES_SAMPLE_RATE: float = 1.0
+
+    @model_validator(mode="after")
+    def _validate_sentry_sample_rate(self) -> Self:
+        if not self.SENTRY_DSN:
+            return self
+        if self.SENTRY_TRACES_SAMPLE_RATE < 0 or self.SENTRY_TRACES_SAMPLE_RATE > 1:
+            raise ValueError("SENTRY_TRACES_SAMPLE_RATE must be between 0 and 1")
+        if self.SENTRY_PROFILES_SAMPLE_RATE < 0 or self.SENTRY_PROFILES_SAMPLE_RATE > 1:
+            raise ValueError("SENTRY_PROFILES_SAMPLE_RATE must be between 0 and 1")
+        return self
 
     LOCAL_FILE_STORAGE_PATH: str = "/shared/data"
 
