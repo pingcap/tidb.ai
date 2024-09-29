@@ -202,13 +202,12 @@ class ChatService:
         _fast_llm = self.chat_engine_config.get_fast_llama_llm(self.db_session)
         _fast_dspy_lm = self.chat_engine_config.get_fast_dspy_lm(self.db_session)
 
-        _semantic_cache_manager = SemanticCacheManager(
-            _fast_dspy_lm,
-            _embed_model,
-        )
-
         if settings.ENABLE_SEMANTIC_CACHE:
             try:
+                _semantic_cache_manager = SemanticCacheManager(
+                    _fast_dspy_lm,
+                    _embed_model,
+                )
                 cached_response = _semantic_cache_manager.search(
                     self.db_session,
                     self.user_question,
