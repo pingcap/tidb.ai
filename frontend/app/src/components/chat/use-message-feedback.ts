@@ -15,7 +15,7 @@ export interface UseMessageFeedbackReturns {
   // deleteFeedback (): Promise<void>;
 }
 
-export function useMessageFeedback (messageId: number | undefined, enabled: boolean): UseMessageFeedbackReturns {
+export function useMessageFeedback (messageId: number | undefined, enabled: boolean = true): UseMessageFeedbackReturns {
   const [feedback, setFeedback] = useState<FeedbackParams>();
   const isLoading = false;
   const isValidating = false;

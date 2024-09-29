@@ -1,7 +1,8 @@
 import { expect, test } from '@playwright/test';
 import { getChatRequestPromise, QUESTION, testNewChat } from '../utils/chat';
+import { loginViaApi } from '../utils/login';
 
-test.describe('Chat', () => {
+test.describe.serial('Chat', () => {
   test('From Home Page', async ({ page, baseURL }) => {
     await test.step('Visit home page', async () => {
       await page.goto('/');
@@ -19,7 +20,7 @@ test.describe('Chat', () => {
       return await chatRequestPromise;
     });
 
-    await testNewChat(page, chatRequest, true);
+    await testNewChat(page, chatRequest, true, true);
   });
 
   test('From Keyboard Shortcut', async ({ page, baseURL }) => {
@@ -37,6 +38,13 @@ test.describe('Chat', () => {
       return await chatRequestPromise;
     });
 
-    await testNewChat(page, chatRequest, true);
+    await testNewChat(page, chatRequest, true, false);
+  });
+
+  test('Admin Feedback Page', async ({ page }) => {
+    await loginViaApi(page);
+    await page.goto('/feedbacks');
+    expect(await page.getByText('Good Good Good').count()).toBeGreaterThan(0);
+    expect(await page.getByText('Bad Bad Bad').count()).toBeGreaterThan(0);
   });
 });
