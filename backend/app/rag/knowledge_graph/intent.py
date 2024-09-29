@@ -37,22 +37,22 @@ class DecomposeQuery(dspy.Signature):
 
     1. Dependency Analysis:
 
-          - Analyze the user's query to identify the underlying dependencies and relationships between different components.
-          - Construct a dependency graph that visually represents these relationships.
+        - Analyze the user's query to identify the underlying dependencies and relationships between different components.
+        - Construct a dependency graph that visually represents these relationships.
 
     2. Question Breakdown: Divide the query into a sequence of step-by-step questions necessary to address the main query comprehensively.
 
     3. Relationship Representation:
 
-      - Express each question as a relationship using the following format: (Source Entity) - [Relationship] -> (Target Entity).
-      - Ensure clarity in how each relationship connects the entities involved.
+    - Express each question as a relationship using the following format: (Source Entity) - [Relationship] -> (Target Entity).
+    - Ensure clarity in how each relationship connects the entities involved.
 
     4. Provide Reasoning: Explain the rationale behind each relationship.
 
     5. Constraints:
-          - Limit the output to no more than 5 relationships to maintain focus and relevance.
-          - Ensure accuracy by reflecting the user's true intentions based on the provided query.
-          - Ground all relationships and intentions in factual information derived directly from the user's input.
+        - Limit the output to no more than 5 relationships to maintain focus and relevance.
+        - Ensure accuracy by reflecting the user's true intentions based on the provided query.
+        - Ground all relationships and intentions in factual information derived directly from the user's input.
     """
 
     query: str = dspy.InputField(
