@@ -42,7 +42,7 @@ export async function testNewChat (page: Page, chatRequest: Request, validatePag
 
       await dialog.waitFor({ state: 'visible' });
       const comments = page.getByPlaceholder('Comments...');
-      await comments.pressSequentially('Good Good Good');
+      await comments.pressSequentially(feedbackLike ? 'Good Good Good' : 'Bad Bad Bad');
       await page.getByText('Add feedback', { exact: true }).click();
 
       await dialog.waitFor({ state: 'hidden' });
