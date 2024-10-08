@@ -135,6 +135,25 @@ class RetrieveService:
 
         return source_documents
 
+    def _embedding_retrieve(self, question: str, top_k: int) -> List[Document]:
+        _embed_model = get_default_embedding_model(self.db_session)
+
+        vector_store = TiDBVectorStore(session=self.db_session)
+        vector_index = VectorStoreIndex.from_vector_store(
+            vector_store,
+            embed_model=_embed_model,
+        )
+
+        retrieve_engine = vector_index.as_retriever(
+            node_postprocessors=[self._reranker],
+            similarity_top_k=top_k,
+        )
+
+        node_list: List[NodeWithScore] = retrieve_engine.retrieve(question)
+        source_documents = self._get_source_documents(node_list)
+
+        return source_documents
+
     def _get_source_documents(self, node_list: List[NodeWithScore]) -> List[Document]:
         source_nodes_ids = [s_n.node_id for s_n in node_list]
         stmt = select(Document).where(
