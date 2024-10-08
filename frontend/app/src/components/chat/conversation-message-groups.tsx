@@ -69,7 +69,7 @@ export function ConversationMessageGroups ({ groups }: { groups: ChatMessageGrou
 
 function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
   const { me } = useAuth();
-  const enableDebug = !!me && !process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL;
+  const enableDebug = /* !!me && */ !process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL;
 
   const [debugInfoOpen, setDebugInfoOpen] = useState(false);
   const [highlight, setHighlight] = useState(false);
