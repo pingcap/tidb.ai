@@ -14,10 +14,10 @@ outputs:
     description: Should build frontend
   should-build-backend:
     description: Should build backend
-  e2e-reuse-frontend:
-    description: Frontend docker version (false or string)
-  e2e-reuse-backend:
-    description: Frontend docker version (false or string)
+  e2e-frontend:
+    description: Frontend docker version
+  e2e-backend:
+    description: Frontend docker version
 runs:
   using: 'node20'
   main: 'index.js'

@@ -39,8 +39,8 @@ jobs:
           ${{(startsWith(github.ref, 'refs/tags/') && 'linux/arm64') || ''}}
         should-build-frontend: ${{steps.decide.outputs.should-build-frontend}}
         should-build-backend: ${{steps.decide.outputs.should-build-backend}}
-        e2e-reuse-frontend: ${{steps.decide.outputs.e2e-reuse-frontend}}
-        e2e-reuse-backend: ${{steps.decide.outputs.e2e-reuse-backend}}
+        e2e-frontend: ${{steps.decide.outputs.e2e-frontend}}
+        e2e-backend: ${{steps.decide.outputs.e2e-backend}}
       permissions:
         contents: read
       steps:
@@ -170,18 +170,19 @@ jobs:
           run: npm ci
 
         - name: Install Playwright Browsers
-          run: npx playwright install --with-deps
+          run: npx playwright install --with-deps chromium
 
         - name: Fetch Images
           run: ./prepare-test.sh
           env:
-            E2E_DOCKER_TAG: sha-${{ github.sha }}-dev
+            E2E_DOCKER_TAG_FRONTEND: ${{ needs.docker-metadata.outputs.e2e-frontend}}
+            E2E_DOCKER_TAG_BACKEND: ${{ needs.docker-metadata.outputs.e2e-backend}}
 
         - name: Run tests
           run: ./start-test.sh
           env:
-            E2E_DOCKER_TAG_FRONTEND: ${{ needs.docker-metadata.outputs.e2e-reuse-frontend || format('sha-{0}-dev', github.sha) }}
-            E2E_DOCKER_TAG_BACKEND: ${{ needs.docker-metadata.outputs.e2e-reuse-backend || format('sha-{0}-dev', github.sha) }}
+            E2E_DOCKER_TAG_FRONTEND: ${{ needs.docker-metadata.outputs.e2e-frontend}}
+            E2E_DOCKER_TAG_BACKEND: ${{ needs.docker-metadata.outputs.e2e-backend}}
             E2E_LLM_PROVIDER: ${{vars.E2E_LLM_PROVIDER}}
             E2E_LLM_MODEL: ${{vars.E2E_LLM_MODEL || ''}}
             E2E_LLM_CREDENTIALS: ${{secrets.E2E_LLM_CREDENTIALS}}
