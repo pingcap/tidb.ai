@@ -175,14 +175,14 @@ jobs:
         - name: Fetch Images
           run: ./prepare-test.sh
           env:
-            E2E_DOCKER_TAG_FRONTEND: ${{ needs.docker-metadata.outputs.e2e-frontend}}
-            E2E_DOCKER_TAG_BACKEND: ${{ needs.docker-metadata.outputs.e2e-backend}}
+            E2E_DOCKER_TAG_FRONTEND: ${{needs.docker-metadata.outputs.e2e-frontend}}
+            E2E_DOCKER_TAG_BACKEND: ${{needs.docker-metadata.outputs.e2e-backend}}
 
         - name: Run tests
           run: ./start-test.sh
           env:
-            E2E_DOCKER_TAG_FRONTEND: ${{ needs.docker-metadata.outputs.e2e-frontend}}
-            E2E_DOCKER_TAG_BACKEND: ${{ needs.docker-metadata.outputs.e2e-backend}}
+            E2E_DOCKER_TAG_FRONTEND: ${{needs.docker-metadata.outputs.e2e-frontend}}
+            E2E_DOCKER_TAG_BACKEND: ${{needs.docker-metadata.outputs.e2e-backend}}
             E2E_LLM_PROVIDER: ${{vars.E2E_LLM_PROVIDER}}
             E2E_LLM_MODEL: ${{vars.E2E_LLM_MODEL || ''}}
             E2E_LLM_CREDENTIALS: ${{secrets.E2E_LLM_CREDENTIALS}}
