@@ -20,6 +20,7 @@ function run() {
   if (!!(label = findPRLabel(label => label.name.startsWith(FRONTEND_PREFIX)))) {
     core.setOutput('should-build-frontend', false);
     core.setOutput('e2e-reuse-frontend', label.name.slice(FRONTEND_PREFIX.length));
+    core.info(`E2E Frontend reuse: ${label.name.slice(FRONTEND_PREFIX.length)}`);
   } else {
     core.setOutput('should-build-frontend', true);
     core.setOutput('e2e-reuse-frontend', false);
@@ -27,6 +28,7 @@ function run() {
   if (!!(label = findPRLabel(label => label.name.startsWith(BACKEND_PREFIX)))) {
     core.setOutput('should-build-backend', false);
     core.setOutput('e2e-reuse-backend', label.name.slice(BACKEND_PREFIX.length));
+    core.info(`E2E Backend reuse: ${label.name.slice(BACKEND_PREFIX.length)}`);
   } else {
     core.setOutput('should-build-backend', true);
     core.setOutput('e2e-reuse-backend', false);
