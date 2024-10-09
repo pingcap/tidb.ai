@@ -367,6 +367,7 @@ class ChatService:
         callback_manager = _get_llamaindex_callback_manager()
         text_qa_template = get_prompt_by_jinja2_template(
             self.chat_engine_config.llm.text_qa_prompt,
+            current_date=datetime.now().strftime("%Y-%m-%d"),
             graph_knowledges=graph_knowledges_context,
             original_question=self.user_question,
         )

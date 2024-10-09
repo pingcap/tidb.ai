@@ -121,6 +121,7 @@ Refined standalone question:
 
 
 DEFAULT_TEXT_QA_PROMPT = """\
+Current Date: {{current_date}}
 ---------------------
 Knowledge graph information is below
 ---------------------
