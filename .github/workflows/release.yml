@@ -37,9 +37,27 @@ jobs:
         platforms: |
           linux/amd64
           ${{(startsWith(github.ref, 'refs/tags/') && 'linux/arm64') || ''}}
+        should-build-frontend: ${{steps.decide.outputs.should-build-frontend}}
+        should-build-backend: ${{steps.decide.outputs.should-build-backend}}
+        e2e-reuse-frontend: ${{steps.decide.outputs.e2e-reuse-frontend}}
+        e2e-reuse-backend: ${{steps.decide.outputs.e2e-reuse-backend}}
       permissions:
         contents: read
       steps:
+        - uses: actions/checkout@v4
+        - uses: actions/setup-node@v4
+          with:
+            node-version: lts/*
+            cache: npm
+            cache-dependency-path: .github/actions/*/package-lock.json
+        - run: npm ci
+          working-directory: .github/actions/decide
+        - name: Decide
+          id: decide
+          uses: ./.github/actions/decide/
+          with:
+            pr-e2e-frontend-label-prefix: 'e2e-frontend:'
+            pr-e2e-backend-label-prefix: 'e2e-backend:'
         - name: Docker metadata
           id: meta
           uses: docker/metadata-action@v5
@@ -59,29 +77,25 @@ jobs:
       name: Build and Push Backend Image
       runs-on: ubuntu-latest
       needs: docker-metadata
+      if: ${{needs.docker-metadata.outputs.should-build-backend}}
       permissions:
         contents: read
         packages: write
         attestations: write
         id-token: write
       steps:
-        -
-          name: Checkout
+        - name: Checkout
           uses: actions/checkout@v4
-        -
-          name: Login to Docker Hub
+        - name: Login to Docker Hub
           uses: docker/login-action@v3
           with:
             username: ${{ secrets.RELEASE_DOCKERHUB_USERNAME }}
             password: ${{ secrets.RELEASE_DOCKERHUB_TOKEN }}
-        -
-          name: Set up QEMU
+        - name: Set up QEMU
           uses: docker/setup-qemu-action@v3
-        -
-          name: Set up Docker Buildx
+        - name: Set up Docker Buildx
           uses: docker/setup-buildx-action@v3
-        -
-          name: Build and push backend
+        - name: Build and push backend
           uses: docker/build-push-action@v6
           with:
             context: backend
@@ -97,29 +111,25 @@ jobs:
       name: Build and Push Frontend Image
       runs-on: ubuntu-latest
       needs: docker-metadata
+      if: ${{needs.docker-metadata.outputs.should-build-frontend}}
       permissions:
         contents: read
         packages: write
         attestations: write
         id-token: write
       steps:
-        -
-          name: Checkout
+        - name: Checkout
           uses: actions/checkout@v4
-        -
-          name: Login to Docker Hub
+        - name: Login to Docker Hub
           uses: docker/login-action@v3
           with:
             username: ${{ secrets.RELEASE_DOCKERHUB_USERNAME }}
             password: ${{ secrets.RELEASE_DOCKERHUB_TOKEN }}
-        -
-          name: Set up QEMU
+        - name: Set up QEMU
           uses: docker/setup-qemu-action@v3
-        -
-          name: Set up Docker Buildx
+        - name: Set up Docker Buildx
           uses: docker/setup-buildx-action@v3
-        -
-          name: Build and push frontend
+        - name: Build and push frontend
           uses: docker/build-push-action@v6
           with:
             context: .
@@ -140,8 +150,13 @@ jobs:
         run:
           working-directory: e2e
       needs:
+        - docker-metadata
         - build-backend
         - build-frontend
+      if: |
+        !cancelled() &&
+        !contains(needs.*.result, 'failure') &&
+        !contains(needs.*.result, 'cancelled')
       steps:
         - uses: actions/checkout@v4
 
@@ -165,7 +180,8 @@ jobs:
         - name: Run tests
           run: ./start-test.sh
           env:
-            E2E_DOCKER_TAG: sha-${{ github.sha }}-dev
+            E2E_DOCKER_TAG_FRONTEND: ${{ needs.docker-metadata.outputs.e2e-reuse-frontend || format('sha-{0}-dev', github.sha) }}
+            E2E_DOCKER_TAG_BACKEND: ${{ needs.docker-metadata.outputs.e2e-reuse-backend || format('sha-{0}-dev', github.sha) }}
             E2E_LLM_PROVIDER: ${{vars.E2E_LLM_PROVIDER}}
             E2E_LLM_MODEL: ${{vars.E2E_LLM_MODEL || ''}}
             E2E_LLM_CREDENTIALS: ${{secrets.E2E_LLM_CREDENTIALS}}

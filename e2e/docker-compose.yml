@@ -14,7 +14,7 @@ services:
       - ${E2E_DATA_REDIS_DIR:-.data/redis}:/data
 
   backend:
-    image: tidbai/backend:${E2E_DOCKER_TAG}
+    image: tidbai/backend:${E2E_DOCKER_TAG_BACKEND}
     restart: always
     depends_on:
       - redis
@@ -31,7 +31,7 @@ services:
         max-file: "6"
 
   frontend:
-    image: tidbai/frontend:${E2E_DOCKER_TAG}
+    image: tidbai/frontend:${E2E_DOCKER_TAG_FRONTEND}
     restart: always
     depends_on:
       - backend
@@ -48,7 +48,7 @@ services:
         max-file: "6"
 
   background:
-    image: tidbai/backend:${E2E_DOCKER_TAG}
+    image: tidbai/backend:${E2E_DOCKER_TAG_BACKEND}
     restart: always
     depends_on:
       - redis

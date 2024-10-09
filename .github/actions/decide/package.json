@@ -1,0 +1,10 @@
+{
+  "name": "@tidbai/ci-decide-action",
+  "version": "1.0.0",
+  "type": "module",
+  "module": "index.js",
+  "devDependencies": {
+    "@actions/core": "^1.11.1",
+    "@actions/github": "^6.0.0"
+  }
+}
