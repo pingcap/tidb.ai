@@ -1,0 +1,23 @@
+name: 'Decide action'
+description: "See issue https://github.com/pingcap/tidb.ai/issues/314"
+inputs:
+  pr-e2e-frontend-label-prefix:
+    description: "Defaults to 'e2e-frontend:'."
+    required: true
+    default: "e2e-frontend:"
+  pr-e2e-backend-label-prefix:
+    description: "Defaults to 'e2e-frontend:'."
+    required: true
+    default: "e2e-backend:"
+outputs:
+  should-build-frontend:
+    description: Should build frontend
+  should-build-backend:
+    description: Should build backend
+  e2e-frontend:
+    description: Frontend docker version
+  e2e-backend:
+    description: Frontend docker version
+runs:
+  using: 'node20'
+  main: 'index.js'
