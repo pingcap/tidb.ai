@@ -58,10 +58,11 @@ export async function testNewChat (browser: Browser, page: Page, chatRequest: Re
       const href = await link.getAttribute('href');
       const langfusePage = await browser.newPage();
       await langfusePage.goto(href);
+      await langfusePage.bringToFront();
 
       await langfusePage.getByLabel('Email').fill('langfuse@tidb.ai');
       await langfusePage.getByLabel('Password').fill('password');
-      await langfusePage.locator('form').getByText('Sign in').click();
+      await langfusePage.locator('form').locator('..').getByText('Sign in').click();
 
       await langfusePage.getByText('loading...').waitFor({ state: 'hidden' });
 
