@@ -61,7 +61,7 @@ export async function testNewChat (browser: Browser, page: Page, chatRequest: Re
 
       await langfusePage.getByLabel('Email').fill('langfuse@tidb.ai');
       await langfusePage.getByLabel('Password').fill('password');
-      await langfusePage.getByText('Sign in').click();
+      await langfusePage.locator('form').getByText('Sign in').click();
 
       await langfusePage.getByText('loading...').waitFor({ state: 'hidden' });
 
