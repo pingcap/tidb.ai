@@ -1,13 +1,17 @@
 import { authenticationHeaders, handleResponse, requestUrl } from '@/lib/request';
 import { z, type ZodType } from 'zod';
 
-export type IndexProgress = {
-  not_started?: number
-  pending?: number
-  running?: number
-  completed?: number
-  failed?: number
-}
+export const indexStatuses = [
+  'not_started',
+  'pending',
+  'running',
+  'completed',
+  'failed',
+] as const;
+
+export type IndexStatus = typeof indexStatuses[number];
+
+export type IndexProgress = Partial<Record<IndexStatus, number>>
 
 export type IndexTotalStats = {
   total: number

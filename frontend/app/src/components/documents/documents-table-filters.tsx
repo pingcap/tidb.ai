@@ -1,14 +1,17 @@
-import { type Document, listDocumentsFiltersSchema, type ListDocumentsTableFilters } from '@/api/documents';
+import { type Document, listDocumentsFiltersSchema, type ListDocumentsTableFilters, mimeTypes } from '@/api/documents';
+import { indexStatuses } from '@/api/rag';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Table as ReactTable } from '@tanstack/react-table';
+import { capitalCase } from 'change-case-all';
 import { ChevronDownIcon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 
-export function DocumentsTableFilters ({ onFilterChange, datasourceId }: { table: ReactTable<Document>, datasourceId?: number | undefined, onFilterChange: (data: ListDocumentsTableFilters) => void }) {
+export function DocumentsTableFilters ({ onFilterChange }: { table: ReactTable<Document>, onFilterChange: (data: ListDocumentsTableFilters) => void }) {
   const form = useForm({
     resolver: zodResolver(listDocumentsFiltersSchema),
   });
@@ -21,34 +24,78 @@ export function DocumentsTableFilters ({ onFilterChange, datasourceId }: { table
     <Form {...form}>
       <form className="space-y-4" onSubmit={onSubmit}>
         <FormField
-          name="source_uri"
+          name="name"
           render={({ field }) => (
             <FormItem>
               <FormControl>
-                <Input {...field} value={field.value ?? ''} placeholder="Search Source URI..." />
+                <Input {...field} value={field.value ?? ''} placeholder="Search..." />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
         />
-        {datasourceId==null && <FormField
-          name="data_source_id"
-          render={({ field }) => (
-            <FormItem>
-              <FormControl>
-                <Input {...field} value={field.value ?? ''} placeholder="Datasource ID" />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />}
         <Collapsible>
           <CollapsibleTrigger className="group text-sm flex items-center py-1.5 hover:underline focus:underline outline-none">
             <ChevronDownIcon className="size-4 mr-1 transition-transform group-data-[state=open]:rotate-180" />
             Advanced Filters
           </CollapsibleTrigger>
           <CollapsibleContent className="py-2 space-y-4">
+            <FormField
+              name="source_uri"
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input {...field} value={field.value ?? ''} placeholder="Search Source URI..." />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="grid grid-cols-2 gap-4">
+              <FormField
+                name="mime_type"
+                render={({ field: { value, onChange, name, disabled, ...field } }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Select value={value ?? ''} name={name} disabled={disabled} onValueChange={onChange}>
+                        <SelectTrigger {...field}>
+                          <SelectValue placeholder={<span className='text-muted-foreground'>Select Document Type...</span>} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mimeTypes.map(mime => (
+                            <SelectItem key={mime.value} value={mime.value}>
+                              {mime.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                name="index_status"
+                render={({ field: { value, onChange, name, disabled, ...field } }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Select value={value ?? ''} name={name} disabled={disabled} onValueChange={onChange}>
+                        <SelectTrigger {...field}>
+                          <SelectValue placeholder={<span className='text-muted-foreground'>Select Document Type...</span>} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {indexStatuses.map(indexStatus => (
+                            <SelectItem key={indexStatus} value={indexStatus}>
+                              {capitalCase(indexStatus)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 name="created_at_start"
                 render={({ field }) => (

@@ -37,11 +37,11 @@ export function DocumentsTable ({ datasourceId }: { datasourceId?: number }) {
   return (
     <DataTableRemote
       toolbar={((table) => (
-        <DocumentsTableFilters datasourceId={datasourceId} table={table} onFilterChange={setFilters} />
+        <DocumentsTableFilters table={table} onFilterChange={setFilters} />
       ))}
       columns={datasourceId != null ? columnsWithoutDatasource : columns}
       apiKey={datasourceId != null ? `api.datasource.${datasourceId}.documents` : 'api.documents.list'}
-      api={(params) => listDocuments({ ...params, data_source_id: datasourceId, ...filters })}
+      api={(params) => listDocuments({ ...params, ...filters, data_source_id: datasourceId })}
       apiDeps={[filters]}
       idColumn="id"
     />
