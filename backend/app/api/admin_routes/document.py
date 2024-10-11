@@ -34,14 +34,6 @@ def list_documents(
     ),
     mime_type: MimeTypes | None = None,
     index_status: DocIndexTaskStatus | None = None,
-    language: str | None = Query(
-        None,
-        description="[Exact Match] meta.language field, for example: 'en', 'zh', etc."
-    ),
-    product: str | None = Query(
-        None,
-        description="[Exact Match] meta.product field, for example: 'tidb_operator', 'tidb', etc."
-    ),
 ) -> Page[Document]:
     return document_repo.paginate(
         session=session,
@@ -57,6 +49,4 @@ def list_documents(
         name=name,
         mime_type=mime_type,
         index_status=index_status,
-        language=language,
-        product=product,
     )

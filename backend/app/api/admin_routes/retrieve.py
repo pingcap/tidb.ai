@@ -19,6 +19,7 @@ async def retrieve_documents(
     retrieve_service = RetrieveService(session, chat_engine)
     return retrieve_service.retrieve(question, top_k=top_k)
 
+
 @router.get("/admin/embedding_retrieve")
 async def embedding_retrieve(
     session: SessionDep,

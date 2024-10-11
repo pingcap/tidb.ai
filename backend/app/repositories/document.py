@@ -31,8 +31,6 @@ class DocumentRepo(BaseRepo):
         name: Optional[str] = None,
         mime_type: Optional[MimeTypes] = None,
         index_status: Optional[DocIndexTaskStatus] = None,
-        language: Optional[str] = None,  # meta field
-        product: Optional[str] = None,  # meta field
     ) -> Page[Document]:
         # build the select statement via conditions
         stmt = select(Document)
@@ -58,10 +56,6 @@ class DocumentRepo(BaseRepo):
             stmt = stmt.where(Document.mime_type == mime_type)
         if index_status:
             stmt = stmt.where(Document.index_status == index_status)
-        if language:
-            stmt = stmt.where(func.json_unquote(func.json_extract(Document.meta, "$.language")) == language)
-        if product:
-            stmt = stmt.where(func.json_unquote(func.json_extract(Document.meta, "$.product")) == product)
 
         # Make sure the newer edited record is always on top
         stmt = stmt.order_by(Document.updated_at.desc())
