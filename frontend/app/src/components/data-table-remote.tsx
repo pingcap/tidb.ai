@@ -22,6 +22,7 @@ interface DataTableRemoteProps<TData, TValue> {
   idColumn: keyof TData;
   apiKey: string;
   api: (page: PageParams, options: PageApiOptions) => Promise<Page<TData>>;
+  apiDeps?: unknown[];
   columns: ColumnDef<TData, TValue>[];
   selectable?: boolean;
   batchOperations?: (rows: string[], revalidate: () => void) => ReactNode;
@@ -38,6 +39,7 @@ export function DataTableRemote<TData, TValue> ({
   api,
   apiKey,
   columns,
+  apiDeps = [],
   selectable = false,
   batchOperations,
   refreshInterval,
@@ -70,7 +72,7 @@ export function DataTableRemote<TData, TValue> ({
 
   useEffect(() => {
     void mutate();
-  }, [pagination.pageSize, pagination.pageIndex, globalFilter]);
+  }, [pagination.pageSize, pagination.pageIndex, globalFilter, ...apiDeps]);
 
   // Column definitions.
   columns = useMemo(() => {

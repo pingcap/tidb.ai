@@ -10,12 +10,20 @@ export function buildUrlParams (object: object) {
 
     if (value instanceof Array) {
       for (let item of value) {
-        usp.append(key, String(value));
+        usp.append(key, stringify(item));
       }
     } else {
-      usp.append(key, String(value));
+      usp.append(key, stringify(value));
     }
   }
 
   return usp;
+}
+
+function stringify (item: any) {
+  if (item instanceof Date) {
+    return item.toISOString();
+  } else {
+    return String(item);
+  }
 }

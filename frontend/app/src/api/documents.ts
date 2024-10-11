@@ -34,8 +34,25 @@ const documentSchema = z.object({
   data_source_id: z.number(),
 }) satisfies ZodType<Document, any, any>;
 
-export async function listDocuments ({ page = 1, size = 10, query, data_source_id }: PageParams & { data_source_id?: number, query?: string } = {}): Promise<Page<Document>> {
-  return await fetch(requestUrl('/api/v1/admin/documents', { page, size, data_source_id, query }), {
+
+const zDate = z.coerce.date().or(z.literal('').transform(() => undefined)).optional();
+
+export const listDocumentsFiltersSchema = z.object({
+  source_uri: z.string().optional(),
+  data_source_id: z.coerce.number().optional(),
+  created_at_start: zDate,
+  created_at_end: zDate,
+  updated_at_start: zDate,
+  updated_at_end: zDate,
+  last_modified_at_start: zDate,
+  last_modified_at_end: zDate,
+});
+
+export type ListDocumentsTableFilters = z.infer<typeof listDocumentsFiltersSchema>;
+
+
+export async function listDocuments ({ page = 1, size = 10, ...filters }: PageParams & ListDocumentsTableFilters = {}): Promise<Page<Document>> {
+  return await fetch(requestUrl('/api/v1/admin/documents', { page, size, ...filters }), {
     headers: await authenticationHeaders(),
   })
     .then(handleResponse(zodPage(documentSchema)));
