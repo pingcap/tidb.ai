@@ -1,17 +1,15 @@
 'use client';
 
-import { type Document, listDocuments } from '@/api/documents';
+import { type Document, listDocuments, type ListDocumentsTableFilters } from '@/api/documents';
 import { datetime } from '@/components/cells/datetime';
 import { mono } from '@/components/cells/mono';
 import { DatasourceCell } from '@/components/cells/reference';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { DocumentPreviewDialog } from '@/components/document-viewer';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { DocumentsTableFilters } from '@/components/documents/documents-table-filters';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
-import isHotkey from 'is-hotkey';
-import { useRef } from 'react';
+import { useState } from 'react';
 
 const helper = createColumnHelper<Document>();
 
@@ -33,30 +31,18 @@ const columnsWithoutDatasource = [...columns];
 columnsWithoutDatasource.splice(1, 1);
 
 export function DocumentsTable ({ datasourceId }: { datasourceId?: number }) {
-  const searchRef = useRef<HTMLInputElement>(null);
+  const [filters, setFilters] = useState<ListDocumentsTableFilters>({});
+
+  console.log(filters);
   return (
     <DataTableRemote
-      toolbar={(({ setGlobalFilter }) => (
-        <div className="flex gap-2 items-center">
-          <Input
-            placeholder="Search URL..."
-            ref={searchRef}
-            onKeyDown={event => {
-              if (isHotkey('Enter', event)) {
-                setGlobalFilter(searchRef.current?.value ?? '');
-              }
-            }}
-          />
-          <Button onClick={() => {
-            setGlobalFilter(searchRef.current?.value ?? '');
-          }}>
-            Search
-          </Button>
-        </div>
+      toolbar={((table) => (
+        <DocumentsTableFilters table={table} onFilterChange={setFilters} />
       ))}
       columns={datasourceId != null ? columnsWithoutDatasource : columns}
       apiKey={datasourceId != null ? `api.datasource.${datasourceId}.documents` : 'api.documents.list'}
-      api={(params, { globalFilter }) => listDocuments({ ...params, data_source_id: datasourceId, query: globalFilter })}
+      api={(params) => listDocuments({ ...params, ...filters, data_source_id: datasourceId })}
+      apiDeps={[filters]}
       idColumn="id"
     />
   );
