@@ -81,7 +81,7 @@ export function DocumentsTableFilters ({ onFilterChange }: { table: ReactTable<D
                     <FormControl>
                       <Select value={value ?? ''} name={name} disabled={disabled} onValueChange={onChange}>
                         <SelectTrigger {...field}>
-                          <SelectValue placeholder={<span className='text-muted-foreground'>Select Document Type...</span>} />
+                          <SelectValue placeholder={<span className='text-muted-foreground'>Select Index Status...</span>} />
                         </SelectTrigger>
                         <SelectContent>
                           {indexStatuses.map(indexStatus => (
