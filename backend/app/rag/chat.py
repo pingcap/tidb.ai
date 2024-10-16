@@ -1,12 +1,13 @@
 import time
 import logging
 from uuid import UUID
-from typing import List, Generator, Optional, Tuple
+from typing import List, Generator, Optional, Tuple, Type
 from datetime import datetime, UTC
 from urllib.parse import urljoin
 
 import requests
 import jinja2
+from pydantic import BaseModel
 from sqlmodel import Session, select, func
 from llama_index.core import VectorStoreIndex
 from llama_index.core.base.llms.base import ChatMessage
@@ -31,6 +32,7 @@ from app.models import (
     RerankerModel as DBRerankerModel,
 )
 from app.core.config import settings
+from app.models.recommend_question import RecommendQuestion
 from app.rag.chat_stream_protocol import (
     ChatStreamMessagePayload,
     ChatStreamDataPayload,
@@ -714,3 +716,43 @@ def check_rag_optional_config(session: Session) -> tuple[bool]:
     )
     default_reranker = session.scalar(select(func.count(DBRerankerModel.id))) > 0
     return langfuse, default_reranker
+
+
+class LLMRecommendQuestions(BaseModel):
+    """recommend questions respond model"""
+    questions: List[str]
+
+
+def get_chat_message_recommend_questions(
+        db_session: Session,
+        chat_message: DBChatMessage,
+        engine_name: str = "default",
+) -> List[str]:
+    chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
+    _fast_llm = chat_engine_config.get_fast_llama_llm(db_session)
+
+    statement = (
+        select(RecommendQuestion.questions)
+        .where(RecommendQuestion.chat_message_id == chat_message.id)
+        .with_for_update()  # using write lock in case the same chat message trigger multiple requests
+    )
+
+    questions = db_session.exec(statement).first()
+    if questions is not None:
+        return questions
+
+    recommend_questions = _fast_llm.structured_predict(
+        output_cls=LLMRecommendQuestions,
+        prompt=get_prompt_by_jinja2_template(
+            chat_engine_config.llm.further_questions_prompt,
+            chat_message_content=chat_message.content,
+        ),
+    )
+
+    db_session.add(RecommendQuestion(
+        chat_message_id=chat_message.id,
+        questions=recommend_questions.questions,
+    ))
+    db_session.commit()
+
+    return recommend_questions.questions

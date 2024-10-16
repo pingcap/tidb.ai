@@ -17,7 +17,7 @@ from app.rag.chat import (
     ChatService,
     user_can_view_chat,
     user_can_edit_chat,
-    get_chat_message_subgraph,
+    get_chat_message_subgraph, get_chat_message_recommend_questions,
 )
 from app.rag.types import (
     MessageRole,
@@ -188,3 +188,18 @@ def get_chat_subgraph(session: SessionDep, user: OptionalUserDep, chat_message_i
 
     entities, relations = get_chat_message_subgraph(session, chat_message)
     return SubgraphResponse(entities=entities, relationships=relations)
+
+
+@router.get("/chat-messages/{chat_message_id}/recommend_questions", response_model=List[str])
+def get_recommend_questions(session: SessionDep, user: CurrentUserDep, chat_message_id: int):
+    chat_message = chat_repo.get_message(session, chat_message_id)
+    if not chat_message:
+        raise HTTPException(
+            status_code=HTTPStatus.NOT_FOUND, detail="Chat message not found"
+        )
+
+    if not user_can_view_chat(chat_message.chat, user):
+        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Access denied")
+
+    return get_chat_message_recommend_questions(session, chat_message, user)
+
