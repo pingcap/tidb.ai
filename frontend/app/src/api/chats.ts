@@ -148,6 +148,14 @@ export async function getChatMessageSubgraph (chatMessageId: number): Promise<Kn
     .then(handleResponse(knowledgeGraphSchema));
 }
 
+export async function getChatMessageRecommendQuestions (chatMessageId: number) {
+  return await fetch(requestUrl(`/api/v1/chat-messages/${chatMessageId}/recommend-questions`), {
+    headers: await authenticationHeaders(),
+    credentials: 'include',
+  })
+    .then(handleResponse(z.string().array()));
+}
+
 export async function* chat ({ chat_id, chat_engine, content, headers: headersInit, signal }: PostChatParams, onResponse?: (response: Response) => void) {
   const headers = new Headers(headersInit);
   headers.set('Content-Type', 'application/json');
