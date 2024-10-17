@@ -1,4 +1,3 @@
-import { useAuth } from '@/components/auth/AuthProvider';
 import { type ChatMessageGroup, useChatPostState, useCurrentChatController } from '@/components/chat/chat-hooks';
 import { DebugInfo } from '@/components/chat/debug-info';
 import { MessageAnnotationHistory } from '@/components/chat/message-annotation-history';
@@ -7,6 +6,7 @@ import { MessageAutoScroll } from '@/components/chat/message-auto-scroll';
 import { MessageContextSources } from '@/components/chat/message-content-sources';
 import { MessageError } from '@/components/chat/message-error';
 import { MessageOperations } from '@/components/chat/message-operations';
+import { MessageRecommendQuestions } from '@/components/chat/message-recommend-questions';
 import { MessageSection } from '@/components/chat/message-section';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -68,7 +68,6 @@ export function ConversationMessageGroups ({ groups }: { groups: ChatMessageGrou
 }
 
 function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
-  const { me } = useAuth();
   const enableDebug = /* !!me && */ !process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL;
 
   const [debugInfoOpen, setDebugInfoOpen] = useState(false);
@@ -114,9 +113,11 @@ function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
 
       {group.assistant && <MessageError message={group.assistant} />}
 
+      {group.assistant && <MessageOperations message={group.assistant} />}
+
       <MessageVerify assistant={group.assistant} />
 
-      {group.assistant && <MessageOperations message={group.assistant} />}
+      <MessageRecommendQuestions assistant={group.assistant} />
     </section>
   );
 }
