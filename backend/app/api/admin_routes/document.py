@@ -15,7 +15,7 @@ router = APIRouter()
 @router.get("/admin/documents")
 def list_documents(
     session: SessionDep,
-    # user: CurrentSuperuserDep,
+    user: CurrentSuperuserDep,
     params: Params = Depends(),
     source_uri: str | None = Query(
         None,

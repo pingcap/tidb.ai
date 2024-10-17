@@ -36,7 +36,7 @@ from app.rag.default_prompt import (
     DEFAULT_NORMAL_GRAPH_KNOWLEDGE,
     DEFAULT_CONDENSE_QUESTION_PROMPT,
     DEFAULT_TEXT_QA_PROMPT,
-    DEFAULT_REFINE_PROMPT,
+    DEFAULT_REFINE_PROMPT, DEFAULT_FURTHER_QUESTIONS_PROMPT,
 )
 from app.models import (
     ChatEngine as DBChatEngine,
@@ -57,6 +57,7 @@ class LLMOption(BaseModel):
     condense_question_prompt: str = DEFAULT_CONDENSE_QUESTION_PROMPT
     text_qa_prompt: str = DEFAULT_TEXT_QA_PROMPT
     refine_prompt: str = DEFAULT_REFINE_PROMPT
+    further_questions_prompt: str = DEFAULT_FURTHER_QUESTIONS_PROMPT
 
 
 class VectorSearchOption(BaseModel):

@@ -206,3 +206,21 @@ Context information is below.
 Given the new context, refine the original answer to better answer the query. If the context isn't useful, return the original answer.
 Refined Answer:
 """
+
+DEFAULT_FURTHER_QUESTIONS_PROMPT = """\
+The chat message content is:
+
+{{chat_message_content}}
+
+---------------------
+Task:
+Based on the provided chat message, generate 3–5 follow-up questions that are relevant to the content. Each question should explore the topic in greater detail, seek clarification, or introduce new angles for discussion.
+
+Instructions:
+1. Build upon the key information, themes, or insights within the provided chat message.
+2. Aim for variety in question type (clarifying, probing, or exploratory) to encourage a deeper conversation.
+3. Ensure each question logically follows from the context of the provided chat message.
+4. Keep questions concise yet insightful to maximize engagement.
+
+Now, generate 3–5 follow-up questions below:
+"""
