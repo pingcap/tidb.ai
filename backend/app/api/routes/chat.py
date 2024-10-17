@@ -191,15 +191,12 @@ def get_chat_subgraph(session: SessionDep, user: OptionalUserDep, chat_message_i
 
 
 @router.get("/chat-messages/{chat_message_id}/recommend-questions", response_model=List[str])
-def get_recommend_questions(session: SessionDep, user: CurrentUserDep, chat_message_id: int):
+def get_recommend_questions(session: SessionDep, chat_message_id: int):
     chat_message = chat_repo.get_message(session, chat_message_id)
-    if not chat_message:
+    if not chat_message or len(chat_message.content) == 0:
         raise HTTPException(
             status_code=HTTPStatus.NOT_FOUND, detail="Chat message not found"
         )
 
-    if not user_can_view_chat(chat_message.chat, user):
-        raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Access denied")
-
-    return get_chat_message_recommend_questions(session, chat_message, user)
+    return get_chat_message_recommend_questions(session, chat_message)
 
