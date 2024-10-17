@@ -190,7 +190,7 @@ def get_chat_subgraph(session: SessionDep, user: OptionalUserDep, chat_message_i
     return SubgraphResponse(entities=entities, relationships=relations)
 
 
-@router.get("/chat-messages/{chat_message_id}/recommend_questions", response_model=List[str])
+@router.get("/chat-messages/{chat_message_id}/recommend-questions", response_model=List[str])
 def get_recommend_questions(session: SessionDep, user: CurrentUserDep, chat_message_id: int):
     chat_message = chat_repo.get_message(session, chat_message_id)
     if not chat_message:
