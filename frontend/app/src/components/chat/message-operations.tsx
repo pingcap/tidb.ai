@@ -42,7 +42,7 @@ export function MessageOperations ({ message }: { message: ChatMessageController
         >
           {feedbackData
             ? (<DialogTrigger asChild>
-              <Button size="icon" variant="ghost" className="ml-auto rounded-full w-7 h-7" disabled={disabled}>
+              <Button size="icon" variant="ghost" className="rounded-full w-7 h-7" disabled={disabled}>
                 {feedbackData.feedback_type === 'like' ? <ThumbsUpIcon className="w-4 h-4 text-green-500" /> : <ThumbsDownIcon className="w-4 h-4 text-red-500" />}
               </Button>
             </DialogTrigger>)
@@ -50,7 +50,7 @@ export function MessageOperations ({ message }: { message: ChatMessageController
               <Tooltip>
                 <DialogTrigger asChild>
                   <TooltipTrigger asChild>
-                    <Button size="icon" variant="ghost" className="ml-auto rounded-full w-7 h-7" disabled={disabled} onClick={() => { setClicked('like'); }} aria-label="Like This Answer">
+                    <Button size="icon" variant="ghost" className="rounded-full w-7 h-7" disabled={disabled} onClick={() => { setClicked('like'); }} aria-label="Like This Answer">
                       <ThumbsUpIcon className="w-4 h-4" />
                     </Button>
                   </TooltipTrigger>
