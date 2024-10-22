@@ -235,6 +235,12 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
       case 'error':
         this._processErrorPart(ongoingMessageController, part);
         break;
+      case 'tool_call':
+      case 'tool_result':
+      case 'finish_step':
+      case 'finish_message':
+        // TODO
+        break
       default:
         console.warn('unsupported stream part', part);
     }
