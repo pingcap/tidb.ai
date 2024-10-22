@@ -469,7 +469,7 @@ class ChatService:
 
     def _external_chat(self) -> Generator[ChatEvent | str, None, None]:
         stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
-        print(f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
+        logger.debug(f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
         json = {
             "goal": self.user_question
         }
