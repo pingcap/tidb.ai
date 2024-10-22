@@ -10,6 +10,11 @@
 import { Chat, ChatMessage, chatMessageSchema, ChatMessageSource, chatSchema } from '@/api/chats';
 import { z, type ZodType } from 'zod';
 
+export const enum BaseState {
+  CONNECTING = 'CONNECTING', // only client side
+  UNKNOWN = 'UNKNOWN',
+}
+
 export const enum AppChatStreamState {
   CONNECTING = 'CONNECTING', // only client side
   TRACE = 'TRACE',
@@ -24,7 +29,11 @@ export const enum AppChatStreamState {
   UNKNOWN = 'UNKNOWN',
 }
 
-export interface BaseAnnotation<S extends AppChatStreamState> {
+export interface StackVMState {
+  program_counter: number
+}
+
+export interface BaseAnnotation<S = AppChatStreamState> {
   state: S;
   display?: string;
 }
@@ -46,6 +55,9 @@ export type ChatMessageAnnotation =
   | TraceAnnotation
   | SourceNodesAnnotation
   | RefineQuestionAnnotation;
+
+export interface StackVMStateAnnotation extends BaseAnnotation<StackVMState> {
+}
 
 export type ChatInitialData = {
   chat: Chat;

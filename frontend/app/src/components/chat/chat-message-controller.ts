@@ -1,48 +1,47 @@
 import { type ChatMessage, ChatMessageRole } from '@/api/chats';
-import { AppChatStreamState, type ChatMessageAnnotation } from '@/components/chat/chat-stream-state';
+import { AppChatStreamState, type BaseAnnotation, type ChatMessageAnnotation, type StackVMState, type StackVMStateAnnotation } from '@/components/chat/chat-stream-state';
 import EventEmitter from 'eventemitter3';
 
-export interface OngoingState {
+export interface OngoingState<State = AppChatStreamState> {
   finished: boolean;
-  state: AppChatStreamState;
+  state: State;
   display: string;
   message?: string;
 }
 
-export interface OngoingStateHistoryItem {
-  state: OngoingState;
+export interface OngoingStateHistoryItem<State = AppChatStreamState> {
+  state: OngoingState<State>;
   time: Date;
 }
 
-export interface ChatMessageControllerEventsMap {
+export interface ChatMessageControllerEventsMap<State = AppChatStreamState> {
   'update': [assistant_message: ChatMessage];
-  'stream-update': [ongoing_message: ChatMessage, ongoing: OngoingState, delta: string];
-  'stream-history-update': [ongoing_message: ChatMessage, history: { state: OngoingState, time: Date }[]];
+  'stream-update': [ongoing_message: ChatMessage, ongoing: OngoingState<State>, delta: string];
+  'stream-history-update': [ongoing_message: ChatMessage, history: { state: OngoingState<State>, time: Date }[]];
   'stream-finished': [ongoing_message: ChatMessage];
-  'stream-error': [ongoing_message: ChatMessage, ongoing: OngoingState];
+  'stream-error': [ongoing_message: ChatMessage, ongoing: OngoingState<State>];
 }
 
-export class ChatMessageController extends EventEmitter<ChatMessageControllerEventsMap> {
+export abstract class BaseChatMessageController<
+  State,
+  Annotation extends BaseAnnotation<State>
+> extends EventEmitter<ChatMessageControllerEventsMap<State>> {
   private _message: ChatMessage;
-  private _ongoing: OngoingState | undefined;
-  private _ongoingHistory: OngoingStateHistoryItem[] | undefined;
+  private _ongoing: OngoingState<State> | undefined;
+  private _ongoingHistory: OngoingStateHistoryItem<State>[] | undefined;
   public readonly role: ChatMessageRole;
   public readonly id: number;
 
-  constructor (message: ChatMessage, ongoing: OngoingState | undefined) {
+  constructor (message: ChatMessage, ongoing: OngoingState<State> | true | undefined) {
     super();
     this._message = message;
-    this._ongoing = ongoing;
+    this._ongoing = ongoing === true ? this.createInitialOngoingState() : ongoing;
     this._ongoingHistory = ongoing ? [] : undefined;
     this.role = message.role;
     this.id = message.id;
 
     if (this._message.finished_at == null && !ongoing) {
-      this._ongoing = {
-        state: AppChatStreamState.UNKNOWN,
-        display: 'Unknown',
-        finished: false,
-      };
+      this._ongoing = this.createUnknownOngoingState();
     }
   }
 
@@ -56,7 +55,7 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
     this.emit('update', this._message);
   }
 
-  applyStreamAnnotation (annotation: ChatMessageAnnotation) {
+  applyStreamAnnotation (annotation: Annotation) {
     if (!this._ongoing || this._ongoing.finished) {
       console.warn('message already finished');
       return;
@@ -64,25 +63,13 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
     const stateChanged = annotation.state !== this._ongoing.state;
 
     let message = this._message;
-    const ongoing: OngoingState = { ...this._ongoing };
+    const ongoing: OngoingState<State> = { ...this._ongoing };
 
     ongoing.state = annotation.state;
     ongoing.display = annotation.display || (stateChanged ? '' : ongoing.display);
     ongoing.message = stateChanged ? undefined : ongoing.message;
 
-    switch (annotation.state) {
-      case AppChatStreamState.TRACE:
-        message = { ...message };
-        message.trace_url = annotation.context.langfuse_url;
-        break;
-      case AppChatStreamState.SOURCE_NODES:
-        message = { ...message };
-        message.sources = annotation.context;
-        break;
-      case AppChatStreamState.REFINE_QUESTION:
-        ongoing.message = annotation.message || ongoing.message;
-        break;
-    }
+    message = this.polishMessage(message, ongoing, annotation);
 
     const lastOngoing = this._ongoing;
 
@@ -154,5 +141,76 @@ export class ChatMessageController extends EventEmitter<ChatMessageControllerEve
 
   get ongoingHistory () {
     return this._ongoingHistory;
+  }
+
+  abstract createInitialOngoingState (): OngoingState<State>;
+
+  abstract createUnknownOngoingState (): OngoingState<State>;
+
+  abstract polishMessage (message: ChatMessage, ongoing: OngoingState<State>, annotation: Annotation): ChatMessage
+}
+
+export type ChatMessageController = LegacyChatMessageController | StackVMChatMessageController;
+export type ChatMessageControllerAnnotationState<C extends ChatMessageController> = C extends BaseChatMessageController<infer State, any> ? State : never;
+
+export class LegacyChatMessageController extends BaseChatMessageController<AppChatStreamState, ChatMessageAnnotation> {
+  readonly version = 'Legacy';
+
+  createInitialOngoingState (): OngoingState {
+    return {
+      state: AppChatStreamState.CONNECTING,
+      display: 'Connecting to server...',
+      finished: false,
+    };
+  }
+
+  createUnknownOngoingState (): OngoingState {
+    return {
+      state: AppChatStreamState.UNKNOWN,
+      display: 'Unknown',
+      finished: false,
+    };
+  }
+
+  polishMessage (message: ChatMessage, ongoing: OngoingState, annotation: ChatMessageAnnotation) {
+    switch (annotation.state) {
+      case AppChatStreamState.TRACE:
+        message = { ...message };
+        message.trace_url = annotation.context.langfuse_url;
+        break;
+      case AppChatStreamState.SOURCE_NODES:
+        message = { ...message };
+        message.sources = annotation.context;
+        break;
+      case AppChatStreamState.REFINE_QUESTION:
+        ongoing.message = annotation.message || ongoing.message;
+        break;
+    }
+
+    return message;
+  }
+}
+
+export class StackVMChatMessageController extends BaseChatMessageController<StackVMState | undefined, StackVMStateAnnotation> {
+  readonly version = 'StackVM';
+
+  createInitialOngoingState (): OngoingState<StackVMState | undefined> {
+    return {
+      state: undefined,
+      display: 'Connecting...',
+      finished: false,
+    };
+  }
+
+  createUnknownOngoingState (): OngoingState<StackVMState | undefined> {
+    return {
+      state: undefined,
+      display: 'Unknown',
+      finished: false,
+    };
+  }
+
+  polishMessage (message: ChatMessage, ongoing: OngoingState<StackVMState | undefined>, annotation: StackVMStateAnnotation): ChatMessage {
+    return message;
   }
 }

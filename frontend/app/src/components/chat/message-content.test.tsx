@@ -1,12 +1,12 @@
 import { ChatMessageRole } from '@/api/chats';
 
-import { ChatMessageController } from '@/components/chat/chat-message-controller';
+import { LegacyChatMessageController } from '@/components/chat/chat-message-controller';
 import { AppChatStreamState } from '@/components/chat/chat-stream-state';
 import { MessageContent } from '@/components/chat/message-content';
 import { act, render, screen } from '@testing-library/react';
 
 test('should render incremental markdown text', async () => {
-  const controller = new ChatMessageController({
+  const controller = new LegacyChatMessageController({
     sources: [],
     content: '## Hello',
     id: 0,
@@ -19,6 +19,7 @@ test('should render incremental markdown text', async () => {
     finished_at: null,
     trace_url: null,
     user_id: null,
+    post_verification_result_url: null,
   }, {
     state: AppChatStreamState.GENERATE_ANSWER,
     finished: false,
@@ -37,7 +38,7 @@ test('should render incremental markdown text', async () => {
 });
 
 test('should render static markdown text', async () => {
-  const controller = new ChatMessageController({
+  const controller = new LegacyChatMessageController({
     sources: [],
     content: '## Hello world!',
     id: 0,
@@ -50,6 +51,7 @@ test('should render static markdown text', async () => {
     finished_at: null,
     trace_url: null,
     user_id: null,
+    post_verification_result_url: null,
   }, {
     state: AppChatStreamState.GENERATE_ANSWER,
     finished: false,

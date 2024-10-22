@@ -101,7 +101,7 @@ function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
         </CollapsibleContent>
       </Collapsible>
 
-      <MessageAnnotationHistory message={group.assistant} />
+      {group.assistant?.version === 'Legacy' && <MessageAnnotationHistory message={group.assistant} />}
 
       <MessageSection className="!mt-1" message={group.assistant}>
         <MessageContextSources message={group.assistant} />
