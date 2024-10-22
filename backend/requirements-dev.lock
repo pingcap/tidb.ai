@@ -7,7 +7,6 @@
 #   all-features: false
 #   with-sources: false
 #   generate-hashes: false
-#   universal: true
 
 aiohttp==3.9.5
     # via datasets
@@ -90,11 +89,6 @@ cohere==5.6.2
     # via llama-index-embeddings-cohere
     # via llama-index-postprocessor-cohere-rerank
 colorama==0.4.6
-    # via click
-    # via colorlog
-    # via pytest
-    # via tqdm
-    # via uvicorn
 colorlog==6.8.2
     # via optuna
 cryptography==42.0.8
@@ -576,8 +570,6 @@ python-pptx==1.0.2
 pytz==2024.1
     # via flower
     # via pandas
-pywin32==308 ; platform_system == 'Windows'
-    # via portalocker
 pyyaml==6.0.1
     # via datasets
     # via huggingface-hub
@@ -731,7 +723,7 @@ urllib3==2.2.1
     # via types-requests
 uvicorn==0.30.3
     # via fastapi
-uvloop==0.19.0 ; platform_python_implementation != 'PyPy' and sys_platform != 'cygwin' and sys_platform != 'win32'
+uvloop==0.19.0
     # via uvicorn
 vine==5.1.0
     # via amqp
