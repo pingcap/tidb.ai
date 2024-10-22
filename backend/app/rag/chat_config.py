@@ -73,12 +73,17 @@ class KnowledgeGraphOption(BaseModel):
     relationship_meta_filters: Optional[dict] = None
 
 
+class ExternalChatEngine(BaseModel):
+    stream_chat_api_url: str = None
+
+
 class ChatEngineConfig(BaseModel):
     llm: LLMOption = LLMOption()
     knowledge_graph: KnowledgeGraphOption = KnowledgeGraphOption()
     vector_search: VectorSearchOption = VectorSearchOption()
     post_verification_url: Optional[str] = None
     post_verification_token: Optional[str] = None
+    external_engine_config: Optional[ExternalChatEngine] = None
 
     _db_chat_engine: Optional[DBChatEngine] = None
     _db_llm: Optional[DBLLM] = None
