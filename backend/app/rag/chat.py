@@ -1,5 +1,7 @@
 import time
 import logging
+import re
+
 from uuid import UUID
 from typing import List, Generator, Optional, Tuple
 from datetime import datetime, UTC
@@ -468,6 +470,40 @@ class ChatService:
         )
 
     def _external_chat(self) -> Generator[ChatEvent | str, None, None]:
+        # TODO: integration with langfuse.
+        db_user_message = chat_repo.create_message(
+            session=self.db_session,
+            chat=self.db_chat_obj,
+            chat_message=DBChatMessage(
+                role=MessageRole.USER.value,
+                trace_url="",
+                content=self.user_question,
+            ),
+        )
+        db_assistant_message = chat_repo.create_message(
+            session=self.db_session,
+            chat=self.db_chat_obj,
+            chat_message=DBChatMessage(
+                role=MessageRole.ASSISTANT.value,
+                trace_url="",
+                content="",
+            ),
+        )
+
+        # Frontend requires the empty event to start the chat
+        yield ChatEvent(
+            event_type=ChatEventType.TEXT_PART,
+            payload="",
+        )
+        yield ChatEvent(
+            event_type=ChatEventType.DATA_PART,
+            payload=ChatStreamDataPayload(
+                chat=self.db_chat_obj,
+                user_message=db_user_message,
+                assistant_message=db_assistant_message,
+            ),
+        )
+
         stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
         logger.debug(f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
         json = {
@@ -476,9 +512,37 @@ class ChatService:
         res = requests.post(stream_chat_api_url, json=json, stream=True)
 
         # Notice: External type chat engine doesn't support non-streaming mode for now.
+        response_text = ""
         for line in res.iter_lines():
-            if line:
-                yield line + b'\n'
+            if not line:
+                continue
+
+            # Append to final response text.
+            text = line.decode('utf-8')
+            match = re.search(r'0:"(.*)"', text, re.DOTALL)
+            if match:
+                response_text += match.group(1)
+
+            yield line + b'\n'
+
+        db_assistant_message.content = response_text
+        db_assistant_message.updated_at = datetime.now(UTC)
+        db_assistant_message.finished_at = datetime.now(UTC)
+        self.db_session.add(db_assistant_message)
+        db_user_message.updated_at = datetime.now(UTC)
+        db_user_message.finished_at = datetime.now(UTC)
+        self.db_session.add(db_user_message)
+        self.db_session.commit()
+
+        yield ChatEvent(
+            event_type=ChatEventType.DATA_PART,
+            payload=ChatStreamDataPayload(
+                chat=self.db_chat_obj,
+                user_message=db_user_message,
+                assistant_message=db_assistant_message,
+            ),
+        )
+
 
     def _parse_chat_messages(
         self, chat_messages: List[ChatMessage]

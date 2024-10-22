@@ -39,6 +39,7 @@ class MyCBEventType(str, enum.Enum):
     RETRIEVE_FROM_GRAPH = "retrieve_from_graph"
     INTENT_DECOMPOSITION = "intent_decomposition"
     GRAPH_SEMANTIC_SEARCH = "graph_semantic_search"
+    CALL_EXTERNAL_ENGINE = "call_external_engine"
 
 
 # Chat stream response event types
