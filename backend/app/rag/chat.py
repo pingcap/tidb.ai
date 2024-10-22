@@ -138,10 +138,14 @@ class ChatService:
             self.langfuse_host and self.langfuse_secret_key and self.langfuse_public_key
         )
 
-    def chat(self) -> Generator[ChatEvent, None, None]:
+    def chat(self) -> Generator[ChatEvent | str, None, None]:
         try:
-            for event in self._chat():
-                yield event
+            if self.chat_engine_config.external_engine_config:
+                for event in self._external_chat():
+                    yield event
+            else:
+                for event in self._chat():
+                    yield event
         except Exception as e:
             logger.exception(e)
             yield ChatEvent(
@@ -149,7 +153,7 @@ class ChatService:
                 payload="Encountered an error while processing the chat. Please try again later.",
             )
 
-    def _chat(self) -> Generator[ChatEvent, None, None]:
+    def _chat(self) -> Generator[ChatEvent | str, None, None]:
         if self.enable_langfuse:
             langfuse = Langfuse(
                 host=self.langfuse_host,
@@ -462,6 +466,19 @@ class ChatService:
                 assistant_message=db_assistant_message,
             ),
         )
+
+    def _external_chat(self) -> Generator[ChatEvent | str, None, None]:
+        stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
+        print(f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
+        json = {
+            "goal": self.user_question
+        }
+        res = requests.post(stream_chat_api_url, json=json, stream=True)
+
+        # Notice: External type chat engine doesn't support non-streaming mode for now.
+        for line in res.iter_lines():
+            if line:
+                yield line + b'\n'
 
     def _parse_chat_messages(
         self, chat_messages: List[ChatMessage]
