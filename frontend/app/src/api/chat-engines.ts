@@ -65,7 +65,7 @@ const llmOptionsSchema =
   }).passthrough() as ZodType<ChatEngineLLMOptions, any, any>;
 
 const chatEngineOptionsSchema = z.object({
-  external_engine_config: z.object({}).passthrough(),
+  external_engine_config: z.object({}).passthrough().optional(),
   knowledge_graph: kgOptionsSchema,
   llm: llmOptionsSchema,
   post_verification_url: z.string().nullable().optional(),
