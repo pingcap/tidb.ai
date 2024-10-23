@@ -1,3 +1,4 @@
+import json
 import time
 import logging
 import re
@@ -508,10 +509,10 @@ class ChatService:
 
         stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
         logger.debug(f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
-        json = {
+        chat_params = {
             "goal": self.user_question
         }
-        res = requests.post(stream_chat_api_url, json=json, stream=True)
+        res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
 
         # Notice: External type chat engine doesn't support non-streaming mode for now.
         response_text = ""
@@ -520,10 +521,9 @@ class ChatService:
                 continue
 
             # Append to final response text.
-            text = line.decode('utf-8')
-            match = re.search(r'0:"(.*)"', text, re.DOTALL)
-            if match:
-                response_text += match.group(1)
+            chunk = line.decode('utf-8')
+            if chunk.startswith("0:"):
+                response_text += json.loads(chunk[2:])
 
             yield line + b'\n'
 
