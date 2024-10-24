@@ -1,5 +1,5 @@
 import { instructions } from './instructions';
-import { type InstructionType, type State, type Step } from './spec';
+import { type InstructionType, type State, type Step } from './types';
 
 export namespace model {
   export interface VarBindingInfo {
