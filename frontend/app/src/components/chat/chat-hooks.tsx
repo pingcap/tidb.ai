@@ -278,7 +278,7 @@ export function useChatMessageStreamState<C extends ChatMessageController> (cont
     if (controller) {
       setState(controller.ongoing);
 
-      const handleUpdate = (_: any, state?: OngoingState<AppChatStreamState | StackVMState | undefined>) => setState(state);
+      const handleUpdate = (_: any, state?: OngoingState<AppChatStreamState | StackVMState>) => setState(state);
 
       controller
         .on('stream-update', handleUpdate)
@@ -296,7 +296,7 @@ export function useChatMessageStreamState<C extends ChatMessageController> (cont
     }
   }, [controller]);
 
-  return state as OngoingState<ChatMessageControllerAnnotationState<C>> | undefined;
+  return state as OngoingState<ChatMessageControllerAnnotationState<C>>;
 }
 
 export function useChatMessageStreamHistoryStates<C extends BaseChatMessageController<any, any>> (controller: C | undefined): C['ongoingHistory'] {

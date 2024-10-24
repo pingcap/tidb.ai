@@ -51,7 +51,7 @@ export function KnowledgeGraphDebugInfo ({ group }: { group: ChatMessageGroup })
   );
 }
 
-function couldFetchKnowledgeGraphDebugInfo (state: OngoingState<AppChatStreamState | StackVMState | undefined>) {
+function couldFetchKnowledgeGraphDebugInfo (state: OngoingState<AppChatStreamState | StackVMState>) {
   switch (state.state) {
     case AppChatStreamState.GENERATE_ANSWER:
     case AppChatStreamState.FINISHED:

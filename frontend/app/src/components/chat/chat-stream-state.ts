@@ -8,6 +8,7 @@
  *     FINISHED = 9
  */
 import { Chat, ChatMessage, chatMessageSchema, ChatMessageSource, chatSchema } from '@/api/chats';
+import { StackVM } from '@/lib/stackvm';
 import { z, type ZodType } from 'zod';
 
 export const enum BaseState {
@@ -29,9 +30,10 @@ export const enum AppChatStreamState {
   UNKNOWN = 'UNKNOWN',
 }
 
-export interface StackVMState {
-  program_counter: number
-}
+export type StackVMState = {
+  state: StackVM.model.ParsedState
+  toolCalls: { toolCallId: string, toolName: string, args: any, result?: any }[]
+};
 
 export interface BaseAnnotation<S = AppChatStreamState> {
   state: S;

@@ -3,11 +3,13 @@ import { type OngoingState, type OngoingStateHistoryItem, StackVMChatMessageCont
 import type { StackVMState } from '@/components/chat/chat-stream-state';
 import { isNotFinished } from '@/components/chat/utils';
 import { DiffSeconds } from '@/components/diff-seconds';
+import { RemarkContent } from '@/components/remark-content';
+import { StackVM } from '@/lib/stackvm';
 import { motion, type Target } from 'framer-motion';
 import { CheckCircleIcon, ChevronUpIcon, ClockIcon, InfoIcon, Loader2Icon } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
-export function MessageAnnotationHistory ({ message }: { message: StackVMChatMessageController | undefined }) {
+export function StackVMMessageAnnotationHistory ({ message }: { message: StackVMChatMessageController | undefined }) {
   const [show, setShow] = useState(true);
   const history = useChatMessageStreamHistoryStates(message);
   const current = useChatMessageStreamState(message);
@@ -42,7 +44,7 @@ export function MessageAnnotationHistory ({ message }: { message: StackVMChatMes
           className="text-sm mt-4"
         >
           {history?.map((item, index, history) => (
-            index > 0 && <MessageAnnotationHistoryItem key={index} index={index} history={history} item={item} />
+            <MessageAnnotationHistoryItem key={index} index={index} history={history} item={item} />
           ))}
           {error && <MessageAnnotationHistoryError history={history} error={error} />}
           {current && !current.finished && <MessageAnnotationCurrent history={history} current={current} />}
@@ -74,21 +76,70 @@ const itemIconInitial: Target = { color: 'rgb(113 113 122 / 50)' };
 const itemSuccessIconAnimate: Target = { color: 'rgb(34 197 94)' };
 const itemErrorIconAnimate: Target = { color: 'rgb(239 68 68)' };
 
-function MessageAnnotationHistoryItem ({ history, item: { state, time }, index }: { history: OngoingStateHistoryItem<StackVMState | undefined>[], index: number, item: OngoingStateHistoryItem<StackVMState | undefined> }) {
+function StackVMCheckpoint ({ state }: { state: StackVMState }) {
+  const step = useMemo(() => {
+    return state.state.plan.steps.find(step => step.id === `step:${state.state.program_counter}`);
+  }, [state.state]);
+
+  if (!step) {
+    return null;
+  }
+
+  switch (step.type) {
+    case 'reasoning':
+      return 'Chain Of Thoughts';
+    case 'assign':
+      return `Assign ${step.output_vars.map(v => v.id).join(', ')}`;
+    case 'calling':
+      return `Tool Call`;
+    case 'jmp':
+      return `Jump`;
+  }
+}
+
+function StackVMDetails (state: StackVMState) {
+  const step = useMemo(() => {
+    return state.state.plan.steps.find(step => step.id === `step:${state.state.program_counter}`);
+  }, [state.state]);
+
+  if (!step) {
+    return null;
+  }
+
+  switch (step.type) {
+    case 'reasoning':
+      return <RemarkContent className='ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500/50 pt-1 prose-strong:text-muted-foreground'>{(step as StackVM.model.StepModel<'reasoning'>).parameters.chain_of_thoughts}</RemarkContent>;
+    default:
+      if (state.toolCalls) {
+        return (
+          <ul className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500/50 pt-1">
+            {state.toolCalls.map(item => (
+              <li key={item.toolCallId}>
+                {item.toolName} {Object.keys(item.args).join(', ')}
+              </li>
+            ))}
+          </ul>
+        );
+      }
+      return null;
+  }
+}
+
+function MessageAnnotationHistoryItem ({ history, item: { state, time }, index }: { history: OngoingStateHistoryItem<StackVMState>[], index: number, item: OngoingStateHistoryItem<StackVMState> }) {
   return (
     <motion.li className="relative mb-2" initial={itemInitial} animate={itemAnimate}>
       {index > 1 && <span className="absolute left-2 bg-green-500/50 h-2" style={{ width: 1, top: -8 }} />}
       <div className="flex gap-2 items-center">
         <CheckedCircle className="size-4" initial={itemIconInitial} animate={itemSuccessIconAnimate} />
-        <span>{state.display}</span>
+        <span>{state.display === '[deprecated]' ? <StackVMCheckpoint state={state.state} /> : state.display}</span>
         {index > 0 && <DiffSeconds className="text-muted-foreground text-xs" from={history[index - 1].time} to={time} />}
       </div>
-      {state.message && <div className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500/50 pt-1">{state.message}</div>}
+      <StackVMDetails {...state.state} />
     </motion.li>
   );
 }
 
-function MessageAnnotationHistoryError ({ history, error }: { history: OngoingStateHistoryItem<StackVMState | undefined>[], error: string }) {
+function MessageAnnotationHistoryError ({ history, error }: { history: OngoingStateHistoryItem<StackVMState>[], error: string }) {
   return (
     <motion.li className="relative mb-2" initial={itemInitial} animate={itemAnimate}>
       {history.length > 0 && <span className="absolute left-2 bg-muted-foreground h-2" style={{ width: 1, top: -8 }} />}
@@ -100,11 +151,11 @@ function MessageAnnotationHistoryError ({ history, error }: { history: OngoingSt
   );
 }
 
-function MessageAnnotationCurrent ({ history, current }: { history: OngoingStateHistoryItem<StackVMState | undefined>[], current: OngoingState<StackVMState | undefined> }) {
+function MessageAnnotationCurrent ({ history, current }: { history: OngoingStateHistoryItem<StackVMState>[], current: OngoingState<StackVMState> }) {
   return (
     <motion.li
-      key={current.state?.program_counter}
-      className="relative space-y-1"
+      key={current.state?.state.program_counter}
+      className="relative"
       initial={{
         opacity: 0,
         height: 0,
@@ -119,12 +170,10 @@ function MessageAnnotationCurrent ({ history, current }: { history: OngoingState
       <div className="flex gap-2 items-center">
         {(history?.length ?? 0) > 1 && <span className="absolute left-2 h-2 bg-zinc-500/50" style={{ width: 1, top: -8 }} />}
         <Loader2Icon className="size-4 animate-spin repeat-infinite text-muted-foreground" />
-        <span>
-          {current.display}
-        </span>
+        <span>{current.display === '[deprecated]' ? <StackVMCheckpoint state={current.state} /> : current.display}</span>
         {history && history.length > 0 && <DiffSeconds className="text-muted-foreground text-xs" from={history[history.length - 1].time} />}
       </div>
-      {current.message && <div className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-zinc-500 pt-1">{current.message}</div>}
+      <StackVMDetails {...current.state} />
     </motion.li>
   );
 }

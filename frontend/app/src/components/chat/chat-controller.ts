@@ -1,6 +1,6 @@
 import { chat, type Chat, type ChatMessage, type PostChatParams } from '@/api/chats';
 import { BaseChatMessageController, ChatMessageController, LegacyChatMessageController, type OngoingState, StackVMChatMessageController } from '@/components/chat/chat-message-controller';
-import { AppChatStreamState, type BaseAnnotation, chatDataPartSchema, type ChatMessageAnnotation, fixChatInitialData, type StackVMState } from '@/components/chat/chat-stream-state';
+import { AppChatStreamState, type BaseAnnotation, chatDataPartSchema, fixChatInitialData, type StackVMState } from '@/components/chat/chat-stream-state';
 import type { GtagFn } from '@/components/gtag-provider';
 import { getErrorMessage } from '@/lib/errors';
 import { trigger } from '@/lib/react';
@@ -236,11 +236,16 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
         this._processErrorPart(ongoingMessageController, part);
         break;
       case 'tool_call':
+        this._processToolCallPart(ongoingMessageController, part);
+        break;
       case 'tool_result':
+        this._processToolResultPart(ongoingMessageController, part);
+        break
       case 'finish_step':
+
       case 'finish_message':
         // TODO
-        break
+        break;
       default:
         console.warn('unsupported stream part', part);
     }
@@ -264,8 +269,8 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
 
   private _processMessageAnnotationPart (ongoingMessageController: ChatMessageController | StackVMChatMessageController | undefined, part: ReturnType<StreamPart<any, 'message_annotations', JSONValue[]>['parse']>) {
     assertNonNull(ongoingMessageController, 'Cannot handle chat stream part: no ongoingMessageController', part);
-    const annotation = part.value[0] as any;
-    ongoingMessageController.applyStreamAnnotation(annotation);
+    const annotation = ongoingMessageController.parseAnnotation(part.value[0]);
+    ongoingMessageController.applyStreamAnnotation(annotation as never);
   }
 
   private _processTextPart (ongoingMessageController: ChatMessageController | StackVMChatMessageController | undefined, part: ReturnType<StreamPart<any, 'text', string>['parse']>) {
@@ -278,6 +283,16 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
   private _processErrorPart (ongoingMessageController: ChatMessageController | StackVMChatMessageController | undefined, part: ReturnType<StreamPart<any, 'error', string>['parse']>) {
     assertNonNull(ongoingMessageController, 'Cannot handle chat stream part: no ongoingMessageController', part);
     ongoingMessageController.applyError(part.value);
+  }
+
+  private _processToolCallPart (ongoingMessageController: ChatMessageController | StackVMChatMessageController | undefined, part: ReturnType<StreamPart<any, 'tool_call', { toolCallId: string, toolName: string, args: any }>['parse']>) {
+    assertNonNull(ongoingMessageController, 'Cannot handle chat stream part: no ongoingMessageController', part);
+    ongoingMessageController.applyToolCall(part.value);
+  }
+
+  private _processToolResultPart (ongoingMessageController: ChatMessageController | StackVMChatMessageController | undefined, part: ReturnType<StreamPart<any, 'tool_call', { toolCallId: string, result: any }>['parse']>) {
+    assertNonNull(ongoingMessageController, 'Cannot handle chat stream part: no ongoingMessageController', part);
+    ongoingMessageController.applyToolResult(part.value);
   }
 
   private createMessage (message: ChatMessage, initialOngoingState?: true) {
@@ -299,7 +314,7 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
     return controller;
   }
 
-  private createStackVMMessage (message: ChatMessage, initialOngoingState?: true | OngoingState<StackVMState | undefined>) {
+  private createStackVMMessage (message: ChatMessage, initialOngoingState?: true | OngoingState<StackVMState>) {
     const controller = new StackVMChatMessageController(message, initialOngoingState);
     this._messages.set(message.id, controller);
     this.emit('message-loaded', controller as any);

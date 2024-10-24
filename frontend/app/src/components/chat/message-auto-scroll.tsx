@@ -13,7 +13,7 @@ export function MessageAutoScroll ({ message }: { message: ChatMessageController
     let handler1: any;
     let handler2: any;
 
-    message.on('stream-update', handler1 = (_: ChatMessage, ongoing: OngoingState<AppChatStreamState | StackVMState | undefined>) => {
+    message.on('stream-update', handler1 = (_: ChatMessage, ongoing: OngoingState<AppChatStreamState | StackVMState>) => {
       if (ongoing.state === AppChatStreamState.GENERATE_ANSWER) {
         requestScroll('bottom');
       }

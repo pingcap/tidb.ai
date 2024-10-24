@@ -1,5 +1,6 @@
 import { type ChatMessage, ChatMessageRole } from '@/api/chats';
 import { AppChatStreamState, type BaseAnnotation, type ChatMessageAnnotation, type StackVMState, type StackVMStateAnnotation } from '@/components/chat/chat-stream-state';
+import { StackVM } from '@/lib/stackvm';
 import EventEmitter from 'eventemitter3';
 
 export interface OngoingState<State = AppChatStreamState> {
@@ -20,15 +21,18 @@ export interface ChatMessageControllerEventsMap<State = AppChatStreamState> {
   'stream-history-update': [ongoing_message: ChatMessage, history: { state: OngoingState<State>, time: Date }[]];
   'stream-finished': [ongoing_message: ChatMessage];
   'stream-error': [ongoing_message: ChatMessage, ongoing: OngoingState<State>];
+
+  'stream-tool-call': [id: string, name: string, args: any];
+  'stream-tool-result': [id: string, result: any];
 }
 
 export abstract class BaseChatMessageController<
   State,
   Annotation extends BaseAnnotation<State>
 > extends EventEmitter<ChatMessageControllerEventsMap<State>> {
-  private _message: ChatMessage;
-  private _ongoing: OngoingState<State> | undefined;
-  private _ongoingHistory: OngoingStateHistoryItem<State>[] | undefined;
+  protected _message: ChatMessage;
+  protected _ongoing: OngoingState<State> | undefined;
+  protected _ongoingHistory: OngoingStateHistoryItem<State>[] | undefined;
   public readonly role: ChatMessageRole;
   public readonly id: number;
 
@@ -69,7 +73,7 @@ export abstract class BaseChatMessageController<
     ongoing.display = annotation.display || (stateChanged ? '' : ongoing.display);
     ongoing.message = stateChanged ? undefined : ongoing.message;
 
-    message = this.polishMessage(message, ongoing, annotation);
+    message = this._polishMessage(message, ongoing, annotation);
 
     const lastOngoing = this._ongoing;
 
@@ -125,6 +129,14 @@ export abstract class BaseChatMessageController<
     this.emit('stream-error', this._message, this._ongoing);
   }
 
+  applyToolCall ({ toolCallId, toolName, args }: { toolCallId: string, toolName: string, args: any }) {
+    this.emit('stream-tool-call', toolCallId, toolName, args);
+  }
+
+  applyToolResult ({ toolCallId, result }: { toolCallId: string, result: any }) {
+    this.emit('stream-tool-result', toolCallId, result);
+  }
+
   finish () {
     this._ongoing = undefined;
     this.emit('stream-finished', this._message);
@@ -143,11 +155,13 @@ export abstract class BaseChatMessageController<
     return this._ongoingHistory;
   }
 
+  abstract parseAnnotation (raw: unknown): Annotation;
+
   abstract createInitialOngoingState (): OngoingState<State>;
 
   abstract createUnknownOngoingState (): OngoingState<State>;
 
-  abstract polishMessage (message: ChatMessage, ongoing: OngoingState<State>, annotation: Annotation): ChatMessage
+  protected abstract _polishMessage (message: ChatMessage, ongoing: OngoingState<State>, annotation: Annotation): ChatMessage
 }
 
 export type ChatMessageController = LegacyChatMessageController | StackVMChatMessageController;
@@ -155,6 +169,10 @@ export type ChatMessageControllerAnnotationState<C extends ChatMessageController
 
 export class LegacyChatMessageController extends BaseChatMessageController<AppChatStreamState, ChatMessageAnnotation> {
   readonly version = 'Legacy';
+
+  parseAnnotation (raw: unknown): ChatMessageAnnotation {
+    return raw as ChatMessageAnnotation;
+  }
 
   createInitialOngoingState (): OngoingState {
     return {
@@ -172,7 +190,7 @@ export class LegacyChatMessageController extends BaseChatMessageController<AppCh
     };
   }
 
-  polishMessage (message: ChatMessage, ongoing: OngoingState, annotation: ChatMessageAnnotation) {
+  _polishMessage (message: ChatMessage, ongoing: OngoingState, annotation: ChatMessageAnnotation) {
     switch (annotation.state) {
       case AppChatStreamState.TRACE:
         message = { ...message };
@@ -191,26 +209,120 @@ export class LegacyChatMessageController extends BaseChatMessageController<AppCh
   }
 }
 
-export class StackVMChatMessageController extends BaseChatMessageController<StackVMState | undefined, StackVMStateAnnotation> {
+export class StackVMChatMessageController extends BaseChatMessageController<StackVMState, StackVMStateAnnotation> {
   readonly version = 'StackVM';
 
-  createInitialOngoingState (): OngoingState<StackVMState | undefined> {
+  applyToolCall (payload: { toolCallId: string; toolName: string; args: any }) {
+    super.applyToolCall(payload);
+    if (this._ongoing) {
+      this._ongoing = {
+        ...this._ongoing,
+        state: {
+          state: this._ongoing.state.state,
+          toolCalls: [...this._ongoing.state.toolCalls, payload],
+        },
+      };
+      this.emit('stream-update', this._message, this._ongoing, '');
+    }
+  }
+
+  applyToolResult (payload: { toolCallId: string; result: any }) {
+    super.applyToolResult(payload);
+    if (this._ongoing) {
+      const idx = this._ongoing.state.toolCalls.findIndex(toolCall => toolCall.toolCallId === payload.toolCallId);
+      if (idx >= 0) {
+        this._ongoing.state.toolCalls[idx] = {
+          ...this._ongoing.state.toolCalls[idx],
+          result: payload.result,
+        };
+        this._ongoing.state = { ...this._ongoing.state };
+        this._ongoing = { ...this._ongoing };
+        this.emit('stream-update', this._message, this._ongoing, '');
+      }
+    }
+  }
+
+  parseAnnotation (raw: unknown): StackVMStateAnnotation {
+    const state = StackVM.model.parseState((raw as { state: StackVM.State }).state);
+
     return {
-      state: undefined,
-      display: 'Connecting...',
+      state: { state, toolCalls: [] },
+      display: '[deprecated]',
+    };
+  }
+
+  createInitialOngoingState (): OngoingState<StackVMState> {
+    return {
+      state: {
+        state: {
+          variables_refs: {},
+          variables: {},
+          errors: [],
+          current_plan: [],
+          program_counter: -1,
+          goal_completed: false,
+          goal: '',
+          msgs: [],
+          plan: {
+            steps: [],
+            vars: [],
+          },
+        },
+        toolCalls: [],
+      },
+      display: 'Thinking...',
       finished: false,
     };
   }
 
-  createUnknownOngoingState (): OngoingState<StackVMState | undefined> {
+  createUnknownOngoingState (): OngoingState<StackVMState> {
     return {
-      state: undefined,
+      state: {
+        state: {
+          variables_refs: {},
+          variables: {},
+          errors: ['Unknown state'],
+          current_plan: [],
+          program_counter: -1,
+          goal_completed: false,
+          goal: '',
+          msgs: [],
+          plan: {
+            steps: [],
+            vars: [],
+          },
+        },
+        toolCalls: [],
+      },
       display: 'Unknown',
       finished: false,
     };
   }
 
-  polishMessage (message: ChatMessage, ongoing: OngoingState<StackVMState | undefined>, annotation: StackVMStateAnnotation): ChatMessage {
+  _polishMessage (message: ChatMessage, ongoing: OngoingState<StackVMState>, annotation: StackVMStateAnnotation): ChatMessage {
+    // FIX Initial state
+    // First step reasoning finished with PC = 1, we need to insert a PC = 0 state first.
+    if (annotation.state.state.program_counter === 1) {
+      if (!this._ongoingHistory?.find(item => item.state.state.state.program_counter === 0)) {
+        const lastState = {
+          state: {
+            state: {
+              ...ongoing.state,
+              state: { ...ongoing.state.state, program_counter: 0, variables: {}, variables_refs: {} },
+            },
+            finished: false,
+            display: '[deprecated]',
+          },
+          time: new Date(),
+        };
+        this._ongoing = lastState.state;
+        this._ongoingHistory = [
+          ...this._ongoingHistory ?? [],
+          lastState,
+        ];
+      }
+    }
+
     return message;
   }
 }
