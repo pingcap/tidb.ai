@@ -32,8 +32,10 @@ export const enum AppChatStreamState {
 
 export type StackVMState = {
   state: StackVM.model.ParsedState
-  toolCalls: { toolCallId: string, toolName: string, args: any, result?: any }[]
+  toolCalls: StackVMToolCall[]
 };
+
+export type StackVMToolCall = { toolCallId: string, toolName: string, args: any, result?: any }
 
 export interface BaseAnnotation<S = AppChatStreamState> {
   state: S;

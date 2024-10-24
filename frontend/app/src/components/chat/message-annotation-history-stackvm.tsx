@@ -1,12 +1,14 @@
 import { useChatMessageField, useChatMessageStreamHistoryStates, useChatMessageStreamState } from '@/components/chat/chat-hooks';
 import { type OngoingState, type OngoingStateHistoryItem, StackVMChatMessageController } from '@/components/chat/chat-message-controller';
-import type { StackVMState } from '@/components/chat/chat-stream-state';
+import type { StackVMState, StackVMToolCall } from '@/components/chat/chat-stream-state';
 import { isNotFinished } from '@/components/chat/utils';
 import { DiffSeconds } from '@/components/diff-seconds';
 import { RemarkContent } from '@/components/remark-content';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { StackVM } from '@/lib/stackvm';
+import { cn } from '@/lib/utils';
 import { motion, type Target } from 'framer-motion';
-import { CheckCircleIcon, ChevronUpIcon, ClockIcon, InfoIcon, Loader2Icon } from 'lucide-react';
+import { CheckCircleIcon, ChevronUpIcon, ClockIcon, InfoIcon, Loader2Icon, SearchIcon } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 
 export function StackVMMessageAnnotationHistory ({ message }: { message: StackVMChatMessageController | undefined }) {
@@ -87,9 +89,9 @@ function StackVMCheckpoint ({ state }: { state: StackVMState }) {
 
   switch (step.type) {
     case 'reasoning':
-      return 'Chain Of Thoughts';
+      return 'Thoughts';
     case 'assign':
-      return `Assign ${step.output_vars.map(v => v.id).join(', ')}`;
+      return `Assign Variables`;
     case 'calling':
       return `Tool Call`;
     case 'jmp':
@@ -108,20 +110,130 @@ function StackVMDetails (state: StackVMState) {
 
   switch (step.type) {
     case 'reasoning':
-      return <RemarkContent className='ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500/50 pt-1 prose-strong:text-muted-foreground'>{(step as StackVM.model.StepModel<'reasoning'>).parameters.chain_of_thoughts}</RemarkContent>;
-    default:
-      if (state.toolCalls) {
-        return (
-          <ul className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500/50 pt-1">
-            {state.toolCalls.map(item => (
-              <li key={item.toolCallId}>
-                {item.toolName} {Object.keys(item.args).join(', ')}
+      return <RemarkContent className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500/50 pt-1 prose-strong:text-muted-foreground">{(step as StackVM.model.StepModel<'reasoning'>).parameters.chain_of_thoughts}</RemarkContent>;
+    case 'calling':
+      return (
+        <ul className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500/50 pt-1">
+          {state.toolCalls.map(item => (
+            <ToolCallInfo key={item.toolCallId} toolCall={item} />
+          ))}
+        </ul>
+      );
+    case 'assign':
+      return (
+        <div className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500/50 pt-1">
+          <ul className="space-y-1 block">
+            {Object.entries(step.parameters).map(([key, value]) => (
+              <li key={key} className="flex gap-2 items-center">
+                <div><code>{key}</code>:</div>
+                <JsonValueViewer value={value} />
               </li>
             ))}
           </ul>
-        );
-      }
+        </div>
+      );
+    default:
       return null;
+  }
+}
+
+function ToolCallInfo ({ toolCall }: { toolCall: StackVMToolCall }) {
+  return (
+    <div className="space-y-1">
+      <div>
+        <b><code>{toolCall.toolName}</code></b>
+        {' '}
+        <span>(</span>
+      </div>
+      <ul className="space-y-1">
+        {Object.entries(toolCall.args).map(([key, value]) => (
+          <li key={key} className="ml-2 flex gap-2 items-center">
+            <div><code>{key}</code>:</div>
+            <JsonValueViewer value={value} />
+          </li>
+        ))}
+      </ul>
+      <span>)</span>
+      {('result' in toolCall) && <>
+        {(toolCall.result && typeof toolCall.result === 'object' && !(toolCall.result instanceof Array))
+          ? (
+            <>
+              <div className="flex items-center gap-2">
+                <b>Result:</b>
+                <span>{'{'}</span>
+              </div>
+              <ul className="space-y-1 block">
+                {Object.entries(toolCall.result).map(([key, value]) => (
+                  <li key={key} className="ml-2 flex gap-2 items-center">
+                    <div><code>{key}</code>:</div>
+                    <JsonValueViewer value={value} />
+                  </li>
+                ))}
+              </ul>
+              <div>{'}'}</div>
+            </>
+          )
+          : <div className="flex items-center gap-2">
+            <b>Result:</b>
+            <JsonValueViewer value={toolCall.result} />
+          </div>}
+      </>
+      }
+    </div>
+  )
+    ;
+}
+
+function JsonValueViewer ({ value }: { value: unknown }) {
+  if (value == null) {
+    return String(value);
+  }
+
+  if (typeof value === 'object') {
+    let label: string;
+    if (value instanceof Array) {
+      label = `array<${value.length} items>`;
+    } else {
+      label = `object<${Object.keys(value).length} entries>`;
+    }
+
+    return (
+      <Popover>
+        <PopoverTrigger className="inline-flex items-center">
+          <SearchIcon className="size-3 mr-1" />
+          {label}
+        </PopoverTrigger>
+        <PopoverContent className="max-w-[320px] max-h-[30vh] overflow-y-auto overflow-x-hidden">
+          <pre className="text-xs w-full whitespace-pre-wrap">
+            {JSON.stringify(value, undefined, 2)}
+          </pre>
+        </PopoverContent>
+      </Popover>
+    );
+  } else {
+    const isText = typeof value === 'string';
+    const string = String(value);
+    if (string.length > 25) {
+      return (
+        <Popover>
+          <PopoverTrigger className={cn('inline-flex items-center')}>
+            <SearchIcon className="size-3 mr-1 text-muted-foreground" />
+            {isText && <span>"</span>}{string.slice(0, 25) + '...'}{isText && <span>"</span>}
+          </PopoverTrigger>
+          <PopoverContent className="max-w-[320px] max-h-[30vh] overflow-y-auto overflow-x-hidden">
+            <pre className="text-xs w-full whitespace-pre-wrap">
+              {string}
+            </pre>
+          </PopoverContent>
+        </Popover>
+      );
+    } else {
+      return (
+        <span className={cn()}>
+          {isText && <span>"</span>}{string}{isText && <span>"</span>}
+        </span>
+      );
+    }
   }
 }
 
@@ -132,7 +244,6 @@ function MessageAnnotationHistoryItem ({ history, item: { state, time }, index }
       <div className="flex gap-2 items-center">
         <CheckedCircle className="size-4" initial={itemIconInitial} animate={itemSuccessIconAnimate} />
         <span>{state.display === '[deprecated]' ? <StackVMCheckpoint state={state.state} /> : state.display}</span>
-        {index > 0 && <DiffSeconds className="text-muted-foreground text-xs" from={history[index - 1].time} to={time} />}
       </div>
       <StackVMDetails {...state.state} />
     </motion.li>
@@ -171,7 +282,6 @@ function MessageAnnotationCurrent ({ history, current }: { history: OngoingState
         {(history?.length ?? 0) > 1 && <span className="absolute left-2 h-2 bg-zinc-500/50" style={{ width: 1, top: -8 }} />}
         <Loader2Icon className="size-4 animate-spin repeat-infinite text-muted-foreground" />
         <span>{current.display === '[deprecated]' ? <StackVMCheckpoint state={current.state} /> : current.display}</span>
-        {history && history.length > 0 && <DiffSeconds className="text-muted-foreground text-xs" from={history[history.length - 1].time} />}
       </div>
       <StackVMDetails {...current.state} />
     </motion.li>
