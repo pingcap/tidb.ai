@@ -218,7 +218,7 @@ function JsonValueViewer ({ value }: { value: unknown }) {
         <Popover>
           <PopoverTrigger className={cn('inline-flex items-center')}>
             <SearchIcon className="size-3 mr-1 text-muted-foreground" />
-            {isText && <span>"</span>}{string.slice(0, 25) + '...'}{isText && <span>"</span>}
+            {isText && <span>{'"'}</span>}{string.slice(0, 25) + '...'}{isText && <span>{'"'}</span>}
           </PopoverTrigger>
           <PopoverContent className="max-w-[320px] max-h-[30vh] overflow-y-auto overflow-x-hidden">
             <pre className="text-xs w-full whitespace-pre-wrap">
@@ -230,7 +230,7 @@ function JsonValueViewer ({ value }: { value: unknown }) {
     } else {
       return (
         <span className={cn()}>
-          {isText && <span>"</span>}{string}{isText && <span>"</span>}
+          {isText && <span>{'"'}</span>}{string}{isText && <span>{'"'}</span>}
         </span>
       );
     }
