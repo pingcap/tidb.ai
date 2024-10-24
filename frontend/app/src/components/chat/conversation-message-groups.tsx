@@ -2,6 +2,7 @@ import { useAuth } from '@/components/auth/AuthProvider';
 import { type ChatMessageGroup, useChatPostState, useCurrentChatController } from '@/components/chat/chat-hooks';
 import { DebugInfo } from '@/components/chat/debug-info';
 import { MessageAnnotationHistory } from '@/components/chat/message-annotation-history';
+import { StackVMMessageAnnotationHistory } from '@/components/chat/message-annotation-history-stackvm';
 import { MessageAnswer } from '@/components/chat/message-answer';
 import { MessageAutoScroll } from '@/components/chat/message-auto-scroll';
 import { MessageContextSources } from '@/components/chat/message-content-sources';
@@ -101,7 +102,8 @@ function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
         </CollapsibleContent>
       </Collapsible>
 
-      <MessageAnnotationHistory message={group.assistant} />
+      {group.assistant?.version === 'Legacy' && <MessageAnnotationHistory message={group.assistant} />}
+      {group.assistant?.version === 'StackVM' && <StackVMMessageAnnotationHistory message={group.assistant} />}
 
       <MessageSection className="!mt-1" message={group.assistant}>
         <MessageContextSources message={group.assistant} />

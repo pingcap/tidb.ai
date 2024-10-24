@@ -1,7 +1,7 @@
 import { Ask } from '@/components/chat/ask';
 import { useAsk } from '@/components/chat/use-ask';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogOverlay, DialogPortal, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogDescription, DialogHeader, DialogOverlay, DialogPortal, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import * as DialogPrimitive from '@radix-ui/react-dialog';
 import { CommandIcon, PlusIcon } from 'lucide-react';
@@ -28,6 +28,10 @@ export function ChatNewDialog () {
 
   return (
     <Dialog open={ask.loading || open} onOpenChange={setOpen}>
+      <DialogHeader className="sr-only">
+        <DialogTitle>Ask Question Dialog</DialogTitle>
+        <DialogDescription></DialogDescription>
+      </DialogHeader>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full mb-4 rounded-full cursor-text font-normal text-foreground/70 gap-2">
           <PlusIcon className="size-4 text-muted-foreground" />

@@ -2,7 +2,7 @@ import { getChatMessageSubgraph } from '@/api/chats';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { type ChatMessageGroup, useChatMessageStreamState } from '@/components/chat/chat-hooks';
 import type { OngoingState } from '@/components/chat/chat-message-controller';
-import { AppChatStreamState } from '@/components/chat/chat-stream-state';
+import { AppChatStreamState, type StackVMState } from '@/components/chat/chat-stream-state';
 import { NetworkViewer } from '@/components/graph/components/NetworkViewer';
 import { useNetwork } from '@/components/graph/useNetwork';
 import { PencilIcon } from 'lucide-react';
@@ -51,7 +51,7 @@ export function KnowledgeGraphDebugInfo ({ group }: { group: ChatMessageGroup })
   );
 }
 
-function couldFetchKnowledgeGraphDebugInfo (state: OngoingState) {
+function couldFetchKnowledgeGraphDebugInfo (state: OngoingState<AppChatStreamState | StackVMState>) {
   switch (state.state) {
     case AppChatStreamState.GENERATE_ANSWER:
     case AppChatStreamState.FINISHED:

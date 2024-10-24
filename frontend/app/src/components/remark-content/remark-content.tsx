@@ -1,6 +1,7 @@
 'use client';
 
 import { usePortalContainer } from '@/components/portal-provider';
+import { cn } from '@/lib/utils';
 import { type ReactNode, useEffect, useId, useMemo, useState } from 'react';
 import rehypeHighlight from 'rehype-highlight';
 import rehypeReact from 'rehype-react';
@@ -14,7 +15,7 @@ import { rehypeHighlightOptions } from './highlight';
 import '@/components/code-theme.scss';
 import '@/components/remark-content/style.scss';
 
-export function RemarkContent ({ children = '' }: { children: string | undefined }) {
+export function RemarkContent ({ className, children = '' }: { className?: string, children: string | undefined }) {
   const portalContainer = usePortalContainer();
   const reactId = useId();
 
@@ -44,7 +45,7 @@ export function RemarkContent ({ children = '' }: { children: string | undefined
 
   return (
     <RemarkContentContext.Provider value={{ reactId, rawContent: children }}>
-      <article className="remark-content prose prose-sm prose-zinc dark:prose-invert overflow-x-hidden break-words max-w-[unset]">
+      <article className={cn('remark-content prose prose-sm prose-zinc dark:prose-invert overflow-x-hidden break-words max-w-[unset]', className)}>
         {value}
       </article>
     </RemarkContentContext.Provider>

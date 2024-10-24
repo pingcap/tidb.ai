@@ -1,12 +1,12 @@
 import { useChatMessageField, useChatMessageStreamHistoryStates, useChatMessageStreamState } from '@/components/chat/chat-hooks';
-import type { ChatMessageController, OngoingState, OngoingStateHistoryItem } from '@/components/chat/chat-message-controller';
+import { LegacyChatMessageController, type OngoingState, type OngoingStateHistoryItem } from '@/components/chat/chat-message-controller';
 import { isNotFinished } from '@/components/chat/utils';
 import { DiffSeconds } from '@/components/diff-seconds';
 import { motion, type Target } from 'framer-motion';
 import { CheckCircleIcon, ChevronUpIcon, ClockIcon, InfoIcon, Loader2Icon } from 'lucide-react';
 import { useEffect, useState } from 'react';
 
-export function MessageAnnotationHistory ({ message }: { message: ChatMessageController | undefined }) {
+export function MessageAnnotationHistory ({ message }: { message: LegacyChatMessageController | undefined }) {
   const [show, setShow] = useState(true);
   const history = useChatMessageStreamHistoryStates(message);
   const current = useChatMessageStreamState(message);
