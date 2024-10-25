@@ -1,6 +1,7 @@
 import logging
 import docx
 import pptx
+import openpyxl
 from pydantic import BaseModel
 from typing import Generator, IO
 from pypdf import PdfReader
@@ -42,6 +43,9 @@ class FileDataSource(BaseDataSource):
                 elif upload.mime_type == MimeTypes.PPTX:
                     content = extract_text_from_pptx(f)
                     mime_type = MimeTypes.PLAIN_TXT
+                elif upload.mime_type == MimeTypes.XLSX:
+                    content = extract_text_from_xlsx(f)
+                    mime_type = MimeTypes.PLAIN_TXT
                 else:
                     content = f.read()
                     mime_type = upload.mime_type
@@ -78,4 +82,17 @@ def extract_text_from_pptx(file: IO) -> str:
         for shape in slide.shapes:
             if hasattr(shape, "text"):
                 full_text.append(shape.text)
+    return "\n\n".join(full_text)
+
+
+def extract_text_from_xlsx(file: IO) -> str:
+    wb = openpyxl.load_workbook(file)
+    full_text = []
+    for sheet in wb.worksheets:
+        full_text.append(f"Sheet: {sheet.title}")
+        sheet_string = "\n".join(
+            ",".join(map(str, row))
+            for row in sheet.iter_rows(values_only=True)
+        )
+        full_text.append(sheet_string)
     return "\n\n".join(full_text)
