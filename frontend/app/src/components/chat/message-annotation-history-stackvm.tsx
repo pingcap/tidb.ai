@@ -19,6 +19,13 @@ export function StackVMMessageAnnotationHistory ({ message }: { message: StackVM
 
   const finished = !isNotFinished(current) || !!error;
 
+  const stackVMPlanId = useMemo(() => {
+    if (current) {
+      return current.state.plan_id;
+    }
+    return history?.[0]?.state.state.plan_id;
+  }, [history, current]);
+
   useEffect(() => {
     if (finished) {
       const handler = setTimeout(() => {
@@ -51,6 +58,9 @@ export function StackVMMessageAnnotationHistory ({ message }: { message: StackVM
           {error && <MessageAnnotationHistoryError history={history} error={error} />}
           {current && !current.finished && <MessageAnnotationCurrent history={history} current={current} />}
         </ol>
+        {stackVMPlanId && <div className="mt-2 text-xs">
+          Visit <a className="underline" target='_blank' href={`https://stackvm.tidb.ai/?plan=${stackVMPlanId}`}>StackVM</a> to see more details
+        </div>}
         <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors" onClick={() => setShow(false)}>
           <ChevronUpIcon className="size-4 mr-1" />
           Collapse
