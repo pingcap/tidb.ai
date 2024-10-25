@@ -9,6 +9,7 @@ export const mimeTypes = [
   { name: 'Pdf', value: 'application/pdf' },
   { name: 'Microsoft Word (docx)', value: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' },
   { name: 'Microsoft PowerPoint (pptx)', value: 'application/vnd.openxmlformats-officedocument.presentationml.presentation' },
+  { name: 'Microsoft Excel (xlsx)', value: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' },
 ] as const satisfies MimeType[];
 
 const mimeValues: (typeof mimeTypes)[number]['value'] = mimeTypes.map(m => m.value) as never;

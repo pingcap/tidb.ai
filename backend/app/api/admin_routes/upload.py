@@ -18,6 +18,7 @@ SUPPORTED_FILE_TYPES = {
     ".pdf": MimeTypes.PDF,
     ".docx": MimeTypes.DOCX,
     ".pptx": MimeTypes.PPTX,
+    ".xlsx": MimeTypes.XLSX,
 }
 
 
