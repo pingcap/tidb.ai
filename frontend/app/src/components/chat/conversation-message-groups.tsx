@@ -52,6 +52,7 @@ export function ConversationMessageGroups ({ groups }: { groups: ChatMessageGrou
         <ConversationMessageGroup
           key={group.user.id}
           group={group}
+          isLastGroup={index === groups.length - 1}
         />
       ))}
       {!!params && !initialized && (
@@ -67,8 +68,10 @@ export function ConversationMessageGroups ({ groups }: { groups: ChatMessageGrou
   );
 }
 
-function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
+function ConversationMessageGroup ({ group, isLastGroup }: { group: ChatMessageGroup, isLastGroup: boolean }) {
   const enableDebug = /* !!me && */ !process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL;
+
+  const { params } = useChatPostState(useCurrentChatController());
 
   const [debugInfoOpen, setDebugInfoOpen] = useState(false);
   const [highlight, setHighlight] = useState(false);
@@ -117,7 +120,7 @@ function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
 
       <MessageVerify assistant={group.assistant} />
 
-      <MessageRecommendQuestions assistant={group.assistant} />
+      {!params && isLastGroup && group.hasLastAssistantMessage && <MessageRecommendQuestions assistant={group.assistant} />}
     </section>
   );
 }
