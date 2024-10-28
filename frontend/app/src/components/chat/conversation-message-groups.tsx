@@ -1,4 +1,3 @@
-import { useAuth } from '@/components/auth/AuthProvider';
 import { type ChatMessageGroup, useChatPostState, useCurrentChatController } from '@/components/chat/chat-hooks';
 import { DebugInfo } from '@/components/chat/debug-info';
 import { MessageAnnotationHistory } from '@/components/chat/message-annotation-history';
@@ -8,6 +7,7 @@ import { MessageAutoScroll } from '@/components/chat/message-auto-scroll';
 import { MessageContextSources } from '@/components/chat/message-content-sources';
 import { MessageError } from '@/components/chat/message-error';
 import { MessageOperations } from '@/components/chat/message-operations';
+import { MessageRecommendQuestions } from '@/components/chat/message-recommend-questions';
 import { MessageSection } from '@/components/chat/message-section';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -53,6 +53,7 @@ export function ConversationMessageGroups ({ groups }: { groups: ChatMessageGrou
         <ConversationMessageGroup
           key={group.user.id}
           group={group}
+          isLastGroup={index === groups.length - 1}
         />
       ))}
       {!!params && !initialized && (
@@ -68,9 +69,10 @@ export function ConversationMessageGroups ({ groups }: { groups: ChatMessageGrou
   );
 }
 
-function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
-  const { me } = useAuth();
+function ConversationMessageGroup ({ group, isLastGroup }: { group: ChatMessageGroup, isLastGroup: boolean }) {
   const enableDebug = /* !!me && */ !process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL;
+
+  const { params } = useChatPostState(useCurrentChatController());
 
   const [debugInfoOpen, setDebugInfoOpen] = useState(false);
   const [highlight, setHighlight] = useState(false);
@@ -116,9 +118,11 @@ function ConversationMessageGroup ({ group }: { group: ChatMessageGroup }) {
 
       {group.assistant && <MessageError message={group.assistant} />}
 
+      {group.assistant && <MessageOperations message={group.assistant} />}
+
       <MessageVerify assistant={group.assistant} />
 
-      {group.assistant && <MessageOperations message={group.assistant} />}
+      {!params && isLastGroup && group.hasLastAssistantMessage && <MessageRecommendQuestions assistant={group.assistant} />}
     </section>
   );
 }
