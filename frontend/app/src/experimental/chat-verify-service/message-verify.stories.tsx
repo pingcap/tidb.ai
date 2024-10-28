@@ -1,6 +1,6 @@
 import { AuthProvider } from '@/components/auth/AuthProvider';
 import { ChatControllerProvider, useChatController } from '@/components/chat/chat-hooks';
-import { ChatMessageController } from '@/components/chat/chat-message-controller';
+import { ChatMessageController, LegacyChatMessageController } from '@/components/chat/chat-message-controller';
 import { getVerify, VerifyStatus } from '@/experimental/chat-verify-service/api.mock';
 import type { Meta, StoryObj } from '@storybook/react';
 import { mutate } from 'swr';
@@ -28,7 +28,7 @@ const meta = {
         <ChatControllerProvider controller={controller}>
           <div style={{ width: 600 }}>
             <MessageVerify
-              assistant={new ChatMessageController({ finished_at: new Date(), id: 1, role: 'assistant', content: 'Answer', post_verification_result_url: 'http://foo/bar' } as any, undefined)}
+              assistant={new LegacyChatMessageController({ finished_at: new Date(), id: 1, role: 'assistant', content: 'Answer', post_verification_result_url: 'http://foo/bar' } as any, undefined)}
             />
           </div>
         </ChatControllerProvider>

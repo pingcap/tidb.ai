@@ -1,4 +1,4 @@
-import { ChatMessageController } from '@/components/chat/chat-message-controller';
+import { ChatMessageController, LegacyChatMessageController } from '@/components/chat/chat-message-controller';
 import { AppChatStreamState } from '@/components/chat/chat-stream-state';
 import { createExampleInitialChatMessage } from '@/components/chat/testutils';
 import { jest } from '@jest/globals';
@@ -12,11 +12,7 @@ describe('stream', () => {
 
   test('success', () => {
 
-    const controller = new ChatMessageController(createExampleInitialChatMessage(), {
-      state: AppChatStreamState.CONNECTING,
-      finished: false,
-      display: 'Connecting',
-    });
+    const controller = new LegacyChatMessageController(createExampleInitialChatMessage(), true);
 
     controller.on('update', onUpdate)
       .on('stream-update', onStreamUpdate)
@@ -56,11 +52,7 @@ describe('stream', () => {
   });
 
   test('error', () => {
-    const controller = new ChatMessageController(createExampleInitialChatMessage(), {
-      state: AppChatStreamState.CONNECTING,
-      finished: false,
-      display: 'Connecting',
-    });
+    const controller = new LegacyChatMessageController(createExampleInitialChatMessage(), true);
 
     controller.on('update', onUpdate)
       .on('stream-update', onStreamUpdate)

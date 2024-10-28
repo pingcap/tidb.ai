@@ -13,6 +13,6 @@ export function parseSource (uri?: string) {
   }
 }
 
-export function isNotFinished (ongoing: OngoingState | undefined) {
+export function isNotFinished (ongoing: OngoingState<any> | undefined) {
   return !!ongoing && !ongoing.finished;
 }
