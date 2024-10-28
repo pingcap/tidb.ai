@@ -1,8 +1,8 @@
 import { type Chat, type ChatMessage, ChatMessageRole } from '@/api/chats';
 import { isBootstrapStatusPassed } from '@/api/system';
 import { ChatController } from '@/components/chat/chat-controller';
-import { ChatMessageController, type OngoingState, type OngoingStateHistoryItem } from '@/components/chat/chat-message-controller';
-import type { AppChatStreamState } from '@/components/chat/chat-stream-state';
+import { BaseChatMessageController, ChatMessageController, type ChatMessageControllerAnnotationState, type OngoingState, type OngoingStateHistoryItem } from '@/components/chat/chat-message-controller';
+import type { AppChatStreamState, StackVMState } from '@/components/chat/chat-stream-state';
 import { useGtagFn } from '@/components/gtag-provider';
 import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { useLatestRef } from '@/components/use-latest-ref';
@@ -285,14 +285,14 @@ export function useChatMessageField (controller: ChatMessageController | undefin
   return value;
 }
 
-export function useChatMessageStreamState (controller: ChatMessageController | undefined): OngoingState | undefined {
+export function useChatMessageStreamState<C extends ChatMessageController> (controller: C | undefined): OngoingState<ChatMessageControllerAnnotationState<C>> | undefined {
   const [state, setState] = useState(controller?.ongoing);
 
   useEffect(() => {
     if (controller) {
       setState(controller.ongoing);
 
-      const handleUpdate = (_: any, state?: OngoingState) => setState(state);
+      const handleUpdate = (_: any, state?: OngoingState<AppChatStreamState | StackVMState>) => setState(state);
 
       controller
         .on('stream-update', handleUpdate)
@@ -310,10 +310,10 @@ export function useChatMessageStreamState (controller: ChatMessageController | u
     }
   }, [controller]);
 
-  return state;
+  return state as OngoingState<ChatMessageControllerAnnotationState<C>>;
 }
 
-export function useChatMessageStreamHistoryStates (controller: ChatMessageController | undefined) {
+export function useChatMessageStreamHistoryStates<C extends BaseChatMessageController<any, any>> (controller: C | undefined): C['ongoingHistory'] {
   const [state, setState] = useState(controller?.ongoingHistory);
 
   useEffect(() => {

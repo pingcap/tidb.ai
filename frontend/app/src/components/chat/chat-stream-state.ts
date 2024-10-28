@@ -8,7 +8,13 @@
  *     FINISHED = 9
  */
 import { Chat, ChatMessage, chatMessageSchema, ChatMessageSource, chatSchema } from '@/api/chats';
+import { StackVM } from '@/lib/stackvm';
 import { z, type ZodType } from 'zod';
+
+export const enum BaseState {
+  CONNECTING = 'CONNECTING', // only client side
+  UNKNOWN = 'UNKNOWN',
+}
 
 export const enum AppChatStreamState {
   CONNECTING = 'CONNECTING', // only client side
@@ -24,7 +30,15 @@ export const enum AppChatStreamState {
   UNKNOWN = 'UNKNOWN',
 }
 
-export interface BaseAnnotation<S extends AppChatStreamState> {
+export type StackVMState = {
+  plan_id: string;
+  state: StackVM.model.ParsedState
+  toolCalls: StackVMToolCall[]
+};
+
+export type StackVMToolCall = { toolCallId: string, toolName: string, args: any, result?: any }
+
+export interface BaseAnnotation<S = AppChatStreamState> {
   state: S;
   display?: string;
 }
@@ -46,6 +60,9 @@ export type ChatMessageAnnotation =
   | TraceAnnotation
   | SourceNodesAnnotation
   | RefineQuestionAnnotation;
+
+export interface StackVMStateAnnotation extends BaseAnnotation<StackVMState> {
+}
 
 export type ChatInitialData = {
   chat: Chat;

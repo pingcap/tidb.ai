@@ -1,5 +1,8 @@
+import json
 import time
 import logging
+import re
+
 from uuid import UUID
 from typing import List, Generator, Optional, Tuple, Type
 from datetime import datetime, UTC
@@ -140,10 +143,14 @@ class ChatService:
             self.langfuse_host and self.langfuse_secret_key and self.langfuse_public_key
         )
 
-    def chat(self) -> Generator[ChatEvent, None, None]:
+    def chat(self) -> Generator[ChatEvent | str, None, None]:
         try:
-            for event in self._chat():
-                yield event
+            if self.chat_engine_config.external_engine_config:
+                for event in self._external_chat():
+                    yield event
+            else:
+                for event in self._chat():
+                    yield event
         except Exception as e:
             logger.exception(e)
             yield ChatEvent(
@@ -151,7 +158,7 @@ class ChatService:
                 payload="Encountered an error while processing the chat. Please try again later.",
             )
 
-    def _chat(self) -> Generator[ChatEvent, None, None]:
+    def _chat(self) -> Generator[ChatEvent | str, None, None]:
         if self.enable_langfuse:
             langfuse = Langfuse(
                 host=self.langfuse_host,
@@ -464,6 +471,80 @@ class ChatService:
                 assistant_message=db_assistant_message,
             ),
         )
+
+    def _external_chat(self) -> Generator[ChatEvent | str, None, None]:
+        # TODO: integration with langfuse.
+        db_user_message = chat_repo.create_message(
+            session=self.db_session,
+            chat=self.db_chat_obj,
+            chat_message=DBChatMessage(
+                role=MessageRole.USER.value,
+                trace_url="",
+                content=self.user_question,
+            ),
+        )
+        db_assistant_message = chat_repo.create_message(
+            session=self.db_session,
+            chat=self.db_chat_obj,
+            chat_message=DBChatMessage(
+                role=MessageRole.ASSISTANT.value,
+                trace_url="",
+                content="",
+            ),
+        )
+
+        # Frontend requires the empty event to start the chat
+        yield ChatEvent(
+            event_type=ChatEventType.TEXT_PART,
+            payload="",
+        )
+        yield ChatEvent(
+            event_type=ChatEventType.DATA_PART,
+            payload=ChatStreamDataPayload(
+                chat=self.db_chat_obj,
+                user_message=db_user_message,
+                assistant_message=db_assistant_message,
+            ),
+        )
+
+        stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
+        logger.debug(f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
+        chat_params = {
+            "goal": self.user_question
+        }
+        res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
+
+        # Notice: External type chat engine doesn't support non-streaming mode for now.
+        response_text = ""
+        for line in res.iter_lines():
+            if not line:
+                continue
+
+            # Append to final response text.
+            chunk = line.decode('utf-8')
+            if chunk.startswith("0:"):
+                response_text += json.loads(chunk[2:])
+
+            yield line + b'\n'
+
+        db_assistant_message.content = response_text
+        db_assistant_message.updated_at = datetime.now(UTC)
+        db_assistant_message.finished_at = datetime.now(UTC)
+        self.db_session.add(db_assistant_message)
+        db_user_message.updated_at = datetime.now(UTC)
+        db_user_message.finished_at = datetime.now(UTC)
+        self.db_session.add(db_user_message)
+        self.db_session.commit()
+
+        yield ChatEvent(
+            event_type=ChatEventType.DATA_PART,
+            payload=ChatStreamDataPayload(
+                chat=self.db_chat_obj,
+                user_message=db_user_message,
+                assistant_message=db_assistant_message,
+            ),
+        )
+
 
     def _parse_chat_messages(
         self, chat_messages: List[ChatMessage]
