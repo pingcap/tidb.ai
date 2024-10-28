@@ -517,13 +517,6 @@ class ChatService:
                     question=self.user_question,
                 ),
             )
-            yield ChatEvent(
-                event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-                payload=ChatStreamMessagePayload(
-                    state=ChatMessageSate.REFINE_QUESTION,
-                    message=refined_question,
-                ),
-            )
         except Exception as e:
             refined_question = self.user_question
             logger.error(f"Failed to refine question: {e}")
