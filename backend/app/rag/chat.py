@@ -507,6 +507,23 @@ class ChatService:
             ),
         )
 
+        _fast_llm = self.chat_engine_config.get_fast_llama_llm(self.db_session)
+        refined_question = _fast_llm.predict(
+            get_prompt_by_jinja2_template(
+                self.chat_engine_config.llm.condense_question_prompt,
+                graph_knowledges="",
+                chat_history=self.chat_history,
+                question=self.user_question,
+            ),
+        )
+        yield ChatEvent(
+            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.REFINE_QUESTION,
+                message=refined_question,
+            ),
+        )
+
         stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
         logger.debug(f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
         chat_params = {
