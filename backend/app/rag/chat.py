@@ -507,32 +507,37 @@ class ChatService:
             ),
         )
 
-        _fast_llm = self.chat_engine_config.get_fast_llama_llm(self.db_session)
-        refined_question = _fast_llm.predict(
-            get_prompt_by_jinja2_template(
-                self.chat_engine_config.llm.condense_question_prompt,
-                graph_knowledges="",
-                chat_history=self.chat_history,
-                question=self.user_question,
-            ),
-        )
-        yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-            payload=ChatStreamMessagePayload(
-                state=ChatMessageSate.REFINE_QUESTION,
-                message=refined_question,
-            ),
-        )
+        try:
+            _fast_llm = self.chat_engine_config.get_fast_llama_llm(self.db_session)
+            refined_question = _fast_llm.predict(
+                get_prompt_by_jinja2_template(
+                    self.chat_engine_config.llm.condense_question_prompt,
+                    graph_knowledges="",
+                    chat_history=self.chat_history,
+                    question=self.user_question,
+                ),
+            )
+            yield ChatEvent(
+                event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                payload=ChatStreamMessagePayload(
+                    state=ChatMessageSate.REFINE_QUESTION,
+                    message=refined_question,
+                ),
+            )
+        except Exception as e:
+            refined_question = self.user_question
+            logger.error(f"Failed to refine question: {e}")
 
         stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
         logger.debug(f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
         chat_params = {
-            "goal": self.user_question
+            "goal": refined_question
         }
         res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
 
         # Notice: External type chat engine doesn't support non-streaming mode for now.
         response_text = ""
+        task_id = None
         for line in res.iter_lines():
             if not line:
                 continue
@@ -542,12 +547,24 @@ class ChatService:
             if chunk.startswith("0:"):
                 response_text += json.loads(chunk[2:])
 
+            try:
+                if chunk.startswith("8:") and task_id is None:
+                    states = json.loads(chunk[2:])
+                    if len(states) > 0:
+                        # accesss task by http://endpoint/?task_id=$task_id
+                        task_id = states[0].get("task_id")
+            except Exception as e:
+                logger.error(f"Failed to get task_id from chunk: {e}")
+
             yield line + b'\n'
 
+        base_url = stream_chat_api_url.replace('/stream_execute_vm', '')
         db_assistant_message.content = response_text
+        db_assistant_message.trace_url = f"{base_url}/task_id={task_id}" if task_id else ""
         db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_assistant_message)
+        db_user_message.trace_url = f"{base_url}/task_id={task_id}" if task_id else ""
         db_user_message.updated_at = datetime.now(UTC)
         db_user_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_user_message)
