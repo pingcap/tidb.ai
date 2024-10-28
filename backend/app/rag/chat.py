@@ -79,9 +79,6 @@ class ChatService:
         self.engine_name = engine_name
 
         self.user_question, self.chat_history = self._parse_chat_messages(chat_messages)
-        self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
-        self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
-
         if chat_id:
             # FIXME:
             #   only chat owner or superuser can access the chat,
@@ -89,11 +86,21 @@ class ChatService:
             self.db_chat_obj = chat_repo.get(self.db_session, chat_id)
             if not self.db_chat_obj:
                 raise ChatNotFound()
+            try:
+                self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, self.db_chat_obj.engine.name)
+                self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
+            except Exception as e:
+                logger.error(f"Failed to load chat engine config: {e}")
+                self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
+                self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
+            logger.info(f"ChatService - chat_id: {chat_id}, chat_engine: {self.db_chat_obj.engine.name}")
             self.chat_history = [
                 ChatMessage(role=m.role, content=m.content, additional_kwargs={})
                 for m in chat_repo.get_messages(self.db_session, self.db_chat_obj)
             ]
         else:
+            self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
+            self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
             self.db_chat_obj = chat_repo.create(
                 self.db_session,
                 DBChat(
