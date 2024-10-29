@@ -15,6 +15,7 @@ from app.repositories import chat_repo
 from app.models import Chat, ChatUpdate
 from app.rag.chat import (
     ChatService,
+    ChatEvent,
     user_can_view_chat,
     user_can_edit_chat,
     get_chat_message_subgraph, get_chat_message_recommend_questions,
@@ -92,6 +93,8 @@ def chats(
         trace, sources, content = None, [], ""
         chat_id, message_id = None, None
         for m in chat_svc.chat():
+            if not isinstance(m, ChatEvent):
+                continue
             if m.event_type == ChatEventType.MESSAGE_ANNOTATIONS_PART:
                 if m.payload.state == ChatMessageSate.SOURCE_NODES:
                     sources = m.payload.context
