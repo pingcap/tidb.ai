@@ -6,6 +6,7 @@
  *     SEARCH_RELATED_DOCUMENTS = 4
  *     GENERATE_ANSWER = 5
  *     FINISHED = 9
+ *     EXTERNAL_STREAM_START = 10
  */
 import { Chat, ChatMessage, chatMessageSchema, ChatMessageSource, chatSchema } from '@/api/chats';
 import { StackVM } from '@/lib/stackvm';
@@ -26,6 +27,7 @@ export const enum AppChatStreamState {
   RERANKING = 'RERANKING',
   GENERATE_ANSWER = 'GENERATE_ANSWER',
   FINISHED = 'FINISHED',
+  EXTERNAL_STREAM_START = 'EXTERNAL_STREAM_START',
   FAILED = 'FAILED',
   UNKNOWN = 'UNKNOWN',
 }
@@ -55,13 +57,18 @@ export interface RefineQuestionAnnotation extends BaseAnnotation<AppChatStreamSt
   message?: string;
 }
 
+export interface ExternalStreamStartAnnotation extends BaseAnnotation<AppChatStreamState.EXTERNAL_STREAM_START> {
+  context: { type: 'StackVM' }
+}
+
 export type ChatMessageAnnotation =
-  BaseAnnotation<Exclude<AppChatStreamState, AppChatStreamState.TRACE | AppChatStreamState.SOURCE_NODES | AppChatStreamState.REFINE_QUESTION>>
+  BaseAnnotation<Exclude<AppChatStreamState, AppChatStreamState.TRACE | AppChatStreamState.SOURCE_NODES | AppChatStreamState.REFINE_QUESTION | AppChatStreamState.EXTERNAL_STREAM_START>>
   | TraceAnnotation
   | SourceNodesAnnotation
-  | RefineQuestionAnnotation;
+  | RefineQuestionAnnotation
+  | ExternalStreamStartAnnotation;
 
-export interface StackVMStateAnnotation extends BaseAnnotation<StackVMState> {
+export interface StackVMStateAnnotation extends BaseAnnotation<StackVMState | null> {
 }
 
 export type ChatInitialData = {

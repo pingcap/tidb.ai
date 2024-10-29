@@ -59,3 +59,5 @@ class ChatMessageSate(int, enum.Enum):
     SEARCH_RELATED_DOCUMENTS = 4
     GENERATE_ANSWER = 5
     FINISHED = 9
+    # See https://github.com/pingcap/tidb.ai/issues/345
+    EXTERNAL_STREAM_START = 10

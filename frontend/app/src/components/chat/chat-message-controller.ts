@@ -24,15 +24,17 @@ export interface ChatMessageControllerEventsMap<State = AppChatStreamState> {
 
   'stream-tool-call': [id: string, name: string, args: any];
   'stream-tool-result': [id: string, result: any];
+
+  'stream-state-change': [];
 }
 
 export abstract class BaseChatMessageController<
   State,
-  Annotation extends BaseAnnotation<State>
+  Annotation extends BaseAnnotation<any>,
 > extends EventEmitter<ChatMessageControllerEventsMap<State>> {
   protected _message: ChatMessage;
   protected _ongoing: OngoingState<State> | undefined;
-  protected _ongoingHistory: OngoingStateHistoryItem<State>[] | undefined;
+  protected _ongoingHistory: OngoingStateHistoryItem<Annotation['state']>[] | undefined;
   public readonly role: ChatMessageRole;
   public readonly id: number;
 
@@ -137,6 +139,9 @@ export abstract class BaseChatMessageController<
     this.emit('stream-tool-result', toolCallId, result);
   }
 
+  applyFinishMessage (_: unknown) {
+  }
+
   finish () {
     this._ongoing = undefined;
     this.emit('stream-finished', this._message);
@@ -155,7 +160,7 @@ export abstract class BaseChatMessageController<
     return this._ongoingHistory;
   }
 
-  abstract parseAnnotation (raw: unknown): Annotation;
+  abstract parseAnnotation (raw: unknown): Annotation | null;
 
   abstract createInitialOngoingState (): OngoingState<State>;
 
@@ -164,7 +169,7 @@ export abstract class BaseChatMessageController<
   protected abstract _polishMessage (message: ChatMessage, ongoing: OngoingState<State>, annotation: Annotation): ChatMessage
 }
 
-export type ChatMessageController = LegacyChatMessageController | StackVMChatMessageController;
+export type ChatMessageController = LegacyChatMessageController | ExternalChatMessageController;
 export type ChatMessageControllerAnnotationState<C extends ChatMessageController> = C extends BaseChatMessageController<infer State, any> ? State : never;
 
 export class LegacyChatMessageController extends BaseChatMessageController<AppChatStreamState, ChatMessageAnnotation> {
@@ -209,8 +214,9 @@ export class LegacyChatMessageController extends BaseChatMessageController<AppCh
   }
 }
 
-export class StackVMChatMessageController extends BaseChatMessageController<StackVMState, StackVMStateAnnotation> {
+export class ExternalChatMessageController extends BaseChatMessageController<StackVMState, StackVMStateAnnotation> {
   readonly version = 'StackVM';
+  private externalStreamStart = false;
 
   applyToolCall (payload: { toolCallId: string; toolName: string; args: any }) {
     super.applyToolCall(payload);
@@ -243,14 +249,34 @@ export class StackVMChatMessageController extends BaseChatMessageController<Stac
     }
   }
 
-  parseAnnotation (raw: unknown): StackVMStateAnnotation {
-    const { state: rawState, plan_id } = raw as { state: StackVM.State, plan_id: string };
-    const state = StackVM.model.parseState(rawState);
+  applyFinishMessage (_: unknown) {
+    this.externalStreamStart = false;
+    this.emit('stream-state-change');
+  }
 
-    return {
-      state: { plan_id, state, toolCalls: [] },
-      display: '[deprecated]',
-    };
+  parseAnnotation (raw: unknown): StackVMStateAnnotation | null {
+    if (this.externalStreamStart) {
+      const { state: rawState, plan_id } = raw as { state: StackVM.State, plan_id: string };
+      const state = StackVM.model.parseState(rawState);
+
+      return {
+        state: { plan_id, state, toolCalls: [] },
+        display: '[deprecated]',
+      };
+    } else {
+      const { state, display } = raw as ChatMessageAnnotation;
+
+      if (state === AppChatStreamState.EXTERNAL_STREAM_START) {
+        this.externalStreamStart = true;
+        this.emit('stream-state-change');
+        return null;
+      } else {
+        return {
+          state: null,
+          display: display ?? state,
+        };
+      }
+    }
   }
 
   createInitialOngoingState (): OngoingState<StackVMState> {
@@ -306,8 +332,8 @@ export class StackVMChatMessageController extends BaseChatMessageController<Stac
   _polishMessage (message: ChatMessage, ongoing: OngoingState<StackVMState>, annotation: StackVMStateAnnotation): ChatMessage {
     // FIX Initial state
     // First step reasoning finished with PC = 1, we need to insert a PC = 0 state first.
-    if (annotation.state.state.program_counter === 1) {
-      if (!this._ongoingHistory?.find(item => item.state.state.state.program_counter === 0)) {
+    if (annotation.state && annotation.state.state.program_counter === 1) {
+      if (!this._ongoingHistory?.find(item => item.state.state?.state.program_counter === 0)) {
         const lastState = {
           state: {
             state: {

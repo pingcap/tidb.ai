@@ -75,6 +75,7 @@ class KnowledgeGraphOption(BaseModel):
 
 class ExternalChatEngine(BaseModel):
     stream_chat_api_url: str = None
+    type: str = 'StackVM'
 
 
 class ChatEngineConfig(BaseModel):
