@@ -544,14 +544,14 @@ class ChatService:
             else:
                 yield line + b'\n'
 
-        try:
-            if chunk.startswith("8:") and task_id is None:
-                states = json.loads(chunk[2:])
-                if len(states) > 0:
-                    # accesss task by http://endpoint/?task_id=$task_id
-                    task_id = states[0].get("task_id")
-        except Exception as e:
-            logger.error(f"Failed to get task_id from chunk: {e}")
+            try:
+                if chunk.startswith("8:") and task_id is None:
+                    states = json.loads(chunk[2:])
+                    if len(states) > 0:
+                        # accesss task by http://endpoint/?task_id=$task_id
+                        task_id = states[0].get("plan_id")
+            except Exception as e:
+                logger.error(f"Failed to get task_id from chunk: {e}")
 
         base_url = stream_chat_api_url.replace('/stream_execute_vm', '')
         db_assistant_message.content = response_text
