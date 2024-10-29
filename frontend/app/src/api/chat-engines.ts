@@ -71,6 +71,7 @@ const chatEngineOptionsSchema = z.object({
   llm: llmOptionsSchema,
   post_verification_url: z.string().nullable().optional(),
   post_verification_token: z.string().nullable().optional(),
+  hide_sources: z.boolean().nullable().optional(),
 }) satisfies ZodType<ChatEngineOptions, any, any>;
 
 const chatEngineSchema = z.object({
