@@ -519,8 +519,8 @@ class ChatService:
                     event_type=ChatEventType.TEXT_PART,
                     payload=word,
                 )
-
-            yield line + b'\n'
+            else:
+                yield line + b'\n'
 
         db_assistant_message.content = response_text
         db_assistant_message.updated_at = datetime.now(UTC)
