@@ -16,15 +16,25 @@ export function StackVMMessageAnnotationHistory ({ message }: { message: StackVM
   const history = useChatMessageStreamHistoryStates(message);
   const current = useChatMessageStreamState(message);
   const error = useChatMessageField(message, 'error');
+  const traceUrl = useChatMessageField(message, 'trace_url');
 
   const finished = !isNotFinished(current) || !!error;
 
-  const stackVMPlanId = useMemo(() => {
-    if (current) {
-      return current.state.plan_id;
+  const stackVMTaskUrl = useMemo(() => {
+    if (traceUrl) {
+      return traceUrl;
     }
-    return history?.[0]?.state.state.plan_id;
-  }, [history, current]);
+    let id: string | undefined;
+    if (current) {
+      id = current.state.task_id;
+    } else {
+      id = history?.[0]?.state.state.task_id;
+    }
+    if (id) {
+      return `https://stackvm.tidb.ai/?task_id=${id}`;
+    }
+    return undefined;
+  }, [traceUrl, history, current]);
 
   useEffect(() => {
     if (finished) {
@@ -58,8 +68,8 @@ export function StackVMMessageAnnotationHistory ({ message }: { message: StackVM
           {error && <MessageAnnotationHistoryError history={history} error={error} />}
           {current && !current.finished && <MessageAnnotationCurrent history={history} current={current} />}
         </ol>
-        {stackVMPlanId && <div className="mt-2 text-xs">
-          Visit <a className="underline" target='_blank' href={`https://stackvm.tidb.ai/?plan=${stackVMPlanId}`}>StackVM</a> to see more details
+        {stackVMTaskUrl && <div className="mt-2 text-xs">
+          Visit <a className="underline" target='_blank' href={stackVMTaskUrl}>StackVM</a> to see more details
         </div>}
         <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors" onClick={() => setShow(false)}>
           <ChevronUpIcon className="size-4 mr-1" />

@@ -79,9 +79,6 @@ class ChatService:
         self.engine_name = engine_name
 
         self.user_question, self.chat_history = self._parse_chat_messages(chat_messages)
-        self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
-        self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
-
         if chat_id:
             # FIXME:
             #   only chat owner or superuser can access the chat,
@@ -89,11 +86,21 @@ class ChatService:
             self.db_chat_obj = chat_repo.get(self.db_session, chat_id)
             if not self.db_chat_obj:
                 raise ChatNotFound()
+            try:
+                self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, self.db_chat_obj.engine.name)
+                self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
+            except Exception as e:
+                logger.error(f"Failed to load chat engine config: {e}")
+                self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
+                self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
+            logger.info(f"ChatService - chat_id: {chat_id}, chat_engine: {self.db_chat_obj.engine.name}")
             self.chat_history = [
                 ChatMessage(role=m.role, content=m.content, additional_kwargs={})
                 for m in chat_repo.get_messages(self.db_session, self.db_chat_obj)
             ]
         else:
+            self.chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
+            self.db_chat_engine = self.chat_engine_config.get_db_chat_engine()
             self.db_chat_obj = chat_repo.create(
                 self.db_session,
                 DBChat(
@@ -497,15 +504,30 @@ class ChatService:
             ),
         )
 
+        try:
+            _fast_llm = self.chat_engine_config.get_fast_llama_llm(self.db_session)
+            refined_question = _fast_llm.predict(
+                get_prompt_by_jinja2_template(
+                    self.chat_engine_config.llm.condense_question_prompt,
+                    graph_knowledges="",
+                    chat_history=self.chat_history,
+                    question=self.user_question,
+                ),
+            )
+        except Exception as e:
+            refined_question = self.user_question
+            logger.error(f"Failed to refine question: {e}")
+
         stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
         logger.debug(f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
         chat_params = {
-            "goal": self.user_question
+            "goal": refined_question
         }
         res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
 
         # Notice: External type chat engine doesn't support non-streaming mode for now.
         response_text = ""
+        task_id = None
         for line in res.iter_lines():
             if not line:
                 continue
@@ -522,10 +544,22 @@ class ChatService:
             else:
                 yield line + b'\n'
 
+        try:
+            if chunk.startswith("8:") and task_id is None:
+                states = json.loads(chunk[2:])
+                if len(states) > 0:
+                    # accesss task by http://endpoint/?task_id=$task_id
+                    task_id = states[0].get("task_id")
+        except Exception as e:
+            logger.error(f"Failed to get task_id from chunk: {e}")
+
+        base_url = stream_chat_api_url.replace('/stream_execute_vm', '')
         db_assistant_message.content = response_text
+        db_assistant_message.trace_url = f"{base_url}?task_id={task_id}" if task_id else ""
         db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_assistant_message)
+        db_user_message.trace_url = f"{base_url}?task_id={task_id}" if task_id else ""
         db_user_message.updated_at = datetime.now(UTC)
         db_user_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_user_message)
