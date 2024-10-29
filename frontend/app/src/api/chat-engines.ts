@@ -21,6 +21,7 @@ export interface ChatEngineOptions {
   llm: ChatEngineLLMOptions;
   post_verification_url?: string | null;
   post_verification_token?: string | null;
+  hide_sources?: boolean | null;
 }
 
 export interface ChatEngineKnowledgeGraphOptions {
