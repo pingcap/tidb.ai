@@ -560,7 +560,7 @@ class ChatService:
 
         base_url = stream_chat_api_url.replace('/stream_execute_vm', '')
         db_assistant_message.content = response_text
-        db_assistant_message.trace_url = f"{base_url}/task_id={task_id}" if task_id else ""
+        db_assistant_message.trace_url = f"{base_url}?task_id={task_id}" if task_id else ""
         db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_assistant_message)
