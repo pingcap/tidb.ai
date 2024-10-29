@@ -59,6 +59,7 @@ class Feedback(BaseFeedback, table=True):
 class AdminFeedbackPublic(BaseFeedback):
     id: int
     chat_title: str
+    chat_origin: str
     chat_message_content: str
     user_id: Optional[UUID]
     user_email: Optional[str]
