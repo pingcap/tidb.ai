@@ -24,6 +24,7 @@ const columns = [
       }
     },
   }),
+  helper.accessor('chat_origin', { cell: mono }),
   helper.display({
     id: 'chat',
     header: 'question',
