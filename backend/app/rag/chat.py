@@ -498,11 +498,21 @@ class ChatService:
         )
 
         stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
-        logger.debug(f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
+        stream_chat_type = self.chat_engine_config.external_engine_config.type
+        logger.debug(f"Chatting with external chat engine (api_url: {stream_chat_api_url}, type: {stream_chat_type}) to answer for user question: {self.user_question}")
         chat_params = {
             "goal": self.user_question
         }
         res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
+
+        yield ChatEvent(
+            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.EXTERNAL_STREAM_START,
+                display="Using external engine",
+                context={ 'type': stream_chat_type },
+            ),
+        )
 
         # Notice: External type chat engine doesn't support non-streaming mode for now.
         response_text = ""
@@ -521,6 +531,13 @@ class ChatService:
                 )
             else:
                 yield line + b'\n'
+
+        yield ChatEvent(
+            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+            payload=ChatStreamMessagePayload(
+                state=ChatMessageSate.FINISHED,
+            ),
+        )
 
         db_assistant_message.content = response_text
         db_assistant_message.updated_at = datetime.now(UTC)

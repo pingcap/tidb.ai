@@ -1,5 +1,5 @@
 import { chat, type Chat, type ChatMessage, type PostChatParams } from '@/api/chats';
-import { BaseChatMessageController, ChatMessageController, LegacyChatMessageController, type OngoingState, StackVMChatMessageController } from '@/components/chat/chat-message-controller';
+import { BaseChatMessageController, ChatMessageController, ExternalChatMessageController, LegacyChatMessageController, type OngoingState } from '@/components/chat/chat-message-controller';
 import { AppChatStreamState, type BaseAnnotation, chatDataPartSchema, fixChatInitialData, type StackVMState } from '@/components/chat/chat-stream-state';
 import type { GtagFn } from '@/components/gtag-provider';
 import { getErrorMessage } from '@/lib/errors';
@@ -34,7 +34,7 @@ export interface ChatControllerEventsMap<State = AppChatStreamState, Annotation 
 export class ChatController<State extends AppChatStreamState = AppChatStreamState, Annotation extends BaseAnnotation<State> = BaseAnnotation<State>> extends EventEmitter<ChatControllerEventsMap<State, Annotation>> {
   public chat: Chat | undefined;
 
-  private _messages: Map<number, ChatMessageController | StackVMChatMessageController> = new Map();
+  private _messages: Map<number, ChatMessageController | ExternalChatMessageController> = new Map();
 
   private _postParams: Omit<PostChatParams, 'chat_id'> | undefined = undefined;
   private _postError: unknown = undefined;
@@ -140,7 +140,7 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
     }
   }
 
-  get messages (): (ChatMessageController | StackVMChatMessageController)[] {
+  get messages (): (ChatMessageController | ExternalChatMessageController)[] {
     return Array.from(this._messages.values()).sort((a, b) => a.message.ordinal - b.message.ordinal);
   }
 
@@ -163,7 +163,7 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
     this._postInitialized = false;
     this.emit('post', params);
 
-    let ongoingMessageController: ChatMessageController | StackVMChatMessageController | undefined = undefined;
+    let ongoingMessageController: ChatMessageController | ExternalChatMessageController | undefined = undefined;
 
     try {
       const streamParts = chat({
@@ -218,7 +218,7 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
     }
   }
 
-  _processPart (ongoingMessageController: ChatMessageController | StackVMChatMessageController | undefined, part: ReturnType<StreamPart<any, any, any>['parse']>) {
+  _processPart (ongoingMessageController: ChatMessageController | ExternalChatMessageController | undefined, part: ReturnType<StreamPart<any, any, any>['parse']>) {
     switch (part.type) {
       case 'data':
         // Data part contains chat and chat_message info from server. will be sent twice (beginning and finished).
@@ -240,11 +240,12 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
         break;
       case 'tool_result':
         this._processToolResultPart(ongoingMessageController, part);
-        break
+        break;
       case 'finish_step':
-
+        // We don't need this yet
+        break;
       case 'finish_message':
-        // TODO
+        this._processMessageFinishPart(ongoingMessageController, part);
         break;
       default:
         console.warn('unsupported stream part', part);
@@ -252,7 +253,7 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
     return ongoingMessageController;
   }
 
-  private _processDataPart (ongoingMessageController: ChatMessageController | StackVMChatMessageController | undefined, part: ReturnType<StreamPart<any, 'data', JSONValue[]>['parse']>): ChatMessageController | StackVMChatMessageController {
+  private _processDataPart (ongoingMessageController: ChatMessageController | ExternalChatMessageController | undefined, part: ReturnType<StreamPart<any, 'data', JSONValue[]>['parse']>): ChatMessageController | ExternalChatMessageController {
     const { chat, user_message, assistant_message } = chatDataPartSchema.parse(fixChatInitialData(part.value[0]));
     this.updateChat(chat);
     this.upsertMessage(user_message);
@@ -267,32 +268,39 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
     return ongoingMessageController;
   }
 
-  private _processMessageAnnotationPart (ongoingMessageController: ChatMessageController | StackVMChatMessageController | undefined, part: ReturnType<StreamPart<any, 'message_annotations', JSONValue[]>['parse']>) {
+  private _processMessageAnnotationPart (ongoingMessageController: ChatMessageController | ExternalChatMessageController | undefined, part: ReturnType<StreamPart<any, 'message_annotations', JSONValue[]>['parse']>) {
     assertNonNull(ongoingMessageController, 'Cannot handle chat stream part: no ongoingMessageController', part);
     const annotation = ongoingMessageController.parseAnnotation(part.value[0]);
-    ongoingMessageController.applyStreamAnnotation(annotation as never);
+    if (annotation !== null) {
+      ongoingMessageController.applyStreamAnnotation(annotation as never);
+    }
   }
 
-  private _processTextPart (ongoingMessageController: ChatMessageController | StackVMChatMessageController | undefined, part: ReturnType<StreamPart<any, 'text', string>['parse']>) {
+  private _processTextPart (ongoingMessageController: ChatMessageController | ExternalChatMessageController | undefined, part: ReturnType<StreamPart<any, 'text', string>['parse']>) {
     if (part.value) { // ignore leading empty chunks.
       assertNonNull(ongoingMessageController, 'Cannot handle chat stream part: no ongoingMessageController', part);
       ongoingMessageController.applyDelta(part.value);
     }
   }
 
-  private _processErrorPart (ongoingMessageController: ChatMessageController | StackVMChatMessageController | undefined, part: ReturnType<StreamPart<any, 'error', string>['parse']>) {
+  private _processErrorPart (ongoingMessageController: ChatMessageController | ExternalChatMessageController | undefined, part: ReturnType<StreamPart<any, 'error', string>['parse']>) {
     assertNonNull(ongoingMessageController, 'Cannot handle chat stream part: no ongoingMessageController', part);
     ongoingMessageController.applyError(part.value);
   }
 
-  private _processToolCallPart (ongoingMessageController: ChatMessageController | StackVMChatMessageController | undefined, part: ReturnType<StreamPart<any, 'tool_call', { toolCallId: string, toolName: string, args: any }>['parse']>) {
+  private _processToolCallPart (ongoingMessageController: ChatMessageController | ExternalChatMessageController | undefined, part: ReturnType<StreamPart<any, 'tool_call', { toolCallId: string, toolName: string, args: any }>['parse']>) {
     assertNonNull(ongoingMessageController, 'Cannot handle chat stream part: no ongoingMessageController', part);
     ongoingMessageController.applyToolCall(part.value);
   }
 
-  private _processToolResultPart (ongoingMessageController: ChatMessageController | StackVMChatMessageController | undefined, part: ReturnType<StreamPart<any, 'tool_call', { toolCallId: string, result: any }>['parse']>) {
+  private _processToolResultPart (ongoingMessageController: ChatMessageController | ExternalChatMessageController | undefined, part: ReturnType<StreamPart<any, 'tool_call', { toolCallId: string, result: any }>['parse']>) {
     assertNonNull(ongoingMessageController, 'Cannot handle chat stream part: no ongoingMessageController', part);
     ongoingMessageController.applyToolResult(part.value);
+  }
+
+  private _processMessageFinishPart (ongoingMessageController: ChatMessageController | ExternalChatMessageController | undefined, part: ReturnType<StreamPart<any, 'finish_message', unknown>['parse']>) {
+    assertNonNull(ongoingMessageController, 'Cannot handle chat stream part: no ongoingMessageController', part);
+    ongoingMessageController.applyFinishMessage(part.value);
   }
 
   private createMessage (message: ChatMessage, initialOngoingState?: true) {
@@ -315,7 +323,7 @@ export class ChatController<State extends AppChatStreamState = AppChatStreamStat
   }
 
   private createStackVMMessage (message: ChatMessage, initialOngoingState?: true | OngoingState<StackVMState>) {
-    const controller = new StackVMChatMessageController(message, initialOngoingState);
+    const controller = new ExternalChatMessageController(message, initialOngoingState);
     this._messages.set(message.id, controller);
     this.emit('message-loaded', controller as any);
     return controller;
