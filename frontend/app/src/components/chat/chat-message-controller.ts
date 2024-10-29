@@ -244,11 +244,11 @@ export class StackVMChatMessageController extends BaseChatMessageController<Stac
   }
 
   parseAnnotation (raw: unknown): StackVMStateAnnotation {
-    const { state: rawState, plan_id } = raw as { state: StackVM.State, plan_id: string };
+    const { state: rawState, task_id } = raw as { state: StackVM.State, task_id: string };
     const state = StackVM.model.parseState(rawState);
 
     return {
-      state: { task_id: plan_id, state, toolCalls: [] },
+      state: { task_id, state, toolCalls: [] },
       display: '[deprecated]',
     };
   }
