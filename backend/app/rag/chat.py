@@ -235,11 +235,6 @@ class ChatService:
             _embed_model.callback_manager = callback_manager
             return callback_manager
 
-        # Frontend requires the empty event to start the chat
-        yield ChatEvent(
-            event_type=ChatEventType.TEXT_PART,
-            payload="",
-        )
         yield ChatEvent(
             event_type=ChatEventType.DATA_PART,
             payload=ChatStreamDataPayload(
@@ -500,11 +495,6 @@ class ChatService:
             ),
         )
 
-        # Frontend requires the empty event to start the chat
-        yield ChatEvent(
-            event_type=ChatEventType.TEXT_PART,
-            payload="",
-        )
         yield ChatEvent(
             event_type=ChatEventType.DATA_PART,
             payload=ChatStreamDataPayload(
@@ -545,18 +535,23 @@ class ChatService:
             # Append to final response text.
             chunk = line.decode('utf-8')
             if chunk.startswith("0:"):
-                response_text += json.loads(chunk[2:])
+                word = json.loads(chunk[2:])
+                response_text += word
+                yield ChatEvent(
+                    event_type=ChatEventType.TEXT_PART,
+                    payload=word,
+                )
+            else:
+                yield line + b'\n'
 
-            try:
-                if chunk.startswith("8:") and task_id is None:
-                    states = json.loads(chunk[2:])
-                    if len(states) > 0:
-                        # accesss task by http://endpoint/?task_id=$task_id
-                        task_id = states[0].get("task_id")
-            except Exception as e:
-                logger.error(f"Failed to get task_id from chunk: {e}")
-
-            yield line + b'\n'
+        try:
+            if chunk.startswith("8:") and task_id is None:
+                states = json.loads(chunk[2:])
+                if len(states) > 0:
+                    # accesss task by http://endpoint/?task_id=$task_id
+                    task_id = states[0].get("task_id")
+        except Exception as e:
+            logger.error(f"Failed to get task_id from chunk: {e}")
 
         base_url = stream_chat_api_url.replace('/stream_execute_vm', '')
         db_assistant_message.content = response_text

@@ -1,4 +1,6 @@
 import type { ChatEngine, ChatEngineOptions } from '@/api/chat-engines';
+import { EditBooleanForm } from '@/components/chat-engine/edit-boolean-form';
+import { EditOptionBooleanForm } from '@/components/chat-engine/edit-option-boolean-form';
 import { EditTokenForm } from '@/components/chat-engine/edit-token-form';
 import { EditUrlForm } from '@/components/chat-engine/edit-url-form';
 import { ChatEngineKnowledgeGraphDetails } from '@/components/chat-engine/knowledge-graph-details';
@@ -25,6 +27,13 @@ export function ChatEngineOptionsDetails ({
       <section className="space-y-2">
         <div className="text-base font-medium">LLM</div>
         <ChatEngineLLMDetails editable={editable} options={options.llm} />
+      </section>
+      <Separator />
+      <section className="space-y-2">
+        <div className="text-base font-medium">UI</div>
+        <div className="space-y-2 text-sm">
+          <OptionDetail title="Hide Sources" value={options.hide_sources ? 'Enabled' : 'Disabled'} valueClassName={options.hide_sources ? 'text-green-500' : 'text-muted-foreground'} editPanel={editable && <EditOptionBooleanForm chatEngine={editable} property="hide_sources" />} />
+        </div>
       </section>
       <Separator />
       <section className="space-y-2">
