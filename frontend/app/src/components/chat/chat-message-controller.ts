@@ -218,7 +218,7 @@ export class StackVMChatMessageController extends BaseChatMessageController<Stac
       this._ongoing = {
         ...this._ongoing,
         state: {
-          plan_id: this._ongoing.state.plan_id,
+          task_id: this._ongoing.state.task_id,
           state: this._ongoing.state.state,
           toolCalls: [...this._ongoing.state.toolCalls, payload],
         },
@@ -248,7 +248,7 @@ export class StackVMChatMessageController extends BaseChatMessageController<Stac
     const state = StackVM.model.parseState(rawState);
 
     return {
-      state: { plan_id, state, toolCalls: [] },
+      state: { task_id: plan_id, state, toolCalls: [] },
       display: '[deprecated]',
     };
   }
@@ -256,7 +256,7 @@ export class StackVMChatMessageController extends BaseChatMessageController<Stac
   createInitialOngoingState (): OngoingState<StackVMState> {
     return {
       state: {
-        plan_id: '',
+        task_id: '',
         state: {
           variables_refs: {},
           variables: {},
@@ -281,7 +281,7 @@ export class StackVMChatMessageController extends BaseChatMessageController<Stac
   createUnknownOngoingState (): OngoingState<StackVMState> {
     return {
       state: {
-        plan_id: '',
+        task_id: '',
         state: {
           variables_refs: {},
           variables: {},
