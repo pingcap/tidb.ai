@@ -1,4 +1,4 @@
-import { type ChatMessageGroup, useChatPostState, useCurrentChatController } from '@/components/chat/chat-hooks';
+import { type ChatMessageGroup, useChatInfo, useChatPostState, useCurrentChatController } from '@/components/chat/chat-hooks';
 import { DebugInfo } from '@/components/chat/debug-info';
 import { MessageAnnotationHistory } from '@/components/chat/message-annotation-history';
 import { StackVMMessageAnnotationHistory } from '@/components/chat/message-annotation-history-stackvm';
@@ -71,6 +71,7 @@ export function ConversationMessageGroups ({ groups }: { groups: ChatMessageGrou
 
 function ConversationMessageGroup ({ group, isLastGroup }: { group: ChatMessageGroup, isLastGroup: boolean }) {
   const enableDebug = /* !!me && */ !process.env.NEXT_PUBLIC_DISABLE_DEBUG_PANEL;
+  const { engine_options } = useChatInfo(useCurrentChatController()) ?? {};
 
   const { params } = useChatPostState(useCurrentChatController());
 
@@ -107,9 +108,9 @@ function ConversationMessageGroup ({ group, isLastGroup }: { group: ChatMessageG
       {group.assistant?.version === 'Legacy' && <MessageAnnotationHistory message={group.assistant} />}
       {group.assistant?.version === 'StackVM' && <StackVMMessageAnnotationHistory message={group.assistant} />}
 
-      <MessageSection className="!mt-1" message={group.assistant}>
+      {!engine_options?.hide_sources && <MessageSection className="!mt-1" message={group.assistant}>
         <MessageContextSources message={group.assistant} />
-      </MessageSection>
+      </MessageSection>}
 
       <MessageSection className="space-y-2" message={group.assistant}>
         <MessageAnswer message={group.assistant} showBetaAlert={group.hasFirstAssistantMessage} />

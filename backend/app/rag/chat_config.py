@@ -84,6 +84,7 @@ class ChatEngineConfig(BaseModel):
     post_verification_url: Optional[str] = None
     post_verification_token: Optional[str] = None
     external_engine_config: Optional[ExternalChatEngine] = None
+    hide_sources: bool = False
 
     _db_chat_engine: Optional[DBChatEngine] = None
     _db_llm: Optional[DBLLM] = None
