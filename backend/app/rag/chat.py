@@ -228,11 +228,6 @@ class ChatService:
             _embed_model.callback_manager = callback_manager
             return callback_manager
 
-        # Frontend requires the empty event to start the chat
-        yield ChatEvent(
-            event_type=ChatEventType.TEXT_PART,
-            payload="",
-        )
         yield ChatEvent(
             event_type=ChatEventType.DATA_PART,
             payload=ChatStreamDataPayload(
@@ -493,11 +488,6 @@ class ChatService:
             ),
         )
 
-        # Frontend requires the empty event to start the chat
-        yield ChatEvent(
-            event_type=ChatEventType.TEXT_PART,
-            payload="",
-        )
         yield ChatEvent(
             event_type=ChatEventType.DATA_PART,
             payload=ChatStreamDataPayload(
@@ -523,9 +513,14 @@ class ChatService:
             # Append to final response text.
             chunk = line.decode('utf-8')
             if chunk.startswith("0:"):
-                response_text += json.loads(chunk[2:])
-
-            yield line + b'\n'
+                word = json.loads(chunk[2:])
+                response_text += word
+                yield ChatEvent(
+                    event_type=ChatEventType.TEXT_PART,
+                    payload=word,
+                )
+            else:
+                yield line + b'\n'
 
         db_assistant_message.content = response_text
         db_assistant_message.updated_at = datetime.now(UTC)
