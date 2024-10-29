@@ -559,7 +559,7 @@ class ChatService:
         db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_assistant_message)
-        db_user_message.trace_url = f"{base_url}/task_id={task_id}" if task_id else ""
+        db_user_message.trace_url = f"{base_url}?task_id={task_id}" if task_id else ""
         db_user_message.updated_at = datetime.now(UTC)
         db_user_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_user_message)
