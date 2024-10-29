@@ -33,7 +33,7 @@ export function MessageRecommendQuestions ({ assistant }: { assistant: ChatMessa
           ))}
           {data?.map((q, i) => (
             <li key={i} className="text-sm last-of-type:border-b-0 border-b py-2">
-              <button className="relative text-left pr-8 cursor-pointer transition-colors text-muted-foreground hover:text-foreground" onClick={() => {
+              <button className="relative w-full text-left pr-8 cursor-pointer transition-colors text-muted-foreground hover:text-foreground" onClick={() => {
                 void controller.post({
                   content: q,
                 });
