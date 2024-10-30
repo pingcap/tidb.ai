@@ -545,7 +545,7 @@ class ChatService:
                     states = json.loads(chunk[2:])
                     if len(states) > 0:
                         # accesss task by http://endpoint/?task_id=$task_id
-                        task_id = states[0].get("plan_id")
+                        task_id = states[0].get("task_id")
             except Exception as e:
                 logger.error(f"Failed to get task_id from chunk: {e}")
 
