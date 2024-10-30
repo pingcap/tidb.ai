@@ -12,8 +12,9 @@ import Link from 'next/link';
 const helper = createColumnHelper<Feedback>();
 
 const columns = [
-  helper.accessor('id', { cell: mono }),
+  helper.accessor('id', { header: 'ID', cell: mono }),
   helper.accessor('feedback_type', {
+    header: 'Type',
     cell: (cell) => {
       const type = cell.getValue();
       switch (type) {
@@ -24,7 +25,8 @@ const columns = [
       }
     },
   }),
-  helper.accessor('chat_origin', { cell: mono }),
+  helper.accessor('origin', { header: 'Feedback Origin', cell: mono }),
+  helper.accessor('chat_origin', { header: 'Chat Origin', cell: mono }),
   helper.display({
     id: 'chat',
     header: 'question',
@@ -36,9 +38,9 @@ const columns = [
   helper.accessor('chat_message_content', {
     cell: cell => <>{cell.getValue().slice(0, 50)}... <span className="text-muted-foreground">({cell.getValue().length + ' characters'})</span></>,
   }),
-  helper.accessor('comment', { cell: mono }),
-  helper.accessor('user_email', { cell: mono }),
-  helper.accessor('created_at', { cell: datetime }),
+  helper.accessor('comment', { header: 'Comment', cell: mono }),
+  helper.accessor('user_email', { header: 'User', cell: mono }),
+  helper.accessor('created_at', { header: 'Created At', cell: datetime }),
 ] as ColumnDef<Feedback>[];
 
 export function FeedbacksTable () {
