@@ -1,3 +1,4 @@
+import logging
 from uuid import UUID
 from typing import List, Optional
 from http import HTTPStatus
@@ -27,6 +28,8 @@ from app.rag.types import (
     ChatMessageSate,
 )
 from app.exceptions import ChatNotFound
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -77,6 +80,7 @@ def chats(
     except ChatNotFound:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Chat not found")
     except Exception as e:
+        logger.exception(e)
         raise HTTPException(
             status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
         )

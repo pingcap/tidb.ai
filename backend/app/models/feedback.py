@@ -26,6 +26,7 @@ class BaseFeedback(UpdatableBaseModel):
     chat_id: UUID
     chat_message_id: int
     user_id: UUID
+    origin: Optional[str] = Field(max_length=256, default=None, nullable=True)
 
 
 class Feedback(BaseFeedback, table=True):
@@ -51,7 +52,7 @@ class Feedback(BaseFeedback, table=True):
             "primaryjoin": "Feedback.user_id == User.id",
         },
     )
-    origin: str = Field(max_length=256, default=None, nullable=True)
+    
 
     __tablename__ = "feedbacks"
 
@@ -59,7 +60,7 @@ class Feedback(BaseFeedback, table=True):
 class AdminFeedbackPublic(BaseFeedback):
     id: int
     chat_title: str
-    chat_origin: str
+    chat_origin: Optional[str]
     chat_message_content: str
     user_id: Optional[UUID]
     user_email: Optional[str]
