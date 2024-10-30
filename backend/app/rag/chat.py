@@ -566,6 +566,11 @@ class ChatService:
                     payload=word,
                 )
         except Exception as e:
+            for word in stackvm_response_text:
+                yield ChatEvent(
+                    event_type=ChatEventType.TEXT_PART,
+                    payload=word,
+                )
             logger.error(f"Failed to refine question: {e}")
 
         base_url = stream_chat_api_url.replace('/stream_execute_vm', '')
