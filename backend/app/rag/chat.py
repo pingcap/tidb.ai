@@ -4,7 +4,7 @@ import logging
 import re
 
 from uuid import UUID
-from typing import List, Generator, Optional, Tuple, Type
+from typing import List, Generator, Optional, Tuple
 from datetime import datetime, UTC
 from urllib.parse import urljoin
 
@@ -504,6 +504,7 @@ class ChatService:
             ),
         )
 
+        refined_question = self.user_question
         try:
             _fast_llm = self.chat_engine_config.get_fast_llama_llm(self.db_session)
             refined_question = _fast_llm.predict(
@@ -515,7 +516,6 @@ class ChatService:
                 ),
             )
         except Exception as e:
-            refined_question = self.user_question
             logger.error(f"Failed to refine question: {e}")
 
         stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
@@ -526,7 +526,7 @@ class ChatService:
         res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
 
         # Notice: External type chat engine doesn't support non-streaming mode for now.
-        response_text = ""
+        stackvm_response_text = ""
         task_id = None
         for line in res.iter_lines():
             if not line:
@@ -536,11 +536,7 @@ class ChatService:
             chunk = line.decode('utf-8')
             if chunk.startswith("0:"):
                 word = json.loads(chunk[2:])
-                response_text += word
-                yield ChatEvent(
-                    event_type=ChatEventType.TEXT_PART,
-                    payload=word,
-                )
+                stackvm_response_text += word
             else:
                 yield line + b'\n'
 
@@ -549,17 +545,51 @@ class ChatService:
                     states = json.loads(chunk[2:])
                     if len(states) > 0:
                         # accesss task by http://endpoint/?task_id=$task_id
-                        task_id = states[0].get("plan_id")
+                        task_id = states[0].get("task_id")
             except Exception as e:
                 logger.error(f"Failed to get task_id from chunk: {e}")
+
+        try:
+            response_text = ""
+            final_answer_gen = _fast_llm.stream(
+                get_prompt_by_jinja2_template(
+                    self.chat_engine_config.llm.condense_answer_prompt,
+                    chat_history=self.chat_history,
+                    question=self.user_question,
+                    agent_answer=stackvm_response_text,
+                )
+            )
+            for word in final_answer_gen:
+                response_text += word
+                yield ChatEvent(
+                    event_type=ChatEventType.TEXT_PART,
+                    payload=word,
+                )
+        except Exception as e:
+            for word in stackvm_response_text:
+                yield ChatEvent(
+                    event_type=ChatEventType.TEXT_PART,
+                    payload=word,
+                )
+            logger.error(f"Failed to refine question: {e}")
 
         base_url = stream_chat_api_url.replace('/stream_execute_vm', '')
         db_assistant_message.content = response_text
         db_assistant_message.trace_url = f"{base_url}?task_id={task_id}" if task_id else ""
+        db_assistant_message.meta = {
+            "task_id": task_id,
+            "stackvm_response_text": stackvm_response_text,
+            "goal": refined_question,
+        }
         db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_assistant_message)
         db_user_message.trace_url = f"{base_url}?task_id={task_id}" if task_id else ""
+        db_user_message.meta = {
+            "task_id": task_id,
+            "stackvm_response_text": stackvm_response_text,
+            "goal": refined_question,
+        }
         db_user_message.updated_at = datetime.now(UTC)
         db_user_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_user_message)
