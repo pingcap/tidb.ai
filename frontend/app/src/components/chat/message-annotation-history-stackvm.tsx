@@ -49,7 +49,7 @@ export function StackVMMessageAnnotationHistory ({ message }: { message: StackVM
         return stackVMTaskUrl;
       }
 
-      return `https://stackvm-ui.vercel.app/tasks/${stackVMTaskUrl}`
+      return `https://stackvm-ui.vercel.app/tasks/${taskId}`
     } catch {
       return stackVMTaskUrl;
     }
