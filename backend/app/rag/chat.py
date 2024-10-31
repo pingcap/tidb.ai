@@ -514,6 +514,9 @@ class ChatService:
                     question=self.user_question,
                 ),
             )
+            goal = goal.strip()
+            if goal.startswith("Goal: "):
+                goal = goal[len("Goal: "):].strip()
         except Exception as e:
             logger.error(f"Failed to refine question: {e}")
 
