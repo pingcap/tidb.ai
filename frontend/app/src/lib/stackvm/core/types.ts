@@ -13,8 +13,8 @@ export interface KnownInstructions {
   };
 
   calling: {
-    tool: string
-    params: Record<string, unknown>
+    tool_name: string
+    tool_params: Record<string, unknown>
     output_vars: string | string[]
   };
 

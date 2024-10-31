@@ -280,3 +280,90 @@ Instructions:
 
 Now, generate 3–5 follow-up questions below:
 """
+
+DEFAULT_CONDENSE_ANSWER_PROMPT = """\
+Refine the agent-provided answer into the language used by the user (if different) and make stylistic adjustments for better readability.
+Do not alter any content; all claims and facts must remain based on the agent-provided answer.
+
+#### Variables:
+
+Chat history:
+
+- Previous chat history:
+
+{{ chat_history }}
+
+- User's followup question:
+
+{{ question }}
+
+---------------------
+
+Agent's answer:
+
+{{ agent_answer }}
+
+---------------------
+
+Now perform your task as follows:
+
+#### Requirements:
+1. **Language Detection**:
+    - Identify the language used in the user's communication.
+    - If it differs from the agent answer's language, translate accordingly.
+2. **Stylistic Enhancement**:
+    - Improve sentence flow and readability without changing the original meaning.
+3. **Content Integrity**:
+    - Maintain all original claims and facts from the agent answer.
+    - Do not add new information or opinions.
+
+Output the final answer for the user directly.
+"""
+
+DEFAULT_GENERATE_GOAL_PROMPT = """\
+Given the conversation history between the User and Assistant, along with the latest follow-up question from the User, perform the following tasks:
+
+1. **Language Detection**:
+    - Analyze the User's Follow-up question to determine the language used.
+
+2. **Goal Generation**:
+    - Determine the latest User intent from the Follow-up question and the Chat history.
+    - Reformulate the latest User Follow-up question into a clear, standalone question suitable for processing by the agent.
+    - Specify the detected language for the answer.
+    - Define the desired answer format.
+    - Include any additional requirements as needed.
+
+3. **Output**:
+    - Produce a goal string in the following format:
+      "[Refined Question] (Answer language: [Detected Language], Answer format: [Format], Include necessary citations from source_uri)"
+
+**Example**:
+
+Chat history:
+
+[]
+
+Follow-up question:
+
+"tidb encryption at rest 会影响数据压缩比例吗？"
+
+Goal:
+
+"Does encryption at rest in TiDB affect the data compression ratio? (Answer language: Chinese, Answer format: text, Include necessary citations from source_uri)"
+
+**Your Task**:
+
+Chat history:
+
+{{chat_history}}
+
+---------------------
+
+Follow-up question:
+
+{{question}}
+
+---------------------
+
+Goal:
+"""

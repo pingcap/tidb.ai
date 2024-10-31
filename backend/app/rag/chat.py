@@ -351,6 +351,7 @@ class ChatService:
             get_llamaindex_callback_manager: Callable[[], Optional[CallbackManager]],
             fast_llm: LLM,
             graph_knowledges_context: str,
+            refined_question_prompt: Optional[str] = None,
     ) -> Generator[ChatEvent | str, None, Tuple[bool, str, str]]:
         """
         Determine whether to refine the user question or early stop the conversation with a clarifying question.
@@ -365,6 +366,9 @@ class ChatService:
             str: clarifying question
             str: refined question
         """
+        if refined_question_prompt is None:
+            refined_question_prompt = self.chat_engine_config.llm.condense_question_prompt
+
         yield ChatEvent(
             event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
             payload=ChatStreamMessagePayload(
@@ -418,7 +422,7 @@ class ChatService:
             ) as event:
                 refined_question = fast_llm.predict(
                     get_prompt_by_jinja2_template(
-                        self.chat_engine_config.llm.condense_question_prompt,
+                        refined_question_prompt,
                         graph_knowledges=graph_knowledges_context,
                         chat_history=self.chat_history,
                         question=self.user_question,
@@ -698,14 +702,18 @@ class ChatService:
             )
 
             logger.info("start to _refine_or_early_stop")
-            early_stop, clarifying_question, refined_question = yield from self._refine_or_early_stop(
+            early_stop, clarifying_question, goal = yield from self._refine_or_early_stop(
                 get_llamaindex_callback_manager=lambda: self._get_llamaindex_callback_manager(
                     fast_llm=_fast_llm,
                     embed_model=_embed_model,
                 ),
                 fast_llm=_fast_llm,
                 graph_knowledges_context=graph_knowledges_context,
+                refined_question_prompt=self.chat_engine_config.llm.generate_goal_prompt,
             )
+            goal = goal.strip()
+            if goal.startswith("Goal: "):
+                goal = goal[len("Goal: "):].strip()
 
             if early_stop:
                 # the clarifying question is the final response
@@ -719,18 +727,18 @@ class ChatService:
                 return
         except Exception as e:
             logger.error(f"Failed to search kg or refine question: {e}")
-            refined_question = self.user_question
+            goal = self.user_question
 
         stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
         logger.debug(
             f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
         chat_params = {
-            "goal": refined_question
+            "goal": goal,
         }
         res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
 
         # Notice: External type chat engine doesn't support non-streaming mode for now.
-        response_text = ""
+        stackvm_response_text = ""
         task_id = None
         for line in res.iter_lines():
             if not line:
@@ -740,7 +748,7 @@ class ChatService:
             chunk = line.decode('utf-8')
             if chunk.startswith("0:"):
                 word = json.loads(chunk[2:])
-                response_text += word
+                stackvm_response_text += word
                 yield ChatEvent(
                     event_type=ChatEventType.TEXT_PART,
                     payload=word,
@@ -753,17 +761,53 @@ class ChatService:
                     states = json.loads(chunk[2:])
                     if len(states) > 0:
                         # accesss task by http://endpoint/?task_id=$task_id
-                        task_id = states[0].get("plan_id")
+                        task_id = states[0].get("task_id")
             except Exception as e:
                 logger.error(f"Failed to get task_id from chunk: {e}")
 
-        base_url = stream_chat_api_url.replace('/stream_execute_vm', '')
+        """
+        try:
+            response_text = ""
+            final_answer_gen = _fast_llm.stream(
+                get_prompt_by_jinja2_template(
+                    self.chat_engine_config.llm.condense_answer_prompt,
+                    chat_history=self.chat_history,
+                    question=self.user_question,
+                    agent_answer=stackvm_response_text,
+                )
+            )
+            for word in final_answer_gen:
+                response_text += word
+                yield ChatEvent(
+                    event_type=ChatEventType.TEXT_PART,
+                    payload=word,
+                )
+        except Exception as e:
+            for word in stackvm_response_text:
+                yield ChatEvent(
+                    event_type=ChatEventType.TEXT_PART,
+                    payload=word,
+                )
+            logger.error(f"Failed to refine question: {e}")
+        """
+        response_text = stackvm_response_text
+        base_url = stream_chat_api_url.replace('/api/stream_execute_vm', '')
         db_assistant_message.content = response_text
         db_assistant_message.trace_url = f"{base_url}?task_id={task_id}" if task_id else ""
+        db_assistant_message.meta = {
+            "task_id": task_id,
+            "stackvm_response_text": stackvm_response_text,
+            "goal": goal,
+        }
         db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_assistant_message)
         db_user_message.trace_url = f"{base_url}?task_id={task_id}" if task_id else ""
+        db_user_message.meta = {
+            "task_id": task_id,
+            "stackvm_response_text": stackvm_response_text,
+            "goal": goal,
+        }
         db_user_message.updated_at = datetime.now(UTC)
         db_user_message.finished_at = datetime.now(UTC)
         self.db_session.add(db_user_message)
