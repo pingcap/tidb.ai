@@ -1,0 +1,79 @@
+name: tidb-ai
+
+services:
+  redis:
+    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/redis:6.0.16
+    restart: always
+    volumes:
+      - ./redis-data:/data
+    command: ["redis-server", "--loglevel", "warning"]
+
+  backend:
+    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-backend:0.2.8
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - "8000:80"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/shared/data
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "6"
+
+  frontend:
+    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-frontend:0.2.8
+    restart: always
+    depends_on:
+      - backend
+    ports:
+      - 3000:3000
+    environment:
+      BASE_URL: http://backend
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "6"
+
+  background:
+    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-backend:0.2.8
+    restart: always
+    depends_on:
+      - redis
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    volumes:
+      - ./data:/shared/data
+    command: /usr/bin/supervisord
+    logging:
+      driver: json-file
+      options:
+        max-size: "50m"
+        max-file: "6"
+
+  local-embedding-reranker:
+    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-local-embedding-reranker:v2
+    ports:
+      - 5001:5001
+    # If you are in China, you can uncomment the following environment to speed up the download of models
+    # environment:
+    #   - HF_ENDPOINT=https://hf-mirror.com
+    volumes:
+      - ./local-embedding-reranker:/root/.cache/huggingface
+    # If you are using NVIDIA GPU, you can uncomment the following lines to enable GPU support
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    profiles:
+      - local-embedding-reranker
