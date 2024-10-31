@@ -388,41 +388,42 @@ class ChatService:
         callback_manager = get_llamaindex_callback_manager()
 
         # 1. Check if we have enough information to answer the user question or not
-        with callback_manager.as_trace("check_question"):
-            with callback_manager.event(
-                    MyCBEventType.CLARIFYING_QUESTION,
-                    payload={EventPayload.QUERY_STR: self.user_question},
-            ) as event:
-                clarity_result = fast_llm.structured_predict(
-                    output_cls=self.ClarityResult,
-                    prompt=get_prompt_by_jinja2_template(
-                        self.chat_engine_config.llm.clarifying_question_prompt,
-                        graph_knowledges=graph_knowledges_context,
-                        chat_history=self.chat_history,
-                        question=self.user_question,
-                    ),
-                )
-                event.on_end(payload={
-                    EventPayload.COMPLETION: f"Need Clarification: {clarity_result.clarity_needed}, "
-                                             f"Clarifying Question: {clarity_result.clarifying_question}"
-                })
+        if self.chat_engine_config.clarify_question:
+            with callback_manager.as_trace("check_question"):
+                with callback_manager.event(
+                        MyCBEventType.CLARIFYING_QUESTION,
+                        payload={EventPayload.QUERY_STR: self.user_question},
+                ) as event:
+                    clarity_result = fast_llm.structured_predict(
+                        output_cls=self.ClarityResult,
+                        prompt=get_prompt_by_jinja2_template(
+                            self.chat_engine_config.llm.clarifying_question_prompt,
+                            graph_knowledges=graph_knowledges_context,
+                            chat_history=self.chat_history,
+                            question=self.user_question,
+                        ),
+                    )
+                    event.on_end(payload={
+                        EventPayload.COMPLETION: f"Need Clarification: {clarity_result.clarity_needed}, "
+                                                 f"Clarifying Question: {clarity_result.clarifying_question}"
+                    })
 
-                if clarity_result.clarity_needed:
-                    if not annotation_silent:
+                    if clarity_result.clarity_needed:
+                        if not annotation_silent:
+                            yield ChatEvent(
+                                event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                                payload=ChatStreamMessagePayload(
+                                    state=ChatMessageSate.GENERATE_ANSWER,
+                                    display="Need to Ask a Clarifying Question",
+                                ),
+                            )
+
                         yield ChatEvent(
-                            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-                            payload=ChatStreamMessagePayload(
-                                state=ChatMessageSate.GENERATE_ANSWER,
-                                display="Need to Ask a Clarifying Question",
-                            ),
+                            event_type=ChatEventType.TEXT_PART,
+                            payload=clarity_result.clarifying_question,
                         )
 
-                    yield ChatEvent(
-                        event_type=ChatEventType.TEXT_PART,
-                        payload=clarity_result.clarifying_question,
-                    )
-
-                    return True, clarity_result.clarifying_question, ""
+                        return True, clarity_result.clarifying_question, ""
 
         # 2. Refine the question
         with callback_manager.as_trace("condense_question"):
