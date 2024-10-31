@@ -39,6 +39,7 @@ from app.rag.default_prompt import (
     DEFAULT_REFINE_PROMPT,
     DEFAULT_FURTHER_QUESTIONS_PROMPT,
     DEFAULT_CONDENSE_ANSWER_PROMPT,
+    DEFAULT_GENERATE_GOAL_PROMPT,
 )
 from app.models import (
     ChatEngine as DBChatEngine,
@@ -61,7 +62,7 @@ class LLMOption(BaseModel):
     refine_prompt: str = DEFAULT_REFINE_PROMPT
     further_questions_prompt: str = DEFAULT_FURTHER_QUESTIONS_PROMPT
     condense_answer_prompt: str = DEFAULT_CONDENSE_ANSWER_PROMPT
-
+    generate_goal_prompt: str = DEFAULT_GENERATE_GOAL_PROMPT
 
 class VectorSearchOption(BaseModel):
     metadata_post_filters: Optional[MetadataFilters] = None

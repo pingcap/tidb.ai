@@ -504,24 +504,26 @@ class ChatService:
             ),
         )
 
-        refined_question = self.user_question
+        goal = self.user_question
         try:
             _fast_llm = self.chat_engine_config.get_fast_llama_llm(self.db_session)
-            refined_question = _fast_llm.predict(
+            goal = _fast_llm.predict(
                 get_prompt_by_jinja2_template(
-                    self.chat_engine_config.llm.condense_question_prompt,
-                    graph_knowledges="",
+                    self.chat_engine_config.llm.generate_goal_prompt,
                     chat_history=self.chat_history,
                     question=self.user_question,
                 ),
             )
+            goal = goal.strip()
+            if goal.startswith("Goal: "):
+                goal = goal[len("Goal: "):].strip()
         except Exception as e:
             logger.error(f"Failed to refine question: {e}")
 
         stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
         logger.debug(f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
         chat_params = {
-            "goal": refined_question
+            "goal": goal,
         }
         res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
 
@@ -537,6 +539,10 @@ class ChatService:
             if chunk.startswith("0:"):
                 word = json.loads(chunk[2:])
                 stackvm_response_text += word
+                yield ChatEvent(
+                    event_type=ChatEventType.TEXT_PART,
+                    payload=word,
+                )
             else:
                 yield line + b'\n'
 
@@ -549,6 +555,7 @@ class ChatService:
             except Exception as e:
                 logger.error(f"Failed to get task_id from chunk: {e}")
 
+        """
         try:
             response_text = ""
             final_answer_gen = _fast_llm.stream(
@@ -572,14 +579,15 @@ class ChatService:
                     payload=word,
                 )
             logger.error(f"Failed to refine question: {e}")
-
+        """
+        response_text = stackvm_response_text
         base_url = stream_chat_api_url.replace('/api/stream_execute_vm', '')
         db_assistant_message.content = response_text
         db_assistant_message.trace_url = f"{base_url}?task_id={task_id}" if task_id else ""
         db_assistant_message.meta = {
             "task_id": task_id,
             "stackvm_response_text": stackvm_response_text,
-            "goal": refined_question,
+            "goal": goal,
         }
         db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
@@ -588,7 +596,7 @@ class ChatService:
         db_user_message.meta = {
             "task_id": task_id,
             "stackvm_response_text": stackvm_response_text,
-            "goal": refined_question,
+            "goal": goal,
         }
         db_user_message.updated_at = datetime.now(UTC)
         db_user_message.finished_at = datetime.now(UTC)
