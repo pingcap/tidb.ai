@@ -175,6 +175,7 @@ class ChatService:
             embed_model: BaseEmbedding,
             get_llamaindex_callback_manager: Callable[[], Optional[CallbackManager]],
             trace_url: str,
+            annotation_silent: bool = False,
     ) -> Generator[ChatEvent | str, None, Tuple[List[dict], List[dict], List[dict], dict, str]]:
         """
         Search the knowledge graph for relevant entities, relationships, and chunks.
@@ -184,6 +185,7 @@ class ChatService:
             embed_model: BaseEmbedding
             get_llamaindex_callback_manager: Callable[[], CallbackManager]
             trace_url: str
+            annotation_silent: bool, if True, do not send annotation events
 
         Returns:
             List[dict]: entities
@@ -210,26 +212,28 @@ class ChatService:
             )
 
             if kg_config.using_intent_search:
-                yield ChatEvent(
-                    event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-                    payload=ChatStreamMessagePayload(
-                        state=ChatMessageSate.KG_RETRIEVAL,
-                        display="Identifying Your Question's Core Intents",
-                    ),
-                )
+                if not annotation_silent:
+                    yield ChatEvent(
+                        event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                        payload=ChatStreamMessagePayload(
+                            state=ChatMessageSate.KG_RETRIEVAL,
+                            display="Identifying Your Question's Core Intents",
+                        ),
+                    )
                 graph_index._callback_manager = get_llamaindex_callback_manager()
                 sub_queries = graph_index.intent_analyze(
                     self.user_question,
                     self.chat_history,
                 )
-                yield ChatEvent(
-                    event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-                    payload=ChatStreamMessagePayload(
-                        state=ChatMessageSate.TRACE,
-                        display="Searching the Knowledge Graph for Relevant Context",
-                        context={"langfuse_url": trace_url},
-                    ),
-                )
+                if not annotation_silent:
+                    yield ChatEvent(
+                        event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                        payload=ChatStreamMessagePayload(
+                            state=ChatMessageSate.TRACE,
+                            display="Searching the Knowledge Graph for Relevant Context",
+                            context={"langfuse_url": trace_url},
+                        ),
+                    )
                 graph_index._callback_manager = get_llamaindex_callback_manager()
                 result = graph_index.graph_semantic_search(
                     sub_queries,
@@ -250,14 +254,15 @@ class ChatService:
                 )
                 graph_knowledges_context = graph_knowledges.template
             else:
-                yield ChatEvent(
-                    event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-                    payload=ChatStreamMessagePayload(
-                        state=ChatMessageSate.TRACE,
-                        display="Searching the Knowledge Graph for Relevant Context",
-                        context={"langfuse_url": trace_url},
-                    ),
-                )
+                if not annotation_silent:
+                    yield ChatEvent(
+                        event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                        payload=ChatStreamMessagePayload(
+                            state=ChatMessageSate.TRACE,
+                            display="Searching the Knowledge Graph for Relevant Context",
+                            context={"langfuse_url": trace_url},
+                        ),
+                    )
                 graph_index._callback_manager = get_llamaindex_callback_manager()
                 entities, relations, chunks = graph_index.retrieve_with_weight(
                     self.user_question,
@@ -352,6 +357,7 @@ class ChatService:
             fast_llm: LLM,
             graph_knowledges_context: str,
             refined_question_prompt: Optional[str] = None,
+            annotation_silent: bool = False,
     ) -> Generator[ChatEvent | str, None, Tuple[bool, str, str]]:
         """
         Determine whether to refine the user question or early stop the conversation with a clarifying question.
@@ -360,6 +366,8 @@ class ChatService:
             get_llamaindex_callback_manager: Callable[[], CallbackManager]
             fast_llm: LLM
             graph_knowledges_context: str
+            refined_question_prompt: Optional[str], if it's None, use the default condense_question_prompt
+            annotation_silent: bool, if True, do not send annotation events
 
         Returns:
             bool: whether to early stop the conversation
@@ -369,13 +377,14 @@ class ChatService:
         if refined_question_prompt is None:
             refined_question_prompt = self.chat_engine_config.llm.condense_question_prompt
 
-        yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-            payload=ChatStreamMessagePayload(
-                state=ChatMessageSate.REFINE_QUESTION,
-                display="Query Rewriting for Enhanced Information Retrieval",
-            ),
-        )
+        if not annotation_silent:
+            yield ChatEvent(
+                event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                payload=ChatStreamMessagePayload(
+                    state=ChatMessageSate.REFINE_QUESTION,
+                    display="Query Rewriting for Enhanced Information Retrieval",
+                ),
+            )
         callback_manager = get_llamaindex_callback_manager()
 
         # 1. Check if we have enough information to answer the user question or not
@@ -399,13 +408,14 @@ class ChatService:
                 })
 
                 if clarity_result.clarity_needed:
-                    yield ChatEvent(
-                        event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-                        payload=ChatStreamMessagePayload(
-                            state=ChatMessageSate.GENERATE_ANSWER,
-                            display="Need to Ask a Clarifying Question",
-                        ),
-                    )
+                    if not annotation_silent:
+                        yield ChatEvent(
+                            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                            payload=ChatStreamMessagePayload(
+                                state=ChatMessageSate.GENERATE_ANSWER,
+                                display="Need to Ask a Clarifying Question",
+                            ),
+                        )
 
                     yield ChatEvent(
                         event_type=ChatEventType.TEXT_PART,
@@ -429,13 +439,14 @@ class ChatService:
                     ),
                 )
                 event.on_end(payload={EventPayload.COMPLETION: refined_question})
-        yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-            payload=ChatStreamMessagePayload(
-                state=ChatMessageSate.REFINE_QUESTION,
-                message=refined_question,
-            ),
-        )
+        if not annotation_silent:
+            yield ChatEvent(
+                event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                payload=ChatStreamMessagePayload(
+                    state=ChatMessageSate.REFINE_QUESTION,
+                    message=refined_question,
+                ),
+            )
 
         return False, "", refined_question
 
@@ -446,16 +457,18 @@ class ChatService:
             graph_knowledges_context: str,
             llm: LLM,
             embed_model: BaseEmbedding,
+            annotation_silent: bool = False,
     ) -> Generator[ChatEvent | str, None, Tuple[StreamingResponse, List[dict]]]:
-        yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-            payload=ChatStreamMessagePayload(
-                state=ChatMessageSate.SEARCH_RELATED_DOCUMENTS,
-                display="Retrieving and Reranking the Best-Matching Data"
-                if self._reranker
-                else "Retrieving the Most Relevant Data",
-            ),
-        )
+        if not annotation_silent:
+            yield ChatEvent(
+                event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                payload=ChatStreamMessagePayload(
+                    state=ChatMessageSate.SEARCH_RELATED_DOCUMENTS,
+                    display="Retrieving and Reranking the Best-Matching Data"
+                    if self._reranker
+                    else "Retrieving the Most Relevant Data",
+                ),
+            )
         callback_manager = get_llamaindex_callback_manager()
         text_qa_template = get_prompt_by_jinja2_template(
             self.chat_engine_config.llm.text_qa_prompt,
@@ -493,20 +506,21 @@ class ChatService:
         response: StreamingResponse = query_engine.query(refined_question)
         source_documents = self._get_source_documents(response)
 
-        yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-            payload=ChatStreamMessagePayload(
-                state=ChatMessageSate.SOURCE_NODES,
-                context=source_documents,
-            ),
-        )
-        yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-            payload=ChatStreamMessagePayload(
-                state=ChatMessageSate.GENERATE_ANSWER,
-                display="Generating a Precise Answer with AI",
-            ),
-        )
+        if not annotation_silent:
+            yield ChatEvent(
+                event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                payload=ChatStreamMessagePayload(
+                    state=ChatMessageSate.SOURCE_NODES,
+                    context=source_documents,
+                ),
+            )
+            yield ChatEvent(
+                event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                payload=ChatStreamMessagePayload(
+                    state=ChatMessageSate.GENERATE_ANSWER,
+                    display="Generating a Precise Answer with AI",
+                ),
+            )
 
         return response, source_documents
 
@@ -517,14 +531,15 @@ class ChatService:
             response_text: str,
             source_documents: List[dict],
             graph_data_source_ids: dict,
-
+            annotation_silent: bool = False,
     ):
-        yield ChatEvent(
-            event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
-            payload=ChatStreamMessagePayload(
-                state=ChatMessageSate.FINISHED,
-            ),
-        )
+        if not annotation_silent:
+            yield ChatEvent(
+                event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
+                payload=ChatStreamMessagePayload(
+                    state=ChatMessageSate.FINISHED,
+                ),
+            )
 
         post_verification_result_url = self._post_verification(
             self.user_question,
@@ -699,6 +714,7 @@ class ChatService:
                     fast_llm=_fast_llm,
                     embed_model=_embed_model,
                 ),
+                annotation_silent=True,
             )
 
             logger.info("start to _refine_or_early_stop")
@@ -710,6 +726,7 @@ class ChatService:
                 fast_llm=_fast_llm,
                 graph_knowledges_context=graph_knowledges_context,
                 refined_question_prompt=self.chat_engine_config.llm.generate_goal_prompt,
+                annotation_silent=True,
             )
             goal = goal.strip()
             if goal.startswith("Goal: "):
@@ -723,6 +740,7 @@ class ChatService:
                     response_text=clarifying_question,
                     source_documents=[],
                     graph_data_source_ids=graph_data_source_ids,
+                    annotation_silent=True,
                 )
                 return
         except Exception as e:
