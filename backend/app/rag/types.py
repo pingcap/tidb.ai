@@ -35,6 +35,7 @@ class MyCBEventType(str, enum.Enum):
     RERANKING = "reranking"
     EXCEPTION = "exception"
     AGENT_STEP = "agent_step"
+    CLARIFYING_QUESTION = "clarifying_question"
     CONDENSE_QUESTION = "condense_question"
     RETRIEVE_FROM_GRAPH = "retrieve_from_graph"
     INTENT_DECOMPOSITION = "intent_decomposition"

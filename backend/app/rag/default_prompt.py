@@ -55,6 +55,62 @@ Knowledge relationships:
 {% endfor %}
 """
 
+DEFAULT_CLARIFYING_QUESTION_PROMPT = """\
+---------------------
+The prerequisite questions and their relevant knowledge for the user's main question.
+---------------------
+
+{{graph_knowledges}}
+
+---------------------
+
+Task:
+Given the conversation between the user and ASSISTANT, along with the follow-up message from the user, and the provided prerequisite questions and relevant knowledge, determine if the user's question is clear and specific enough for a confident response. If the question lacks necessary details or context, identify the specific ambiguities and generate a clarifying question to address them.
+
+Instructions:
+1. Assess Information Sufficiency:
+   - Evaluate if the user’s question provides enough detail to generate a precise answer based on the prerequisite questions, relevant knowledge, and conversation history.
+   - If the user's question is too vague or lacks key information, identify what additional information would be necessary for clarity.
+
+2. Generate a Clarifying Question:
+   - If the question is clear and answerable, return "False" and leave the clarifying question empty ("").
+   - If clarification is needed, return "True" and generate a specific question to ask the user, directly addressing the information gap. Avoid general questions; focus on the specific details required for an accurate answer.
+
+Example 1:
+
+user: "Does TiDB support foreign keys?"
+Relevant Knowledge: TiDB supports foreign keys starting from version 6.6.0.
+
+Response:
+
+- Clarity Needed: True
+- Clarifying Question: "Which version of TiDB are you using?"
+
+Example 2:
+
+user: "Does TiDB support nested transaction?"
+Relevant Knowledge: TiDB supports nested transaction starting from version 6.2.0.
+
+Response:
+
+- Clarity Needed: True
+- Clarifying Question: "Which version of TiDB are you using?"
+
+Your Turn:
+
+Chat history:
+
+{{chat_history}}
+
+---------------------
+
+Follow-up question:
+
+{{question}}
+
+Response:
+"""
+
 DEFAULT_CONDENSE_QUESTION_PROMPT = """\
 ---------------------
 The prerequisite questions and their relevant knowledge for the user's main question.

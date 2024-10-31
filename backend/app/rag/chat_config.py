@@ -40,6 +40,7 @@ from app.rag.default_prompt import (
     DEFAULT_FURTHER_QUESTIONS_PROMPT,
     DEFAULT_CONDENSE_ANSWER_PROMPT,
     DEFAULT_GENERATE_GOAL_PROMPT,
+    DEFAULT_CLARIFYING_QUESTION_PROMPT,
 )
 from app.models import (
     ChatEngine as DBChatEngine,
@@ -58,6 +59,7 @@ class LLMOption(BaseModel):
     intent_graph_knowledge: str = DEFAULT_INTENT_GRAPH_KNOWLEDGE
     normal_graph_knowledge: str = DEFAULT_NORMAL_GRAPH_KNOWLEDGE
     condense_question_prompt: str = DEFAULT_CONDENSE_QUESTION_PROMPT
+    clarifying_question_prompt: str = DEFAULT_CLARIFYING_QUESTION_PROMPT
     text_qa_prompt: str = DEFAULT_TEXT_QA_PROMPT
     refine_prompt: str = DEFAULT_REFINE_PROMPT
     further_questions_prompt: str = DEFAULT_FURTHER_QUESTIONS_PROMPT
