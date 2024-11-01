@@ -16,7 +16,7 @@ export interface ChatEngine {
 }
 
 export interface ChatEngineOptions {
-  external_engine_config?: object;
+  external_engine_config?: object | null;
   knowledge_graph: ChatEngineKnowledgeGraphOptions;
   llm: ChatEngineLLMOptions;
   post_verification_url?: string | null;
@@ -66,7 +66,7 @@ const llmOptionsSchema =
   }).passthrough() as ZodType<ChatEngineLLMOptions, any, any>;
 
 const chatEngineOptionsSchema = z.object({
-  external_engine_config: z.object({}).passthrough().optional(),
+  external_engine_config: z.object({}).passthrough().nullable().optional(),
   knowledge_graph: kgOptionsSchema,
   llm: llmOptionsSchema,
   post_verification_url: z.string().nullable().optional(),
