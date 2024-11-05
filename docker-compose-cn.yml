@@ -59,14 +59,14 @@ services:
         max-file: "6"
 
   local-embedding-reranker:
-    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-local-embedding-reranker:v2
+    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-local-embedding-reranker:v2.1
     ports:
       - 5001:5001
     # If you are in China, you can uncomment the following environment to speed up the download of models
     # environment:
     #   - HF_ENDPOINT=https://hf-mirror.com
-    volumes:
-      - ./local-embedding-reranker:/root/.cache/huggingface
+    # volumes:
+    #  - ./local-embedding-reranker:/root/.cache/huggingface
     # If you are using NVIDIA GPU, you can uncomment the following lines to enable GPU support
     # deploy:
     #   resources:
