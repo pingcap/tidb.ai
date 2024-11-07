@@ -260,6 +260,8 @@ Context information is below.
 
 ---------------------
 Given the new context, refine the original answer to better answer the query. If the context isn't useful, return the original answer.
+And the answer should use the same language with the question. If the answer has different language with the question, please translate it to the same language with the question.
+
 Refined Answer:
 """
 
