@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, Query
 from fastapi_pagination import Params, Page
 
+from app.api.admin_routes.document.models import DocumentItem
 from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.repositories import document_repo
 from app.models import Document, DocIndexTaskStatus
@@ -17,11 +18,13 @@ def list_documents(
     session: SessionDep,
     user: CurrentSuperuserDep,
     params: Params = Depends(),
+    # TODO: wrapper these parameters in a DocumentQuery model.
     source_uri: str | None = Query(
         None,
         description="[Fuzzy Match] source URI field, will search for the source URI that contains the given string."
     ),
     data_source_id: int | None = None,
+    knowledge_base_id: int | None = None,
     created_at_start: datetime | None = None,
     created_at_end: datetime | None = None,
     updated_at_start: datetime | None = None,
@@ -34,12 +37,13 @@ def list_documents(
     ),
     mime_type: MimeTypes | None = None,
     index_status: DocIndexTaskStatus | None = None,
-) -> Page[Document]:
+) -> Page[DocumentItem]:
     return document_repo.paginate(
         session=session,
         params=params,
         source_uri=source_uri,
         data_source_id=data_source_id,
+        knowledge_base_id=knowledge_base_id,
         created_at_start=created_at_start,
         created_at_end=created_at_end,
         updated_at_start=updated_at_start,

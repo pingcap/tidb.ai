@@ -22,6 +22,7 @@ class DocumentRepo(BaseRepo):
         params: Params | None = Params(),
         source_uri: Optional[str] = None,
         data_source_id: Optional[int] = None,
+        knowledge_base_id: Optional[int] = None,
         created_at_start: Optional[datetime] = None,
         created_at_end: Optional[datetime] = None,
         updated_at_start: Optional[datetime] = None,
@@ -36,6 +37,8 @@ class DocumentRepo(BaseRepo):
         stmt = select(Document)
         if source_uri:
             stmt = stmt.where(col(Document.source_uri).contains(source_uri))
+        if knowledge_base_id:
+            stmt = stmt.where(Document.knowledge_base_id == knowledge_base_id)
         if data_source_id:
             stmt = stmt.where(Document.data_source_id == data_source_id)
         if created_at_start:

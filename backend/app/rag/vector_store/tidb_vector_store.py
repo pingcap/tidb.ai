@@ -1,5 +1,5 @@
 import logging
-from typing import Any, List, Optional
+from typing import Any, List, Optional, Type
 
 from llama_index.core.schema import BaseNode, MetadataMode, TextNode
 from llama_index.core.bridge.pydantic import PrivateAttr
@@ -12,12 +12,21 @@ from llama_index.core.vector_stores.utils import (
     metadata_dict_to_node,
     node_to_metadata_dict,
 )
-from sqlmodel import Session, delete, select, asc
+import sqlalchemy
+from sqlmodel import (
+    SQLModel,
+    Session,
+    delete,
+    select,
+    asc,
+)
 
 from app.core.db import engine
-from app.models import Chunk as DBChunk
+from app.models.chunk import get_chunk_model
+from app.models.embed_model import DEFAULT_VECTOR_DIMENSION
+from app.rag.knowledge_base.dynamic_model import DEFAULT_CHUNKS_TABLE_NAME
 
-_logger = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 def node_to_relation_dict(node: BaseNode) -> dict:
@@ -35,16 +44,45 @@ def node_to_relation_dict(node: BaseNode) -> dict:
 class TiDBVectorStore(BasePydanticVectorStore):
     _session: Session = PrivateAttr()
     _owns_session: bool = PrivateAttr()
+    _db_model: Type[SQLModel] = PrivateAttr()
+    _table_name: str = PrivateAttr()
+    _vector_dimension: int = PrivateAttr()
 
     stores_text: bool = True
     flat_metadata: bool = False
 
-    def __init__(self, session: Optional[Session] = None, **kwargs: Any) -> None:
+    def __init__(
+        self,
+        session: Optional[Session] = None,
+        table_name: Optional[str] = DEFAULT_CHUNKS_TABLE_NAME,
+        vector_dimension: Optional[int] = DEFAULT_VECTOR_DIMENSION,
+        **kwargs: Any
+    ) -> None:
         super().__init__(**kwargs)
         self._session = session
         self._owns_session = session is None
         if self._session is None:
             self._session = Session(engine)
+        
+        self._table_name = table_name
+        self._vector_dimension = vector_dimension
+        self._db_model = get_chunk_model(table_name, vector_dimension)
+
+    def ensure_table_schema(self) -> None:
+        inspector = sqlalchemy.inspect(engine)
+        if self._table_name not in inspector.get_table_names():
+            SQLModel.metadata.create_all(engine, tables=[self._db_model.__table__])
+            logger.info(f"Chunk table <{self._table_name}> has been created successfully.")
+        else:
+            logger.info(f"Chunk table <{self._table_name}> is already exists, no action to do.")
+
+    def drop_table_schema(self):
+        inspector = sqlalchemy.inspect(engine)
+        if self._table_name not in inspector.get_table_names():
+            SQLModel.metadata.create_all(engine, tables=[self._db_model.__table__])
+            logger.info(f"Chunk table <{self._table_name}> has been dropped successfully.")
+        else:
+            logger.info(f"Chunk table <{self._table_name}> is not existed, not action to do.")
 
     def close_session(self) -> None:
         # Always call this method is necessary to make sure the session is closed
@@ -86,7 +124,7 @@ class TiDBVectorStore(BasePydanticVectorStore):
                 }
             )
 
-        self._session.bulk_insert_mappings(DBChunk, items)
+        self._session.bulk_insert_mappings(self._db_model, items)
         self._session.commit()
         return [i["id"] for i in items]
 
@@ -102,7 +140,7 @@ class TiDBVectorStore(BasePydanticVectorStore):
             None
         """
         assert ref_doc_id.isdigit(), "ref_doc_id must be an integer."
-        delete_stmt = delete(DBChunk).where(DBChunk.document_id == int(ref_doc_id))
+        delete_stmt = delete(self._db_model).where(self._db_model.document_id == int(ref_doc_id))
         self._session.exec(delete_stmt)
         self._session.commit()
 
@@ -127,15 +165,15 @@ class TiDBVectorStore(BasePydanticVectorStore):
             raise ValueError("Query embedding must be provided.")
 
         stmt = select(
-            DBChunk.id,
-            DBChunk.text,
-            DBChunk.meta,
-            DBChunk.embedding.cosine_distance(query.query_embedding).label("distance"),
+            self._db_model.id,
+            self._db_model.text,
+            self._db_model.meta,
+            self._db_model.embedding.cosine_distance(query.query_embedding).label("distance"),
         )
 
         if query.filters:
             for f in query.filters.filters:
-                stmt = stmt.where(DBChunk.meta[f.key] == f.value)
+                stmt = stmt.where(self._db_model.meta[f.key] == f.value)
 
         stmt = stmt.order_by(asc("distance")).limit(query.similarity_top_k)
         results = self._session.exec(stmt)
@@ -149,7 +187,7 @@ class TiDBVectorStore(BasePydanticVectorStore):
                 node.set_content(row.text)
             except Exception:
                 # NOTE: deprecated legacy logic for backward compatibility
-                _logger.warning(
+                logger.warning(
                     "Failed to parse metadata dict, falling back to legacy logic."
                 )
                 node = TextNode(

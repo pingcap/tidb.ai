@@ -30,6 +30,9 @@ from app.rag.node_postprocessor.metadata_post_filter import MetadataFilters
 from app.rag.node_postprocessor.baisheng_reranker import BaishengRerank
 from app.rag.node_postprocessor.local_reranker import LocalRerank
 from app.rag.embeddings.local_embedding import LocalEmbedding
+from app.repositories import chat_engine_repo
+from app.repositories.embedding_model import get_default_db_embed_model
+from app.repositories.llm import get_default_db_llm
 from app.types import LLMProvider, EmbeddingProvider, RerankerProvider
 from app.rag.default_prompt import (
     DEFAULT_INTENT_GRAPH_KNOWLEDGE,
@@ -44,10 +47,9 @@ from app.rag.default_prompt import (
 from app.models import (
     ChatEngine as DBChatEngine,
     LLM as DBLLM,
-    EmbeddingModel as DBEmbeddingModel,
     RerankerModel as DBRerankerModel,
 )
-from app.repositories import chat_engine_repo
+
 from app.rag.llms.anthropic_vertex import AnthropicVertex
 from app.utils.dspy import get_dspy_lm_by_llama_llm
 
@@ -238,9 +240,7 @@ def get_llm(
 
 
 def get_default_llm(session: Session) -> LLM:
-    db_llm = session.exec(
-        select(DBLLM).order_by(DBLLM.is_default.desc()).limit(1)
-    ).first()
+    db_llm = get_default_db_llm(session)
     if not db_llm:
         raise ValueError("No default LLM found in DB")
     return get_llm(
@@ -292,9 +292,7 @@ def get_embedding_model(
 
 
 def get_default_embedding_model(session: Session) -> BaseEmbedding:
-    db_embedding_model = session.exec(
-        select(DBEmbeddingModel).order_by(DBEmbeddingModel.is_default.desc()).limit(1)
-    ).first()
+    db_embedding_model = get_default_db_embed_model(session)
     if not db_embedding_model:
         raise ValueError("No default embedding model found in DB")
     return get_embedding_model(

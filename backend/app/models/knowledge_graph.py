@@ -1,8 +1,9 @@
 import enum
 from uuid import UUID
-from typing import Optional, Any, List, Dict
+from typing import Optional, Any, List, Dict, Type
 from datetime import datetime
 
+from sqlalchemy.orm import relationship
 from sqlmodel import (
     SQLModel,
     Field,
@@ -57,6 +58,42 @@ class Entity(EntityBase, table=True):
     # that can be used for recording or debugging purposes
     def screenshot(self):
         return self.model_dump(exclude={"description_vec", "meta_vec"})
+
+
+def get_entity_model(table_name: str, vector_dimension: int) -> Type[SQLModel]:
+    class Entity(SQLModel, table=True):
+        __tablename__ = table_name
+        __table_args__ = (
+            # Index("idx_entity_type", "entity_type"),
+            {'extend_existing': True}
+        )
+
+        id: Optional[int] = Field(default=None, primary_key=True)
+        name: str = Field(max_length=512)
+        description: str = Field(sa_column=Column(Text))
+        meta: List | Dict = Field(default={}, sa_column=Column(JSON))
+        entity_type: EntityType = EntityType.original
+        synopsis_info: List | Dict | None = Field(default=None, sa_column=Column(JSON))
+        description_vec: Any = Field(
+            sa_column=Column(
+                VectorType(vector_dimension), comment="hnsw(distance=cosine)"
+            )
+        )
+        meta_vec: Any = Field(
+            sa_column=Column(
+                VectorType(vector_dimension), comment="hnsw(distance=cosine)"
+            )
+        )
+
+        def __hash__(self):
+            return hash(self.id)
+
+        def screenshot(self):
+            return self.model_dump(exclude={"description_vec", "meta_vec"})
+
+    Entity.__name__ = f"Entity_{table_name}"
+
+    return Entity
 
 
 # Public Entity model will be used in API response
@@ -114,3 +151,43 @@ class Relationship(RelationshipBase, table=True):
 
 class RelationshipPublic(RelationshipBase):
     id: int
+
+
+def get_relationship_model(table_name: str, entities_table_name: str, vector_dimension: int) -> Type[SQLModel]:
+    entity_model = get_entity_model(entities_table_name, vector_dimension)
+    class Relationship(SQLModel, table=True):
+        __tablename__ = table_name
+        __table_args__ = ({'extend_existing': True},)
+
+        id: Optional[int] = Field(default=None, primary_key=True)
+        description: str = Field(sa_column=Column(Text))
+        meta: List | Dict = Field(default={}, sa_column=Column(JSON))
+        weight: int = 0
+        source_entity_id: int = Field(foreign_key=f"{entities_table_name}.id")
+        target_entity_id: int = Field(foreign_key=f"{entities_table_name}.id")
+        last_modified_at: Optional[datetime] = Field(sa_column=Column(DateTime))
+        document_id: Optional[int] = Field(default=None, nullable=True)
+        chunk_id: Optional[UUID] = Field(default=None, nullable=True)
+        description_vec: Any = Field(
+            sa_column=Column(
+                VectorType(vector_dimension), comment="hnsw(distance=cosine)"
+            )
+        )
+
+        def __hash__(self):
+            return hash(self.id)
+
+        def screenshot(self):
+            obj_dict = self.model_dump(
+                exclude={
+                    "description_vec",
+                    "source_entity",
+                    "target_entity",
+                    "last_modified_at",
+                }
+            )
+            return obj_dict
+
+    Relationship.__name__ = f"Relationship_{table_name}"
+
+    return Relationship

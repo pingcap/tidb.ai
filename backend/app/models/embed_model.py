@@ -6,10 +6,13 @@ from .base import UpdatableBaseModel, AESEncryptedColumn
 from app.types import EmbeddingProvider
 
 
+DEFAULT_VECTOR_DIMENSION = 1536
+
 class BaseEmbeddingModel(UpdatableBaseModel):
     name: str = Field(max_length=64)
     provider: EmbeddingProvider = Field(sa_column=Column(String(32), nullable=False))
     model: str = Field(max_length=256)
+    vector_dimension: int = Field(default=DEFAULT_VECTOR_DIMENSION)
     config: dict | list | None = Field(sa_column=Column(JSON), default={})
     is_default: bool = Field(default=False)
 
