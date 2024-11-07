@@ -76,6 +76,8 @@ Instructions:
    - If the question is clear and answerable, return "False" and leave the clarifying question empty ("").
    - If clarification is needed, return "True" and generate a specific question to ask the user, directly addressing the information gap. Avoid general questions; focus on the specific details required for an accurate answer.
 
+3. Use the same language to ask the clarifying question as the user's original question.
+
 Example 1:
 
 user: "Does TiDB support foreign keys?"
