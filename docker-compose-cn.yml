@@ -63,8 +63,8 @@ services:
     ports:
       - 5001:5001
     # If you are in China, you can uncomment the following environment to speed up the download of models
-    # environment:
-    #   - HF_ENDPOINT=https://hf-mirror.com
+    environment:
+      - HF_ENDPOINT=https://hf-mirror.com
     # volumes:
     #  - ./local-embedding-reranker:/root/.cache/huggingface
     # If you are using NVIDIA GPU, you can uncomment the following lines to enable GPU support
