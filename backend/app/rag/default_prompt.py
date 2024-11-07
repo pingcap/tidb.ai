@@ -135,6 +135,10 @@ Instructions:
 5. Grounded and Factual:
   - Make sure the refined question is grounded in and directly based on the user's follow-up question and the provided knowledge.
   - Do not introduce information that is not supported by the knowledge or conversation history.
+6. Give the language hint for the answer:
+  - Add a hint after the question like "(Answer language: English)", or "(Answer language: Chinese)", etc.
+  - This language hint should be exactly same with the language of the original question.
+  - If the original question has part of other language aside from English, please use the language of another language rather than English. Example: "tidb tableread慢会是哪些原因", it should be Chinese.
 
 Example:
 
@@ -156,7 +160,7 @@ Prerequisite Questions and Relevant Knowledge:
 
 Refined Standalone Question:
 
-"Can you provide detailed information about the performance improvements introduced in TiDB version 8.1 compared to version 6.5?"
+"Can you provide detailed information about the performance improvements introduced in TiDB version 8.1 compared to version 6.5? (Answer language: English)"
 
 Your Turn:
 
@@ -211,7 +215,8 @@ Each footnote must correspond to a unique source. Do not use the same source for
 
 Answer Language:
 
-Respond in the language of the original question; for instance, reply in Chinese if the original question was asked in Chinese and in English if it was asked in English!
+Follow the language of the language hint after the Refined Question.
+If the language hint is not provided, use the language that the original questions used.
 
 ---------------------
 
@@ -260,7 +265,7 @@ Context information is below.
 
 ---------------------
 Given the new context, refine the original answer to better answer the query. If the context isn't useful, return the original answer.
-And the answer should use the same language with the question. If the answer has different language with the question, please translate it to the same language with the question.
+And the answer should use the same language with the question. If the answer has different language with the original question, please translate it to the same language with the question.
 
 Refined Answer:
 """
@@ -279,6 +284,7 @@ Instructions:
 2. Aim for variety in question type (clarifying, probing, or exploratory) to encourage a deeper conversation.
 3. Ensure each question logically follows from the context of the provided chat message.
 4. Keep questions concise yet insightful to maximize engagement.
+5. Use the same language with the chat message content.
 
 Now, generate 3–5 follow-up questions below:
 """
