@@ -11,13 +11,13 @@ export const FormIndexMethods = forwardRef<any, FormControlWidgetProps<CreateKno
         label="Vector Index"
         description="Vector Index is enabled by default"
         disabled
-        checked={value?.includes('vector_index') ?? false}
+        checked={value?.includes('vector') ?? false}
         onCheckedChange={checked => {
           const set = new Set(value);
           if (checked) {
-            set.add('vector_index');
+            set.add('vector');
           } else {
-            set.delete('vector_index');
+            set.delete('vector');
           }
           onChange?.(Array.from(set));
         }}
@@ -25,15 +25,15 @@ export const FormIndexMethods = forwardRef<any, FormControlWidgetProps<CreateKno
       <IndexMethod
         label="Graph Index"
         description="Graph Index"
-        checked={value?.includes('graph_index') ?? false}
+        checked={value?.includes('knowledge_graph') ?? false}
         onCheckedChange={checked => {
           const set = new Set(value);
           if (checked) {
             // graph index requires vector index.
-            set.add('vector_index');
-            set.add('graph_index');
+            set.add('vector');
+            set.add('knowledge_graph');
           } else {
-            set.delete('graph_index');
+            set.delete('knowledge_graph');
           }
           onChange?.(Array.from(set));
         }}

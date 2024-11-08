@@ -26,6 +26,8 @@ export interface RagIndexProgress {
   relationships: IndexTotalStats;
 }
 
+export const indexStatusSchema = z.enum(indexStatuses) satisfies ZodType<IndexStatus>;
+
 export const totalSchema = z.object({
   total: z.number(),
 }) satisfies ZodType<IndexTotalStats>;

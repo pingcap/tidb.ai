@@ -26,12 +26,13 @@ type Story = StoryObj<typeof meta>
 export const Default: Story = {
   args: {
     knowledgeBase: {
+      id: 1,
       name: 'Some KB',
       description: 'Some Description',
-      llm_id: 0,
-      embedding_model_id: 0,
-      data_sources: [],
-      index_methods: ['vector-index', 'graph-index'],
+      index_methods: ['vector', 'knowledge_graph'],
+      creator: { id: 'xxx' },
+      created_at: new Date(),
+      updated_at: new Date(),
     },
   },
 };

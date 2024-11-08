@@ -36,37 +36,168 @@
  */
 
 import { type BaseCreateDatasourceParams, type CreateDatasourceSpecParams, type Datasource, datasourceSchema } from '@/api/datasources';
-import { handleResponse, type PageParams, requestUrl, zodPage } from '@/lib/request';
+import { type EmbeddingModelSummary, embeddingModelSummarySchema } from '@/api/embedding-models';
+import { type LLMSummary, llmSummarySchema } from '@/api/llms';
+import { type IndexProgress, indexSchema, indexStatusSchema, type IndexTotalStats, totalSchema } from '@/api/rag';
+import { authenticationHeaders, handleResponse, type PageParams, requestUrl, zodPage } from '@/lib/request';
+import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
+
+/**
+ * {
+ *     "id": 1,
+ *     "name": "Lorem Ipsum",
+ *     "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+ *     "data_sources": [
+ *         {
+ *             "id": 630003,
+ *             "name": "Test",
+ *             "data_source_type": "file",
+ *             "config": [
+ *                 {
+ *                     "file_id": 300004,
+ *                     "file_name": "b (1).txt"
+ *                 }
+ *             ]
+ *         }
+ *     ],
+ *     "index_methods": [
+ *         "vector"
+ *     ],
+ *     "llm": {
+ *         "id": 30002,
+ *         "name": "gemini-1.5-flash",
+ *         "provider": "gemini",
+ *         "model": "models/gemini-1.5-flash",
+ *         "is_default": true
+ *     },
+ *     "embedding_model": {
+ *         "id": 60001,
+ *         "name": "test",
+ *         "model": "text-embedding-3-small",
+ *         "vector_dimension": 0,
+ *         "is_default": true
+ *     },
+ *     "creator": {
+ *         "id": "01907db8-8850-795d-855b-552663c18c9f"
+ *     },
+ *     "created_at": "2024-11-08T09:29:11",
+ *     "updated_at": "2024-11-08T09:29:11"
+ * }
+ */
 
 export interface CreateKnowledgeBaseParams {
   name: string;
   description: string;
-  index_methods: string[];
-  llm_id: number;
-  embedding_model_id: number;
+  index_methods: ('vector' | 'knowledge_graph')[];
+  llm_id?: number | null;
+  embedding_model_id?: number | null;
   data_sources: (BaseCreateDatasourceParams & CreateDatasourceSpecParams)[];
 }
 
-export interface KnowledgeBase {
+export interface KnowledgeBaseSummary {
+  id: number;
   name: string;
   description: string;
-  index_methods: string[];
-  llm_id: number;
-  embedding_model_id: number;
-  data_sources: Datasource[];
+  index_methods: ('vector' | 'knowledge_graph')[];
+  created_at: Date;
+  updated_at: Date;
+  creator: {
+    id: string;
+  };
 }
 
-const knowledgeBaseSchema = z.object({
+export interface KnowledgeBase extends KnowledgeBaseSummary {
+  data_sources: Datasource[];
+  llm?: LLMSummary | null;
+  embedding_model?: EmbeddingModelSummary | null;
+}
+
+export type KnowledgeGraphIndexProgress = {
+  vector_index: IndexProgress
+  documents: IndexTotalStats
+  chunks: IndexTotalStats
+  kg_index?: IndexProgress
+  relationships?: IndexTotalStats
+}
+
+export type KnowledgeGraphDocumentChunk = z.infer<typeof knowledgeGraphDocumentChunkSchema>;
+
+const knowledgeBaseSummarySchema = z.object({
+  id: z.number(),
   name: z.string(),
   description: z.string(),
-  index_methods: z.string().array(),
-  llm_id: z.number(),
-  embedding_model_id: z.number(),
+  index_methods: z.enum(['vector', 'knowledge_graph']).array(),
+  created_at: zodJsonDate(),
+  updated_at: zodJsonDate(),
+  creator: z.object({
+    id: z.string(),
+  }),
+}) satisfies ZodType<KnowledgeBaseSummary, any, any>;
+
+const knowledgeBaseSchema = knowledgeBaseSummarySchema.extend({
   data_sources: datasourceSchema.array(),
+  llm: llmSummarySchema.nullable().optional(),
+  embedding_model: embeddingModelSummarySchema.nullable().optional(),
 }) satisfies ZodType<KnowledgeBase, any, any>;
 
+const knowledgeGraphIndexProgressSchema = z.object({
+  vector_index: indexSchema,
+  documents: totalSchema,
+  chunks: totalSchema,
+  kg_index: indexSchema.optional(),
+  relationships: totalSchema.optional(),
+}) satisfies ZodType<KnowledgeGraphIndexProgress>;
+
+const knowledgeGraphDocumentChunkSchema = z.object({
+  id: z.string(),
+  document_id: z.number(),
+  hash: z.string(),
+  text: z.string(),
+  meta: z.object({}).passthrough(),
+  embedding: z.number().array(),
+  relations: z.any(),
+  source_uri: z.string(),
+  index_status: indexStatusSchema,
+  index_result: z.string().nullable(),
+  created_at: zodJsonDate(),
+  updated_at: zodJsonDate(),
+});
+
 export async function listKnowledgeBases ({ page = 1, size = 10 }: PageParams) {
-  return await fetch(requestUrl('/api/v1/admin/knowledge_bases', { page, size }))
-    .then(handleResponse(zodPage(knowledgeBaseSchema)));
+  return await fetch(requestUrl('/api/v1/admin/knowledge_bases', { page, size }), {
+    headers: await authenticationHeaders(),
+  })
+    .then(handleResponse(zodPage(knowledgeBaseSummarySchema)));
+}
+
+export async function getKnowledgeBaseById (id: number) {
+  return await fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}`), {
+    headers: await authenticationHeaders(),
+  })
+    .then(handleResponse(knowledgeBaseSchema));
+}
+
+export async function getKnowledgeBaseDocumentChunks (id: number, documentId: number) {
+  return await fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}/documents/${documentId}/chunks`), {
+    headers: await authenticationHeaders(),
+  })
+    .then(handleResponse(knowledgeGraphDocumentChunkSchema.array()));
+}
+
+export async function createKnowledgeBase (params: CreateKnowledgeBaseParams) {
+  return await fetch(requestUrl('/api/v1/admin/knowledge_bases'), {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...await authenticationHeaders(),
+    },
+    body: JSON.stringify(params),
+  }).then(handleResponse(knowledgeBaseSchema));
+}
+
+export async function getKnowledgeGraphIndexProgress (id: number): Promise<KnowledgeGraphIndexProgress> {
+  return fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}/overview`), {
+    headers: await authenticationHeaders(),
+  }).then(handleResponse(knowledgeGraphIndexProgressSchema));
 }

@@ -17,7 +17,7 @@ export default async function ChatEnginesPage ({ params }: { params: { id: strin
           { title: 'Documents' },
         ]}
       />
-      <DocumentsTable datasourceId={datasource.id} />
+      <DocumentsTable knowledgeBaseId={datasource.id} />
     </>
   );
 }

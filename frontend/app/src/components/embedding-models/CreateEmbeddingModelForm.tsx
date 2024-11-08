@@ -1,9 +1,9 @@
 'use client';
 
-import { createEmbeddingModel, type EmbeddingModel, listEmbeddingModelOptions, testEmbeddingModel } from '@/api/embedding-model';
+import { createEmbeddingModel, type EmbeddingModel, listEmbeddingModelOptions, testEmbeddingModel } from '@/api/embedding-models';
 import { ProviderSelect } from '@/components/form/biz';
-import { FormInput } from '@/components/form/control-widget';
-import { FormFieldBasicLayout } from '@/components/form/field-layout';
+import { FormInput, FormSwitch } from '@/components/form/control-widget';
+import { FormFieldBasicLayout, FormFieldContainedLayout } from '@/components/form/field-layout';
 import { FormRootError } from '@/components/form/root-error';
 import { CodeInput } from '@/components/form/widgets/CodeInput';
 import { ProviderDescription } from '@/components/provider-description';
@@ -23,6 +23,7 @@ import { z } from 'zod';
 const unsetForm = z.object({
   name: z.string().min(1, 'Must not empty'),
   provider: z.string().min(1, 'Must not empty'),
+  vector_dimension: z.coerce.number().int().positive(),
   config: zodJsonText().optional(),
 });
 
@@ -118,6 +119,9 @@ export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transi
                   : <CodeInput language="json" placeholder={JSON.stringify(provider.default_credentials, undefined, 2)} />
                 }
               </FormFieldBasicLayout>
+              <FormFieldBasicLayout name="vector_dimension" label="Vector Dimensions">
+                <FormInput type="number" min={1} />
+              </FormFieldBasicLayout>
               <Accordion type="multiple">
                 <AccordionItem value="advanced-settings">
                   <AccordionTrigger>
@@ -132,6 +136,10 @@ export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transi
               </Accordion>
             </>
           )}
+          <FormFieldContainedLayout name="is_default" label="Is Default Embedding Model" description="Enable will unset original default Embedding Model.">
+            <FormSwitch />
+          </FormFieldContainedLayout>
+          <FormRootError title="Failed to create LLM" />
           <FormRootError title="Failed to create Embedding Model" />
           <Button disabled={form.formState.disabled || !provider || form.formState.isSubmitting || transitioning}>
             {(form.formState.isSubmitting || transitioning) && <Loader2Icon className="size-4 mr-1 animate-spin repeat-infinite" />}

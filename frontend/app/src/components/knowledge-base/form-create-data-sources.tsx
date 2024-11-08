@@ -90,7 +90,7 @@ export function FormCreateDataSources () {
           <Button
             type="button"
             variant="outline"
-            onClick={() => append({ name: '', description: '', data_source_type: 'file', config: [] })}
+            onClick={() => append({ name: '', data_source_type: 'file', config: [] })}
           >
             <PlusIcon className="size-4 ml-1" />
             New Datasource
@@ -119,21 +119,18 @@ function switchDatasource (data: BaseCreateDatasourceParams & CreateDatasourceSp
     case 'file':
       return {
         name: data.name,
-        description: data.description,
         data_source_type: 'file',
         config: [],
       };
     case 'web_single_page':
       return {
         name: data.name,
-        description: data.description,
         data_source_type: 'web_single_page',
         config: { urls: [] },
       };
     case 'web_sitemap':
       return {
         name: data.name,
-        description: data.description,
         data_source_type: 'web_sitemap',
         config: { url: '' },
       };

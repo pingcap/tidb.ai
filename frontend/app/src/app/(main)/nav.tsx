@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useHref } from '@/components/use-href';
-import { ActivitySquareIcon, BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, FilesIcon, GaugeIcon, HomeIcon, KeyRoundIcon, LibraryIcon, MenuIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon, WaypointsIcon } from 'lucide-react';
+import { ActivitySquareIcon, BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, FilesIcon, HomeIcon, KeyRoundIcon, LibraryBigIcon, LibraryIcon, MenuIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon } from 'lucide-react';
 import Link from 'next/link';
 
 export function Nav () {
@@ -39,13 +39,14 @@ export function Nav () {
         { href: '/stats/trending', title: 'Stats', icon: ActivitySquareIcon },
         { href: '/feedbacks', title: 'Feedbacks', icon: MessageCircleQuestionIcon },
         { href: '/documents', title: 'Documents', icon: FilesIcon },
+        { href: '/knowledge-bases', title: 'Knowledge Bases', icon: LibraryBigIcon },
         { href: '/datasources', title: 'Datasources', icon: LibraryIcon },
         { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon },
         { href: '/llms', title: 'LLMs', icon: BrainCircuitIcon },
-        { href: '/embedding-model', title: 'Embedding Model', icon: BinaryIcon },
+        { href: '/embedding-models', title: 'Embedding Models', icon: BinaryIcon },
         { href: '/reranker-models', title: 'Reranker Models', icon: ShuffleIcon },
-        { href: '/index-progress', title: 'Index Progress', icon: GaugeIcon },
-        { href: '/knowledge-graph', title: 'Knowledge Graph', icon: WaypointsIcon },
+        // { href: '/index-progress', title: 'Index Progress', icon: GaugeIcon },
+        // { href: '/knowledge-graph', title: 'Knowledge Graph', icon: WaypointsIcon },
         { href: '/site-settings', title: 'Settings', icon: CogIcon },
       ],
       sectionProps: { className: 'mt-auto mb-0' },

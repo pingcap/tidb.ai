@@ -3,10 +3,12 @@ import { authenticationHeaders, handleErrors, handleResponse, type Page, type Pa
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
 
-interface DatasourceBase {
+export interface DatasourceBase {
   id: number;
   name: string;
-  description: string;
+}
+
+interface DeprecatedDatasourceBase extends DatasourceBase {
   created_at: Date;
   updated_at: Date;
   user_id: string;
@@ -14,7 +16,9 @@ interface DatasourceBase {
   llm_id: number | null;
 }
 
-export type Datasource = DatasourceBase & ({
+export type DeprecatedDatasource = DeprecatedDatasourceBase & DatasourceSpec
+
+type DatasourceSpec = ({
   data_source_type: 'file'
   config: { file_id: number, file_name: string }[]
 } | {
@@ -24,6 +28,8 @@ export type Datasource = DatasourceBase & ({
   data_source_type: 'web_single_page'
   config: { urls: string[] }
 })
+
+export type Datasource = DatasourceBase & DatasourceSpec;
 
 export type DataSourceIndexProgress = {
   vector_index: IndexProgress
@@ -35,10 +41,10 @@ export type DataSourceIndexProgress = {
 
 export interface BaseCreateDatasourceParams {
   name: string;
-  description: string;
 }
 
 export interface DeprecatedBaseCreateDatasourceParams extends BaseCreateDatasourceParams {
+  description: string;
   /**
    * @deprecated
    */
@@ -86,10 +92,9 @@ export type DatasourceKgIndexError = {
   error: string | null
 }
 
-const baseDatasourceSchema = z.object({
+const deprecatedBaseDatasourceSchema = z.object({
   id: z.number(),
   name: z.string(),
-  description: z.string(),
   created_at: zodJsonDate(),
   updated_at: zodJsonDate(),
   user_id: z.string(),
@@ -97,27 +102,34 @@ const baseDatasourceSchema = z.object({
   llm_id: z.number().nullable(),
 });
 
-export const datasourceSchema = baseDatasourceSchema
-  .and(z.discriminatedUnion('data_source_type', [
-    z.object({
-      data_source_type: z.literal('file'),
-      config: z.array(z.object({ file_id: z.number(), file_name: z.string() })),
+const datasourceSpecSchema = z.discriminatedUnion('data_source_type', [
+  z.object({
+    data_source_type: z.literal('file'),
+    config: z.array(z.object({ file_id: z.number(), file_name: z.string() })),
+  }),
+  z.object({
+    data_source_type: z.enum(['web_single_page']),
+    config: z.object({ urls: z.string().array() }).or(z.object({ url: z.string() })).transform(obj => {
+      if ('url' in obj) {
+        return { urls: [obj.url] };
+      } else {
+        return obj;
+      }
     }),
-    z.object({
-      data_source_type: z.enum(['web_single_page']),
-      config: z.object({ urls: z.string().array() }).or(z.object({ url: z.string() })).transform(obj => {
-        if ('url' in obj) {
-          return { urls: [obj.url] };
-        } else {
-          return obj;
-        }
-      }),
-    }),
-    z.object({
-      data_source_type: z.enum(['web_sitemap']),
-      config: z.object({ url: z.string() }),
-    })],
-  )) satisfies ZodType<Datasource, any, any>;
+  }),
+  z.object({
+    data_source_type: z.enum(['web_sitemap']),
+    config: z.object({ url: z.string() }),
+  })],
+) satisfies ZodType<DatasourceSpec, any, any>;
+
+export const deprecatedDatasourceSchema = deprecatedBaseDatasourceSchema
+  .and(datasourceSpecSchema) satisfies ZodType<DeprecatedDatasource, any, any>;
+
+export const datasourceSchema = z.object({
+  id: z.number(),
+  name: z.string(),
+}).and(datasourceSpecSchema) satisfies ZodType<Datasource, any, any>;
 
 const uploadSchema = z.object({
   id: z.number(),
@@ -151,16 +163,16 @@ const kgIndexErrorSchema = z.object({
   error: z.string().nullable(),
 }) satisfies ZodType<DatasourceKgIndexError, any, any>;
 
-export async function listDataSources ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<Datasource>> {
+export async function listDataSources ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<DeprecatedDatasource>> {
   return fetch(requestUrl('/api/v1/admin/datasources', { page, size }), {
     headers: await authenticationHeaders(),
-  }).then(handleResponse(zodPage(datasourceSchema)));
+  }).then(handleResponse(zodPage(deprecatedDatasourceSchema)));
 }
 
-export async function getDatasource (id: number): Promise<Datasource> {
+export async function getDatasource (id: number): Promise<DeprecatedDatasource> {
   return fetch(requestUrl(`/api/v1/admin/datasources/${id}`), {
     headers: await authenticationHeaders(),
-  }).then(handleResponse(datasourceSchema));
+  }).then(handleResponse(deprecatedDatasourceSchema));
 }
 
 export async function deleteDatasource (id: number): Promise<void> {
@@ -170,10 +182,11 @@ export async function deleteDatasource (id: number): Promise<void> {
   }).then(handleErrors);
 }
 
+/**
+ * @deprecated
+ */
 export async function getDatasourceOverview (id: number): Promise<DataSourceIndexProgress> {
-  return fetch(requestUrl(`/api/v1/admin/datasources/${id}/overview`), {
-    headers: await authenticationHeaders(),
-  }).then(handleResponse(datasourceOverviewSchema));
+  throw new Error('Deprecated API');
 }
 
 export async function createDatasource (params: CreateDatasourceParams) {
@@ -184,7 +197,7 @@ export async function createDatasource (params: CreateDatasourceParams) {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify(params),
-  }).then(handleResponse(datasourceSchema));
+  }).then(handleResponse(deprecatedDatasourceSchema));
 }
 
 export async function uploadFiles (files: File[]) {
@@ -202,24 +215,23 @@ export async function uploadFiles (files: File[]) {
   }).then(handleResponse(uploadSchema.array()));
 }
 
-export async function listDatasourceVectorIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}) {
-  return fetch(requestUrl(`/api/v1/admin/datasources/${id}/vector-index-errors`, { page, size }), {
-    headers: await authenticationHeaders(),
-  }).then(handleResponse(zodPage(vectorIndexErrorSchema)));
+/**
+ * @deprecated
+ */
+export function listDatasourceVectorIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}): never {
+  throw new Error('Deprecated API');
 }
 
-export async function listDatasourceKgIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}) {
-  return fetch(requestUrl(`/api/v1/admin/datasources/${id}/kg-index-errors`, { page, size }), {
-    headers: await authenticationHeaders(),
-  }).then(handleResponse(zodPage(kgIndexErrorSchema)));
+/**
+ * @deprecated
+ */
+export function listDatasourceKgIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}): never {
+  throw new Error('Deprecated API');
 }
 
-export async function retryDatasourceAllFailedTasks (id: number) {
-  return fetch(requestUrl(`/api/v1/admin/datasources/${id}/retry-failed-tasks`), {
-    method: 'POST',
-    headers: {
-      ...await authenticationHeaders(),
-      'Content-Type': 'application/json',
-    },
-  }).then(handleErrors);
+/**
+ * @deprecated
+ */
+export function retryDatasourceAllFailedTasks (id: number): never {
+  throw new Error('Deprecated API');
 }
