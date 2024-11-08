@@ -1,15 +1,12 @@
+import type { CreateKnowledgeBaseParams } from '@/api/knowledge-base';
 import type { FormControlWidgetProps } from '@/components/form/control-widget';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
-import { type ReactNode, useId } from 'react';
-import { type FieldPathByValue, FieldValues } from 'react-hook-form';
+import { forwardRef, type ReactNode, useId } from 'react';
 
-export function FormIndexMethods<
-  TFieldValues extends FieldValues = FieldValues,
-  TName extends FieldPathByValue<TFieldValues, string[]> = FieldPathByValue<TFieldValues, string[]>
-> ({ value, onChange }: FormControlWidgetProps<TFieldValues, TName>) {
+export const FormIndexMethods = forwardRef<any, FormControlWidgetProps<CreateKnowledgeBaseParams, 'index_methods'>>(({ value, onChange }, ref) => {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2" ref={ref}>
       <IndexMethod
         label="Vector Index"
         description="Vector Index is enabled by default"
@@ -43,7 +40,9 @@ export function FormIndexMethods<
       />
     </div>
   );
-}
+});
+
+FormIndexMethods.displayName = 'FormIndexMethods';
 
 function IndexMethod ({ disabled, label, description, checked, onCheckedChange }: { disabled?: boolean, label: ReactNode, description: ReactNode, checked: boolean, onCheckedChange: (value: boolean) => void }) {
   const id = useId();

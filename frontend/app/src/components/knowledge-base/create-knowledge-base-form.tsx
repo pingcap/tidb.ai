@@ -2,8 +2,8 @@ import { LLMSelect } from '@/components/form/biz';
 import { FormInput } from '@/components/form/control-widget';
 import { FormFieldBasicLayout } from '@/components/form/field-layout';
 import { handleSubmitHelper } from '@/components/form/utils';
-import { createDatasourceSchema, FormCreateDataSources } from '@/components/knowledge-base/FormCreateDataSources';
-import { FormIndexMethods } from '@/components/knowledge-base/FormIndexMethods';
+import { createDatasourceSchema, FormCreateDataSources } from '@/components/knowledge-base/form-create-data-sources';
+import { FormIndexMethods } from '@/components/knowledge-base/form-index-methods';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -39,9 +39,6 @@ export function CreateKnowledgeBaseForm () {
         <FormFieldBasicLayout name="description" label="Description">
           <FormInput />
         </FormFieldBasicLayout>
-        <FormFieldBasicLayout name="index_methods" label="Index Methods">
-          <FormIndexMethods />
-        </FormFieldBasicLayout>
         <FormFieldBasicLayout name="llm_id" label="LLM" description="Which LLM to use to build the index. Will use Default LLM if not specified.">
           <LLMSelect />
         </FormFieldBasicLayout>
@@ -49,6 +46,9 @@ export function CreateKnowledgeBaseForm () {
           <FormInput />
         </FormFieldBasicLayout>
         <FormCreateDataSources />
+        <FormFieldBasicLayout name="index_methods" label="Index Methods">
+          <FormIndexMethods />
+        </FormFieldBasicLayout>
         <Button type="submit">Submit</Button>
       </form>
     </Form>
