@@ -5,7 +5,7 @@ import { FormFieldBasicLayout, FormPrimitiveArrayFieldBasicLayout } from '@/comp
 import { FilesInput } from '@/components/form/widgets/FilesInput';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
-import { FormItem, FormMessage } from '@/components/ui/form';
+import { FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { FormArrayField } from '@/components/ui/form.ext';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
@@ -38,7 +38,7 @@ export function FormCreateDataSources () {
       name="data_sources"
       render={({ field: { fields, update, append, remove } }) => (
         <FormItem>
-          <div className="font-medium">Datasource</div>
+          <FormLabel className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">Datasource</FormLabel>
           <Accordion className="border rounded px-4" type="multiple" defaultValue={[fields[0]?.id ?? '']}>
             {(fields).map((field, index) => (
               <AccordionItem key={field.id} value={field.id} className="space-y-4 last-of-type:border-b-0">
