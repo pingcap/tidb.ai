@@ -149,17 +149,21 @@ def update_knowledge_base_setting(
             knowledge_base.llm_id = get_default_db_llm(session).id
 
         data_sources = []
-        for data_source in update.data_sources:
-            if data_source.id is None:
-                logger.info(f"Create data source <{data_source.name}> for knowledge base <{knowledge_base.name}>")
-                data_sources.append(data_source_repo.create(session, DataSource(
-                    name=data_source.name,
+        for update_data_source in update.data_sources:
+            if update_data_source.id is None:
+                logger.info(f"Create data source <{update_data_source.name}> for knowledge base <{knowledge_base.name}>")
+                data_source = data_source_repo.create(session, DataSource(
+                    name=update_data_source.name,
                     description='',
-                    data_source_type=data_source.data_source_type,
-                    config=data_source.config,
-                )))
+                    data_source_type=update_data_source.data_source_type,
+                    config=update_data_source.config,
+                ))
             else:
-                data_sources.append(data_source_repo.get(session, data_source.id))
+                data_source = data_source_repo.get(session, update_data_source.id)
+                data_source.name = update_data_source.name
+                data_source.config = update_data_source.config
+            data_sources.append(data_source)
+
         knowledge_base.data_sources = data_sources
 
         # Ensure the knowledge-base corresponding table schema are initialized.
