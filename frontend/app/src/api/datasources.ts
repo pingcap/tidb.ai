@@ -36,11 +36,20 @@ export type DataSourceIndexProgress = {
 export interface BaseCreateDatasourceParams {
   name: string;
   description: string;
+}
+
+export interface DeprecatedBaseCreateDatasourceParams extends BaseCreateDatasourceParams {
+  /**
+   * @deprecated
+   */
   build_kg_index: boolean;
+  /**
+   * @deprecated
+   */
   llm_id: number | null;
 }
 
-export type CreateDatasourceParams = BaseCreateDatasourceParams & ({
+export type CreateDatasourceSpecParams = ({
   data_source_type: 'file'
   config: { file_id: number, file_name: string }[]
 } | {
@@ -49,7 +58,9 @@ export type CreateDatasourceParams = BaseCreateDatasourceParams & ({
 } | {
   data_source_type: 'web_sitemap'
   config: { url: string }
-})
+});
+
+export type CreateDatasourceParams = DeprecatedBaseCreateDatasourceParams & CreateDatasourceSpecParams;
 
 export interface Upload {
   created_at?: Date;
@@ -86,7 +97,7 @@ const baseDatasourceSchema = z.object({
   llm_id: z.number().nullable(),
 });
 
-const datasourceSchema = baseDatasourceSchema
+export const datasourceSchema = baseDatasourceSchema
   .and(z.discriminatedUnion('data_source_type', [
     z.object({
       data_source_type: z.literal('file'),
