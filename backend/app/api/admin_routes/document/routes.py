@@ -4,7 +4,7 @@ from fastapi_pagination import Params, Page
 from app.api.admin_routes.document.models import DocumentItem
 from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.repositories import document_repo
-from app.models import Document, DocIndexTaskStatus
+from app.models import DocIndexTaskStatus
 
 from datetime import datetime
 

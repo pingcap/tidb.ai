@@ -10,7 +10,7 @@ from app.models.data_source import DataSourceType
 from app.models.knowledge_base import IndexMethod
 
 
-class CreateKBLinkedDataSourceRequest(BaseModel):
+class CreateKBDataSourceRequest(BaseModel):
     id: Optional[int] = None
     name: str
     data_source_type: DataSourceType
@@ -22,12 +22,15 @@ class CreateKBLinkedDataSourceRequest(BaseModel):
             raise ValueError("Please provide a name for the data source")
         return v
 
-class UpdateKnowledgeBaseSettingRequest(BaseModel):
+    # TODO: verify DataSource config.
+
+
+class BaseKnowledgeBaseSetting(BaseModel):
     name: str
     description: str
     index_methods: list[IndexMethod]
     llm_id: Optional[int] = None
-    data_sources: list[CreateKBLinkedDataSourceRequest]
+    data_sources: list[CreateKBDataSourceRequest]
 
     @field_validator("name")
     def name_must_not_be_blank(cls, v: str) -> str:
@@ -44,11 +47,15 @@ class UpdateKnowledgeBaseSettingRequest(BaseModel):
         return v
 
 
-class CreateKnowledgeBaseRequest(UpdateKnowledgeBaseSettingRequest):
+class CreateKnowledgeBaseRequest(BaseKnowledgeBaseSetting):
     embedding_model_id: Optional[int] = None
 
 
-class KBLinkedDataSource(BaseModel):
+class UpdateKnowledgeBaseRequest(BaseKnowledgeBaseSetting):
+    pass
+
+
+class KBDataSource(BaseModel):
     """
     Represents a linked data source for a knowledge base.
     """
@@ -67,7 +74,7 @@ class KnowledgeBaseDetail(BaseModel):
     description: str
     # Notice: By default, SQLModel will not serialize list type relationships.
     # https://github.com/fastapi/sqlmodel/issues/37#issuecomment-2093607242
-    data_sources: list[KBLinkedDataSource]
+    data_sources: list[KBDataSource]
     index_methods: list[IndexMethod]
     llm: LLMDescriptor | None = None
     embedding_model: EmbeddingModelDescriptor | None = None
@@ -88,6 +95,7 @@ class KnowledgeBaseItem(BaseModel):
     creator: UserDescriptor | None = None
     created_at: datetime
     updated_at: datetime
+
 
 class VectorIndexError(BaseModel):
     document_id: int

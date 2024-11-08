@@ -13,10 +13,9 @@ from app.repositories.llm import get_default_db_llm, must_get_llm
 from app.types import MimeTypes
 
 from .models import (
-    UpdateKnowledgeBaseSettingRequest,
     KnowledgeBaseDetail,
     KnowledgeBaseItem,
-    CreateKnowledgeBaseRequest, ChunkItem
+    CreateKnowledgeBaseRequest, ChunkItem, UpdateKnowledgeBaseRequest
 )
 from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.exceptions import (
@@ -134,7 +133,7 @@ def update_knowledge_base_setting(
     session: SessionDep,
     user: CurrentSuperuserDep,
     knowledge_base_id: int,
-    update: UpdateKnowledgeBaseSettingRequest
+    update: UpdateKnowledgeBaseRequest
 ) -> KnowledgeBaseDetail:
     try:
         knowledge_base = knowledge_base_repo.must_get(session, knowledge_base_id)
