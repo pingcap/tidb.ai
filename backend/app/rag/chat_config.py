@@ -31,7 +31,7 @@ from app.rag.node_postprocessor.baisheng_reranker import BaishengRerank
 from app.rag.node_postprocessor.local_reranker import LocalRerank
 from app.rag.embeddings.local_embedding import LocalEmbedding
 from app.repositories import chat_engine_repo
-from app.repositories.embedding_model import get_default_db_embed_model
+from app.repositories.embedding_model import embedding_model_repo
 from app.repositories.llm import get_default_db_llm
 from app.types import LLMProvider, EmbeddingProvider, RerankerProvider
 from app.rag.default_prompt import (
@@ -292,14 +292,14 @@ def get_embedding_model(
 
 
 def get_default_embedding_model(session: Session) -> BaseEmbedding:
-    db_embedding_model = get_default_db_embed_model(session)
-    if not db_embedding_model:
+    db_embed_model = embedding_model_repo.get_default_model(session)
+    if not db_embed_model:
         raise ValueError("No default embedding model found in DB")
     return get_embedding_model(
-        db_embedding_model.provider,
-        db_embedding_model.model,
-        db_embedding_model.config,
-        db_embedding_model.credentials,
+        db_embed_model.provider,
+        db_embed_model.model,
+        db_embed_model.config,
+        db_embed_model.credentials,
     )
 
 

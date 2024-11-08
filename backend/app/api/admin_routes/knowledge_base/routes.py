@@ -8,7 +8,7 @@ from app.models.knowledge_base import IndexMethod
 from app.rag.knowledge_base.config import init_kb_tidb_graph_store, init_kb_tidb_vector_store
 from app.rag.knowledge_base.dynamic_model import get_kb_chunk_model
 from app.repositories.chunk import ChunkRepo
-from app.repositories.embedding_model import get_default_db_embed_model
+from app.repositories.embedding_model import embedding_model_repo
 from app.repositories.llm import get_default_db_llm, must_get_llm
 from app.types import MimeTypes
 
@@ -21,9 +21,9 @@ from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.exceptions import (
     InternalServerError,
     KnowledgeBaseNotFoundError,
-    NoVectorIndexConfiguredError,
-    NoLLMConfiguredError,
-    NoEmbedModelConfiguredError
+    KBNoVectorIndexConfiguredError,
+    KBNoLLMConfiguredError,
+    KBNoEmbedModelConfiguredError
 )
 from app.models import (
     KnowledgeBase, DocIndexTaskStatus,
@@ -63,15 +63,15 @@ def create_knowledge_base(
             if default_llm:
                 db_llm_id = default_llm.id
             else:
-                raise NoLLMConfiguredError()
+                raise KBNoLLMConfiguredError()
 
         db_embed_model_id = create.embedding_model_id
         if not db_embed_model_id:
-            default_embed_model = get_default_db_embed_model(session)
+            default_embed_model = embedding_model_repo.get_default_model(session)
             if default_embed_model:
                 db_embed_model_id = default_embed_model.id
             else:
-                raise NoEmbedModelConfiguredError()
+                raise KBNoEmbedModelConfiguredError()
 
 
         knowledge_base = KnowledgeBase(
@@ -97,7 +97,7 @@ def create_knowledge_base(
         import_documents_for_knowledge_base.delay(knowledge_base.id)
 
         return knowledge_base
-    except NoVectorIndexConfiguredError as e:
+    except KBNoVectorIndexConfiguredError as e:
         raise e
     except Exception as e:
         logging.exception(e)
@@ -180,7 +180,7 @@ def update_knowledge_base_setting(
         return knowledge_base
     except KnowledgeBaseNotFoundError as e:
         raise e
-    except NoVectorIndexConfiguredError as e:
+    except KBNoVectorIndexConfiguredError as e:
         raise e
     except Exception as e:
         logging.exception(e)

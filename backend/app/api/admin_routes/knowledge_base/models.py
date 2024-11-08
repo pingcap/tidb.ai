@@ -4,7 +4,7 @@ from uuid import UUID
 from pydantic import BaseModel, field_validator
 
 from app.api.admin_routes.models import EmbeddingModelDescriptor, LLMDescriptor, UserDescriptor
-from app.exceptions import NoVectorIndexConfiguredError
+from app.exceptions import KBNoVectorIndexConfiguredError
 from app.models import KgIndexStatus
 from app.models.data_source import DataSourceType
 from app.models.knowledge_base import IndexMethod
@@ -43,7 +43,7 @@ class BaseKnowledgeBaseSetting(BaseModel):
         # Notice: For now, knowledge base must be configured vector index method,
         # we will remove this limit in the feature.
         if IndexMethod.VECTOR not in v:
-            raise NoVectorIndexConfiguredError()
+            raise KBNoVectorIndexConfiguredError()
         return v
 
 

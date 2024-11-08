@@ -10,6 +10,7 @@ from app.api.routes import (
 )
 from app.api.admin_routes.knowledge_base.routes import router as admin_knowledge_base_router
 from app.api.admin_routes.document.routes import router as admin_document_router
+from app.api.admin_routes.embedding_model.routes import router as admin_embedding_model_router
 from app.api.admin_routes import (
     rag_index as admin_rag_index,
     chat_engine as admin_chat_engine,
@@ -46,6 +47,8 @@ api_router.include_router(admin_upload.router, tags=["admin/upload"])
 api_router.include_router(admin_data_source.router, tags=["admin/data_source"])
 api_router.include_router(admin_knowledge_base_router, tags=["admin/knowledge_base"])
 api_router.include_router(admin_llm.router, tags=["admin/llm"])
+
+api_router.include_router(admin_embedding_model_router, tags=["admin/embedding_model"])
 api_router.include_router(admin_retrieve.router, tags=["admin/retrieve"])
 api_router.include_router(admin_stats.router, tags=["admin/stats"])
 api_router.include_router(admin_semantic_cache.router, tags=["admin/semantic_cache"])

@@ -28,21 +28,21 @@ class KnowledgeBaseNotFoundError(HTTPException):
     def __init__(self, knowledge_base_id: int):
         self.detail = f"knowledge base #{knowledge_base_id} is not found"
 
-class NoLLMConfiguredError(HTTPException):
+class KBNoLLMConfiguredError(HTTPException):
     status_code = 500
 
     def __init__(self):
         self.detail = f"Must configured a LLM for knowledge base"
 
 
-class NoEmbedModelConfiguredError(HTTPException):
+class KBNoEmbedModelConfiguredError(HTTPException):
     status_code = 500
 
     def __init__(self):
         self.detail = f"Must configured a embedding model for knowledge base"
 
 
-class NoVectorIndexConfiguredError(HTTPException):
+class KBNoVectorIndexConfiguredError(HTTPException):
     status_code = 500
 
     def __init__(self):
