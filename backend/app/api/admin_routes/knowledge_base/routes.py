@@ -147,6 +147,7 @@ def update_knowledge_base_setting(
         else:
             knowledge_base.llm_id = get_default_db_llm(session).id
 
+        # Update data sources.
         data_sources = []
         for update_data_source in update.data_sources:
             if update_data_source.id is None:

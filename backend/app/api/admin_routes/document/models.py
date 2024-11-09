@@ -19,3 +19,5 @@ class DocumentItem(BaseModel):
     data_source: DataSourceDescriptor | None
     knowledge_base: KnowledgeBaseDescriptor | None
     last_modified_at: datetime
+    created_at: datetime
+    updated_at: datetime
