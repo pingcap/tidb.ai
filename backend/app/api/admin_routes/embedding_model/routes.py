@@ -12,9 +12,6 @@ from app.api.admin_routes.embedding_model.models import (
 )
 from app.api.deps import CurrentSuperuserDep, SessionDep
 from app.exceptions import EmbeddingModelNotFoundError, InternalServerError
-from app.models import (
-    EmbeddingModel
-)
 from app.rag.chat_config import get_embedding_model
 from app.rag.embed_model_option import EmbeddingModelOption, admin_embed_model_options
 from app.repositories.embedding_model import embedding_model_repo
@@ -37,18 +34,7 @@ def create_embedding_model(
     create: EmbeddingModelCreate,
 ) -> EmbeddingModelDetail:
     try:
-        embed_model = EmbeddingModel(
-            name=create.name,
-            provider=create.provider,
-            model=create.model,
-            vector_dimension=create.vector_dimension,
-            config=create.config,
-            credentials=create.credentials
-        )
-        session.add(embed_model)
-        session.commit()
-        session.refresh(embed_model)
-        return embed_model
+        return embedding_model_repo.create(session, create)
     except Exception as e:
         logger.exception(e)
         raise InternalServerError()
@@ -113,17 +99,7 @@ def update_embedding_model(
 ) -> EmbeddingModelDetail:
     try:
         embed_model = embedding_model_repo.must_get(session, model_id)
-        embed_model.name = update.name
-        embed_model.config = update.config
-
-        # If no new credentials are provided, the original encrypted
-        # credentials will continue to be used.
-        if "credentials" in embed_model and embed_model.credentials is not None:
-            embed_model.credentials = update.credentials
-
-        session.add(embed_model)
-        session.commit()
-        session.refresh(embed_model)
+        embedding_model_repo.update(session, embed_model, update)
         return embed_model
     except EmbeddingModelNotFoundError as e:
         raise e

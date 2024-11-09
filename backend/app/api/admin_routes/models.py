@@ -1,5 +1,7 @@
 from uuid import UUID
 from pydantic import BaseModel
+
+from app.api.admin_routes.embedding_model.models import EmbeddingModelItem
 from app.types import LLMProvider
 
 
@@ -11,12 +13,8 @@ class LLMDescriptor(BaseModel):
     is_default: bool
 
 
-class EmbeddingModelDescriptor(BaseModel):
-    id: int
-    name: str
-    model: str
-    vector_dimension: int
-    is_default: bool
+class EmbeddingModelDescriptor(EmbeddingModelItem):
+    pass
 
 
 class UserDescriptor(BaseModel):

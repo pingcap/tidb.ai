@@ -1,8 +1,5 @@
 from typing import Type, Optional
 
-from fastapi_pagination import (
-    Params, paginate
-)
 from sqlalchemy import func
 from sqlmodel import Session, select, SQLModel
 from app.repositories.base_repo import BaseRepo

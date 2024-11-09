@@ -14,12 +14,14 @@ class EmbeddingModelCreate(BaseModel):
     vector_dimension: int = DEFAULT_VECTOR_DIMENSION
     config: dict | list | None
     credentials: Any
+    is_default: Optional[bool] = False
 
 
 class EmbeddingModelUpdate(BaseModel):
-    name: str
-    config: dict | list | None
+    name: Optional[str] = None
+    config: Optional[dict | list] = None
     credentials: Optional[Any] = None
+    is_default: Optional[bool] = False
 
 
 class EmbeddingModelItem(BaseModel):
