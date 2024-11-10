@@ -1,10 +1,11 @@
 from typing import Optional, Type
 from datetime import datetime, UTC
 
-from sqlmodel import select, Session, func, update, SQLModel
+from sqlmodel import select, Session, func, update
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
+from app.api.admin_routes.knowledge_base.models import VectorIndexError, KGIndexError
 from app.exceptions import KnowledgeBaseNotFoundError
 from app.models import (
     KnowledgeBase,
@@ -171,6 +172,75 @@ class KnowledgeBaseRepo(BaseRepo):
         self.batch_update_chunk_status(session, chunk_model, chunk_ids, KgIndexStatus.PENDING)
 
         return chunk_ids
+
+
+    def list_vector_index_built_errors(
+        self,
+        session: Session,
+        kb: KnowledgeBase,
+        params: Params | None = Params(),
+    ) -> Page[VectorIndexError]:
+        query = (
+            select(
+                Document.id,
+                Document.name,
+                Document.source_uri,
+                Document.index_result,
+            )
+            .where(
+                Document.knowledge_base_id == kb.id,
+                Document.index_status == DocIndexTaskStatus.FAILED,
+            )
+            .order_by(Document.id.desc())
+        )
+
+        return paginate(session, query, params, transformer=lambda rows: [
+                VectorIndexError(
+                    document_id=row[0],
+                    document_name=row[1],
+                    source_uri=row[2],
+                    error=row[3],
+                )
+                for row in rows
+            ]
+        )
+
+
+    def list_kg_index_built_errors(
+        self,
+        session: Session,
+        kb: KnowledgeBase,
+        params: Params | None = Params(),
+    ) -> Page[KGIndexError]:
+        chunk_model = get_kb_chunk_model(kb)
+        query = (
+            select(
+                Document.id,
+                Document.name,
+                chunk_model.source_uri,
+                chunk_model.id,
+                chunk_model.index_result
+            )
+            .join(Document)
+            .where(
+                chunk_model.document_id == Document.id,
+                Document.knowledge_base_id == kb.id,
+                chunk_model.index_status == KgIndexStatus.FAILED
+            )
+            .order_by(chunk_model.id.desc())
+        )
+
+        return paginate(session, query, params, transformer=lambda rows: [
+            KGIndexError(
+                document_id=row[0],
+                document_name=row[1],
+                source_uri=row[2],
+                chunk_id=row[3],
+                error=row[4]
+            )
+            for row in rows
+        ])
+
 
 
 knowledge_base_repo = KnowledgeBaseRepo()

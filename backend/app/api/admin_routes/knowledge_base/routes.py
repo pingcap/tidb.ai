@@ -15,7 +15,7 @@ from app.types import MimeTypes
 from .models import (
     KnowledgeBaseDetail,
     KnowledgeBaseItem,
-    CreateKnowledgeBaseRequest, ChunkItem, UpdateKnowledgeBaseRequest
+    CreateKnowledgeBaseRequest, ChunkItem, UpdateKnowledgeBaseRequest, VectorIndexError, KGIndexError
 )
 from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.exceptions import (
@@ -323,6 +323,40 @@ def batch_reindex_knowledge_base_documents(
         raise InternalServerError()
 
 
+@router.get("/admin/knowledge_bases/{kb_id}/vector-index-errors")
+def list_kb_vector_index_errors(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    kb_id: int,
+    params: Params = Depends(),
+) -> Page[VectorIndexError]:
+    try:
+        kb = knowledge_base_repo.must_get(session, kb_id)
+        return knowledge_base_repo.list_vector_index_built_errors(session, kb, params)
+    except KnowledgeBaseNotFoundError as e:
+        raise e
+    except Exception as e:
+        logger.exception(e)
+        raise InternalServerError()
+
+
+@router.get("/admin/knowledge_bases/{kb_id}/kg-index-errors")
+def list_kb_kg_index_errors(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    kb_id: int,
+    params: Params = Depends(),
+) -> Page[KGIndexError]:
+    try:
+        kb = knowledge_base_repo.must_get(session, kb_id)
+        return knowledge_base_repo.list_kg_index_built_errors(session, kb, params)
+    except KnowledgeBaseNotFoundError as e:
+        raise e
+    except Exception as e:
+        logger.exception(e)
+        raise InternalServerError()
+
+
 @router.post("/admin/knowledge_bases/{kb_id}/retry-failed-index-tasks")
 def retry_failed_tasks(
     session: SessionDep,
@@ -332,18 +366,20 @@ def retry_failed_tasks(
     try:
         kb = knowledge_base_repo.must_get(session, kb_id)
 
+        # Retry failed vector index tasks.
         document_ids = knowledge_base_repo.set_failed_documents_status_to_pending(session, kb)
         for document_id in document_ids:
             build_index_for_document.delay(kb_id, document_id)
-        logger.info(f"Reindex {len(document_ids)} documents that failed to built vector index." )
+        logger.info(f"Triggered {len(document_ids)} documents to rebuilt vector index." )
 
+        # Retry failed kg index tasks.
         chunk_ids = knowledge_base_repo.set_failed_chunks_status_to_pending(session, kb)
         for chunk_id in chunk_ids:
             build_kg_index_for_chunk.delay(kb_id, chunk_id)
-        logger.info(f"Reindex {len(chunk_ids)} chunks that failed to built knowledge graph index." )
+        logger.info(f"Triggered {len(chunk_ids)} chunks to rebuilt knowledge graph index." )
 
         return {
-            "detail": f"Triggered {len(document_ids)} documents and {len(chunk_ids)} chunks to reindex knowledge base #{kb_id} successfully"
+            "detail": f"Triggered reindex {len(document_ids)} documents and {len(chunk_ids)} chunks of knowledge base #{kb_id}."
         }
     except KnowledgeBaseNotFoundError as e:
         raise e

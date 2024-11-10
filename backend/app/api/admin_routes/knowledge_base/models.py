@@ -105,8 +105,10 @@ class VectorIndexError(BaseModel):
 
 
 class KGIndexError(BaseModel):
-    chunk_id: UUID
+    document_id: int
+    document_name: str
     source_uri: str
+    chunk_id: UUID
     error: str | None = None
 
 
