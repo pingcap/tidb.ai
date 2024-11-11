@@ -1,5 +1,5 @@
 import logging
-from datetime import datetime
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, logger, Query
 from fastapi_pagination import Params, Page
@@ -10,7 +10,7 @@ from app.rag.knowledge_base.dynamic_model import get_kb_chunk_model
 from app.repositories.chunk import ChunkRepo
 from app.repositories.embedding_model import embedding_model_repo
 from app.repositories.llm import get_default_db_llm, must_get_llm
-from app.types import MimeTypes
+
 
 from .models import (
     KnowledgeBaseDetail,
@@ -35,7 +35,7 @@ from app.tasks import (
 )
 from app.repositories import knowledge_base_repo, data_source_repo, document_repo
 from app.tasks.knowledge_base import import_documents_for_knowledge_base, purge_knowledge_base_related_resources
-from ..document.models import DocumentItem
+from ..document.models import DocumentItem, DocumentFilters
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -234,41 +234,16 @@ def list_knowledge_base_documents(
     session: SessionDep,
     user: CurrentSuperuserDep,
     kb_id: int,
-    # TODO: wrapper these parameters in a DocumentQuery model.
+    filters: Annotated[DocumentFilters, Query()],
     params: Params = Depends(),
-    name: str | None = Query(
-        None,
-        description="[Fuzzy Match] name field, will search for the name that contains the given string."
-    ),
-    source_uri: str | None = Query(
-        None,
-        description="[Fuzzy Match] source URI field, will search for the source URI that contains the given string."
-    ),
-    created_at_start: datetime | None = None,
-    created_at_end: datetime | None = None,
-    updated_at_start: datetime | None = None,
-    updated_at_end: datetime | None = None,
-    last_modified_at_start: datetime | None = None,
-    last_modified_at_end: datetime | None = None,
-    mime_type: MimeTypes | None = None,
-    index_status: DocIndexTaskStatus | None = None,
 ) -> Page[DocumentItem]:
     try:
         kb = knowledge_base_repo.must_get(session, kb_id)
+        filters.knowledge_base_id = kb.id
         return document_repo.paginate(
             session=session,
+            filters=filters,
             params=params,
-            source_uri=source_uri,
-            knowledge_base_id=kb.id,
-            created_at_start=created_at_start,
-            created_at_end=created_at_end,
-            updated_at_start=updated_at_start,
-            updated_at_end=updated_at_end,
-            last_modified_at_start=last_modified_at_start,
-            last_modified_at_end=last_modified_at_end,
-            name=name,
-            mime_type=mime_type,
-            index_status=index_status,
         )
     except KnowledgeBaseNotFoundError as e:
         raise e
