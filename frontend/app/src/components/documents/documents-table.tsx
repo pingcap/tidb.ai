@@ -7,7 +7,9 @@ import { DatasourceCell, KnowledgeBaseCell } from '@/components/cells/reference'
 import { DataTableRemote } from '@/components/data-table-remote';
 import { DocumentPreviewDialog } from '@/components/document-viewer';
 import { DocumentsTableFilters } from '@/components/documents/documents-table-filters';
-import { NextLink } from '@/components/nextjs/NextLink';
+import { DocumentChunksTable } from '@/components/knowledge-base/document-chunks-table';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { useMemo, useState } from 'react';
@@ -29,7 +31,28 @@ const getColumns = (kbId?: number) => [
   helper.accessor('last_modified_at', { cell: datetime }),
   helper.display({
     id: 'op',
-    cell: ({ row }) => (kbId ?? row.original.knowledge_base?.id) != null && <NextLink variant='ghost' size={'sm'} href={`/knowledge-bases/${kbId ?? row.original.knowledge_base?.id}/documents/${row.original.id}/chunks`}>Chunks</NextLink>,
+    cell: ({ row }) => (kbId ?? row.original.knowledge_base?.id) != null && (
+      <Dialog>
+        <DialogTrigger>
+          <Button variant="ghost" size={'sm'}>
+            Chunks
+          </Button>
+        </DialogTrigger>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              Document Chunks
+            </DialogTitle>
+            <DialogDescription>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="w-full overflow-x-hidden">
+            <DocumentChunksTable knowledgeBaseId={(kbId ?? row.original.knowledge_base?.id)!} documentId={row.original.id} />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+    ),
   }),
 ] as ColumnDef<Document>[];
 
