@@ -35,11 +35,11 @@
  Retry Failed Tasks
  */
 
-import { type BaseCreateDatasourceParams, type CreateDatasourceSpecParams, type Datasource, datasourceSchema } from '@/api/datasources';
+import { type BaseCreateDatasourceParams, type CreateDatasourceSpecParams, type Datasource, type DatasourceKgIndexError, datasourceSchema, type DatasourceVectorIndexError } from '@/api/datasources';
 import { type EmbeddingModelSummary, embeddingModelSummarySchema } from '@/api/embedding-models';
 import { type LLMSummary, llmSummarySchema } from '@/api/llms';
 import { type IndexProgress, indexSchema, indexStatusSchema, type IndexTotalStats, totalSchema } from '@/api/rag';
-import { authenticationHeaders, handleResponse, type PageParams, requestUrl, zodPage } from '@/lib/request';
+import { authenticationHeaders, handleErrors, handleResponse, type PageParams, requestUrl, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
 
@@ -164,6 +164,19 @@ const knowledgeGraphDocumentChunkSchema = z.object({
   updated_at: zodJsonDate(),
 });
 
+const vectorIndexErrorSchema = z.object({
+  document_id: z.number(),
+  document_name: z.string(),
+  source_uri: z.string(),
+  error: z.string().nullable(),
+}) satisfies ZodType<DatasourceVectorIndexError, any, any>;
+
+const kgIndexErrorSchema = z.object({
+  chunk_id: z.string(),
+  source_uri: z.string(),
+  error: z.string().nullable(),
+}) satisfies ZodType<DatasourceKgIndexError, any, any>;
+
 export async function listKnowledgeBases ({ page = 1, size = 10 }: PageParams) {
   return await fetch(requestUrl('/api/v1/admin/knowledge_bases', { page, size }), {
     headers: await authenticationHeaders(),
@@ -200,4 +213,26 @@ export async function getKnowledgeGraphIndexProgress (id: number): Promise<Knowl
   return fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}/overview`), {
     headers: await authenticationHeaders(),
   }).then(handleResponse(knowledgeGraphIndexProgressSchema));
+}
+
+export async function listKnowledgeBaseVectorIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}) {
+  return fetch(requestUrl(`/api/v1/admin/knowledge_base/${id}/vector-index-errors`, { page, size }), {
+    headers: await authenticationHeaders(),
+  }).then(handleResponse(zodPage(vectorIndexErrorSchema)));
+}
+
+export async function listKnowledgeBaseKgIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}) {
+  return fetch(requestUrl(`/api/v1/admin/knowledge_base/${id}/kg-index-errors`, { page, size }), {
+    headers: await authenticationHeaders(),
+  }).then(handleResponse(zodPage(kgIndexErrorSchema)));
+}
+
+export async function retryKnowledgeBaseAllFailedTasks (id: number) {
+  return fetch(requestUrl(`/api/v1/admin/knowledge_base/${id}/retry-failed-tasks`), {
+    method: 'POST',
+    headers: {
+      ...await authenticationHeaders(),
+      'Content-Type': 'application/json',
+    },
+  }).then(handleErrors);
 }

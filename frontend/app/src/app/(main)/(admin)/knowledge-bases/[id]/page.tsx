@@ -42,7 +42,7 @@ export default async function KnowledgeBasePage ({ params }: { params: { id: str
           <KnowledgeBaseIndexProgress id={kb.id} />
         </section>
         <section className="space-y-2">
-          <h3 className="text-lg font-medium">Datasource</h3>
+          <h3 className="text-lg font-medium">Datasources</h3>
           <Accordion type="multiple">
             {kb.data_sources.map(datasource => (
               <AccordionItem key={datasource.id} value={String(datasource.id)}>

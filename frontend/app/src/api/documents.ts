@@ -60,8 +60,8 @@ export interface Document {
 const documentSchema = z.object({
   id: z.number(),
   name: z.string(),
-  created_at: zodJsonDate().optional(),
-  updated_at: zodJsonDate().optional(),
+  created_at: zodJsonDate(),
+  updated_at: zodJsonDate(),
   last_modified_at: zodJsonDate(),
   hash: z.string(),
   content: z.string(),

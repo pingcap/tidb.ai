@@ -1,6 +1,7 @@
 'use client';
 
-import { type DatasourceKgIndexError, type DatasourceVectorIndexError, listDatasourceKgIndexErrors, listDatasourceVectorIndexErrors, retryDatasourceAllFailedTasks } from '@/api/datasources';
+import { type DatasourceKgIndexError, type DatasourceVectorIndexError } from '@/api/datasources';
+import { listKnowledgeBaseKgIndexErrors, listKnowledgeBaseVectorIndexErrors, retryKnowledgeBaseAllFailedTasks } from '@/api/knowledge-base';
 import { useKB } from '@/app/(main)/(admin)/knowledge-bases/[id]/context';
 import { link } from '@/components/cells/link';
 import { IndexProgressChart, IndexProgressChartPlaceholder } from '@/components/charts/IndexProgressChart';
@@ -36,6 +37,7 @@ export function KnowledgeBaseIndexProgress ({ id }: { id: number }) {
         {progress ? <IndexProgressChart title="Vector Index" data={progress.vector_index} /> : <IndexProgressChartPlaceholder title="Vector Index" />}
         {index_methods.includes('knowledge_graph') && (progress?.kg_index ? <IndexProgressChart title="Knowledge Graph Index" data={progress.kg_index} /> : <IndexProgressChartPlaceholder title="Knowledge Graph Index" />)}
       </div>
+      <KnowledgeBaseIndexErrors id={id} />
     </>
   );
 }
@@ -69,7 +71,7 @@ export function KnowledgeBaseIndexErrors ({ id }: { id: number }) {
           <DangerousActionButton
             className="ml-auto"
             action={async () => {
-              await retryDatasourceAllFailedTasks(id);
+              await retryKnowledgeBaseAllFailedTasks(id);
               await mutate(undefined, { revalidate: true });
             }}
             dialogTitle="Retry failed tasks"
@@ -93,7 +95,7 @@ export function KnowledgeBaseIndexErrors ({ id }: { id: number }) {
 function KBVectorIndexErrorsTable ({ id }: { id: number }) {
   return (
     <DataTableRemote<DatasourceVectorIndexError, any>
-      api={(params) => listDatasourceVectorIndexErrors(id, params)}
+      api={(params) => listKnowledgeBaseVectorIndexErrors(id, params)}
       apiKey={`datasources.${id}.vector-index-errors`}
       columns={vectorIndexErrorsColumns}
       idColumn="document_id"
@@ -104,7 +106,7 @@ function KBVectorIndexErrorsTable ({ id }: { id: number }) {
 function KBKGIndexErrorsTable ({ id }: { id: number }) {
   return (
     <DataTableRemote<DatasourceKgIndexError, any>
-      api={(params) => listDatasourceKgIndexErrors(id, params)}
+      api={(params) => listKnowledgeBaseKgIndexErrors(id, params)}
       apiKey={`datasources.${id}.kg-index-errors`}
       columns={kgIndexErrorsColumns}
       idColumn="chunk_id"

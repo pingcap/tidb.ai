@@ -11,7 +11,7 @@ export interface DatasourceBase {
 interface DeprecatedDatasourceBase extends DatasourceBase {
   created_at: Date;
   updated_at: Date;
-  user_id: string;
+  user_id: string | null;
   build_kg_index: boolean;
   llm_id: number | null;
 }
@@ -97,7 +97,7 @@ const deprecatedBaseDatasourceSchema = z.object({
   name: z.string(),
   created_at: zodJsonDate(),
   updated_at: zodJsonDate(),
-  user_id: z.string(),
+  user_id: z.string().nullable(),
   build_kg_index: z.boolean(),
   llm_id: z.number().nullable(),
 });
@@ -150,19 +150,6 @@ const datasourceOverviewSchema = z.object({
   relationships: totalSchema.optional(),
 }) satisfies ZodType<DataSourceIndexProgress>;
 
-const vectorIndexErrorSchema = z.object({
-  document_id: z.number(),
-  document_name: z.string(),
-  source_uri: z.string(),
-  error: z.string().nullable(),
-}) satisfies ZodType<DatasourceVectorIndexError, any, any>;
-
-const kgIndexErrorSchema = z.object({
-  chunk_id: z.string(),
-  source_uri: z.string(),
-  error: z.string().nullable(),
-}) satisfies ZodType<DatasourceKgIndexError, any, any>;
-
 export async function listDataSources ({ page = 1, size = 10 }: PageParams = {}): Promise<Page<DeprecatedDatasource>> {
   return fetch(requestUrl('/api/v1/admin/datasources', { page, size }), {
     headers: await authenticationHeaders(),
@@ -180,13 +167,6 @@ export async function deleteDatasource (id: number): Promise<void> {
     method: 'DELETE',
     headers: await authenticationHeaders(),
   }).then(handleErrors);
-}
-
-/**
- * @deprecated
- */
-export async function getDatasourceOverview (id: number): Promise<DataSourceIndexProgress> {
-  throw new Error('Deprecated API');
 }
 
 export async function createDatasource (params: CreateDatasourceParams) {
@@ -213,25 +193,4 @@ export async function uploadFiles (files: File[]) {
     },
     body: formData,
   }).then(handleResponse(uploadSchema.array()));
-}
-
-/**
- * @deprecated
- */
-export function listDatasourceVectorIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}): never {
-  throw new Error('Deprecated API');
-}
-
-/**
- * @deprecated
- */
-export function listDatasourceKgIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}): never {
-  throw new Error('Deprecated API');
-}
-
-/**
- * @deprecated
- */
-export function retryDatasourceAllFailedTasks (id: number): never {
-  throw new Error('Deprecated API');
 }
