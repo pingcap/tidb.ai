@@ -31,7 +31,6 @@ export default function KnowledgeBasesPage () {
             <NextLink href={`/knowledge-bases/${kb.id}`}>
               Details
             </NextLink>
-            <NextLink href={`/knowledge-bases/${kb.id}/documents`} variant="secondary">Documents</NextLink>
           </KnowledgeBaseCard>
         ))}
       </div>
