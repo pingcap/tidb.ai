@@ -1,27 +1,25 @@
 'use client';
 
 import { useDatasource } from '@/components/datasource/hooks';
-import { DateFormat } from '@/components/date-format';
+import { useKnowledgeBaseDatasource } from '@/components/knowledge-base/hooks';
 import { OptionDetail } from '@/components/option-detail';
 import { Badge } from '@/components/ui/badge';
 
-export function DatasourceDetails ({ id }: { id: number }) {
+export function KnowledgeBaseDatasourceDetails ({ id }: { id: number }) {
   return (
     <>
-      <DatasourceFields id={id} />
-      <DatasourceUploadFiles id={id} />
+      <KnowledgeBaseDatasourceFields id={id} />
+      <KnowledgeBaseDatasourceUploadFiles id={id} />
     </>
   );
 }
 
-function DatasourceFields ({ id }: { id: number }) {
-  const { datasource } = useDatasource(id);
+function KnowledgeBaseDatasourceFields ({ id }: { id: number }) {
+  const datasource = useKnowledgeBaseDatasource(id);
   return (
     <div className="space-y-2 text-sm rounded p-4 border">
       <OptionDetail title="ID" value={id} />
       <OptionDetail title="Type" value={datasource?.data_source_type} />
-      <OptionDetail title="Created At" value={<DateFormat date={datasource?.created_at} />} />
-      <OptionDetail title="Updated At" value={<DateFormat date={datasource?.updated_at} />} />
       {(datasource?.data_source_type === 'web_sitemap') && (
         <OptionDetail title="URL" value={datasource?.config.url} />
       )}
@@ -33,8 +31,8 @@ function DatasourceFields ({ id }: { id: number }) {
   );
 }
 
-function DatasourceUploadFiles ({ id }: { id: number }) {
-  const { datasource } = useDatasource(id);
+function KnowledgeBaseDatasourceUploadFiles ({ id }: { id: number }) {
+  const datasource = useKnowledgeBaseDatasource(id);
 
   if (datasource?.data_source_type !== 'file' || datasource.config.length === 0) {
     return null;

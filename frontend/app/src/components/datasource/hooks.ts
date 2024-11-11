@@ -1,7 +1,8 @@
-import { useKB } from '@/app/(main)/(admin)/knowledge-bases/[id]/context';
+import { getDatasource } from '@/api/datasources';
+import useSWR from 'swr';
 
 export function useDatasource (id: number) {
-  const { data_sources } = useKB();
+  const { data: datasource, ...rest } = useSWR(`api.datasource.${id}`, () => getDatasource(id));
 
-  return data_sources.find(ds => ds.id === id);
+  return { datasource, ...rest };
 }

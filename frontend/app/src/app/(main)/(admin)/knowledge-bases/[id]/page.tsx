@@ -1,8 +1,8 @@
 import { getKnowledgeBaseById } from '@/api/knowledge-base';
 import { KBProvider } from '@/app/(main)/(admin)/knowledge-bases/[id]/context';
 import { AdminPageHeading } from '@/components/admin-page-heading';
-import { DatasourceDetails } from '@/components/datasource/DatasourceDetails';
 import { DateFormat } from '@/components/date-format';
+import { KnowledgeBaseDatasourceDetails } from '@/components/knowledge-base/datasource-details';
 import { KnowledgeBaseCard } from '@/components/knowledge-base/knowledge-base-card';
 import { KnowledgeBaseIndexProgress } from '@/components/knowledge-base/knowledge-base-index';
 import { ModelComponentInfo } from '@/components/model-component-info';
@@ -50,7 +50,7 @@ export default async function KnowledgeBasePage ({ params }: { params: { id: str
                   {datasource.name}
                 </AccordionTrigger>
                 <AccordionContent className="space-y-4">
-                  <DatasourceDetails key={datasource.id} id={datasource.id} />
+                  <KnowledgeBaseDatasourceDetails key={datasource.id} id={datasource.id} />
                 </AccordionContent>
               </AccordionItem>
             ))}
