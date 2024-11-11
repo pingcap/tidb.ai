@@ -29,8 +29,8 @@ class DocumentFilters(BaseModel):
     updated_at_end: Optional[datetime] = None
     last_modified_at_start: Optional[datetime] = None
     last_modified_at_end: Optional[datetime] = None
-    mime_type: Optional[MimeTypes | None] = None
-    index_status: Optional[DocIndexTaskStatus | None] = None
+    mime_type: Optional[MimeTypes] = None
+    index_status: Optional[DocIndexTaskStatus] = None
 
 
 class DocumentRepo(BaseRepo):
