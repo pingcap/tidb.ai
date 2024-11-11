@@ -51,8 +51,8 @@ export default function Page () {
         </div>
         <div className="col-span-2">
           {chatOriginTrend && <TrendsChart
-            title="Chats Origins"
-            description="Chats amounts from different origins"
+            title="Source"
+            description="Chats amounts from different source"
             data={chatOriginTrend}
             dimensions={originKeys}
             config={Object.fromEntries(originKeys.map((key, i) => ([key, {

@@ -3,6 +3,7 @@ from typing import Optional
 from datetime import datetime
 
 from llama_index.core.schema import Document as LlamaDocument
+from pydantic import ConfigDict
 from sqlalchemy.dialects.mysql import MEDIUMTEXT
 from sqlmodel import (
     Field,
@@ -27,6 +28,9 @@ class DocIndexTaskStatus(str, enum.Enum):
 
 
 class Document(UpdatableBaseModel, table=True):
+    # Avoid "expected `enum` but got `str`" error.
+    model_config = ConfigDict(use_enum_values=True)
+
     id: Optional[int] = Field(default=None, primary_key=True)
     hash: str = Field(max_length=32)
     name: str = Field(max_length=256)

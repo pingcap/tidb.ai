@@ -36,6 +36,25 @@ export function StackVMMessageAnnotationHistory ({ message }: { message: StackVM
     return undefined;
   }, [traceUrl, history, current]);
 
+  const stackVmUI = useMemo(() => {
+    if (!stackVMTaskUrl) {
+      return undefined;
+    }
+    try {
+      const url = new URL(stackVMTaskUrl);
+
+      const taskId = url.searchParams.get('task_id');
+
+      if (!taskId) {
+        return stackVMTaskUrl;
+      }
+
+      return `https://stackvm-ui.vercel.app/tasks/${taskId}`
+    } catch {
+      return stackVMTaskUrl;
+    }
+  }, [stackVMTaskUrl]);
+
   useEffect(() => {
     if (finished) {
       const handler = setTimeout(() => {
@@ -68,8 +87,8 @@ export function StackVMMessageAnnotationHistory ({ message }: { message: StackVM
           {error && <MessageAnnotationHistoryError history={history} error={error} />}
           {current && !current.finished && <MessageAnnotationCurrent history={history} current={current} />}
         </ol>
-        {stackVMTaskUrl && <div className="mt-2 text-xs">
-          Visit <a className="underline" target='_blank' href={stackVMTaskUrl}>StackVM</a> to see more details
+        {stackVmUI && <div className="mt-2 text-xs">
+          Visit <a className="underline" target="_blank" href={stackVmUI}>StackVM</a> to see more details
         </div>}
         <button className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors" onClick={() => setShow(false)}>
           <ChevronUpIcon className="size-4 mr-1" />
