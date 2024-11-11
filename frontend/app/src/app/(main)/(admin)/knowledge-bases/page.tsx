@@ -22,7 +22,10 @@ export default function KnowledgeBasesPage () {
   return (
     <>
       <AdminPageHeading title="Knowledge Bases" />
-      <div className="grid lg:grid-cols-2 gap-4">
+      <NextLink href="/knowledge-bases/new">
+        New Knowledge Base
+      </NextLink>
+      <div className="grid grid-cols-2 gap-4">
         {data?.items.map(kb => (
           <KnowledgeBaseCard key={kb.id} knowledgeBase={kb}>
             <NextLink href={`/knowledge-bases/${kb.id}`}>
