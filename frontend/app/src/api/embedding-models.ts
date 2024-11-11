@@ -6,7 +6,7 @@ import { z, type ZodType, type ZodTypeDef } from 'zod';
 export interface EmbeddingModelSummary {
   id: number;
   name: string;
-  provider?: string; // FIXME
+  provider: string;
   model: string;
   vector_dimension: number,
   is_default: boolean
@@ -34,7 +34,7 @@ export interface CreateEmbeddingModel {
 export const embeddingModelSummarySchema = z.object({
   id: z.number(),
   name: z.string(),
-  provider: z.string().optional(),
+  provider: z.string(),
   model: z.string(),
   vector_dimension: z.number(),
   is_default: z.boolean(),
