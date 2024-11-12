@@ -42,7 +42,7 @@ let themeConfig: DocsThemeConfig = {
         <a
           style={{ padding: '0.5rem' }}
           target="_blank"
-          href="https://pingcap.com/ai?utm_source=tidb.ai&utm_medium=navbar"
+          href="https://pingcap.com/ai?utm_source=tidb.ai&utm_medium=community"
           aria-label="TiDB Vector"
           rel="nofollow noreferrer"
         >
