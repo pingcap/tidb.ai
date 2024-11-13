@@ -1,11 +1,13 @@
-import os
-import sys
 import logging
 import uvicorn
 from pydantic import BaseModel
 from fastapi import FastAPI, APIRouter
 from sentence_transformers import SentenceTransformer, CrossEncoder
 from contextlib import asynccontextmanager
+from environs import Env
+
+env = Env()
+env.read_env()
 
 logging.basicConfig(
     format="%(asctime)s - %(name)s:%(lineno)d - %(levelname)s - %(message)s",
@@ -14,10 +16,14 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
-DEFAULT_EMBEDDING_MODEL = os.environ.get("DEFAULT_EMBEDDING_MODEL", "BAAI/bge-m3")
-DEFAULT_RERANKER_MODEL = os.environ.get(
-    "DEFAULT_RERANKER_MODEL", "BAAI/bge-reranker-v2-m3"
+PRE_LOAD_DEFAULT_EMBEDDING_MODEL = env.bool(
+    "PRE_LOAD_DEFAULT_EMBEDDING_MODEL", default=True
 )
+PRE_LOAD_DEFAULT_RERANKER_MODEL = env.bool(
+    "PRE_LOAD_DEFAULT_RERANKER_MODEL", default=False
+)
+DEFAULT_EMBEDDING_MODEL = env.str("DEFAULT_EMBEDDING_MODEL", default="BAAI/bge-m3")
+DEFAULT_RERANKER_MODEL = env.str("DEFAULT_RERANKER_MODEL", default="BAAI/bge-reranker-v2-m3")
 router = APIRouter()
 
 
@@ -100,10 +106,14 @@ def reranker_texts(request: RerankerRequest) -> RerankerResponse:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Loading default embedding and reranker models...")
-    get_embedding_model(DEFAULT_EMBEDDING_MODEL)
-    get_reranker_model(DEFAULT_RERANKER_MODEL)
-    logger.info("Default embedding and reranker models loaded")
+    if PRE_LOAD_DEFAULT_EMBEDDING_MODEL:
+        logger.info(f"Loading default embedding model: {DEFAULT_EMBEDDING_MODEL}")
+        get_embedding_model(DEFAULT_EMBEDDING_MODEL)
+        logger.info("Default embedding model loaded")
+    if PRE_LOAD_DEFAULT_RERANKER_MODEL:
+        logger.info(f"Loading default reranker model: {DEFAULT_RERANKER_MODEL}")
+        get_reranker_model(DEFAULT_RERANKER_MODEL)
+        logger.info("Default reranker model loaded")
     yield
 
 
