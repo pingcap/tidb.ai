@@ -59,10 +59,9 @@ services:
         max-file: "6"
 
   local-embedding-reranker:
-    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-local-embedding-reranker:v2.1
+    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-local-embedding-reranker:v3-with-cache
     ports:
       - 5001:5001
-    # If you are in China, you can uncomment the following environment to speed up the download of models
     environment:
       - HF_ENDPOINT=https://hf-mirror.com
     # volumes:
