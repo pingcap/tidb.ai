@@ -16,6 +16,7 @@ class EmbeddingProvider(str, enum.Enum):
     COHERE = "cohere"
     OLLAMA = "ollama"
     LOCAL = "local"
+    OPENAI_LIKE = "openai_like"
 
 
 class RerankerProvider(str, enum.Enum):
