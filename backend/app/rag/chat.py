@@ -731,8 +731,9 @@ class ChatService:
                 fast_llm=_fast_llm,
                 graph_knowledges_context=graph_knowledges_context,
                 refined_question_prompt=self.chat_engine_config.llm.generate_goal_prompt,
-                annotation_silent=True
+                annotation_silent=True,
             )
+            logger.info(f"start request stackvm with goal: {goal}")
             goal = goal.strip()
             if goal.startswith("Goal: "):
                 goal = goal[len("Goal: "):].strip()
