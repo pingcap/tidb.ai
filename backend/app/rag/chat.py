@@ -34,6 +34,7 @@ from app.models import (
     LLM as DBLLM,
     EmbeddingModel as DBEmbeddingModel,
     DataSource as DBDataSource,
+    KnowledgeBase as DBKnowledgeBase,
     RerankerModel as DBRerankerModel, Chunk,
 )
 from app.core.config import settings
@@ -1072,7 +1073,7 @@ def get_chat_message_subgraph(
     return entities, relations
 
 
-def check_rag_required_config(session: Session) -> tuple[bool]:
+def check_rag_required_config(session: Session) -> tuple[bool, bool, bool, bool]:
     # Check if llm, embedding model, and datasource are configured
     # If any of them is missing, the rag can not work
     has_default_llm = session.scalar(select(func.count(DBLLM.id))) > 0
@@ -1080,10 +1081,11 @@ def check_rag_required_config(session: Session) -> tuple[bool]:
             session.scalar(select(func.count(DBEmbeddingModel.id))) > 0
     )
     has_datasource = session.scalar(select(func.count(DBDataSource.id))) > 0
-    return has_default_llm, has_default_embedding_model, has_datasource
+    has_knowledge_base = session.scalar(select(func.count(DBKnowledgeBase.id))) > 0
+    return has_default_llm, has_default_embedding_model, has_datasource, has_knowledge_base
 
 
-def check_rag_optional_config(session: Session) -> tuple[bool]:
+def check_rag_optional_config(session: Session) -> tuple[bool, bool]:
     langfuse = bool(
         SiteSetting.langfuse_host
         and SiteSetting.langfuse_secret_key
