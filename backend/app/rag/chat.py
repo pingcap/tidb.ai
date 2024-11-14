@@ -731,6 +731,7 @@ class ChatService:
                 fast_llm=_fast_llm,
                 graph_knowledges_context=graph_knowledges_context,
                 refined_question_prompt=self.chat_engine_config.llm.generate_goal_prompt,
+                annotation_silent=True
             )
             goal = goal.strip()
             if goal.startswith("Goal: "):
@@ -744,6 +745,7 @@ class ChatService:
                     response_text=clarifying_question,
                     source_documents=[],
                     graph_data_source_ids=graph_data_source_ids,
+                    annotation_silent=True,
                 )
                 return
         except Exception as e:
