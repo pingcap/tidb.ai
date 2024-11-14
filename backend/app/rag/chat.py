@@ -705,6 +705,7 @@ class ChatService:
         # retrieve entities, relations, and chunks from the knowledge graph
         # this retrieve progress is only for the clarifying question checking
         try:
+            """
             kg_config = self.chat_engine_config.knowledge_graph
             _, _, _, graph_data_source_ids, graph_knowledges_context = yield from self._search_kg(
                 kg_config=kg_config,
@@ -717,6 +718,9 @@ class ChatService:
                 ),
                 annotation_silent=True,
             )
+            """
+            graph_data_source_ids = []
+            graph_knowledges_context = ""
 
             logger.info("start to _refine_or_early_stop")
             early_stop, clarifying_question, goal = yield from self._refine_or_early_stop(
@@ -729,6 +733,7 @@ class ChatService:
                 refined_question_prompt=self.chat_engine_config.llm.generate_goal_prompt,
                 annotation_silent=True,
             )
+            logger.info(f"start request stackvm with goal: {goal}")
             goal = goal.strip()
             if goal.startswith("Goal: "):
                 goal = goal[len("Goal: "):].strip()

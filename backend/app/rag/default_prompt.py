@@ -359,7 +359,7 @@ Follow-up question:
 
 Goal:
 
-"Does encryption at rest in TiDB affect the data compression ratio? (Answer language: Chinese, Answer format: text, Include necessary citations from source_uri)"
+Does encryption at rest in TiDB affect the data compression ratio? (Answer language: Chinese, Answer format: text, Include necessary citations from source_uri)
 
 **Your Task**:
 
