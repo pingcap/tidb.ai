@@ -85,8 +85,21 @@ class ExternalChatEngine(BaseModel):
     stream_chat_api_url: str = None
 
 
+class LinkedKnowledgeBase(BaseModel):
+    id: int
+
+
+class KnowledgeBaseOption(BaseModel):
+    linked_knowledge_base: LinkedKnowledgeBase
+    # TODO: Support multiple knowledge base retrieve.
+    # linked_knowledge_bases: List[LinkedKnowledgeBase]
+
+
 class ChatEngineConfig(BaseModel):
     llm: LLMOption = LLMOption()
+    # Notice: Currently knowledge base option is optional, if it is not configured, it will use
+    # the deprecated chunks / relationships / entities table as the data source.
+    knowledge_base: Optional[KnowledgeBaseOption] = None
     knowledge_graph: KnowledgeGraphOption = KnowledgeGraphOption()
     vector_search: VectorSearchOption = VectorSearchOption()
     post_verification_url: Optional[str] = None

@@ -1,7 +1,7 @@
 import enum
 import logging
 from datetime import datetime
-from typing import Any, Optional, List, Dict
+from typing import Any, Optional, List, Dict, Type
 from uuid import UUID
 
 from llama_index.core.schema import TextNode
@@ -16,7 +16,8 @@ from tidb_vector.sqlalchemy import VectorType
 
 from app.models import KnowledgeBase, Document
 from app.models.embed_model import DEFAULT_VECTOR_DIMENSION
-from app.rag.knowledge_base.patch.sql_model import SQLModel
+from sqlmodel import SQLModel
+from app.rag.knowledge_base.patch.sql_model import SQLModel as PatchSQLModel
 from app.utils.uuid6 import uuid7
 
 
@@ -28,9 +29,9 @@ class KBSQLModelContext:
     # between SQLModels with the same class name.
     registry: RegistryType = None
 
-    chunk_model: Optional[SQLModel] = None
-    entity_model: Optional[SQLModel] = None
-    relationship_model: Optional[SQLModel] = None
+    chunk_model: Optional[PatchSQLModel] = None
+    entity_model: Optional[PatchSQLModel] = None
+    relationship_model: Optional[PatchSQLModel] = None
 
     def __init__(self, registry: RegistryType = default_registry):
         self.registry = registry
@@ -88,7 +89,7 @@ class KgIndexStatus(str, enum.Enum):
     FAILED = "failed"
 
 
-def get_kb_chunk_model(kb: KnowledgeBase):
+def get_kb_chunk_model(kb: KnowledgeBase) -> SQLModel:
     vector_dimension = get_kb_vector_dims(kb)
     chunks_table_name = get_kb_chunks_table_name(kb)
     ctx = get_kb_sql_model_context(kb)
@@ -97,7 +98,7 @@ def get_kb_chunk_model(kb: KnowledgeBase):
         return ctx.chunk_model
 
 
-    class KBChunk(SQLModel, table=True, registry=ctx.registry):
+    class KBChunk(PatchSQLModel, table=True, registry=ctx.registry):
         __tablename__ = chunks_table_name
         __table_args__ = {'extend_existing': True}
 
@@ -151,7 +152,7 @@ class EntityType(str, enum.Enum):
         return self.value
 
 
-def get_kb_entity_model(kb):
+def get_kb_entity_model(kb) -> SQLModel:
     vector_dimension = get_kb_vector_dims(kb)
     entities_table_name = get_kb_entities_table_name(kb)
     ctx = get_kb_sql_model_context(kb)
@@ -159,7 +160,7 @@ def get_kb_entity_model(kb):
     if ctx.entity_model:
         return ctx.entity_model
 
-    class KBEntity(SQLModel, table=True, registry=ctx.registry):
+    class KBEntity(PatchSQLModel, table=True, registry=ctx.registry):
         __tablename__ = entities_table_name
         __table_args__ = (
             Index("idx_entity_type", "entity_type"),
@@ -193,7 +194,7 @@ def get_kb_entity_model(kb):
     return KBEntity
 
 
-def get_kb_relationship_model(kb: KnowledgeBase):
+def get_kb_relationship_model(kb: KnowledgeBase) -> SQLModel:
     vector_dimension = get_kb_vector_dims(kb)
     entities_table_name = get_kb_entities_table_name(kb)
     relationships_table_name = get_kb_relationships_table_name(kb)
@@ -207,7 +208,7 @@ def get_kb_relationship_model(kb: KnowledgeBase):
     if ctx.relationship_model:
         return ctx.relationship_model
 
-    class KBRelationship(SQLModel, table=True, registry=ctx.registry):
+    class KBRelationship(PatchSQLModel, table=True, registry=ctx.registry):
         __tablename__ = relationships_table_name
         __table_args__ = ({'extend_existing': True},)
 

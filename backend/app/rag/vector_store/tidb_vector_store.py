@@ -42,7 +42,7 @@ def node_to_relation_dict(node: BaseNode) -> dict:
 class TiDBVectorStore(BasePydanticVectorStore):
     _session: Session = PrivateAttr()
     _owns_session: bool = PrivateAttr()
-    _chunk_model: SQLModel = PrivateAttr()
+    _chunk_db_model: SQLModel = PrivateAttr()
     _table_name: str = PrivateAttr()
     _vector_dimension: int = PrivateAttr()
 
@@ -52,7 +52,7 @@ class TiDBVectorStore(BasePydanticVectorStore):
     def __init__(
         self,
         session: Optional[Session] = None,
-        chunk_model: Optional[SQLModel] = Chunk,
+        chunk_db_model: SQLModel = Chunk,
         **kwargs: Any
     ) -> None:
         super().__init__(**kwargs)
@@ -61,24 +61,24 @@ class TiDBVectorStore(BasePydanticVectorStore):
         if self._session is None:
             self._session = Session(engine)
 
-        self._chunk_model = chunk_model
+        self._chunk_db_model = chunk_db_model
 
     def ensure_table_schema(self) -> None:
         inspector = sqlalchemy.inspect(engine)
-        table_name = self._chunk_model.__tablename__
+        table_name = self._chunk_db_model.__tablename__
 
         if table_name not in inspector.get_table_names():
-            self._chunk_model.metadata.create_all(engine, tables=[self._chunk_model.__table__])
+            self._chunk_db_model.metadata.create_all(engine, tables=[self._chunk_db_model.__table__])
             logger.info(f"Chunk table <{table_name}> has been created successfully.")
         else:
             logger.info(f"Chunk table <{table_name}> is already exists, no action to do.")
 
     def drop_table_schema(self):
         inspector = sqlalchemy.inspect(engine)
-        table_name = self._chunk_model.__tablename__
+        table_name = self._chunk_db_model.__tablename__
 
         if table_name not in inspector.get_table_names():
-            self._chunk_model.metadata.drop_all(engine, tables=[self._chunk_model.__table__])
+            self._chunk_db_model.metadata.drop_all(engine, tables=[self._chunk_db_model.__table__])
             logger.info(f"Chunk table <{table_name}> has been dropped successfully.")
         else:
             logger.info(f"Chunk table <{table_name}> is not existed, not action to do.")
@@ -123,7 +123,7 @@ class TiDBVectorStore(BasePydanticVectorStore):
                 }
             )
 
-        self._session.bulk_insert_mappings(self._chunk_model, items)
+        self._session.bulk_insert_mappings(self._chunk_db_model, items)
         self._session.commit()
         return [i["id"] for i in items]
 
@@ -139,7 +139,7 @@ class TiDBVectorStore(BasePydanticVectorStore):
             None
         """
         assert ref_doc_id.isdigit(), "ref_doc_id must be an integer."
-        delete_stmt = delete(self._chunk_model).where(self._chunk_model.document_id == int(ref_doc_id))
+        delete_stmt = delete(self._chunk_db_model).where(self._chunk_db_model.document_id == int(ref_doc_id))
         self._session.exec(delete_stmt)
         self._session.commit()
 
@@ -164,15 +164,15 @@ class TiDBVectorStore(BasePydanticVectorStore):
             raise ValueError("Query embedding must be provided.")
 
         stmt = select(
-            self._chunk_model.id,
-            self._chunk_model.text,
-            self._chunk_model.meta,
-            self._chunk_model.embedding.cosine_distance(query.query_embedding).label("distance"),
+            self._chunk_db_model.id,
+            self._chunk_db_model.text,
+            self._chunk_db_model.meta,
+            self._chunk_db_model.embedding.cosine_distance(query.query_embedding).label("distance"),
         )
 
         if query.filters:
             for f in query.filters.filters:
-                stmt = stmt.where(self._chunk_model.meta[f.key] == f.value)
+                stmt = stmt.where(self._chunk_db_model.meta[f.key] == f.value)
 
         stmt = stmt.order_by(asc("distance")).limit(query.similarity_top_k)
         results = self._session.exec(stmt)

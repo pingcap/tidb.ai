@@ -74,8 +74,8 @@ class TiDBGraphStore(KnowledgeGraphStore):
         session: Optional[Session] = None,
         embed_model: Optional[EmbedType] = None,
         description_similarity_threshold=0.9,
-        entity_db_model: Type[SQLModel] = DBEntity,
-        relationship_db_model: Type[SQLModel] = DBRelationship,
+        entity_db_model: SQLModel = DBEntity,
+        relationship_db_model: SQLModel = DBRelationship,
     ):
         self._session = session
         self._owns_session = session is None
@@ -220,7 +220,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         relationship: Relationship,
         relationship_metadata: dict = {},
         commit=True,
-    ) -> Type[SQLModel]:
+    ):
         relationship_object = self._relationship_model(
             source_entity=source_entity,
             target_entity=target_entity,

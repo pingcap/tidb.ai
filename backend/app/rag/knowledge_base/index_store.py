@@ -14,7 +14,7 @@ def get_kb_tidb_vector_store(session: Session, kb: KnowledgeBase) -> TiDBVectorS
     chunk_model = get_kb_chunk_model(kb)
     vector_store = TiDBVectorStore(
         session,
-        chunk_model=chunk_model
+        chunk_db_model=chunk_model
     )
     return vector_store
 
