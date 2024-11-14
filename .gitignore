@@ -5,3 +5,5 @@
 redis-data
 data
 venv
+.venv
+local-embedding-reranker
