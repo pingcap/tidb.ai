@@ -1,5 +1,6 @@
 import enum
 from typing import Annotated, Any
+from urllib.parse import quote
 
 from pydantic import (
     AnyUrl,
@@ -107,7 +108,9 @@ class Settings(BaseSettings):
         return MultiHostUrl.build(
             scheme="mysql+pymysql",
             username=self.TIDB_USER,
-            password=self.TIDB_PASSWORD,
+            # TODO: remove quote after following issue is fixed:
+            # https://github.com/pydantic/pydantic/issues/8061
+            password=quote(self.TIDB_PASSWORD),
             host=self.TIDB_HOST,
             port=self.TIDB_PORT,
             path=self.TIDB_DATABASE,
@@ -122,7 +125,7 @@ class Settings(BaseSettings):
         return MultiHostUrl.build(
             scheme="mysql+asyncmy",
             username=self.TIDB_USER,
-            password=self.TIDB_PASSWORD,
+            password=quote(self.TIDB_PASSWORD),
             host=self.TIDB_HOST,
             port=self.TIDB_PORT,
             path=self.TIDB_DATABASE,
