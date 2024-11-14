@@ -64,8 +64,9 @@ services:
       - 5001:5001
     environment:
       - PRE_LOAD_DEFAULT_EMBEDDING_MODEL=true
-    # If you want to pre-load the default reranker model, change the following environment to true
+      # If you want to pre-load the default reranker model, change the following environment to true
       - PRE_LOAD_DEFAULT_RERANKER_MODEL=false
+      - TRANSFORMERS_OFFLINE=1
     # volumes:
     #   - ./local-embedding-reranker:/root/.cache/huggingface
     # If you are using NVIDIA GPU, you can uncomment the following lines to enable GPU support
