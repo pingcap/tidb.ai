@@ -24,6 +24,7 @@ from sqlmodel import Session, select
 from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 
+from app.rag.embeddings.openai_like_embedding import OpenAILikeEmbedding
 from app.rag.node_postprocessor import MetadataPostFilter
 from app.rag.node_postprocessor.metadata_post_filter import MetadataFilters
 from app.rag.node_postprocessor.baisheng_reranker import BaishengRerank
@@ -287,6 +288,14 @@ def get_embedding_model(
         case EmbeddingProvider.LOCAL:
             return LocalEmbedding(
                 model=model,
+                **config,
+            )
+        case EmbeddingProvider.OPENAI_LIKE:
+            api_base = config.pop("api_base", "https://open.bigmodel.cn/api/paas/v4")
+            return OpenAILikeEmbedding(
+                model=model,
+                api_base=api_base,
+                api_key=credentials,
                 **config,
             )
         case _:

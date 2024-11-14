@@ -88,4 +88,16 @@ admin_embed_model_options: List[EmbeddingModelOption] = [
         credentials_type="str",
         default_credentials="dummy",
     ),
+    EmbeddingModelOption(
+        provider=EmbeddingProvider.OPENAI_LIKE,
+        provider_display_name="OpenAI Like",
+        provider_description="OpenAI-Like is a set of platforms that provide text embeddings similar to OpenAI. Such as ZhiPuAI.",
+        provider_url="https://open.bigmodel.cn/dev/api/vector/embedding-3",
+        default_embedding_model="embedding-3",
+        embedding_model_description=f"Please select a text embedding model with {settings.EMBEDDING_DIMS} dimensions.",
+        credentials_display_name="OpenAI Like API Key",
+        credentials_description="The API key of OpenAI Like. For ZhipuAI, you can find it in https://open.bigmodel.cn/usercenter/apikeys",
+        credentials_type="str",
+        default_credentials="dummy",
+    ),
 ]
