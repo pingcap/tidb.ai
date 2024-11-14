@@ -125,3 +125,9 @@ class ChunkItem(BaseModel):
     index_result: Optional[str]
     created_at: Optional[datetime]
     updated_at: Optional[datetime]
+
+
+class RetrievalRequest(BaseModel):
+    query: str
+    chat_engine: str = "default"
+    top_k: Optional[int] = 5

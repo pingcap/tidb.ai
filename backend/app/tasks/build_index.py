@@ -13,7 +13,7 @@ from app.models import (
 from app.models.knowledge_base import IndexMethod
 from app.rag.build_index import IndexService
 from app.rag.knowledge_base.config import get_kb_llm, get_kb_embed_model
-from app.rag.knowledge_base.dynamic_model import get_kb_chunk_model
+from app.rag.knowledge_base.db_model import get_kb_chunk_model
 from app.repositories import knowledge_base_repo
 from app.repositories.chunk import ChunkRepo
 

@@ -12,7 +12,7 @@ from app.models.knowledge_base import KnowledgeBase
 from app.rag.datasource import get_data_source_loader
 from app.repositories import knowledge_base_repo
 from .build_index import build_index_for_document
-from ..rag.knowledge_base.config import get_kb_tidb_vector_store, get_kb_tidb_graph_store
+from ..rag.knowledge_base.index_store import get_kb_tidb_vector_store, get_kb_tidb_graph_store
 
 logger = get_task_logger(__name__)
 

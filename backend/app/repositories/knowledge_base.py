@@ -14,7 +14,7 @@ from app.models import (
     KgIndexStatus, Chunk,
 )
 from app.models.knowledge_base import IndexMethod
-from app.rag.knowledge_base.dynamic_model import get_kb_chunk_model, get_kb_relationship_model, get_kb_entity_model
+from app.rag.knowledge_base.db_model import get_kb_chunk_model, get_kb_relationship_model, get_kb_entity_model
 from app.repositories.base_repo import BaseRepo
 from app.repositories.chunk import ChunkRepo
 from app.repositories.entity import EntityRepo

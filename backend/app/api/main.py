@@ -9,6 +9,7 @@ from app.api.routes import (
     feedback,
 )
 from app.api.admin_routes.knowledge_base.routes import router as admin_knowledge_base_router
+from app.api.admin_routes.knowledge_base.graph.routes import router as admin_knowledge_base_graph_router
 from app.api.admin_routes.document.routes import router as admin_document_router
 from app.api.admin_routes.embedding_model.routes import router as admin_embedding_model_router
 from app.api.admin_routes import (
@@ -24,7 +25,6 @@ from app.api.admin_routes import (
     stats as admin_stats,
     semantic_cache as admin_semantic_cache,
 )
-from app.auth.schemas import UserCreate, UserRead, UserUpdate
 from app.auth.users import auth_backend, fastapi_users
 from app.api.deps import current_superuser
 
@@ -46,6 +46,7 @@ api_router.include_router(
 api_router.include_router(admin_upload.router, tags=["admin/upload"])
 api_router.include_router(admin_data_source.router, tags=["admin/data_source"])
 api_router.include_router(admin_knowledge_base_router, tags=["admin/knowledge_base"])
+api_router.include_router(admin_knowledge_base_graph_router, tags=["admin/knowledge_base/graph_editor"])
 api_router.include_router(admin_llm.router, tags=["admin/llm"])
 
 api_router.include_router(admin_embedding_model_router, tags=["admin/embedding_model"])

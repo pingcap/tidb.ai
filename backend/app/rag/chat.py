@@ -28,14 +28,13 @@ from langfuse.llama_index import LlamaIndexCallbackHandler
 from app.models import (
     User,
     Document,
-    Chunk,
     ChatVisibility,
     Chat as DBChat,
     ChatMessage as DBChatMessage,
     LLM as DBLLM,
     EmbeddingModel as DBEmbeddingModel,
     DataSource as DBDataSource,
-    RerankerModel as DBRerankerModel,
+    RerankerModel as DBRerankerModel, Chunk,
 )
 from app.core.config import settings
 from app.models.recommend_question import RecommendQuestion

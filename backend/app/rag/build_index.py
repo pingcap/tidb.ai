@@ -8,7 +8,7 @@ from llama_index.core.node_parser import SentenceSplitter
 from sqlmodel import Session
 
 from app.models.knowledge_base import KnowledgeBase
-from app.rag.knowledge_base.config import get_kb_tidb_graph_store, get_kb_tidb_vector_store, get_kb_embed_model
+from app.rag.knowledge_base.index_store import get_kb_tidb_vector_store, get_kb_tidb_graph_store
 from app.rag.knowledge_graph import KnowledgeGraphIndex
 from app.core.config import settings
 from app.models import (

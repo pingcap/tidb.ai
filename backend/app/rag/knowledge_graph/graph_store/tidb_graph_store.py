@@ -9,20 +9,18 @@ from collections import defaultdict
 from llama_index.core.embeddings.utils import EmbedType, resolve_embed_model
 from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelType
 import sqlalchemy
-from sqlmodel import SQLModel, Session, asc, func, select, text
+from sqlmodel import Session, asc, func, select, text, SQLModel
 from sqlalchemy.orm import aliased, defer, joinedload
 from app.core.db import engine
-from app.models.embed_model import DEFAULT_VECTOR_DIMENSION
-from app.models.knowledge_graph import get_entity_model, get_relationship_model
-from app.rag.knowledge_base.dynamic_model import DEFAULT_RELATIONSHIPS_TABLE_NAME, DEFAULT_ENTITIES_TABLE_NAME
 from app.rag.knowledge_graph.base import KnowledgeGraphStore
 from app.rag.knowledge_graph.schema import Entity, Relationship, SynopsisEntity
 from app.models import (
     Chunk as DBChunk,
-    Relationship as DBRelationship,
     Entity as DBEntity,
+    Relationship as DBRelationship,
     EntityType,
 )
+from app.models import EntityType
 from app.rag.knowledge_graph.graph_store.helpers import (
     calculate_relationship_score,
     DEFAULT_WEIGHT_COEFFICIENT_CONFIG,
@@ -76,9 +74,8 @@ class TiDBGraphStore(KnowledgeGraphStore):
         session: Optional[Session] = None,
         embed_model: Optional[EmbedType] = None,
         description_similarity_threshold=0.9,
-        relationships_table_name: Optional[str] = DEFAULT_RELATIONSHIPS_TABLE_NAME,
-        entities_table_name: Optional[str] = DEFAULT_ENTITIES_TABLE_NAME,
-        vector_dimension: Optional[int] = DEFAULT_VECTOR_DIMENSION
+        entity_db_model: Type[SQLModel] = DBEntity,
+        relationship_db_model: Type[SQLModel] = DBRelationship,
     ):
         self._session = session
         self._owns_session = session is None
@@ -97,52 +94,46 @@ class TiDBGraphStore(KnowledgeGraphStore):
         self.description_cosine_distance_threshold = (
             1 - description_similarity_threshold
         )
+        self._entity_model = entity_db_model
+        self._relationship_model = relationship_db_model
 
-        self._vector_dimension = vector_dimension
-        self._entities_table_name = entities_table_name
-        self._relationships_table_name = relationships_table_name
-        self._entity_model = get_entity_model(
-            entities_table_name,
-            vector_dimension
-        )
-        self._relationship_model = get_relationship_model(
-            relationships_table_name,
-            entities_table_name,
-            vector_dimension
-        )
 
     def ensure_table_schema(self) -> None:
         inspector = sqlalchemy.inspect(engine)
         existed_table_names = inspector.get_table_names()
+        entities_table_name = self._entity_model.__tablename__
+        relationships_table_name = self._relationship_model.__tablename__
 
-        if self._entities_table_name not in existed_table_names:
-            SQLModel.metadata.create_all(engine, tables=[self._entity_model.__table__])
-            logger.info(f"Entities table <{self._entities_table_name}> has been created successfully.")
+        if entities_table_name not in existed_table_names:
+            self._entity_model.metadata.create_all(engine, tables=[self._entity_model.__table__])
+            logger.info(f"Entities table <{entities_table_name}> has been created successfully.")
         else:
-            logger.info(f"Entities table <{self._entities_table_name}> is already exists, not action to do.")
+            logger.info(f"Entities table <{entities_table_name}> is already exists, not action to do.")
 
-        if self._relationships_table_name not in existed_table_names:
-            SQLModel.metadata.create_all(engine, tables=[self._relationship_model.__table__])
-            logger.info(f"Relationships table <{self._relationships_table_name}> has been created successfully.")
+        if relationships_table_name not in existed_table_names:
+            self._relationship_model.metadata.create_all(engine, tables=[self._relationship_model.__table__])
+            logger.info(f"Relationships table <{relationships_table_name}> has been created successfully.")
         else:
-            logger.info(f"Relationships table <{self._relationships_table_name}> is already exists, not action to do.")
+            logger.info(f"Relationships table <{relationships_table_name}> is already exists, not action to do.")
 
 
     def drop_table_schema(self) -> None:
         inspector = sqlalchemy.inspect(engine)
         existed_table_names = inspector.get_table_names()
+        relationships_table_name = self._relationship_model.__tablename__
+        entities_table_name = self._entity_model.__tablename__
 
-        if self._relationships_table_name not in existed_table_names:
-            self._session.exec(text(f"DROP TABLE IF EXISTS {self._relationships_table_name}"))
-            logger.info(f"Relationships table <{self._relationships_table_name}> has been dropped successfully.")
+        if relationships_table_name not in existed_table_names:
+            self._relationship_model.metadata.drop_all(engine, tables=[self._relationship_model.__table__])
+            logger.info(f"Relationships table <{relationships_table_name}> has been dropped successfully.")
         else:
-            logger.info(f"Relationships table <{self._relationships_table_name}> is not existed, not action to do.")
+            logger.info(f"Relationships table <{relationships_table_name}> is not existed, not action to do.")
 
-        if self._entities_table_name not in existed_table_names:
-            self._session.exec(text(f"DROP TABLE IF EXISTS {self._entities_table_name}"))
-            logger.info(f"Entities table <{self._entities_table_name}> has been dropped successfully.")
+        if entities_table_name not in existed_table_names:
+            self._entity_model.metadata.drop_all(engine, tables=[self._entity_model.__table__])
+            logger.info(f"Entities table <{entities_table_name}> has been dropped successfully.")
         else:
-            logger.info(f"Entities table <{self._entities_table_name}> is not existed, not action to do.")
+            logger.info(f"Entities table <{entities_table_name}> is not existed, not action to do.")
 
 
     def close_session(self) -> None:
@@ -182,7 +173,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
 
         def _find_or_create_entity_for_relation(
             name: str, description: str
-        ) -> DBEntity:
+        ) -> SQLModel:
             _embedding = get_entity_description_embedding(
                 name, description, self._embed_model
             )
@@ -224,15 +215,15 @@ class TiDBGraphStore(KnowledgeGraphStore):
 
     def create_relationship(
         self,
-        source_entity: DBEntity,
-        target_entity: DBEntity,
+        source_entity: SQLModel,
+        target_entity: SQLModel,
         relationship: Relationship,
         relationship_metadata: dict = {},
         commit=True,
-    ) -> DBRelationship:
+    ) -> Type[SQLModel]:
         relationship_object = self._relationship_model(
-            source_entity_id=source_entity.id,
-            target_entity_id=target_entity.id,
+            source_entity=source_entity,
+            target_entity=target_entity,
             description=relationship.relationship_desc,
             description_vec=get_relationship_description_embedding(
                 source_entity.name,
@@ -250,7 +241,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         if commit:
             self._session.commit()
 
-    def get_or_create_entity(self, entity: Entity) -> DBEntity:
+    def get_or_create_entity(self, entity: Entity) -> SQLModel:
         # using the cosine distance between the description vectors to determine if the entity already exists
         entity_type = (
             EntityType.synopsis
@@ -528,7 +519,8 @@ class TiDBGraphStore(KnowledgeGraphStore):
         with_degree: bool = False,
         relationship_meta_filters: Dict = {},
         session: Optional[Session] = None,
-    ) -> List[DBRelationship]:
+    ) -> List[SQLModel]:
+        logger.info("debug")
         # select the relationships to rank
         subquery = (
             select(
@@ -549,11 +541,11 @@ class TiDBGraphStore(KnowledgeGraphStore):
             .options(
                 defer(relationships_alias.description_vec),
                 joinedload(relationships_alias.source_entity)
-                .defer(self._entity_model.meta_vec)
-                .defer(self._entity_model.description_vec),
+                    .defer(self._entity_model.meta_vec)
+                    .defer(self._entity_model.description_vec),
                 joinedload(relationships_alias.target_entity)
-                .defer(self._entity_model.meta_vec)
-                .defer(self._entity_model.description_vec),
+                    .defer(self._entity_model.meta_vec)
+                    .defer(self._entity_model.description_vec),
             )
             .where(relationships_alias.weight >= 0)
         )
@@ -566,7 +558,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
             query = query.where(self._relationship_model.id.notin_(visited_relationships))
 
         if distance_range != (0.0, 1.0):
-            # embedding_distance bewteen the range
+            # embedding_distance between the range
             query = query.where(
                 text(
                     "embedding_distance >= :min_distance AND embedding_distance <= :max_distance"

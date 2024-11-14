@@ -5,8 +5,8 @@ from fastapi import APIRouter, Depends, logger, Query
 from fastapi_pagination import Params, Page
 
 from app.models.knowledge_base import IndexMethod
-from app.rag.knowledge_base.config import init_kb_tidb_graph_store, init_kb_tidb_vector_store
-from app.rag.knowledge_base.dynamic_model import get_kb_chunk_model
+from app.rag.knowledge_base.index_store import init_kb_tidb_vector_store, init_kb_tidb_graph_store
+from app.rag.knowledge_base.db_model import get_kb_chunk_model
 from app.repositories.chunk import ChunkRepo
 from app.repositories.embedding_model import embedding_model_repo
 from app.repositories.llm import get_default_db_llm, must_get_llm
@@ -26,7 +26,7 @@ from app.exceptions import (
     KBNoEmbedModelConfiguredError
 )
 from app.models import (
-    KnowledgeBase, DocIndexTaskStatus,
+    KnowledgeBase,
 )
 from app.models.data_source import DataSource
 from app.tasks import (
