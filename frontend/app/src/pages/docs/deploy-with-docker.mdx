@@ -56,8 +56,8 @@ If you want to use a different embedding model after deployment, you need to rec
     Replace the following placeholders with your own values:
     - `SECRET_KEY`: you can generate a random secret key using `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`
     - `TIDB_HOST`, `TIDB_USER`, `TIDB_PASSWORD` and `TIDB_DATABASE`: get them from your [TiDB Serverless cluster](https://tidbcloud.com/)
-
       - Note: TiDB Serverless will provide a default database name called `test`, if you want to use another database name, you need to create a new database in the TiDB Serverless console.
+      - Note: Don't use '#' in the password, it will cause an error when connecting to the database.
     - `EMBEDDING_DIMS` and `EMBEDDING_MAX_TOKENS`: set them according to the embedding model you choose before, it can not be changed after the deployment.
 
 4. Migrate the database schema:
