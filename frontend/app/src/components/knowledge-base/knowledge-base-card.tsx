@@ -40,9 +40,9 @@ export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase:
           <div className="flex-1 space-y-1">
             <h4 className="text-sm font-semibold">{knowledgeBase.name}</h4>
             <div className="flex items-center text-xs text-muted-foreground">
-              <span>0 documents</span>
+              <span>{knowledgeBase.documents_total ?? 0} documents</span>
               <span className="shrink-0 mx-0.5 px-1">·</span>
-              <span>0 data sources</span>
+              <span>{knowledgeBase.data_sources_total ?? 0} data sources</span>
             </div>
           </div>
         </div>

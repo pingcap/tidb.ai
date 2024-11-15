@@ -24,14 +24,6 @@ from app.models.patch.sql_model import SQLModel as PatchSQLModel
 from ..utils.uuid6 import uuid7
 
 
-class VectorIndexStatus(str, enum.Enum):
-    NOT_STARTED = "not_started"
-    PENDING = "pending"
-    RUNNING = "running"
-    COMPLETED = "completed"
-    FAILED = "failed"
-
-
 class KgIndexStatus(str, enum.Enum):
     NOT_STARTED = "not_started"
     PENDING = "pending"
@@ -40,6 +32,8 @@ class KgIndexStatus(str, enum.Enum):
     FAILED = "failed"
 
 
+# Notice: DO NOT forget to modify the definition in `get_kb_chunk_model` to
+# keep the table structure on both sides consistent.
 class Chunk(UUIDBaseModel, UpdatableBaseModel, table=True):
     hash: str = Field(max_length=64)
     text: str = Field(sa_column=Column(Text))
@@ -60,8 +54,6 @@ class Chunk(UUIDBaseModel, UpdatableBaseModel, table=True):
     source_uri: str = Field(max_length=512, nullable=True)
 
     # TODO: Add vector_index_status, vector_index_result column, vector index should be optional in the future.
-    vector_index_status: VectorIndexStatus = VectorIndexStatus.NOT_STARTED
-    vector_index_result: str = Field(sa_column=Column(Text, nullable=True))
 
     # TODO: Rename to kg_index_status, kg_index_result column.
     index_status: KgIndexStatus = KgIndexStatus.NOT_STARTED
@@ -106,8 +98,6 @@ def get_kb_chunk_model(kb: KnowledgeBase) -> SQLModel:
         source_uri: str = Field(max_length=512, nullable=True)
 
         # TODO: Add vector_index_status, vector_index_result column, vector index should be optional in the future.
-        vector_index_status: VectorIndexStatus = VectorIndexStatus.NOT_STARTED
-        vector_index_result: str = Field(sa_column=Column(Text, nullable=True))
 
         # TODO: Rename to kg_index_status, kg_index_result column.
         index_status: KgIndexStatus = KgIndexStatus.NOT_STARTED

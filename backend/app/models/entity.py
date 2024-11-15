@@ -34,6 +34,8 @@ class EntityBase(SQLModel):
     synopsis_info: List | Dict | None = Field(default=None, sa_column=Column(JSON))
 
 
+# Notice: DO NOT forget to modify the definition in `get_kb_chunk_model` to
+# keep the table structure on both sides consistent.
 class Entity(EntityBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     description_vec: Any = Field(

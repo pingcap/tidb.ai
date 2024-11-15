@@ -100,6 +100,8 @@ export interface KnowledgeBaseSummary {
   name: string;
   description: string;
   index_methods: ('vector' | 'knowledge_graph')[];
+  documents_total?: number;
+  data_sources_total?: number;
   created_at: Date;
   updated_at: Date;
   creator: {
@@ -129,6 +131,8 @@ const knowledgeBaseSummarySchema = z.object({
   name: z.string(),
   description: z.string(),
   index_methods: z.enum(['vector', 'knowledge_graph']).array(),
+  documents_total: z.number().optional(),
+  data_sources_total: z.number().optional(),
   created_at: zodJsonDate(),
   updated_at: zodJsonDate(),
   creator: z.object({

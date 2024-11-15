@@ -31,6 +31,8 @@ class RelationshipBase(SQLModel):
     chunk_id: Optional[UUID] = Field(default=None, nullable=True)
 
 
+# Notice: DO NOT forget to modify the definition in `get_kb_chunk_model` to
+# keep the table structure on both sides consistent.
 class Relationship(RelationshipBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     description_vec: Any = Field(
