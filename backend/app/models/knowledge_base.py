@@ -63,6 +63,8 @@ class KnowledgeBase(SQLModel, table=True):
     # TODO: Support knowledge-base level retrieval config.
 
     # TODO: Store the statistics of the knowledge base.
+    documents_total: int = Field(default=0)
+    data_sources_total: int = Field(default=0)
 
     # TODO: Support knowledge-base level permission control.
 

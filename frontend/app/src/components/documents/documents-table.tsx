@@ -16,29 +16,43 @@ import { useMemo, useState } from 'react';
 
 const helper = createColumnHelper<Document>();
 
-const href = (cell: CellContext<any, string>) => <a className="underline" href={cell.getValue()} target="_blank">{cell.getValue()}</a>;
+const truncateUrl = (url: string, maxLength: number = 30): string => {
+  if (!url || url.length <= maxLength) return url;
+  const start = url.substring(0, maxLength / 2);
+  const end = url.substring(url.length - maxLength / 2);
+  return `${start}...${end}`;
+};
+
+const href = (cell: CellContext<any, string>) => <a className="underline" href={cell.getValue()} target="_blank">{truncateUrl(cell.getValue())}</a>;
 
 const getColumns = (kbId?: number) => [
   helper.accessor('id', { cell: mono }),
   helper.accessor('knowledge_base', { cell: ctx => <KnowledgeBaseCell {...ctx.getValue()} /> }),
-  helper.accessor('data_source', { cell: ctx => <DatasourceCell {...ctx.getValue()} /> }),
-  helper.accessor('name', { cell: mono }),
+  helper.display({ id: 'name', header: 'name', cell: ({ row }) =>
+    <DocumentPreviewDialog
+      title={row.original.source_uri}
+      name={row.original.name}
+      mime={row.original.mime_type}
+      content={row.original.content}
+    />
+  }),
   helper.accessor('source_uri', { cell: href }),
   helper.accessor('mime_type', { cell: mono }),
-  helper.display({ id: 'content', cell: ({ row }) => <DocumentPreviewDialog title={row.original.source_uri} mime={row.original.mime_type} content={row.original.content} /> }),
+  helper.accessor('data_source', { cell: ctx => <DatasourceCell {...ctx.getValue()} /> }),
   helper.accessor('created_at', { cell: datetime }),
   helper.accessor('updated_at', { cell: datetime }),
   helper.accessor('last_modified_at', { cell: datetime }),
   helper.display({
     id: 'op',
+    header: 'action',
     cell: ({ row }) => (kbId ?? row.original.knowledge_base?.id) != null && (
       <Dialog>
         <DialogTrigger>
-          <Button variant="ghost" size={'sm'}>
+          <Button className='text-xs p-2' variant="ghost" size="sm">
             Chunks
           </Button>
         </DialogTrigger>
-        <DialogContent>
+        <DialogContent className="max-w-[720px] w-full">
           <DialogHeader>
             <DialogTitle>
               Document Chunks

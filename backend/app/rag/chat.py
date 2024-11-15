@@ -1099,12 +1099,20 @@ def get_chat_message_subgraph(
 def check_rag_required_config(session: Session) -> tuple[bool, bool, bool, bool]:
     # Check if llm, embedding model, and datasource are configured
     # If any of them is missing, the rag can not work
-    has_default_llm = session.scalar(select(func.count(DBLLM.id))) > 0
-    has_default_embedding_model = (
+    try:
+        has_default_llm = session.scalar(select(func.count(DBLLM.id))) > 0
+        has_default_embedding_model = (
             session.scalar(select(func.count(DBEmbeddingModel.id))) > 0
-    )
-    has_datasource = session.scalar(select(func.count(DBDataSource.id))) > 0
-    has_knowledge_base = session.scalar(select(func.count(DBKnowledgeBase.id))) > 0
+        )
+        has_datasource = session.scalar(select(func.count(DBDataSource.id))) > 0
+        has_knowledge_base = session.scalar(select(func.count(DBKnowledgeBase.id))) > 0
+    except Exception as e:
+        has_default_llm = False
+        has_default_embedding_model = False
+        has_datasource = False
+        has_knowledge_base = False
+        logger.exception(e)
+
     return has_default_llm, has_default_embedding_model, has_datasource, has_knowledge_base
 
 

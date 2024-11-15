@@ -90,8 +90,9 @@ class KnowledgeBaseItem(BaseModel):
     id: int
     name: str
     description: str
+    documents_total: int
+    data_sources_total: int
     index_methods: list[IndexMethod]
-    # TODO: add doucments field.
     creator: UserDescriptor | None = None
     created_at: datetime
     updated_at: datetime

@@ -24,6 +24,15 @@ export function KnowledgeBaseTabs ({ id }: { id: number }) {
           Documents
         </TabsTrigger>
         <TabsTrigger
+          disabled={true}
+          value="datasources"
+          onClick={() => startTransition(() => {
+            router.push(`/knowledge-bases/${id}/datasources`);
+          })}
+        >
+          Data Sources
+        </TabsTrigger>
+        <TabsTrigger
           disabled={transitioning}
           value="index-progress"
           onClick={() => startTransition(() => {
@@ -31,6 +40,24 @@ export function KnowledgeBaseTabs ({ id }: { id: number }) {
           })}
         >
           Index Progress
+        </TabsTrigger>
+        <TabsTrigger
+          disabled={true}
+          value="retrieval-tester"
+          onClick={() => startTransition(() => {
+            router.push(`/knowledge-bases/${id}/retrieval-tester`);
+          })}
+        >
+          Retrieval Tester
+        </TabsTrigger>
+        <TabsTrigger
+          disabled={true}
+          value="graph-explorer"
+          onClick={() => startTransition(() => {
+            router.push(`/knowledge-bases/${id}/graph-explorer`);
+          })}
+        >
+          Graph Explorer
         </TabsTrigger>
         <TabsTrigger
           disabled={transitioning}
