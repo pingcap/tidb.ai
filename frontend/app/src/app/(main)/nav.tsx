@@ -57,7 +57,7 @@ export function Nav () {
       title: 'Admin',
       items: [
         { href: '/stats/trending', title: 'Dashboard', icon: ActivitySquareIcon },
-        { href: '/knowledge-bases', title: 'Knowledge Bases', icon: LibraryBigIcon },
+        { href: '/knowledge-bases', title: 'Knowledge Bases', icon: LibraryBigIcon, details: !required.knowledge_base && <NavWarningDetails>You need to configure at least one knowledge base.</NavWarningDetails> },
         { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon },
         { href: '/feedbacks', title: 'Feedbacks', icon: MessageCircleQuestionIcon },
         { href: '/llms', title: 'LLMs', icon: BrainCircuitIcon, details: !required.default_llm && <NavWarningDetails>You need to configure at least one Default LLM.</NavWarningDetails> },

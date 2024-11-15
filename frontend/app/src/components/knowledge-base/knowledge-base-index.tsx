@@ -53,7 +53,7 @@ export function KnowledgeBaseIndexProgress ({ id }: { id: number }) {
       </div>
       <div className="mt-4 grid grid-cols-2 gap-4">
         {progress ? <IndexProgressChart title="Vector Index" data={progress.vector_index} /> : <IndexProgressChartPlaceholder title="Vector Index" />}
-        {index_methods.includes('knowledge_graph') && (progress?.kg_index ? <IndexProgressChart title="Knowledge Graph Index" data={progress.kg_index} /> : <IndexProgressChartPlaceholder title="Knowledge Graph Index" />)}
+        {progress?.kg_index ? <IndexProgressChart title="Knowledge Graph Index" data={progress.kg_index} /> : <IndexProgressChartPlaceholder title="Knowledge Graph Index" />}
       </div>
       <KnowledgeBaseIndexErrors id={id} />
     </>

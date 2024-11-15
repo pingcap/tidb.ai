@@ -34,12 +34,13 @@ class KnowledgeBaseRepo(BaseRepo):
         )
         return paginate(session, query, params)
 
-    def get(self, session: Session, knowledge_base_id: int) -> Optional[KnowledgeBase]:
-        return session.exec(
-            select(KnowledgeBase).where(
-                KnowledgeBase.id == knowledge_base_id, KnowledgeBase.deleted_at == None
-            )
-        ).first()
+    def get(self, session: Session, knowledge_base_id: int, include_soft_deleted: bool = True) -> Optional[KnowledgeBase]:
+        stmt = select(KnowledgeBase).where(KnowledgeBase.id == knowledge_base_id)
+
+        if not include_soft_deleted:
+            stmt = stmt.where(KnowledgeBase.deleted_at == None)
+
+        return session.exec(stmt).first()
     
     def must_get(self, session: Session, knowledge_base_id: int) -> Optional[KnowledgeBase]:
         kb = self.get(session, knowledge_base_id)
