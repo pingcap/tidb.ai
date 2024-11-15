@@ -39,19 +39,23 @@ export function Nav () {
     groups.push({
       title: 'Admin',
       items: [
-        // { href: '/dashboard', title: 'Overview', icon: ActivitySquareIcon, disabled: true },
-        { href: '/stats/trending', title: 'Stats', icon: ActivitySquareIcon },
-        { href: '/feedbacks', title: 'Feedbacks', icon: MessageCircleQuestionIcon },
-        { href: '/documents', title: 'Documents', icon: FilesIcon },
+        { href: '/stats/trending', title: 'Dashboard', icon: ActivitySquareIcon },
         { href: '/knowledge-bases', title: 'Knowledge Bases', icon: LibraryBigIcon },
-        { href: '/datasources', title: 'Datasources', icon: LibraryIcon, details: !required.datasource && <NavWarningDetails>You need to configure at least one Datasource.</NavWarningDetails> },
         { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon },
+        { href: '/feedbacks', title: 'Feedbacks', icon: MessageCircleQuestionIcon },
         { href: '/llms', title: 'LLMs', icon: BrainCircuitIcon, details: !required.default_llm && <NavWarningDetails>You need to configure at least one Default LLM.</NavWarningDetails> },
         { href: '/embedding-models', title: 'Embedding Models', icon: BinaryIcon, details: !required.default_embedding_model && <NavWarningDetails>You need to configure at least one Default Embedding Model.</NavWarningDetails> },
         { href: '/reranker-models', title: 'Reranker Models', icon: ShuffleIcon },
-        // { href: '/index-progress', title: 'Index Progress', icon: GaugeIcon },
-        // { href: '/knowledge-graph', title: 'Knowledge Graph', icon: WaypointsIcon },
-        { href: '/site-settings', title: 'Settings', icon: CogIcon },
+        { href: '/site-settings', title: 'Settings', icon: CogIcon }
+      ],
+      sectionProps: { className: 'mt-auto mb-0' },
+    });
+
+    groups.push({
+      title: 'Legacy',
+      items: [
+        { href: '/documents', title: 'Documents', icon: FilesIcon },
+        { href: '/datasources', title: 'Datasources', icon: LibraryIcon, details: !required.datasource && <NavWarningDetails>You need to configure at least one Datasource.</NavWarningDetails> }
       ],
       sectionProps: { className: 'mt-auto mb-0' },
     });

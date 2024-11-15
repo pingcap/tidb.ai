@@ -10,6 +10,6 @@ export function useKnowledgeBaseDatasource (id: number) {
 
 
 export function useKnowledgeBaseIndexProgress (id: number) {
-  const { data: progress, ...rest } = useSWR(`api.knowledge-base.${id}.index-progress`, () => getKnowledgeGraphIndexProgress(id));
+  const { data: progress, ...rest  } = useSWR(`api.knowledge-base.${id}.index-progress`, () => getKnowledgeGraphIndexProgress(id));
   return { progress, ...rest };
 }

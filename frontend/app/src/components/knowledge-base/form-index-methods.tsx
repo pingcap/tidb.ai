@@ -8,8 +8,13 @@ export const FormIndexMethods = forwardRef<any, FormControlWidgetProps<CreateKno
   return (
     <div className="space-y-2" ref={ref}>
       <IndexMethod
-        label="Vector Index"
-        description="Vector Index is enabled by default"
+        label="Vector Index (Forced)"
+        description={
+          <>
+            Use <a href="https://docs.pingcap.com/tidbcloud/vector-search-overview#vector-embedding">vector embedding</a> to represent
+            documents so that relevant documents can be retrieved based on their semantics.
+          </>
+        }
         disabled
         checked={value?.includes('vector') ?? false}
         onCheckedChange={checked => {
@@ -23,8 +28,8 @@ export const FormIndexMethods = forwardRef<any, FormControlWidgetProps<CreateKno
         }}
       />
       <IndexMethod
-        label="Graph Index"
-        description="Graph Index"
+        label="Knowledge Graph Index"
+        description="Extract the entities and relationships form the documents and use knowledge graphs to represent, enhance the logic and reasoning capabilities of the retrieval process."
         checked={value?.includes('knowledge_graph') ?? false}
         onCheckedChange={checked => {
           const set = new Set(value);

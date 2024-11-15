@@ -118,6 +118,7 @@ export type KnowledgeGraphIndexProgress = {
   documents: IndexTotalStats
   chunks: IndexTotalStats
   kg_index?: IndexProgress
+  entities?: IndexTotalStats
   relationships?: IndexTotalStats
 }
 

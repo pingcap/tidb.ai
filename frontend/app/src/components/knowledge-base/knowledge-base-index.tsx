@@ -15,10 +15,11 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { ArrowRightIcon, FileTextIcon, PuzzleIcon, RouteIcon } from 'lucide-react';
 import Link from 'next/link';
+import {useState} from "react";
 
 export function KnowledgeBaseIndexProgress ({ id }: { id: number }) {
   const { index_methods } = useKB();
-  const { progress } = useKnowledgeBaseIndexProgress(id);
+  const { progress, isLoading } = useKnowledgeBaseIndexProgress(id);
 
   return (
     <>
@@ -27,11 +28,28 @@ export function KnowledgeBaseIndexProgress ({ id }: { id: number }) {
           title="Documents"
           icon={<FileTextIcon className="h-4 w-4 text-muted-foreground" />}
           total={progress?.documents.total}
+          isLoading={isLoading}
         >
-          <Link className="flex gap-2 items-center" href={`/knowledge-bases/${id}/documents`}>All documents <ArrowRightIcon className="size-3" /></Link>
+          <Link className="flex gap-2 items-center" href={`/knowledge-bases/${id}`}>All documents <ArrowRightIcon className="size-3" /></Link>
         </TotalCard>
-        <TotalCard title="Chunks" icon={<PuzzleIcon className="h-4 w-4 text-muted-foreground" />} total={progress?.chunks.total} />
-        {index_methods.includes('knowledge_graph') && <TotalCard title="Relationships" icon={<RouteIcon className="h-4 w-4 text-muted-foreground" />} total={progress?.relationships?.total} />}
+        <TotalCard
+          title="Chunks"
+          icon={<PuzzleIcon className="h-4 w-4 text-muted-foreground" />}
+          total={progress?.chunks.total}
+          isLoading={isLoading}
+        />
+        <TotalCard
+          title="Entities"
+          icon={<RouteIcon className="h-4 w-4 text-muted-foreground" />}
+          total={progress?.entities?.total || null}
+          isLoading={isLoading}
+        />
+        <TotalCard
+          title="Relationships"
+          icon={<RouteIcon className="h-4 w-4 text-muted-foreground" />}
+          total={progress?.relationships?.total || null}
+          isLoading={isLoading}
+        />
       </div>
       <div className="mt-4 grid grid-cols-2 gap-4">
         {progress ? <IndexProgressChart title="Vector Index" data={progress.vector_index} /> : <IndexProgressChartPlaceholder title="Vector Index" />}
