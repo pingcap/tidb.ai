@@ -4,8 +4,7 @@ from sqlmodel import Session, select, SQLModel
 from sqlalchemy.orm import joinedload
 from sqlalchemy.orm.attributes import flag_modified
 
-from app.models import Relationship, Entity
-from app.rag.knowledge_base.db_model import EntityType
+from app.models import Relationship, Entity, EntityType
 from app.rag.knowledge_graph.graph_store.helpers import (
     get_entity_description_embedding,
     get_entity_metadata_embedding,

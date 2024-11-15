@@ -35,7 +35,7 @@ from sqlmodel.main import (
 )
 from typing_extensions import Literal, deprecated
 
-from app.rag.knowledge_base.patch.sql_model_metaclass import SQLModelMetaclass
+from app.models.patch.sql_model_metaclass import SQLModelMetaclass
 
 
 class SQLModel(BaseModel, metaclass=SQLModelMetaclass, registry=default_registry):

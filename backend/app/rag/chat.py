@@ -5,7 +5,7 @@ import logging
 import dspy
 
 from uuid import UUID
-from typing import List, Generator, Optional, Tuple, Type, Callable
+from typing import List, Generator, Optional, Tuple, Callable
 from datetime import datetime, UTC
 from urllib.parse import urljoin
 
@@ -41,13 +41,15 @@ from app.models import (
     Relationship as DBRelationship,
 )
 from app.core.config import settings
+from app.models.chunk import get_kb_chunk_model
+from app.models.entity import get_kb_entity_model
 from app.models.recommend_question import RecommendQuestion
 from app.rag.chat_stream_protocol import (
     ChatStreamMessagePayload,
     ChatStreamDataPayload,
     ChatEvent,
 )
-from app.rag.knowledge_base.db_model import get_kb_chunk_model, get_kb_relationship_model, get_kb_entity_model
+from app.models.relationship import get_kb_relationship_model
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.knowledge_graph.graph_store import (
     TiDBGraphStore,

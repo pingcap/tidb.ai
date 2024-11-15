@@ -1,11 +1,10 @@
 # flake8: noqa
-from .knowledge_graph import (
+from .entity import (
     EntityType,
     Entity,
     EntityPublic,
-    Relationship,
-    RelationshipPublic,
 )
+from .relationship import Relationship, RelationshipPublic
 from .feedback import (
     Feedback,
     FeedbackType,

@@ -13,8 +13,10 @@ from app.models import (
     DocIndexTaskStatus,
     KgIndexStatus, Chunk,
 )
+from app.models.chunk import get_kb_chunk_model
+from app.models.entity import get_kb_entity_model
 from app.models.knowledge_base import IndexMethod
-from app.rag.knowledge_base.db_model import get_kb_chunk_model, get_kb_relationship_model, get_kb_entity_model
+from app.models.relationship import get_kb_relationship_model
 from app.repositories.base_repo import BaseRepo
 from app.repositories.chunk import ChunkRepo
 from app.repositories.entity import EntityRepo

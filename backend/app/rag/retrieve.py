@@ -1,5 +1,5 @@
 import logging
-from typing import List, Type
+from typing import List
 
 from llama_index.core import VectorStoreIndex
 from llama_index.core.schema import NodeWithScore
@@ -11,10 +11,12 @@ from app.models import (
     Entity as DBEntity,
     Relationship as DBRelationship,
 )
+from app.models.chunk import get_kb_chunk_model
+from app.models.entity import get_kb_entity_model
 from app.rag.chat import get_prompt_by_jinja2_template
 from app.rag.chat_config import ChatEngineConfig, get_default_embedding_model
-from app.rag.knowledge_base.db_model import get_kb_chunk_model, get_kb_entity_model, get_kb_relationship_model
-from app.rag.knowledge_base.patch.sql_model import SQLModel
+from app.models.relationship import get_kb_relationship_model
+from app.models.patch.sql_model import SQLModel
 from app.rag.knowledge_graph import KnowledgeGraphIndex
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore

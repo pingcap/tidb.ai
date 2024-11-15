@@ -4,9 +4,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, logger, Query
 from fastapi_pagination import Params, Page
 
+from app.models.chunk import get_kb_chunk_model
 from app.models.knowledge_base import IndexMethod
 from app.rag.knowledge_base.index_store import init_kb_tidb_vector_store, init_kb_tidb_graph_store
-from app.rag.knowledge_base.db_model import get_kb_chunk_model
 from app.repositories.chunk import ChunkRepo
 from app.repositories.embedding_model import embedding_model_repo
 from app.repositories.llm import get_default_db_llm, must_get_llm
