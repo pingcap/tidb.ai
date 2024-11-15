@@ -7,3 +7,6 @@ data
 venv
 .venv
 local-embedding-reranker
+
+*.swp
+*.swo
