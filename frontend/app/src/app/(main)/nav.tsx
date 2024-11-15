@@ -11,7 +11,24 @@ import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useHref } from '@/components/use-href';
-import { ActivitySquareIcon, AlertTriangleIcon, BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, FilesIcon, HomeIcon, KeyRoundIcon, LibraryBigIcon, LibraryIcon, MenuIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon } from 'lucide-react';
+import {
+  ActivitySquareIcon,
+  AlertTriangleIcon,
+  BinaryIcon,
+  BotMessageSquareIcon,
+  BrainCircuitIcon,
+  CogIcon,
+  FilesIcon,
+  HomeIcon,
+  KeyRoundIcon,
+  LibraryBigIcon,
+  LibraryIcon,
+  MenuIcon,
+  MessageCircleQuestionIcon,
+  MessagesSquareIcon,
+  ShuffleIcon,
+  WaypointsIcon
+} from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
@@ -55,7 +72,8 @@ export function Nav () {
       title: 'Legacy',
       items: [
         { href: '/documents', title: 'Documents', icon: FilesIcon },
-        { href: '/datasources', title: 'Datasources', icon: LibraryIcon, details: !required.datasource && <NavWarningDetails>You need to configure at least one Datasource.</NavWarningDetails> }
+        { href: '/datasources', title: 'Datasources', icon: LibraryIcon, details: !required.datasource && <NavWarningDetails>You need to configure at least one Datasource.</NavWarningDetails> },
+        { href: '/knowledge-graph', title: 'Knowledge Graph', icon: WaypointsIcon },
       ],
       sectionProps: { className: 'mt-auto mb-0' },
     });
