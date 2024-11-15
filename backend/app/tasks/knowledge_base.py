@@ -6,7 +6,7 @@ from app.celery import app as celery_app
 from app.core.db import engine
 from app.exceptions import KnowledgeBaseNotFoundError
 from app.models import (
-    Document, KnowledgeBaseDataSource,
+    Document, KnowledgeBaseDataSource, DataSource,
 )
 from app.models.knowledge_base import KnowledgeBase
 from app.rag.datasource import get_data_source_loader
@@ -57,29 +57,42 @@ def purge_knowledge_base_related_resources(knowledge_base_id: int):
     """
 
     with Session(engine) as session:
-        knowledge_base = knowledge_base_repo.get(session, knowledge_base_id)
+        knowledge_base = knowledge_base_repo.get(session, knowledge_base_id, include_soft_deleted=True)
         if knowledge_base is None:
             logger.error(f"Knowledge base with id {knowledge_base_id} not found")
             return
 
         assert knowledge_base.deleted_at is not None
 
-        stmt = delete(Document).where(Document.knowledge_base_id == knowledge_base_id)
-        session.exec(stmt)
-        logger.info(f"Deleted documents of knowledge base #{knowledge_base_id} successfully.")
+        data_source_ids = [datasource.id for datasource in knowledge_base.data_sources]
 
-        tidb_vector_store = get_kb_tidb_vector_store(session, knowledge_base)
-        tidb_vector_store.drop_table_schema()
-        logger.info(f"Dropped tidb vector store of knowledge base #{knowledge_base_id} successfully.")
-
+        # Drop entities_{kb_id}, relationships_{kb_id} tables.
         tidb_graph_store = get_kb_tidb_graph_store(session, knowledge_base)
         tidb_graph_store.drop_table_schema()
         logger.info(f"Dropped tidb graph store of knowledge base #{knowledge_base_id} successfully.")
 
+        # Drop chunks_{kb_id} table.
+        tidb_vector_store = get_kb_tidb_vector_store(session, knowledge_base)
+        tidb_vector_store.drop_table_schema()
+
+        logger.info(f"Dropped tidb vector store of knowledge base #{knowledge_base_id} successfully.")
+
+        # Delete documents.
+        stmt = delete(Document).where(Document.knowledge_base_id == knowledge_base_id)
+        session.exec(stmt)
+        logger.info(f"Deleted documents of knowledge base #{knowledge_base_id} successfully.")
+
+        # Delete data source links.
         stmt = delete(KnowledgeBaseDataSource).where(KnowledgeBase.id == knowledge_base_id)
         session.exec(stmt)
-        logger.info(f"Deleted data sources of knowledge base #{knowledge_base_id} successfully.")
+        logger.info(f"Deleted linked data sources of knowledge base #{knowledge_base_id} successfully.")
 
+        # Delete data sources.
+        stmt = delete(DataSource).where(DataSource.id.in_(data_source_ids))
+        session.exec(stmt)
+        logger.info(f"Deleted data sources {', '.join([f'#{did}' for did in data_source_ids])} successfully.")
+
+        # Delete knowledge base.
         stmt = delete(KnowledgeBase).where(KnowledgeBase.id == knowledge_base_id)
         session.exec(stmt)
         logger.info(f"Deleted knowledge base #{knowledge_base_id} successfully.")

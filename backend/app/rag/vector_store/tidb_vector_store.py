@@ -13,6 +13,7 @@ from llama_index.core.vector_stores.utils import (
     node_to_metadata_dict,
 )
 import sqlalchemy
+from sqlalchemy import text
 from sqlmodel import (
     SQLModel,
     Session,
@@ -77,8 +78,9 @@ class TiDBVectorStore(BasePydanticVectorStore):
         inspector = sqlalchemy.inspect(engine)
         table_name = self._chunk_db_model.__tablename__
 
-        if table_name not in inspector.get_table_names():
-            self._chunk_db_model.metadata.drop_all(engine, tables=[self._chunk_db_model.__table__])
+        if table_name in inspector.get_table_names():
+            # self._session.exec(text(f"DROP TABLE {table_name}"))
+            self._chunk_db_model.metadata.drop_all(self._session.connection(), tables=[self._chunk_db_model.__table__])
             logger.info(f"Chunk table <{table_name}> has been dropped successfully.")
         else:
             logger.info(f"Chunk table <{table_name}> is not existed, not action to do.")

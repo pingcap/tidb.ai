@@ -123,13 +123,13 @@ class TiDBGraphStore(KnowledgeGraphStore):
         relationships_table_name = self._relationship_model.__tablename__
         entities_table_name = self._entity_model.__tablename__
 
-        if relationships_table_name not in existed_table_names:
+        if relationships_table_name in existed_table_names:
             self._relationship_model.metadata.drop_all(engine, tables=[self._relationship_model.__table__])
             logger.info(f"Relationships table <{relationships_table_name}> has been dropped successfully.")
         else:
             logger.info(f"Relationships table <{relationships_table_name}> is not existed, not action to do.")
 
-        if entities_table_name not in existed_table_names:
+        if entities_table_name in existed_table_names:
             self._entity_model.metadata.drop_all(engine, tables=[self._entity_model.__table__])
             logger.info(f"Entities table <{entities_table_name}> has been dropped successfully.")
         else:
