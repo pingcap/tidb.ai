@@ -135,7 +135,7 @@ class RetrieveService:
 
         return source_documents
 
-    def _embedding_retrieve(self, question: str, top_k: int, full_document: Optional[bool] = True) -> List[Document]:
+    def _embedding_retrieve(self, question: str, top_k: int) -> List[NodeWithScore]:
         _embed_model = get_default_embedding_model(self.db_session)
 
         vector_store = TiDBVectorStore(session=self.db_session)
@@ -150,17 +150,7 @@ class RetrieveService:
         )
 
         node_list: List[NodeWithScore] = retrieve_engine.retrieve(question)
-        if full_document:
-            source_documents = self._get_source_documents(node_list)
-            return source_documents
-        else:
-            for s_n in node_list:
-                print(s_n.node_id, s_n.score, s_n.get_text(), s_n.get_content())
-            return [{
-                "node_id": s_n.node_id,
-                "score": s_n.score,
-                "text": s_n.text,
-            } for s_n in node_list]
+        return node_list
 
     def _get_source_documents(self, node_list: List[NodeWithScore]) -> List[Document]:
         source_nodes_ids = [s_n.node_id for s_n in node_list]
