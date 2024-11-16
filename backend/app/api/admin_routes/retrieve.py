@@ -27,6 +27,7 @@ async def embedding_retrieve(
     question: str,
     chat_engine: str = "default",
     top_k: Optional[int] = 5,
+    full_document: Optional[bool] = False
 ) -> List[Document]:
     retrieve_service = RetrieveService(session, chat_engine)
-    return retrieve_service._embedding_retrieve(question, top_k=top_k)
+    return retrieve_service._embedding_retrieve(question, top_k=top_k, full_document=full_document)
