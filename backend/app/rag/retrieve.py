@@ -154,6 +154,8 @@ class RetrieveService:
             source_documents = self._get_source_documents(node_list)
             return source_documents
         else:
+            for s_n in node_list:
+                print(s_n.node_id, s_n.score, s_n.get_text(), s_n.get_content())
             return [{
                 "node_id": s_n.node_id,
                 "score": s_n.score,
