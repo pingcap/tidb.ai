@@ -1,10 +1,10 @@
-import {LibraryBig} from "lucide-react";
+import { LibraryBig } from 'lucide-react';
 
-export default function KnowledgeBaseEmptyState() {
+export default function KnowledgeBaseEmptyState () {
   return (
     <div className="flex flex-col items-center justify-center h-[50vh] gap-6 rounded-md">
       <div className="flex items-center justify-center w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-800">
-        <LibraryBig size={40}/>
+        <LibraryBig size={40} />
       </div>
       <div className="space-y-2 text-center">
         <h2 className="text-2xl font-bold tracking-tight">No knowledge base to display</h2>
@@ -18,5 +18,5 @@ export default function KnowledgeBaseEmptyState() {
         </p>
       </div>
     </div>
-  )
+  );
 }

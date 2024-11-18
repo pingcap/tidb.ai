@@ -8,8 +8,7 @@ export function useKnowledgeBaseDatasource (id: number) {
   return data_sources.find(ds => ds.id === id);
 }
 
-
 export function useKnowledgeBaseIndexProgress (id: number) {
-  const { data: progress, ...rest  } = useSWR(`api.knowledge-base.${id}.index-progress`, () => getKnowledgeGraphIndexProgress(id));
+  const { data: progress, ...rest } = useSWR(`api.knowledge-base.${id}.index-progress`, () => getKnowledgeGraphIndexProgress(id));
   return { progress, ...rest };
 }

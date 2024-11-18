@@ -15,7 +15,6 @@ import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { ArrowRightIcon, FileTextIcon, PuzzleIcon, RouteIcon } from 'lucide-react';
 import Link from 'next/link';
-import {useState} from "react";
 
 export function KnowledgeBaseIndexProgress ({ id }: { id: number }) {
   const { index_methods } = useKB();

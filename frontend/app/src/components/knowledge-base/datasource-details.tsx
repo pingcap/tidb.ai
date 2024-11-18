@@ -1,6 +1,5 @@
 'use client';
 
-import { useDatasource } from '@/components/datasource/hooks';
 import { useKnowledgeBaseDatasource } from '@/components/knowledge-base/hooks';
 import { OptionDetail } from '@/components/option-detail';
 import { Badge } from '@/components/ui/badge';

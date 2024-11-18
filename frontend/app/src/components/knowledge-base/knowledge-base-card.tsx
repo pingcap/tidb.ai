@@ -1,19 +1,12 @@
-import {Book, Ellipsis} from "lucide-react";
-import {Card, CardContent, CardDescription, CardFooter, CardHeader} from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent, DropdownMenuItem,
-  DropdownMenuRadioItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger
-} from "@/components/ui/dropdown-menu";
-import {ReactNode, startTransition} from 'react';
-
-import { Badge } from '@/components/ui/badge';
-import {Button} from "@/components/ui/button";
 import type { KnowledgeBaseSummary } from '@/api/knowledge-base';
-import {Separator} from "@/components/ui/separator";
-import {useRouter} from "next/navigation";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/components/ui/card';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Separator } from '@/components/ui/separator';
+import { Book, Ellipsis } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { ReactNode, startTransition } from 'react';
 
 export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase: KnowledgeBaseSummary, children?: ReactNode }) {
   const router = useRouter();
@@ -22,13 +15,13 @@ export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase:
     startTransition(() => {
       router.push(`/knowledge-bases/${knowledgeBase.id}`);
     });
-  }
+  };
 
   const handleMenuItemSettingSelect = () => {
     startTransition(() => {
       router.push(`/knowledge-bases/${knowledgeBase.id}/settings`);
     });
-  }
+  };
 
   return (
     <Card className="cursor-pointer transition-colors hover:bg-muted/50 max-h-64" onClick={handleCardClick}>
@@ -57,16 +50,16 @@ export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase:
           {knowledgeBase.index_methods.map(m => <Badge key={m} className="ml-2" variant="secondary">{m}</Badge>)}
         </div>
         <div>
-          <Separator orientation="vertical"/>
+          <Separator orientation="vertical" />
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">
-                <Ellipsis size={20}/>
+                <Ellipsis size={20} />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56">
-              <DropdownMenuItem onSelect={handleMenuItemSettingSelect} onClick={(e:any) => e.stopPropagation()}>Settings</DropdownMenuItem>
-              <DropdownMenuSeparator/>
+              <DropdownMenuItem onSelect={handleMenuItemSettingSelect} onClick={(e: any) => e.stopPropagation()}>Settings</DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem className="text-red-500" disabled={true}>Delete</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

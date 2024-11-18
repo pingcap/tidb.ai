@@ -80,10 +80,10 @@ export function CreateKnowledgeBaseForm ({}: {}) {
     <Form {...form}>
       <form className="space-y-4" onSubmit={handleSubmit}>
         <FormFieldBasicLayout name="name" label="Name">
-          <FormInput placeholder="The name of the knowledge base"/>
+          <FormInput placeholder="The name of the knowledge base" />
         </FormFieldBasicLayout>
         <FormFieldBasicLayout name="description" label="Description">
-          <FormTextarea placeholder="The description of the knowledge base"/>
+          <FormTextarea placeholder="The description of the knowledge base" />
         </FormFieldBasicLayout>
         <FormFieldBasicLayout name="llm_id" label="LLM" description="Specify the LLM used in building the index. If not specified, the default model will be used.">
           <LLMSelect />
