@@ -24,10 +24,10 @@ export function KnowledgeBaseTabs ({ id }: { id: number }) {
           Documents
         </TabsTrigger>
         <TabsTrigger
-          disabled={true}
-          value="datasources"
+          disabled={transitioning}
+          value="data-sources"
           onClick={() => startTransition(() => {
-            router.push(`/knowledge-bases/${id}/datasources`);
+            router.push(`/knowledge-bases/${id}/data-sources`);
           })}
         >
           Data Sources
@@ -51,6 +51,7 @@ export function KnowledgeBaseTabs ({ id }: { id: number }) {
           Retrieval Tester
         </TabsTrigger>
         <TabsTrigger
+          disabled={transitioning}
           value="knowledge-graph-explorer"
           onClick={() => startTransition(() => {
             router.push(`/knowledge-bases/${id}/knowledge-graph-explorer`);

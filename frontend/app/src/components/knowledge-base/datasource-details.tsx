@@ -38,7 +38,7 @@ function KnowledgeBaseDatasourceUploadFiles ({ id }: { id: number }) {
   }
   return (
     <section className="space-y-4">
-      <h3 className="font-medium">Files</h3>
+      <h5 className="font-medium">Files</h5>
       <div className="flex gap-2 flex-wrap">
         {datasource.config.map(file => (
           <Badge key={file.file_id} variant="secondary" className="gap-1">
