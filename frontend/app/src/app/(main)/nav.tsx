@@ -11,24 +11,7 @@ import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useHref } from '@/components/use-href';
-import {
-  ActivitySquareIcon,
-  AlertTriangleIcon,
-  BinaryIcon,
-  BotMessageSquareIcon,
-  BrainCircuitIcon,
-  CogIcon,
-  FilesIcon,
-  HomeIcon,
-  KeyRoundIcon,
-  LibraryBigIcon,
-  LibraryIcon,
-  MenuIcon,
-  MessageCircleQuestionIcon,
-  MessagesSquareIcon,
-  ShuffleIcon,
-  WaypointsIcon
-} from 'lucide-react';
+import { ActivitySquareIcon, AlertTriangleIcon, BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, FilesIcon, HomeIcon, KeyRoundIcon, LibraryBigIcon, LibraryIcon, MenuIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
@@ -63,7 +46,7 @@ export function Nav () {
         { href: '/llms', title: 'LLMs', icon: BrainCircuitIcon, details: !required.default_llm && <NavWarningDetails>You need to configure at least one Default LLM.</NavWarningDetails> },
         { href: '/embedding-models', title: 'Embedding Models', icon: BinaryIcon, details: !required.default_embedding_model && <NavWarningDetails>You need to configure at least one Default Embedding Model.</NavWarningDetails> },
         { href: '/reranker-models', title: 'Reranker Models', icon: ShuffleIcon },
-        { href: '/site-settings', title: 'Settings', icon: CogIcon }
+        { href: '/site-settings', title: 'Settings', icon: CogIcon },
       ],
       sectionProps: { className: 'mt-auto mb-0' },
     });
@@ -73,7 +56,6 @@ export function Nav () {
       items: [
         { href: '/documents', title: 'Documents', icon: FilesIcon },
         { href: '/datasources', title: 'Datasources', icon: LibraryIcon, details: !required.datasource && <NavWarningDetails>You need to configure at least one Datasource.</NavWarningDetails> },
-        { href: '/knowledge-graph', title: 'Knowledge Graph', icon: WaypointsIcon },
       ],
       sectionProps: { className: 'mt-auto mb-0' },
     });

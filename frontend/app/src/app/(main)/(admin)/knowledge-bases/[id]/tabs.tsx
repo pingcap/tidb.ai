@@ -51,13 +51,12 @@ export function KnowledgeBaseTabs ({ id }: { id: number }) {
           Retrieval Tester
         </TabsTrigger>
         <TabsTrigger
-          disabled={true}
-          value="graph-explorer"
+          value="knowledge-graph-explorer"
           onClick={() => startTransition(() => {
-            router.push(`/knowledge-bases/${id}/graph-explorer`);
+            router.push(`/knowledge-bases/${id}/knowledge-graph-explorer`);
           })}
         >
-          Graph Explorer
+          Knowledge Graph Explorer
         </TabsTrigger>
         <TabsTrigger
           disabled={transitioning}
