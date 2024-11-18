@@ -35,8 +35,6 @@ export function Nav () {
     },
   ];
 
-  required.default_llm = false;
-
   if (user?.is_superuser) {
     groups.push({
       title: 'Admin',
