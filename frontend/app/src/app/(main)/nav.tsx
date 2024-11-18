@@ -11,7 +11,7 @@ import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useHref } from '@/components/use-href';
-import { ActivitySquareIcon, AlertTriangleIcon, BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, FilesIcon, HomeIcon, KeyRoundIcon, LibraryBigIcon, LibraryIcon, MenuIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon } from 'lucide-react';
+import { ActivitySquareIcon, AlertTriangleIcon, BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, ComponentIcon, FilesIcon, HomeIcon, KeyRoundIcon, LibraryBigIcon, LibraryIcon, MenuIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
@@ -35,6 +35,8 @@ export function Nav () {
     },
   ];
 
+  required.default_llm = false;
+
   if (user?.is_superuser) {
     groups.push({
       title: 'Admin',
@@ -42,10 +44,18 @@ export function Nav () {
         { href: '/stats/trending', title: 'Dashboard', icon: ActivitySquareIcon },
         { href: '/knowledge-bases', title: 'Knowledge Bases', icon: LibraryBigIcon, details: !required.knowledge_base && <NavWarningDetails>You need to configure at least one knowledge base.</NavWarningDetails> },
         { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon },
+        {
+          parent: true,
+          title: 'Models',
+          icon: ComponentIcon,
+          details: (!required.default_llm || !required.default_embedding_model) && <NavWarningDetails />,
+          children: [
+            { href: '/llms', title: 'LLMs', icon: BrainCircuitIcon, details: !required.default_llm && <NavWarningDetails>You need to configure at least one Default LLM.</NavWarningDetails> },
+            { href: '/embedding-models', title: 'Embedding Models', icon: BinaryIcon, details: !required.default_embedding_model && <NavWarningDetails>You need to configure at least one Default Embedding Model.</NavWarningDetails> },
+            { href: '/reranker-models', title: 'Reranker Models', icon: ShuffleIcon },
+          ],
+        },
         { href: '/feedbacks', title: 'Feedbacks', icon: MessageCircleQuestionIcon },
-        { href: '/llms', title: 'LLMs', icon: BrainCircuitIcon, details: !required.default_llm && <NavWarningDetails>You need to configure at least one Default LLM.</NavWarningDetails> },
-        { href: '/embedding-models', title: 'Embedding Models', icon: BinaryIcon, details: !required.default_embedding_model && <NavWarningDetails>You need to configure at least one Default Embedding Model.</NavWarningDetails> },
-        { href: '/reranker-models', title: 'Reranker Models', icon: ShuffleIcon },
         { href: '/site-settings', title: 'Settings', icon: CogIcon },
       ],
       sectionProps: { className: 'mt-auto mb-0' },
@@ -95,7 +105,10 @@ export function NavDrawer () {
   );
 }
 
-function NavWarningDetails ({ children }: { children: ReactNode }) {
+function NavWarningDetails ({ children }: { children?: ReactNode }) {
+  if (!children) {
+    return <AlertTriangleIcon className="text-yellow-600 dark:text-yellow-400 size-4" />;
+  }
   return (
     <TooltipProvider>
       <Tooltip>

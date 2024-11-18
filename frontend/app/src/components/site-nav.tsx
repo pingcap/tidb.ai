@@ -4,10 +4,11 @@ import { Divider } from '@/components/divider';
 import { NextLink } from '@/components/nextjs/NextLink';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Button, type ButtonProps } from '@/components/ui/button';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 import clsx from 'clsx';
-import { TrashIcon } from 'lucide-react';
+import { ChevronRightIcon, TrashIcon } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import { type ComponentType, Fragment, type ReactElement, type ReactNode } from 'react';
 
@@ -20,7 +21,6 @@ export interface NavGroup {
 }
 
 export interface NavBaseItem {
-  custom?: undefined;
   icon?: ComponentType<{ className?: string }>;
   title: ReactNode;
   details?: ReactNode;
@@ -29,6 +29,8 @@ export interface NavBaseItem {
 }
 
 export interface NavLinkItem extends NavBaseItem {
+  parent?: undefined;
+  custom?: undefined;
   href: string;
   exact?: boolean;
   variant?: ButtonProps['variant'] | ((active: boolean) => ButtonProps['variant']);
@@ -36,15 +38,24 @@ export interface NavLinkItem extends NavBaseItem {
   deleteResourceName?: string;
 }
 
+export interface NavParentItem extends NavBaseItem {
+  parent: true;
+  custom?: undefined;
+  variant?: ButtonProps['variant'] | ((active: boolean) => ButtonProps['variant']);
+  children: (NavLinkItem | CustomItem)[];
+}
+
 export interface CustomItem {
+  parent?: undefined;
   custom: true;
   key: string;
   children: ReactNode;
 }
 
-export type NavItem = NavLinkItem | CustomItem;
+export type NavItem = NavLinkItem | NavParentItem | CustomItem;
 
 const isCustomItem = (item: NavItem): item is CustomItem => !!item.custom;
+const isParentItem = (item: NavItem): item is NavParentItem => !!item.parent;
 const isNavLinkItem = (item: NavItem): item is NavLinkItem => 'href' in item && !('children' in item);
 
 export interface SiteNavProps {
@@ -90,15 +101,48 @@ function resolveVariant<T extends ButtonProps['variant']> (fnOrValue: T | ((acti
   }
 }
 
+function isActive (current: string, item: NavLinkItem) {
+  return current === item.href || (!item.exact && current.startsWith(item.href));
+}
+
 const renderItems = (items: NavItem[], current: string) => {
   return (
     <>
       {items.map(item => (
         isCustomItem(item)
           ? <Fragment key={item.key}>{item.children}</Fragment>
-          : <SiteNavLinkItem key={item.href} item={item} active={current === item.href || (!item.exact && current.startsWith(item.href))} />
+          : isParentItem(item)
+            ? <SiteParentItem current={current} active={!!item.children.find(child => isNavLinkItem(child) && isActive(current, child))} item={item} />
+            : <SiteNavLinkItem key={item.href} item={item} active={isActive(current, item)} />
       ))}
     </>
+  );
+};
+
+const renderParentBaseItemContent = (item: NavParentItem) => {
+  return (
+    <>
+      {item.icon && <item.icon className="w-5 h-5 opacity-70 !rotate-0" />}
+      {item.title}
+      <span className="ml-auto flex items-center gap-1">
+        {item.details}
+        <ChevronRightIcon className="size-4" />
+      </span>
+    </>
+  );
+};
+
+const renderParentItemChildren = (current: string, item: NavParentItem) => {
+  return (
+    <ul className='space-y-2 p-1 relative'>
+      {item.children.map(item => (
+        <DropdownMenuItem asChild key={isCustomItem(item) ? item.key : item.href}>
+          {isCustomItem(item)
+            ? <Fragment key={item.key}>{item.children}</Fragment>
+            : <SiteNavLinkItem key={item.href} item={item} active={isActive(current, item)} />}
+        </DropdownMenuItem>
+      ))}
+    </ul>
   );
 };
 
@@ -107,10 +151,54 @@ const renderBaseItemContent = (item: NavBaseItem) => {
     <>
       {item.icon && <item.icon className="w-5 h-5 opacity-70 !rotate-0" />}
       {item.title}
-      {item.details && <span className="ml-auto">{item.details}</span>}
+      {item.details && <span className="ml-auto flex items-center">{item.details}</span>}
     </>
   );
 };
+
+function SiteParentItem ({ current, item, active }: { current: string, item: NavParentItem, active: boolean }) {
+  let el: ReactElement;
+
+  if (!!item.disabled) {
+    el = (
+      <span className="cursor-not-allowed">
+        <Button className={cn('flex w-full justify-start gap-2 font-semibold', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'secondary' : 'ghost')} disabled={!!item.disabled}>
+          {renderParentBaseItemContent(item)}
+        </Button>
+      </span>
+    );
+  } else {
+    el = (
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button className={cn('flex w-full justify-start gap-2 font-semibold aria-disabled:opacity-50', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'secondary' : 'ghost')} data-active={active ? 'true' : undefined}>
+            {renderParentBaseItemContent(item)}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent side="right" align="start" alignOffset={-8}>
+          {renderParentItemChildren(current, item)}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    );
+  }
+  if (item.disabled && typeof item.disabled !== 'boolean') {
+    el = (
+      <Tooltip>
+        <TooltipTrigger asChild disabled={!!item.disabled}>
+          {el}
+        </TooltipTrigger>
+        <TooltipContent>
+          {item.disabled}
+        </TooltipContent>
+      </Tooltip>
+    );
+  }
+  return (
+    <li>
+      {el}
+    </li>
+  );
+}
 
 function SiteNavLinkItem ({ item, active }: { item: NavLinkItem, active: boolean }) {
   let el: ReactElement;
@@ -118,14 +206,14 @@ function SiteNavLinkItem ({ item, active }: { item: NavLinkItem, active: boolean
   if (!!item.disabled) {
     el = (
       <span className="cursor-not-allowed">
-        <Button className={cn('flex w-full justify-start gap-2 font-semibold', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'default' : 'ghost')} disabled={!!item.disabled}>
+        <Button className={cn('flex w-full items-center justify-start gap-2 font-semibold', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'default' : 'ghost')} disabled={!!item.disabled}>
           {renderBaseItemContent(item)}
         </Button>
       </span>
     );
   } else {
     el = (
-      <NextLink href={item.href} prefetch={false} className={cn('flex w-full justify-start gap-2 font-semibold aria-disabled:opacity-50', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'default' : 'ghost')} data-active={active ? 'true' : undefined}>
+      <NextLink href={item.href} prefetch={false} className={cn('flex w-full justify-start items-center gap-2 font-semibold aria-disabled:opacity-50', item.className)} variant={resolveVariant(item.variant, active) ?? (active ? 'default' : 'ghost')} data-active={active ? 'true' : undefined}>
         {renderBaseItemContent(item)}
       </NextLink>
     );
