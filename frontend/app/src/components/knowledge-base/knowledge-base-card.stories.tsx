@@ -1,5 +1,7 @@
-import { KnowledgeBaseCard } from '@/components/knowledge-base/knowledge-base-card';
+import { KnowledgeBaseCard, KnowledgeBaseCardPlaceholder } from '@/components/knowledge-base/knowledge-base-card';
 import type { Meta, StoryObj } from '@storybook/react';
+import { AppRouterContext } from 'next/dist/shared/lib/app-router-context.shared-runtime';
+import type { FC } from 'react';
 
 const meta = {
   title: 'Components/KnowledgeBase/KnowledgeBaseCard',
@@ -11,12 +13,17 @@ const meta = {
   decorators: [
     (Story) => (
       <div style={{ minWidth: 250 }}>
-        <Story />
+        <AppRouterContext.Provider value={{} as any}>
+          <Story />
+        </AppRouterContext.Provider>
       </div>
     ),
   ],
   argTypes: {},
   args: {},
+  subcomponents: {
+    KnowledgeBaseCardPlaceholder: KnowledgeBaseCardPlaceholder as FC<any>,
+  },
 } satisfies Meta<typeof KnowledgeBaseCard>;
 
 export default meta;
@@ -34,5 +41,11 @@ export const Default: Story = {
       created_at: new Date(),
       updated_at: new Date(),
     },
+  },
+};
+
+export const Placeholder: StoryObj<typeof KnowledgeBaseCardPlaceholder> = {
+  render () {
+    return <KnowledgeBaseCardPlaceholder />;
   },
 };
