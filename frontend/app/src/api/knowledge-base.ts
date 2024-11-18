@@ -241,3 +241,11 @@ export async function retryKnowledgeBaseAllFailedTasks (id: number) {
     },
   }).then(handleErrors);
 }
+
+export async function deleteKnowledgeBase (id: number) {
+  return await fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}`), {
+    method: 'DELETE',
+    headers: await authenticationHeaders(),
+  })
+    .then(handleErrors);
+}

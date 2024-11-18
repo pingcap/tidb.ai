@@ -1,4 +1,5 @@
-import type { KnowledgeBaseSummary } from '@/api/knowledge-base';
+import { deleteKnowledgeBase, type KnowledgeBaseSummary } from '@/api/knowledge-base';
+import { DangerousActionButton } from '@/components/dangerous-action-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/components/ui/card';
@@ -7,10 +8,12 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Book, Ellipsis } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { ReactNode, startTransition } from 'react';
+import { ReactNode, startTransition, useState } from 'react';
+import { mutate } from 'swr';
 
 export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase: KnowledgeBaseSummary, children?: ReactNode }) {
   const router = useRouter();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
 
   const handleCardClick = () => {
     startTransition(() => {
@@ -18,10 +21,22 @@ export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase:
     });
   };
 
-  const handleMenuItemSettingSelect = () => {
+  const handleMenuItemSettingSelect = (event: Event) => {
+    event.preventDefault();
     startTransition(() => {
       router.push(`/knowledge-bases/${knowledgeBase.id}/settings`);
     });
+  };
+
+  const handleDelete = async () => {
+    await deleteKnowledgeBase(knowledgeBase.id);
+    await mutate(key => {
+      if (typeof key === 'string') {
+        return key.startsWith('api.knowledge-bases.list?');
+      }
+      return false;
+    });
+    setDropdownOpen(false);
   };
 
   return (
@@ -52,16 +67,23 @@ export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase:
         </div>
         <div>
           <Separator orientation="vertical" />
-          <DropdownMenu>
+          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
+              <Button variant="ghost" size="sm" onClick={event => event.stopPropagation()}>
                 <Ellipsis className="size-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56">
-              <DropdownMenuItem onSelect={handleMenuItemSettingSelect} onClick={(e: any) => e.stopPropagation()}>Settings</DropdownMenuItem>
+            <DropdownMenuContent className="w-56" onClick={event => event.stopPropagation()}>
+              <DropdownMenuItem onSelect={handleMenuItemSettingSelect}>Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="text-red-500" disabled={true}>Delete</DropdownMenuItem>
+              <DangerousActionButton action={handleDelete} asChild>
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onSelect={event => event.preventDefault()}
+                >
+                  Delete
+                </DropdownMenuItem>
+              </DangerousActionButton>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
