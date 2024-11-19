@@ -1,6 +1,6 @@
 import { authenticationHeaders, handleErrors, handleResponse, type Page, type PageParams, requestUrl, zodPage } from '@/lib/request';
 import { zodJsonDate } from '@/lib/zod';
-import { z, type ZodType } from 'zod';
+import { number, z, type ZodType } from 'zod';
 
 export interface ChatEngine {
   id: number;
@@ -17,11 +17,16 @@ export interface ChatEngine {
 
 export interface ChatEngineOptions {
   external_engine_config?: object | null;
+  knowledge_base?: ChatEngineKnowledgeBaseOptions | null;
   knowledge_graph: ChatEngineKnowledgeGraphOptions;
   llm: ChatEngineLLMOptions;
   post_verification_url?: string | null;
   post_verification_token?: string | null;
   hide_sources?: boolean | null;
+}
+
+export interface ChatEngineKnowledgeBaseOptions {
+  linked_knowledge_base?: LinkedKnowledgeBaseOptions | null;
 }
 
 export interface ChatEngineKnowledgeGraphOptions {
@@ -45,6 +50,14 @@ export type ChatEngineLLMOptions = {
   // reranker_top_k: number;
 }
 
+export interface LinkedKnowledgeBaseOptions {
+  id: number;
+}
+
+const kbOptionsSchema = z.object({
+  linked_knowledge_base: z.object({ id: number() }).nullable().optional(),
+});
+
 const kgOptionsSchema = z.object({
   depth: z.number(),
   enabled: z.boolean(),
@@ -67,6 +80,7 @@ const llmOptionsSchema =
 
 const chatEngineOptionsSchema = z.object({
   external_engine_config: z.object({}).passthrough().nullable().optional(),
+  kbOptionsSchema: kbOptionsSchema.nullable().optional(),
   knowledge_graph: kgOptionsSchema,
   llm: llmOptionsSchema,
   post_verification_url: z.string().nullable().optional(),
