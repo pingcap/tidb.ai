@@ -43,49 +43,6 @@ import { authenticationHeaders, handleErrors, handleResponse, type PageParams, r
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
 
-/**
- * {
- *     "id": 1,
- *     "name": "Lorem Ipsum",
- *     "description": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
- *     "data_sources": [
- *         {
- *             "id": 630003,
- *             "name": "Test",
- *             "data_source_type": "file",
- *             "config": [
- *                 {
- *                     "file_id": 300004,
- *                     "file_name": "b (1).txt"
- *                 }
- *             ]
- *         }
- *     ],
- *     "index_methods": [
- *         "vector"
- *     ],
- *     "llm": {
- *         "id": 30002,
- *         "name": "gemini-1.5-flash",
- *         "provider": "gemini",
- *         "model": "models/gemini-1.5-flash",
- *         "is_default": true
- *     },
- *     "embedding_model": {
- *         "id": 60001,
- *         "name": "test",
- *         "model": "text-embedding-3-small",
- *         "vector_dimension": 0,
- *         "is_default": true
- *     },
- *     "creator": {
- *         "id": "01907db8-8850-795d-855b-552663c18c9f"
- *     },
- *     "created_at": "2024-11-08T09:29:11",
- *     "updated_at": "2024-11-08T09:29:11"
- * }
- */
-
 export interface CreateKnowledgeBaseParams {
   name: string;
   description: string;

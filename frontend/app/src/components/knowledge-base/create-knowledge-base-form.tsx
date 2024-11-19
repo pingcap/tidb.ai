@@ -14,15 +14,13 @@ import { useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-export interface CreateKnowledgeBaseFormProps {
-}
-
 export function CreateKnowledgeBaseForm ({}: {}) {
   const [transitioning, startTransition] = useTransition();
   const router = useRouter();
 
   const form = useForm<z.infer<typeof createKnowledgeBaseParamsSchema>>({
     resolver: zodResolver(createKnowledgeBaseParamsSchema),
+    disabled: transitioning,
     defaultValues: {
       name: '',
       description: '',
