@@ -40,6 +40,7 @@ export interface NavLinkItem extends NavBaseItem {
 
 export interface NavParentItem extends NavBaseItem {
   parent: true;
+  key: string;
   custom?: undefined;
   variant?: ButtonProps['variant'] | ((active: boolean) => ButtonProps['variant']);
   children: (NavLinkItem | CustomItem)[];
@@ -112,7 +113,7 @@ const renderItems = (items: NavItem[], current: string) => {
         isCustomItem(item)
           ? <Fragment key={item.key}>{item.children}</Fragment>
           : isParentItem(item)
-            ? <SiteParentItem current={current} active={!!item.children.find(child => isNavLinkItem(child) && isActive(current, child))} item={item} />
+            ? <SiteParentItem key={item.key} current={current} active={!!item.children.find(child => isNavLinkItem(child) && isActive(current, child))} item={item} />
             : <SiteNavLinkItem key={item.href} item={item} active={isActive(current, item)} />
       ))}
     </>

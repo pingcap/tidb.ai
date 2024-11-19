@@ -1,24 +1,16 @@
 'use client';
 
-import { listKnowledgeBases } from '@/api/knowledge-base';
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import KnowledgeBaseEmptyState from '@/components/knowledge-base/empty-state';
+import { useKnowledgeBases } from '@/components/knowledge-base/hooks';
 import { KnowledgeBaseCard, KnowledgeBaseCardPlaceholder } from '@/components/knowledge-base/knowledge-base-card';
 import { NextLink } from '@/components/nextjs/NextLink';
 import type { PaginationState } from '@tanstack/table-core';
 import { useState } from 'react';
-import useSWR from 'swr';
 
 export default function KnowledgeBasesPage () {
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
-
-  const { data, mutate, isLoading, isValidating } = useSWR(`api.knowledge-bases.list?page=${pagination.pageIndex}&size=${pagination.pageSize}`, () => listKnowledgeBases({ page: pagination.pageIndex + 1, size: pagination.pageSize }), {
-    revalidateOnReconnect: false,
-    revalidateOnFocus: false,
-    focusThrottleInterval: 1000,
-    keepPreviousData: true,
-    onError: console.error,
-  });
+  const { knowledgeBases, isLoading } = useKnowledgeBases(pagination.pageIndex, pagination.pageSize);
 
   return (
     <>
@@ -28,10 +20,10 @@ export default function KnowledgeBasesPage () {
       </NextLink>
       {
         isLoading
-          ? <div className="grid grid-cols-3 gap-4"><KnowledgeBaseCardPlaceholder /></div>
-          : !!data?.items.length
-            ? <div className="grid grid-cols-3 gap-4">
-              {data?.items.map(kb => (
+          ? <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"><KnowledgeBaseCardPlaceholder /></div>
+          : !!knowledgeBases?.items.length
+            ? <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {knowledgeBases?.items.map(kb => (
                 <KnowledgeBaseCard key={kb.id} knowledgeBase={kb} />
               ))}
             </div>
