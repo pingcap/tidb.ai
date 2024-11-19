@@ -334,18 +334,18 @@ DEFAULT_GENERATE_GOAL_PROMPT = """\
 Given the conversation history between the User and Assistant, along with the latest follow-up question from the User, perform the following tasks:
 
 1. **Language Detection**:
-    - Analyze the User's Follow-up question to determine the language used.
+    - Analyze the User's follow-up question to determine the language used.
 
 2. **Goal Generation**:
-    - Determine the latest User intent from the Follow-up question and the Chat history.
-    - Reformulate the latest User Follow-up question into a clear, standalone question suitable for processing by the agent.
+    - Determine the latest User intent from the follow-up question and the chat history.
+    - Reformulate the latest User follow-up question into a clear, standalone question suitable for processing by the agent.
     - Specify the detected language for the answer.
     - Define the desired answer format.
     - Include any additional requirements as needed.
 
 3. **Output**:
     - Produce a goal string in the following format:
-      "[Refined Question] (Answer language: [Detected Language], Answer format: [Format], Include necessary citations from source_uri)"
+      "[Refined Question] (Lang: [Detected Language], Format: [Format], Background: [Specified Goal Scenario])"
 
 **Example**:
 
@@ -353,13 +353,17 @@ Chat history:
 
 []
 
+---------------------
+
 Follow-up question:
 
 "tidb encryption at rest 会影响数据压缩比例吗？"
 
+---------------------
+
 Goal:
 
-Does encryption at rest in TiDB affect the data compression ratio? (Answer language: Chinese, Answer format: text, Include necessary citations from source_uri)
+Does encryption at rest in TiDB affect the data compression ratio? (Lang: Chinese, Format: text, Background: TiDB product related consulting.)
 
 **Your Task**:
 
