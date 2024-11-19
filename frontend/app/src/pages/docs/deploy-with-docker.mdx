@@ -12,13 +12,13 @@ This document provides instructions for deploying the entire RAG using Docker Co
 1. Clone the repository:
 
     ```bash
-    git clone https://github.com/pingcap/tidb.ai.git
-    cd tidb.ai
+    git clone https://github.com/pingcap/autoflow.git;
+    cd autoflow/;
     ```
 
-2. Select an embedding model for TiDB.AI.
+2. Select an embedding model for pingcap/autoflow.
 
-    We recommend using the OpenAI text-embedding-3-small model for TiDB.AI, but you can also use other supported embedding models.
+    We recommend using the OpenAI text-embedding-3-small model for autoflow, but you can also use other supported embedding models.
 
     - OpenAI
         - text-embedding-3-small
@@ -56,8 +56,8 @@ If you want to use a different embedding model after deployment, you need to rec
     Replace the following placeholders with your own values:
     - `SECRET_KEY`: you can generate a random secret key using `python3 -c "import secrets; print(secrets.token_urlsafe(32))"`
     - `TIDB_HOST`, `TIDB_USER`, `TIDB_PASSWORD` and `TIDB_DATABASE`: get them from your [TiDB Serverless cluster](https://tidbcloud.com/)
-
       - Note: TiDB Serverless will provide a default database name called `test`, if you want to use another database name, you need to create a new database in the TiDB Serverless console.
+      - Note: Don't use '#' in the password, it will cause an error when connecting to the database. See [issue](https://github.com/pydantic/pydantic/issues/8061).
     - `EMBEDDING_DIMS` and `EMBEDDING_MAX_TOKENS`: set them according to the embedding model you choose before, it can not be changed after the deployment.
 
 4. Migrate the database schema:
@@ -88,7 +88,7 @@ If you want to use a different embedding model after deployment, you need to rec
 
 7. Open your browser and visit `http://localhost:3000` to access the web interface.
 
-That's it! You can now use TiDB.AI locally. You can also go to https://tidb.ai to experience the live demo.
+That's it! You can now use pingcap/autoflow locally. You can also go to https://tidb.ai to experience the live demo.
 
 
 ## Configuration
@@ -104,9 +104,9 @@ After you deploy the tool, you need to initialize the tool by following the popu
 
 ## Upgrade
 
-This section will help you upgrade tidb.ai to the new version.
+This section will help you upgrade pingcap/autoflow to the new version.
 
-Suppose you want to upgrade tidb.ai from 0.1.0 to version 0.2.0
+Suppose you want to upgrade pingcap/autoflow from 0.1.0 to version 0.2.0
 
 1. Edit your docker-compose.yml file to use the new image version.
 

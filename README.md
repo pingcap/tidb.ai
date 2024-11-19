@@ -1,8 +1,8 @@
 <!-- markdownlint-disable MD033 MD041 -->
 
 <div align="center">
-<h1>TiDB.AI</h1>
-  <a href='https://tidb.cloud/?utm_source=github&utm_medium=tidb.ai'>
+<h1>autoflow</h1>
+  <a href='https://www.pingcap.com/tidb-cloud-serverless/?utm_source=tidb.ai&utm_medium=community'>
     <img src="https://raw.githubusercontent.com/pingcap/tidb.ai/main/frontend/app/public/nextra/icon-dark.svg" alt="TiDB.AI" width =100 height=100></img>
   </a>
 </div>
@@ -13,9 +13,9 @@
 
 ## Introduction
 
-An open source GraphRAG (Knowledge Graph) built on top of [TiDB Vector](https://tidb.cloud/ai) and [LlamaIndex](https://github.com/run-llama/llama_index) and [DSPy](https://github.com/stanfordnlp/dspy).
+An open source GraphRAG (Knowledge Graph) built on top of [TiDB Vector](https://www.pingcap.com/ai?utm_source=tidb.ai&utm_medium=community) and [LlamaIndex](https://github.com/run-llama/llama_index) and [DSPy](https://github.com/stanfordnlp/dspy).
 
-- **Live Demo**: [TiDB.AI](https://tidb.cloud/?utm_source=github&utm_medium=tidb.ai)
+- **Live Demo**: [TiDB.AI](https://tidb.ai)
 - **Documentation**: [Docs](https://tidb.ai/docs/?utm_source=github&utm_medium=tidb.ai)
 
 ## Features
@@ -38,7 +38,7 @@ An open source GraphRAG (Knowledge Graph) built on top of [TiDB Vector](https://
 
 ## Tech Stack
 
-- [TiDB](https://pingcap.com/ai/?utm_source=github&utm_medium=tidb.ai) – Database to store chat history, vector, json, and analytic
+- [TiDB](https://www.pingcap.com/ai?utm_source=tidb.ai&utm_medium=community) – Database to store chat history, vector, json, and analytic
 - [LlamaIndex](https://www.llamaindex.ai/) - RAG framework
 - [DSPy](https://github.com/stanfordnlp/dspy) - The framework for programming—not prompting—foundation models
 - [Next.js](https://nextjs.org/) – Framework

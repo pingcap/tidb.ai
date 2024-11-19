@@ -9,7 +9,7 @@ services:
     command: ["redis-server", "--loglevel", "warning"]
 
   backend:
-    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-backend:0.2.8
+    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-backend:0.2.9
     restart: always
     depends_on:
       - redis
@@ -26,7 +26,7 @@ services:
         max-file: "6"
 
   frontend:
-    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-frontend:0.2.8
+    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-frontend:0.2.9
     restart: always
     depends_on:
       - backend
@@ -41,7 +41,7 @@ services:
         max-file: "6"
 
   background:
-    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-backend:0.2.8
+    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-backend:0.2.9
     restart: always
     depends_on:
       - redis
@@ -64,6 +64,10 @@ services:
       - 5001:5001
     environment:
       - HF_ENDPOINT=https://hf-mirror.com
+      - PRE_LOAD_DEFAULT_EMBEDDING_MODEL=true
+      # If you want to pre-load the default reranker model, change the following environment to true
+      - PRE_LOAD_DEFAULT_RERANKER_MODEL=false
+      - TRANSFORMERS_OFFLINE=1
     # volumes:
     #  - ./local-embedding-reranker:/root/.cache/huggingface
     # If you are using NVIDIA GPU, you can uncomment the following lines to enable GPU support

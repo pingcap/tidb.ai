@@ -1,5 +1,5 @@
 import logging
-from typing import List
+from typing import List, Optional
 
 from llama_index.core import VectorStoreIndex
 from llama_index.core.schema import NodeWithScore
@@ -157,7 +157,7 @@ class RetrieveService:
 
         return source_documents
 
-    def _embedding_retrieve(self, question: str, top_k: int) -> List[DBDocument]:
+    def _embedding_retrieve(self, question: str, top_k: int) -> List[NodeWithScore]:
         _embed_model = get_default_embedding_model(self.db_session)
 
         vector_store = TiDBVectorStore(session=self.db_session, chunk_db_model=self._chunk_model)
@@ -172,9 +172,7 @@ class RetrieveService:
         )
 
         node_list: List[NodeWithScore] = retrieve_engine.retrieve(question)
-        source_documents = self._get_source_documents(node_list)
-
-        return source_documents
+        return node_list
 
     def _get_source_documents(self, node_list: List[NodeWithScore]) -> List[DBDocument]:
         source_nodes_ids = [s_n.node_id for s_n in node_list]

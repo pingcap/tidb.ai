@@ -4,6 +4,7 @@ from fastapi import APIRouter
 from app.models import Document
 from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.rag.retrieve import RetrieveService
+from llama_index.core.schema import NodeWithScore
 
 router = APIRouter()
 
@@ -27,6 +28,6 @@ async def embedding_retrieve(
     question: str,
     chat_engine: str = "default",
     top_k: Optional[int] = 5,
-) -> List[Document]:
+) -> List[NodeWithScore]:
     retrieve_service = RetrieveService(session, chat_engine)
     return retrieve_service._embedding_retrieve(question, top_k=top_k)
