@@ -1,4 +1,7 @@
 import logging
+import os
+import random
+
 import requests
 import typing
 import uuid
@@ -18,9 +21,15 @@ from app.evaluation.evaluators import (
     ToxicityEvaluator,
     E2ERagEvaluator,
 )
+import pandas as pd
+from ragas.metrics import LLMContextRecall, Faithfulness, FactualCorrectness, SemanticSimilarity
+from ragas import evaluate, EvaluationDataset
+from ragas.llms import LangchainLLMWrapper
+from ragas.embeddings import LangchainEmbeddingsWrapper
+from langchain_openai import ChatOpenAI
+from langchain_openai import OpenAIEmbeddings
 
 logger = logging.getLogger(__name__)
-
 
 DEFAULT_METRICS = ["toxicity", "language"]
 DEFAULT_TIDB_AI_CHAT_ENGINE = "default"
@@ -31,7 +40,7 @@ class Evaluation:
     Evaluate a dataset using TiDB AI and Langfuse.
 
     Args:
-        dataset_name: The name of the dataset in langfuse to evaluate.
+        dataset_name: "asktug" or the name of the dataset in langfuse to evaluate
         run_name: The name of the run to create. If not provided, a random name will be generated.
         llm_provider: The LLM provider to use. Can be "openai" or "google".
 
@@ -44,15 +53,18 @@ class Evaluation:
     """
 
     def __init__(
-        self,
-        dataset_name: str,
-        run_name: typing.Optional[str] = None,
-        llm_provider: typing.Literal["openai", "gemini"] = "openai",
-        tidb_ai_chat_engine: typing.Optional[str] = DEFAULT_TIDB_AI_CHAT_ENGINE,
+            self,
+            dataset_name: str,
+            run_name: typing.Optional[str] = None,
+            llm_provider: typing.Literal["openai", "gemini"] = "openai",
+            tidb_ai_chat_engine: typing.Optional[str] = DEFAULT_TIDB_AI_CHAT_ENGINE,
     ) -> None:
         self.langfuse = Langfuse()
         self.dataset_name = dataset_name
-        self.dataset = self.langfuse.get_dataset(dataset_name)
+        self.is_asktug = dataset_name == "asktug"
+        if not self.is_asktug:
+            self.dataset = self.langfuse.get_dataset(dataset_name)
+
         self.tidb_ai_chat_engine = tidb_ai_chat_engine
 
         if run_name is None:
@@ -74,6 +86,47 @@ class Evaluation:
             "toxicity": ToxicityEvaluator(llm=self._llama_llm),
             "e2e_rag": E2ERagEvaluator(model="gpt-4o"),
         }
+
+    def run_asktug(self, csv_dataset: str, run_size: int = 30) -> None:
+        if not os.path.exists(csv_dataset):
+            raise FileNotFoundError(f"File not found: {csv_dataset}")
+
+        df = pd.read_csv(csv_dataset)
+        df_qa = df.get(key=['title', 'content', 'accepted_answer_cooked'])
+        eval_list = df_qa.to_dict(orient='records')
+        random.shuffle(eval_list)
+        eval_list = eval_list[:run_size]
+
+        ragas_list = []
+        for item in tqdm(eval_list):
+            messages = [{"role": "user", "content": f"Title: {item['title']}\n\n Content: {item['content']}"}]
+            response, _ = self._generate_answer_by_tidb_ai(messages)
+            user_input = json.dumps(messages)
+            reference = item["accepted_answer_cooked"]
+
+            ragas_list.append({
+                "user_input": user_input,
+                "reference": reference,
+                "response": response,
+                # TODO: we cannot get retrieved_contexts now, due to the external engine
+                # "retrieved_contexts": [],
+            })
+
+        ragas_dataset = EvaluationDataset.from_list(ragas_list)
+        evaluator_llm = LangchainLLMWrapper(ChatOpenAI(model="gpt-4o"))
+        evaluator_embeddings = LangchainEmbeddingsWrapper(OpenAIEmbeddings())
+        metrics = [
+            # LLMContextRecall(llm=evaluator_llm),  # retrieved_contexts required
+            FactualCorrectness(llm=evaluator_llm),
+            # Faithfulness(llm=evaluator_llm),  # retrieved_contexts required
+            SemanticSimilarity(embeddings=evaluator_embeddings)
+        ]
+        results = evaluate(dataset=ragas_dataset, metrics=metrics)
+        df_results = results.to_pandas()
+        df_results = df_results.applymap(lambda x: x.replace('\n', '\\n').replace('\r', '\\r') if isinstance(x, str) else x)
+        df_results.to_csv(f"results_{self.run_name}.csv")
+
+        print(f"Saved results to results_{self.run_name}.csv")
 
     def run(self, metrics: list = DEFAULT_METRICS) -> None:
         for item in tqdm(self.dataset.items):
@@ -146,7 +199,7 @@ class Evaluation:
         return sample_data
 
     @retry(stop=stop_after_attempt(2), wait=wait_fixed(5))
-    def _generate_answer_by_tidb_ai(self, messages: list) -> str:
+    def _generate_answer_by_tidb_ai(self, messages: list) -> (str, str):
         response = requests.post(
             settings.TIDB_AI_CHAT_ENDPOINT,
             headers={
@@ -162,9 +215,33 @@ class Evaluation:
         )
         response.raise_for_status()
         data = response.json()
-        trace_url = data["trace"]["langfuse_url"]
+        if data["trace"] is None:
+            trace_id = None
+        else:
+            trace_url = data["trace"]["langfuse_url"]
+            trace_id = parse_langfuse_trace_id_from_url(trace_url)
+
         answer = data["content"]
-        return answer, parse_langfuse_trace_id_from_url(trace_url)
+        return answer, trace_id
+
+    def generate_answer_by_tidb_ai(self, messages: list) -> str:
+        response = requests.post(
+            settings.TIDB_AI_CHAT_ENDPOINT,
+            headers={
+                "Content-Type": "application/json",
+                "Authorization": f"Bearer {settings.TIDB_AI_API_KEY}",
+            },
+            json={
+                "messages": messages,
+                "index": "default",
+                "chat_engine": self.tidb_ai_chat_engine,
+                "stream": False,
+            },
+        )
+        response.raise_for_status()
+        data = response.text
+
+        return data
 
 
 def parse_langfuse_trace_id_from_url(trace_url: str) -> str:
@@ -188,7 +265,7 @@ def fetch_rag_data(langfuse_client: Langfuse, tracing_id: str):
         "output": (
             tracing_data.data.output["content"]
             if tracing_data.data.output is not None
-            and "content" in tracing_data.data.output
+               and "content" in tracing_data.data.output
             else None
         ),
         "source_tracing_id": tracing_id,
