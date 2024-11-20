@@ -108,6 +108,7 @@ const knowledgeGraphIndexProgressSchema = z.object({
   documents: totalSchema,
   chunks: totalSchema,
   kg_index: indexSchema.optional(),
+  entities: totalSchema.optional(),
   relationships: totalSchema.optional(),
 }) satisfies ZodType<KnowledgeGraphIndexProgress>;
 
