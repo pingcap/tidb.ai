@@ -80,8 +80,8 @@ class RetrieveService:
                 dspy_lm=_fast_dspy_lm,
                 session=self.db_session,
                 embed_model=_embed_model,
-                entity_model=self._entity_model,
-                relationship_model=self._relationship_model,
+                entity_db_model=self._entity_model,
+                relationship_db_model=self._relationship_model,
             )
             graph_index: KnowledgeGraphIndex = KnowledgeGraphIndex.from_existing(
                 dspy_lm=_fast_dspy_lm,
