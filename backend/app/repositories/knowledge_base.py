@@ -101,7 +101,7 @@ class KnowledgeBaseRepo(BaseRepo):
 
     def count_data_sources(self, session: Session, kb: KnowledgeBase) -> int:
         return session.scalar(
-            select(func.count(KnowledgeBaseDataSource.id)).where(KnowledgeBaseDataSource.knowledge_base_id == kb.id)
+            select(func.count(KnowledgeBaseDataSource.data_source_id)).where(KnowledgeBaseDataSource.knowledge_base_id == kb.id)
         )
 
     def count_documents(self, session: Session, kb: KnowledgeBase) -> int:
