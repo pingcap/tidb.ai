@@ -5,7 +5,7 @@ import logging
 import dspy
 
 from uuid import UUID
-from typing import List, Generator, Optional, Tuple, Callable
+from typing import List, Generator, Optional, Tuple, Callable, Type
 from datetime import datetime, UTC
 from urllib.parse import urljoin
 
@@ -71,9 +71,9 @@ logger = logging.getLogger(__name__)
 
 
 class ChatService:
-    _chunk_db_model: SQLModel = DBChunk
-    _entity_db_model: SQLModel = DBEntity
-    _relationship_db_model: SQLModel = DBRelationship
+    _chunk_db_model: Type[SQLModel] = DBChunk
+    _entity_db_model: Type[SQLModel] = DBEntity
+    _relationship_db_model: Type[SQLModel] = DBRelationship
 
     def __init__(
             self,
