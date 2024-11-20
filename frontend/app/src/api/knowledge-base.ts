@@ -43,20 +43,27 @@ import { authenticationHeaders, handleErrors, handleResponse, type PageParams, r
 import { zodJsonDate } from '@/lib/zod';
 import { z, type ZodType } from 'zod';
 
+export type KnowledgeBaseIndexMethod = 'vector' | 'knowledge_graph';
+
 export interface CreateKnowledgeBaseParams {
   name: string;
   description: string;
-  index_methods: ('vector' | 'knowledge_graph')[];
+  index_methods: KnowledgeBaseIndexMethod[];
   llm_id?: number | null;
   embedding_model_id?: number | null;
   data_sources: (BaseCreateDatasourceParams & CreateDatasourceSpecParams)[];
+}
+
+export interface UpdateKnowledgeBaseParams {
+  name?: string;
+  description?: string;
 }
 
 export interface KnowledgeBaseSummary {
   id: number;
   name: string;
   description: string;
-  index_methods: ('vector' | 'knowledge_graph')[];
+  index_methods: KnowledgeBaseIndexMethod[];
   documents_total?: number;
   data_sources_total?: number;
   created_at: Date;
@@ -147,7 +154,7 @@ export async function listKnowledgeBases ({ page = 1, size = 10 }: PageParams) {
     .then(handleResponse(zodPage(knowledgeBaseSummarySchema)));
 }
 
-export async function getKnowledgeBaseById (id: number) {
+export async function getKnowledgeBaseById (id: number): Promise<KnowledgeBase> {
   return await fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}`), {
     headers: await authenticationHeaders(),
   })
@@ -164,6 +171,17 @@ export async function getKnowledgeBaseDocumentChunks (id: number, documentId: nu
 export async function createKnowledgeBase (params: CreateKnowledgeBaseParams) {
   return await fetch(requestUrl('/api/v1/admin/knowledge_bases'), {
     method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...await authenticationHeaders(),
+    },
+    body: JSON.stringify(params),
+  }).then(handleResponse(knowledgeBaseSchema));
+}
+
+export async function updateKnowledgeBase (id: number, params: UpdateKnowledgeBaseParams) {
+  return await fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}`), {
+    method: 'PUT',
     headers: {
       'Content-Type': 'application/json',
       ...await authenticationHeaders(),
