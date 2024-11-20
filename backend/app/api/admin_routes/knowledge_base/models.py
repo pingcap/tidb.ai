@@ -51,8 +51,11 @@ class KnowledgeBaseCreate(BaseKnowledgeBaseSetting):
     data_sources: list[CreateKBDataSourceRequest]
 
 
-class KnowledgeBaseUpdate(BaseKnowledgeBaseSetting):
-    pass
+class KnowledgeBaseUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    index_methods: Optional[list[IndexMethod]] = None
+    llm_id: Optional[int] = None
 
 
 class KBDataSource(BaseModel):
