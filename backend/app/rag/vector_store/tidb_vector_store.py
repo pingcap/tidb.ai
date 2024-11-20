@@ -1,6 +1,7 @@
 import logging
 from typing import Any, List, Optional
 
+import tidb_vector
 from llama_index.core.schema import BaseNode, MetadataMode, TextNode
 from llama_index.core.bridge.pydantic import PrivateAttr
 from llama_index.core.vector_stores.types import (
@@ -13,7 +14,6 @@ from llama_index.core.vector_stores.utils import (
     node_to_metadata_dict,
 )
 import sqlalchemy
-from sqlalchemy import text
 from sqlmodel import (
     SQLModel,
     Session,
@@ -21,6 +21,7 @@ from sqlmodel import (
     select,
     asc,
 )
+from tidb_vector.sqlalchemy import VectorAdaptor
 
 from app.core.db import engine
 from app.models import Chunk
@@ -70,6 +71,12 @@ class TiDBVectorStore(BasePydanticVectorStore):
 
         if table_name not in inspector.get_table_names():
             self._chunk_db_model.metadata.create_all(engine, tables=[self._chunk_db_model.__table__])
+
+            # Add HNSW index to accelerate ann queries.
+            VectorAdaptor(engine).create_vector_index(
+                self._chunk_db_model.embedding, tidb_vector.DistanceMetric.COSINE
+            )
+
             logger.info(f"Chunk table <{table_name}> has been created successfully.")
         else:
             logger.info(f"Chunk table <{table_name}> is already exists, no action to do.")
@@ -79,7 +86,6 @@ class TiDBVectorStore(BasePydanticVectorStore):
         table_name = self._chunk_db_model.__tablename__
 
         if table_name in inspector.get_table_names():
-            # self._session.exec(text(f"DROP TABLE {table_name}"))
             self._chunk_db_model.metadata.drop_all(self._session.connection(), tables=[self._chunk_db_model.__table__])
             logger.info(f"Chunk table <{table_name}> has been dropped successfully.")
         else:

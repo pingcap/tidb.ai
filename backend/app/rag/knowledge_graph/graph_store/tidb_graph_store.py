@@ -1,6 +1,7 @@
 import dspy
 import logging
 import numpy as np
+import tidb_vector
 from dspy.functional import TypedPredictor
 from deepdiff import DeepDiff
 from typing import List, Optional, Tuple, Dict, Set, Type
@@ -11,6 +12,8 @@ from llama_index.embeddings.openai import OpenAIEmbedding, OpenAIEmbeddingModelT
 import sqlalchemy
 from sqlmodel import Session, asc, func, select, text, SQLModel
 from sqlalchemy.orm import aliased, defer, joinedload
+from tidb_vector.sqlalchemy import VectorAdaptor
+
 from app.core.db import engine
 from app.rag.knowledge_graph.base import KnowledgeGraphStore
 from app.rag.knowledge_graph.schema import Entity, Relationship, SynopsisEntity
@@ -104,12 +107,27 @@ class TiDBGraphStore(KnowledgeGraphStore):
 
         if entities_table_name not in existed_table_names:
             self._entity_model.metadata.create_all(engine, tables=[self._entity_model.__table__])
+
+            # Add HNSW index to accelerate ann queries.
+            VectorAdaptor(engine).create_vector_index(
+                self._entity_model.description_vec, tidb_vector.DistanceMetric.COSINE
+            )
+            VectorAdaptor(engine).create_vector_index(
+                self._entity_model.meta_vec, tidb_vector.DistanceMetric.COSINE
+            )
+
             logger.info(f"Entities table <{entities_table_name}> has been created successfully.")
         else:
             logger.info(f"Entities table <{entities_table_name}> is already exists, not action to do.")
 
         if relationships_table_name not in existed_table_names:
             self._relationship_model.metadata.create_all(engine, tables=[self._relationship_model.__table__])
+
+            # Add HNSW index to accelerate ann queries.
+            VectorAdaptor(engine).create_vector_index(
+                self._relationship_model.description_vec, tidb_vector.DistanceMetric.COSINE
+            )
+
             logger.info(f"Relationships table <{relationships_table_name}> has been created successfully.")
         else:
             logger.info(f"Relationships table <{relationships_table_name}> is already exists, not action to do.")
