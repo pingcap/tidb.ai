@@ -33,7 +33,8 @@ from app.tasks import (
     build_index_for_document,
 )
 from app.repositories import knowledge_base_repo, data_source_repo, document_repo
-from app.tasks.knowledge_base import import_documents_for_knowledge_base, purge_knowledge_base_related_resources
+from app.tasks.knowledge_base import import_documents_for_knowledge_base, purge_knowledge_base_related_resources, \
+    stats_for_knowledge_base
 from ..document.models import DocumentItem, DocumentFilters
 
 router = APIRouter()
@@ -178,6 +179,9 @@ def get_knowledge_base_index_overview(
 ) -> dict:
     try:
         knowledge_base = knowledge_base_repo.must_get(session, knowledge_base_id)
+
+        stats_for_knowledge_base.delay(knowledge_base.id)
+
         return knowledge_base_repo.get_index_overview(session, knowledge_base)
     except KnowledgeBaseNotFoundError as e:
         raise e

@@ -44,6 +44,28 @@ def import_documents_for_knowledge_base(knowledge_base_id: int):
 
 
 @celery_app.task
+def stats_for_knowledge_base(knowledge_base_id: int):
+    try:
+        with Session(engine) as session:
+            kb = knowledge_base_repo.must_get(session, knowledge_base_id)
+
+            documents_total = knowledge_base_repo.count_documents(session, kb)
+            data_sources_total = knowledge_base_repo.count_data_sources(session, kb)
+
+            kb.documents_total = documents_total
+            kb.data_sources_total = data_sources_total
+
+            session.add(kb)
+            session.commit()
+
+        logger.info(f"Successfully running stats for knowledge base #{knowledge_base_id}")
+    except KnowledgeBaseNotFoundError:
+        logger.error(f"Knowledge base #{knowledge_base_id} is not found")
+    except Exception as e:
+        logger.exception(f"Failed to run stats for knowledge base #{knowledge_base_id}", exc_info=e)
+
+
+@celery_app.task
 def purge_knowledge_base_related_resources(knowledge_base_id: int):
     """Purge all resources related to a knowledge base.
 

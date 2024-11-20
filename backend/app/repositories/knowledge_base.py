@@ -12,7 +12,7 @@ from app.models import (
     KnowledgeBase,
     Document,
     DocIndexTaskStatus,
-    KgIndexStatus, Chunk,
+    KgIndexStatus, Chunk, KnowledgeBaseDataSource,
 )
 from app.models.chunk import get_kb_chunk_model
 from app.models.entity import get_kb_entity_model
@@ -79,7 +79,6 @@ class KnowledgeBaseRepo(BaseRepo):
             "chunks": {
                 "total": chunks_total
             },
-
         }
 
         if IndexMethod.VECTOR in kb.index_methods:
@@ -99,6 +98,11 @@ class KnowledgeBaseRepo(BaseRepo):
             overview_data.update(self.count_chunks_by_kg_index_status(session, kb))
 
         return overview_data
+
+    def count_data_sources(self, session: Session, kb: KnowledgeBase) -> int:
+        return session.scalar(
+            select(func.count(KnowledgeBaseDataSource.id)).where(KnowledgeBaseDataSource.knowledge_base_id == kb.id)
+        )
 
     def count_documents(self, session: Session, kb: KnowledgeBase) -> int:
         return session.scalar(
