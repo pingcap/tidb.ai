@@ -40,7 +40,7 @@ class Evaluation:
     Evaluate a dataset using TiDB AI and Langfuse.
 
     Args:
-        dataset_name: "asktug" or the name of the dataset in langfuse to evaluate
+        dataset_name: "customize" or the name of the dataset in langfuse to evaluate
         run_name: The name of the run to create. If not provided, a random name will be generated.
         llm_provider: The LLM provider to use. Can be "openai" or "google".
 
@@ -61,8 +61,8 @@ class Evaluation:
     ) -> None:
         self.langfuse = Langfuse()
         self.dataset_name = dataset_name
-        self.is_asktug = dataset_name == "asktug"
-        if not self.is_asktug:
+        self.is_customize_dataset = dataset_name == "customize"
+        if not self.is_customize_dataset:
             self.dataset = self.langfuse.get_dataset(dataset_name)
 
         self.tidb_ai_chat_engine = tidb_ai_chat_engine
@@ -87,7 +87,7 @@ class Evaluation:
             "e2e_rag": E2ERagEvaluator(model="gpt-4o"),
         }
 
-    def run_asktug(self, csv_dataset: str, run_size: int = 30) -> None:
+    def runeval_dataset(self, csv_dataset: str, run_size: int = 30) -> None:
         if not os.path.exists(csv_dataset):
             raise FileNotFoundError(f"File not found: {csv_dataset}")
 
