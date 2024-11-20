@@ -75,7 +75,9 @@ class KnowledgeBaseDetail(BaseModel):
     # https://github.com/fastapi/sqlmodel/issues/37#issuecomment-2093607242
     data_sources: list[KBDataSource]
     index_methods: list[IndexMethod]
+    llm_id: int | None = None
     llm: LLMDescriptor | None = None
+    embedding_model_id: int | None = None
     embedding_model: EmbeddingModelDescriptor | None = None
     creator: UserDescriptor | None = None
     created_at: datetime | None = None
