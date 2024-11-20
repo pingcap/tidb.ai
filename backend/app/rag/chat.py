@@ -51,10 +51,8 @@ from app.rag.chat_stream_protocol import (
 )
 from app.models.relationship import get_kb_relationship_model
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
-from app.rag.knowledge_graph.graph_store import (
-    TiDBGraphStore,
-    tidb_graph_editor as editor,
-)
+from app.rag.knowledge_graph.graph_store.tidb_graph_editor import legacy_tidb_graph_editor
+
 from app.rag.knowledge_graph import KnowledgeGraphIndex
 from app.rag.chat_config import ChatEngineConfig, get_default_embedding_model, KnowledgeGraphOption
 from app.rag.types import (
@@ -1044,7 +1042,7 @@ def get_chat_message_subgraph(
                 and len(chat_message.graph_data["relationships"]) > 0
         ):
             relationship_ids = chat_message.graph_data["relationships"]
-            all_entities, all_relationships = editor.get_relationship_by_ids(
+            all_entities, all_relationships = legacy_tidb_graph_editor.get_relationship_by_ids(
                 session, relationship_ids
             )
             entities = [
