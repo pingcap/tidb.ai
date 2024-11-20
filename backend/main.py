@@ -163,7 +163,8 @@ def runeval(dataset, llm_provider, run_name, tidb_ai_chat_engine):
 
 @cli.command()
 @click.option(
-    "--csv", default="topics.csv", help="Dataset CSV file name, default='topics.csv'"
+    "--csv", default="autoflow_dataset.csv",
+    help="Dataset CSV file name that contains two columns `query` and `reference`, default='autoflow_dataset.csv'"
 )
 @click.option(
     "--llm-provider",

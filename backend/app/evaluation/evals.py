@@ -92,21 +92,19 @@ class Evaluation:
             raise FileNotFoundError(f"File not found: {csv_dataset}")
 
         df = pd.read_csv(csv_dataset)
-        df_qa = df.get(key=['title', 'content', 'accepted_answer_cooked'])
-        eval_list = df_qa.to_dict(orient='records')
+        eval_list = df.to_dict(orient='records')
         random.shuffle(eval_list)
         eval_list = eval_list[:run_size]
 
         ragas_list = []
         for item in tqdm(eval_list):
-            messages = [{"role": "user", "content": f"Title: {item['title']}\n\n Content: {item['content']}"}]
+            messages = [{"role": "user", "content": item['query']}]
             response, _ = self._generate_answer_by_tidb_ai(messages)
             user_input = json.dumps(messages)
-            reference = item["accepted_answer_cooked"]
 
             ragas_list.append({
                 "user_input": user_input,
-                "reference": reference,
+                "reference": item["reference"],
                 "response": response,
                 # TODO: we cannot get retrieved_contexts now, due to the external engine
                 # "retrieved_contexts": [],
