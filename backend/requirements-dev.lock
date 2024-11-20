@@ -661,7 +661,7 @@ tenacity==8.4.2
     # via langchain-core
     # via llama-index-core
     # via llama-index-legacy
-tidb-vector==0.0.10
+tidb-vector==0.0.14
 tiktoken==0.7.0
     # via langchain-openai
     # via llama-index-core

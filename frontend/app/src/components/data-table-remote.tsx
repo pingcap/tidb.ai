@@ -61,7 +61,7 @@ export function DataTableRemote<TData, TValue> ({
   }, [rowSelection]);
 
   // Fetch data.
-  const { data, mutate, isLoading, isValidating } = useSWR(`${apiKey}?page=${pagination.pageIndex}&size=${pagination.pageSize}&query=${globalFilter}`, () => api({ page: pagination.pageIndex + 1, size: pagination.pageSize }, { globalFilter }), {
+  const { data, mutate, isLoading, isValidating } = useSWR(`${apiKey}?page=${pagination.pageIndex}&size=${pagination.pageSize}${globalFilter && `&query=${globalFilter}`}`, () => api({ page: pagination.pageIndex + 1, size: pagination.pageSize }, { globalFilter }), {
     refreshInterval,
     revalidateOnReconnect: false,
     revalidateOnFocus: false,

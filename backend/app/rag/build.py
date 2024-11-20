@@ -4,6 +4,7 @@ import dspy
 from llama_index.core import VectorStoreIndex
 from llama_index.core.llms.llm import LLM
 from llama_index.core.node_parser import SentenceSplitter
+from sqlalchemy.testing.plugin.plugin_base import warnings
 from sqlmodel import Session
 
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
@@ -20,9 +21,12 @@ from app.models import (
 logger = logging.getLogger(__name__)
 
 
+
 class BuildService:
     """
     Service class for build vector index and graph index.
+
+    (Deprecated) Using IndexService instead.
     """
 
     def __init__(
@@ -36,6 +40,7 @@ class BuildService:
     def build_vector_index_from_document(
         self, session: Session, db_document: DBDocument
     ):
+        warnings.warn("BuildService.build_vector_index_from_document is deprecated.", DeprecationWarning)
         embed_mode = get_default_embedding_model(session)
 
         if db_document.mime_type.lower() == "text/markdown":
@@ -67,11 +72,12 @@ class BuildService:
         document = db_document.to_llama_document()
         logger.info(f"Start building index for document {document.doc_id}")
         vector_index.insert(document, source_uri=db_document.source_uri)
-        logger.info(f"Finish building vecter index for document {document.doc_id}")
+        logger.info(f"Finish building vector index for document {document.doc_id}")
         vector_store.close_session()
         return
 
     def build_kg_index_from_chunk(self, session: Session, db_chunk: DBChunk):
+        warnings.warn("BuildService.build_kg_index_from_chunk is deprecated.", DeprecationWarning)
         embed_mode = get_default_embedding_model(session)
 
         # Build graph index will do the following:

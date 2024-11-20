@@ -14,11 +14,13 @@ import { NetworkContext } from './NetworkContext';
 import { TextareaField } from './TextareaField';
 
 export function NodeDetails ({
+  knowledgeBaseId,
   entity,
   onClickTarget,
   onUpdate,
   onEnterSubgraph,
 }: {
+  knowledgeBaseId: number,
   entity: Entity,
   onClickTarget?: (target: { type: string, id: IdType }) => void;
   onUpdate?: (newData: Entity) => void
@@ -31,8 +33,8 @@ export function NodeDetails ({
     return Array.from(network.nodeNeighborhoods(entity.id) ?? []).map(id => network.node(id)!);
   }, [network, entity.id]);
 
-  const latestData = useRemote(entity, getEntity, Number(entity.id));
-  const dirtyEntity = useDirtyEntity(entity.id);
+  const latestData = useRemote(entity, getEntity, knowledgeBaseId, Number(entity.id));
+  const dirtyEntity = useDirtyEntity(knowledgeBaseId, entity.id);
 
   // dirty set
   entity = latestData.data;

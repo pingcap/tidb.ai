@@ -4,7 +4,7 @@ import { useAction } from './action';
 import { type Entity } from './utils';
 import type { JsonFieldInstance } from './components/JsonField';
 
-export function useDirtyEntity (id: any) {
+export function useDirtyEntity (kbId: number, id: any) {
   const nameRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
   const metaRef = useRef<JsonFieldInstance | null>(null);
@@ -16,7 +16,7 @@ export function useDirtyEntity (id: any) {
       throw new Error('bad editor state');
     }
 
-    return await updateEntity(id, current);
+    return await updateEntity(kbId, id, current);
   });
 
   const reset = (entity: Entity) => {

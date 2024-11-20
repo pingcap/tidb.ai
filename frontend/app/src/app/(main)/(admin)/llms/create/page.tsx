@@ -13,6 +13,7 @@ export default function Page () {
     <>
       <AdminPageHeading
         breadcrumbs={[
+          { title: 'Models' },
           { title: 'LLMs', url: '/llms' },
           { title: 'Create' },
         ]}

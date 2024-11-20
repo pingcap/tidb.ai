@@ -1,3 +1,5 @@
+'use client';
+
 import { getChatMessageSubgraph } from '@/api/chats';
 import { getEntitySubgraph, type KnowledgeGraph, search } from '@/api/graph';
 import { LinkDetails } from '@/components/graph/components/LinkDetails';
@@ -17,10 +19,10 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import useSWR from 'swr';
 
-export function GraphEditor ({}: {}) {
+export function GraphEditor ({ knowledgeBaseId }: { knowledgeBaseId: number }) {
   const [query, setQuery] = useSearchParam('query', 'sample-question:What is TiDB?');
 
-  const [key, fetcher] = getFetchInfo(query);
+  const [key, fetcher] = getFetchInfo(knowledgeBaseId, query);
 
   const { data: span, isLoading, error } = useSWR(key, fetcher, { revalidateOnFocus: false });
 
@@ -30,7 +32,7 @@ export function GraphEditor ({}: {}) {
 
   return (
     <div className="p-4 space-y-4">
-      <SubgraphSelector query={query} onQueryChange={setQuery} />
+      <SubgraphSelector knowledgeBaseId={knowledgeBaseId} query={query} onQueryChange={setQuery} />
       {(error != null) && <Alert variant="destructive">
         <AlertTitle>Failed to fetch subgraph</AlertTitle>
         <AlertDescription>{getErrorMessage(error)}</AlertDescription>
@@ -46,6 +48,7 @@ export function GraphEditor ({}: {}) {
             Details={(props) => (
               ref.current && createPortal(
                 <Editor
+                  knowledgeBaseId={knowledgeBaseId}
                   {...props}
                   onEnterSubgraph={(type, id) => {
                     props.onTargetChange(undefined);
@@ -70,7 +73,7 @@ export function GraphEditor ({}: {}) {
   );
 }
 
-function SubgraphSelector ({ query, onQueryChange }: { query: string | null, onQueryChange: (query: string) => void }) {
+function SubgraphSelector ({ knowledgeBaseId, query, onQueryChange }: { knowledgeBaseId: number, query: string | null, onQueryChange: (query: string) => void }) {
   const [initialType = 'sample-question', initialInput = 'What is TiDB?'] = parseQuery(query) ?? [];
 
   const [type, setType] = useState<string>(initialType);
@@ -109,19 +112,19 @@ function SubgraphSelector ({ query, onQueryChange }: { query: string | null, onQ
           }
         }}
       />
-      <Link className={buttonVariants({})} href="/knowledge-graph/create-synopsis-entity">
+      <Link className={buttonVariants({})} href={`/knowledge-bases/${knowledgeBaseId}/knowledge-graph-explorer/create-synopsis-entity`}>
         Create Synopsis Entity
       </Link>
     </div>
   );
 }
 
-function Editor ({ network, target, onTargetChange, onEnterSubgraph }: NetworkViewerDetailsProps & { onEnterSubgraph: (type: string, entityId: IdType) => void }) {
+function Editor ({ knowledgeBaseId, network, target, onTargetChange, onEnterSubgraph }: NetworkViewerDetailsProps & { knowledgeBaseId: number, onEnterSubgraph: (type: string, entityId: IdType) => void }) {
   if (target) {
     if (target.type === 'link') {
-      return <LinkDetails relationship={network.link(target.id)!} onClickTarget={onTargetChange} onEnterSubgraph={onEnterSubgraph} />;
+      return <LinkDetails knowledgeBaseId={knowledgeBaseId} relationship={network.link(target.id)!} onClickTarget={onTargetChange} onEnterSubgraph={onEnterSubgraph} />;
     } else if (target.type === 'node') {
-      return <NodeDetails entity={network.node(target.id)!} onClickTarget={onTargetChange} onEnterSubgraph={onEnterSubgraph} />;
+      return <NodeDetails knowledgeBaseId={knowledgeBaseId} entity={network.node(target.id)!} onClickTarget={onTargetChange} onEnterSubgraph={onEnterSubgraph} />;
     }
   }
 
@@ -130,7 +133,7 @@ function Editor ({ network, target, onTargetChange, onEnterSubgraph }: NetworkVi
   </div>;
 }
 
-function getFetchInfo (query: string | null): [string | false, () => Promise<KnowledgeGraph>] {
+function getFetchInfo (kbId: number, query: string | null): [string | false, () => Promise<KnowledgeGraph>] {
   if (!query) {
     return [false, () => Promise.reject()];
   }
@@ -148,9 +151,9 @@ function getFetchInfo (query: string | null): [string | false, () => Promise<Kno
     // case 'document':
     //   return ['get', `/api/v1/indexes/${indexName}/chunks/${encodeURIComponent(parsedQuery[1])}/subgraph`];
     case 'entity':
-      return [`api.graph.entity-subgraph?id=${param}`, () => getEntitySubgraph(parseInt(param))];
+      return [`api.knowledge-bases.${kbId}.graph.entity-subgraph?id=${param}`, () => getEntitySubgraph(kbId, parseInt(param))];
     case 'sample-question':
-      return [`api.graph.search?query=${param}`, () => search({ query: param })];
+      return [`api.knowledge-bases.${kbId}.graph.search?query=${param}`, () => search(kbId, { query: param })];
     case 'message-subgraph':
       return [`api.chats.get-message-subgraph?id=${param}`, () => getChatMessageSubgraph(parseInt(param))];
   }
