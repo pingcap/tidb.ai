@@ -1,5 +1,5 @@
 import enum
-from typing import Optional, Any, List, Dict
+from typing import Optional, Any, List, Dict, Type
 
 from sqlmodel import (
     SQLModel,
@@ -66,7 +66,7 @@ class EntityPublic(EntityBase):
     id: int
 
 
-def get_kb_entity_model(kb: KnowledgeBase) -> SQLModel:
+def get_kb_entity_model(kb: KnowledgeBase) -> Type[SQLModel]:
     vector_dimension = get_kb_vector_dims(kb)
     entities_table_name = get_kb_entities_table_name(kb)
     ctx = get_kb_scoped_registry(kb)

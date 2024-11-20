@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Any, List, Dict
+from typing import Optional, Any, List, Dict, Type
 from uuid import UUID
 
 from sqlalchemy import Column, Text, JSON, DateTime
@@ -74,7 +74,7 @@ class RelationshipPublic(RelationshipBase):
     id: int
 
 
-def get_kb_relationship_model(kb: KnowledgeBase) -> SQLModel:
+def get_kb_relationship_model(kb: KnowledgeBase) -> Type[SQLModel]:
     vector_dimension = get_kb_vector_dims(kb)
     entities_table_name = get_kb_entities_table_name(kb)
     relationships_table_name = get_kb_relationships_table_name(kb)

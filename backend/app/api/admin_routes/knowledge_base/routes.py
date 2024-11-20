@@ -87,11 +87,8 @@ def create_knowledge_base(
         knowledge_base = knowledge_base_repo.create(session, knowledge_base)
 
         # Ensure the knowledge-base corresponding table schema are initialized.
-        if IndexMethod.VECTOR in knowledge_base.index_methods:
-            init_kb_tidb_vector_store(session, knowledge_base)
-
-        if IndexMethod.KNOWLEDGE_GRAPH in knowledge_base.index_methods:
-            init_kb_tidb_graph_store(session, knowledge_base)
+        init_kb_tidb_vector_store(session, knowledge_base)
+        init_kb_tidb_graph_store(session, knowledge_base)
 
         # Trigger import and index documents for knowledge base
         import_documents_for_knowledge_base.delay(knowledge_base.id)

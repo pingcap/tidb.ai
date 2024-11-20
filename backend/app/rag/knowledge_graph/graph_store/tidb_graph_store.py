@@ -15,10 +15,8 @@ from app.core.db import engine
 from app.rag.knowledge_graph.base import KnowledgeGraphStore
 from app.rag.knowledge_graph.schema import Entity, Relationship, SynopsisEntity
 from app.models import (
-    Chunk as DBChunk,
     Entity as DBEntity,
-    Relationship as DBRelationship,
-    EntityType,
+    Relationship as DBRelationship
 )
 from app.models import EntityType
 from app.rag.knowledge_graph.graph_store.helpers import (
@@ -74,8 +72,8 @@ class TiDBGraphStore(KnowledgeGraphStore):
         session: Optional[Session] = None,
         embed_model: Optional[EmbedType] = None,
         description_similarity_threshold=0.9,
-        entity_db_model: SQLModel = DBEntity,
-        relationship_db_model: SQLModel = DBRelationship,
+        entity_db_model: Type[SQLModel] = DBEntity,
+        relationship_db_model: Type[SQLModel] = DBRelationship,
     ):
         self._session = session
         self._owns_session = session is None
