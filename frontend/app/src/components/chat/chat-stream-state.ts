@@ -32,8 +32,10 @@ export const enum AppChatStreamState {
 
 export type StackVMState = {
   task_id: string;
-  state: StackVM.model.ParsedState
-  toolCalls: StackVMToolCall[]
+  branch: string;
+  state: StackVM.model.ParsedState;
+  seq_no: number;
+  toolCalls: StackVMToolCall[];
 };
 
 export type StackVMToolCall = { toolCallId: string, toolName: string, args: any, result?: any }
