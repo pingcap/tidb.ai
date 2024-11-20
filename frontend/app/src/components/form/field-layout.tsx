@@ -122,7 +122,7 @@ export function FormPrimitiveArrayFieldBasicLayout<
         <FormItem>
           <FormLabel>{label}</FormLabel>
           <ol className="space-y-2">
-            {(arrayField.value as any[]).map((_, index) => (
+            {(arrayField.value as any[] ?? []).map((_, index) => (
               <FormField
                 key={index}
                 name={`${name}.${index}`}

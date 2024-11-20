@@ -11,6 +11,7 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { zodFile } from '@/lib/zod';
 import { PlusIcon } from 'lucide-react';
+import { useId } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { z } from 'zod';
 
@@ -46,9 +47,6 @@ export function FormCreateDataSources () {
                   <DatasourceName index={index} />
                 </AccordionTrigger>
                 <AccordionContent className="space-y-4 px-2">
-                  <FormFieldBasicLayout name={`data_sources.${index}.name`} label="Datasource Name">
-                    <FormInput />
-                  </FormFieldBasicLayout>
                   <Tabs
                     value={field.data_source_type}
                     onValueChange={(value => update(index, { ...switchDatasource(field, value as never) }))}
@@ -80,6 +78,9 @@ export function FormCreateDataSources () {
                       <FormInput placeholder="https://example.com/sitemap.xml" />
                     </FormFieldBasicLayout>
                   )}
+                  <FormFieldBasicLayout name={`data_sources.${index}.name`} label="Datasource Name">
+                    <FormInput />
+                  </FormFieldBasicLayout>
                   <FormMessage />
                   {fields.length > 1 && <Button type="button" variant="outline" onClick={() => remove(index)}>Remove</Button>}
                 </AccordionContent>
