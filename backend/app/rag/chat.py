@@ -50,6 +50,7 @@ from app.rag.chat_stream_protocol import (
     ChatEvent,
 )
 from app.models.relationship import get_kb_relationship_model
+from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.knowledge_graph.graph_store.tidb_graph_editor import legacy_tidb_graph_editor
 
