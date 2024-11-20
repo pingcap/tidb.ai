@@ -1,5 +1,5 @@
 import { FormField } from '@/components/ui/form';
-import type { ReactElement } from 'react';
+import { type ReactElement, useId } from 'react';
 import { FieldArrayPath, type FieldValues, useFieldArray, UseFieldArrayReturn } from 'react-hook-form';
 
 export function FormArrayField<
@@ -8,11 +8,10 @@ export function FormArrayField<
   TKeyName extends string = 'id'
 > ({ name, render }: {
   name: TFieldArrayName,
-  render: (props: ArrayFieldRenderProps<TFieldValues, TFieldArrayName, TKeyName>) => ReactElement
+  render: (props: ArrayFieldRenderProps<TFieldValues, TFieldArrayName, TKeyName>) => ReactElement,
 }) {
-
   const field = useFieldArray<TFieldValues, TFieldArrayName, TKeyName>({
-    name: name,
+    name,
   });
 
   return (

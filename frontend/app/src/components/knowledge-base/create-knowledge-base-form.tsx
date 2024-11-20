@@ -26,7 +26,7 @@ export function CreateKnowledgeBaseForm ({}: {}) {
       description: '',
       index_methods: ['vector'],
       data_sources: [
-        { name: '', description: '', data_source_type: 'file', files: [] },
+        { name: 'Default Datasource', description: '', data_source_type: 'file', files: [] },
       ],
     },
   });
