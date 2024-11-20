@@ -197,19 +197,19 @@ export async function getKnowledgeGraphIndexProgress (id: number): Promise<Knowl
 }
 
 export async function listKnowledgeBaseVectorIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}) {
-  return fetch(requestUrl(`/api/v1/admin/knowledge_base/${id}/vector-index-errors`, { page, size }), {
+  return fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}/vector-index-errors`, { page, size }), {
     headers: await authenticationHeaders(),
   }).then(handleResponse(zodPage(vectorIndexErrorSchema)));
 }
 
 export async function listKnowledgeBaseKgIndexErrors (id: number, { page = 1, size = 10 }: PageParams = {}) {
-  return fetch(requestUrl(`/api/v1/admin/knowledge_base/${id}/kg-index-errors`, { page, size }), {
+  return fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}/kg-index-errors`, { page, size }), {
     headers: await authenticationHeaders(),
   }).then(handleResponse(zodPage(kgIndexErrorSchema)));
 }
 
 export async function retryKnowledgeBaseAllFailedTasks (id: number) {
-  return fetch(requestUrl(`/api/v1/admin/knowledge_base/${id}/retry-failed-tasks`), {
+  return fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}/retry-failed-index-tasks`), {
     method: 'POST',
     headers: {
       ...await authenticationHeaders(),
