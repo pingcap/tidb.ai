@@ -8,9 +8,10 @@ from app.exceptions import KBNoVectorIndexConfiguredError
 from app.models import KgIndexStatus
 from app.models.data_source import DataSourceType
 from app.models.knowledge_base import IndexMethod
+from app.models.patch.sql_model import SQLModel
 
 
-class CreateKBDataSourceRequest(BaseModel):
+class KBDataSourceCreate(BaseModel):
     id: Optional[int] = None
     name: str
     data_source_type: DataSourceType
@@ -25,11 +26,13 @@ class CreateKBDataSourceRequest(BaseModel):
     # TODO: verify DataSource config.
 
 
-class BaseKnowledgeBaseSetting(BaseModel):
+class KnowledgeBaseCreate(SQLModel):
     name: str
     description: str
     index_methods: list[IndexMethod]
     llm_id: Optional[int] = None
+    embedding_model_id: Optional[int] = None
+    data_sources: list[KBDataSourceCreate]
 
     @field_validator("name")
     def name_must_not_be_blank(cls, v: str) -> str:
@@ -46,16 +49,9 @@ class BaseKnowledgeBaseSetting(BaseModel):
         return v
 
 
-class KnowledgeBaseCreate(BaseKnowledgeBaseSetting):
-    embedding_model_id: Optional[int] = None
-    data_sources: list[CreateKBDataSourceRequest]
-
-
 class KnowledgeBaseUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
-    index_methods: Optional[list[IndexMethod]] = None
-    llm_id: Optional[int] = None
 
 
 class KBDataSource(BaseModel):
