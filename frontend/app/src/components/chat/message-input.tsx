@@ -41,7 +41,7 @@ export function MessageInput ({
   }, []);
 
   const showShowSelectChatEngine = !!auth.me?.is_superuser && !!onEngineChange;
-  const { data, isLoading } = useSWR(showShowSelectChatEngine && 'api.chat-engines.list', () => listChatEngines());
+  const { data, isLoading } = useSWR(showShowSelectChatEngine && 'api.chat-engines.list-all', () => listChatEngines({ page: 1, size: 100 }));
 
   return (
     <div className={cn('bg-background border p-2 rounded-lg', className)}>

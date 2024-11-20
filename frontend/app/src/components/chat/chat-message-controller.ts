@@ -218,8 +218,7 @@ export class StackVMChatMessageController extends BaseChatMessageController<Stac
       this._ongoing = {
         ...this._ongoing,
         state: {
-          task_id: this._ongoing.state.task_id,
-          state: this._ongoing.state.state,
+          ...this._ongoing.state,
           toolCalls: [...this._ongoing.state.toolCalls, payload],
         },
       };
@@ -244,11 +243,11 @@ export class StackVMChatMessageController extends BaseChatMessageController<Stac
   }
 
   parseAnnotation (raw: unknown): StackVMStateAnnotation {
-    const { state: rawState, task_id } = raw as { state: StackVM.State, task_id: string };
+    const { state: rawState, task_id, branch, seq_no } = raw as { state: StackVM.State, task_id: string, branch: string, seq_no: number };
     const state = StackVM.model.parseState(rawState);
 
     return {
-      state: { task_id, state, toolCalls: [] },
+      state: { task_id, branch, state, toolCalls: [], seq_no },
       display: '[deprecated]',
     };
   }
@@ -257,6 +256,8 @@ export class StackVMChatMessageController extends BaseChatMessageController<Stac
     return {
       state: {
         task_id: '',
+        branch: '',
+        seq_no: -1,
         state: {
           variables_refs: {},
           variables: {},
@@ -282,6 +283,8 @@ export class StackVMChatMessageController extends BaseChatMessageController<Stac
     return {
       state: {
         task_id: '',
+        branch: '',
+        seq_no: -1,
         state: {
           variables_refs: {},
           variables: {},
@@ -303,30 +306,7 @@ export class StackVMChatMessageController extends BaseChatMessageController<Stac
     };
   }
 
-  _polishMessage (message: ChatMessage, ongoing: OngoingState<StackVMState>, annotation: StackVMStateAnnotation): ChatMessage {
-    // FIX Initial state
-    // First step reasoning finished with PC = 1, we need to insert a PC = 0 state first.
-    if (annotation.state.state.program_counter === 1) {
-      if (!this._ongoingHistory?.find(item => item.state.state.state.program_counter === 0)) {
-        const lastState = {
-          state: {
-            state: {
-              ...ongoing.state,
-              state: { ...ongoing.state.state, program_counter: 0, variables: {}, variables_refs: {} },
-            },
-            finished: false,
-            display: '[deprecated]',
-          },
-          time: new Date(),
-        };
-        this._ongoing = lastState.state;
-        this._ongoingHistory = [
-          ...this._ongoingHistory ?? [],
-          lastState,
-        ];
-      }
-    }
-
+  _polishMessage (message: ChatMessage): ChatMessage {
     return message;
   }
 }

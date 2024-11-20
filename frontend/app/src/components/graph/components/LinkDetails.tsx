@@ -13,14 +13,16 @@ import { JsonField } from './JsonField';
 import { NetworkContext } from './NetworkContext';
 import { TextareaField } from './TextareaField';
 
-const loadRelationship = (id: number) => getRelationship(id).then(handleServerRelationship);
+const loadRelationship = (kbId: number, id: number) => getRelationship(kbId, id).then(handleServerRelationship);
 
 export function LinkDetails ({
+  knowledgeBaseId,
   relationship,
   onClickTarget,
   onUpdate,
   onEnterSubgraph,
 }: {
+  knowledgeBaseId: number,
   relationship: Relationship,
   onClickTarget?: (target: { type: string, id: IdType }) => void;
   onUpdate?: (newRelationship: Relationship) => void;
@@ -36,8 +38,8 @@ export function LinkDetails ({
   }, [network, relationship.source, relationship.target]);
 
   const [editing, setEditing] = useState(false);
-  const latestData = useRemote(relationship, loadRelationship, Number(relationship.id));
-  const dirtyRelationship = useDirtyRelationship(relationship.id);
+  const latestData = useRemote(relationship, loadRelationship, knowledgeBaseId, Number(relationship.id));
+  const dirtyRelationship = useDirtyRelationship(knowledgeBaseId, relationship.id);
 
   relationship = latestData.data;
 

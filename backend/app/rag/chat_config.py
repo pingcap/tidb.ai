@@ -1,5 +1,4 @@
 import os
-import json
 import logging
 from typing import Optional
 
@@ -25,11 +24,15 @@ from sqlmodel import Session, select
 from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 
+from app.rag.embeddings.openai_like_embedding import OpenAILikeEmbedding
 from app.rag.node_postprocessor import MetadataPostFilter
 from app.rag.node_postprocessor.metadata_post_filter import MetadataFilters
 from app.rag.node_postprocessor.baisheng_reranker import BaishengRerank
 from app.rag.node_postprocessor.local_reranker import LocalRerank
 from app.rag.embeddings.local_embedding import LocalEmbedding
+from app.repositories import chat_engine_repo
+from app.repositories.embedding_model import embedding_model_repo
+from app.repositories.llm import get_default_db_llm
 from app.types import LLMProvider, EmbeddingProvider, RerankerProvider
 from app.rag.default_prompt import (
     DEFAULT_INTENT_GRAPH_KNOWLEDGE,
@@ -45,10 +48,9 @@ from app.rag.default_prompt import (
 from app.models import (
     ChatEngine as DBChatEngine,
     LLM as DBLLM,
-    EmbeddingModel as DBEmbeddingModel,
     RerankerModel as DBRerankerModel,
 )
-from app.repositories import chat_engine_repo
+
 from app.rag.llms.anthropic_vertex import AnthropicVertex
 from app.utils.dspy import get_dspy_lm_by_llama_llm
 
@@ -83,8 +85,21 @@ class ExternalChatEngine(BaseModel):
     stream_chat_api_url: str = None
 
 
+class LinkedKnowledgeBase(BaseModel):
+    id: int
+
+
+class KnowledgeBaseOption(BaseModel):
+    linked_knowledge_base: LinkedKnowledgeBase
+    # TODO: Support multiple knowledge base retrieve.
+    # linked_knowledge_bases: List[LinkedKnowledgeBase]
+
+
 class ChatEngineConfig(BaseModel):
     llm: LLMOption = LLMOption()
+    # Notice: Currently knowledge base option is optional, if it is not configured, it will use
+    # the deprecated chunks / relationships / entities table as the data source.
+    knowledge_base: Optional[KnowledgeBaseOption] = None
     knowledge_graph: KnowledgeGraphOption = KnowledgeGraphOption()
     vector_search: VectorSearchOption = VectorSearchOption()
     post_verification_url: Optional[str] = None
@@ -241,9 +256,7 @@ def get_llm(
 
 
 def get_default_llm(session: Session) -> LLM:
-    db_llm = session.exec(
-        select(DBLLM).order_by(DBLLM.is_default.desc()).limit(1)
-    ).first()
+    db_llm = get_default_db_llm(session)
     if not db_llm:
         raise ValueError("No default LLM found in DB")
     return get_llm(
@@ -290,21 +303,27 @@ def get_embedding_model(
                 model=model,
                 **config,
             )
+        case EmbeddingProvider.OPENAI_LIKE:
+            api_base = config.pop("api_base", "https://open.bigmodel.cn/api/paas/v4")
+            return OpenAILikeEmbedding(
+                model=model,
+                api_base=api_base,
+                api_key=credentials,
+                **config,
+            )
         case _:
             raise ValueError(f"Got unknown embedding provider: {provider}")
 
 
 def get_default_embedding_model(session: Session) -> BaseEmbedding:
-    db_embedding_model = session.exec(
-        select(DBEmbeddingModel).order_by(DBEmbeddingModel.is_default.desc()).limit(1)
-    ).first()
-    if not db_embedding_model:
+    db_embed_model = embedding_model_repo.get_default_model(session)
+    if not db_embed_model:
         raise ValueError("No default embedding model found in DB")
     return get_embedding_model(
-        db_embedding_model.provider,
-        db_embedding_model.model,
-        db_embedding_model.config,
-        db_embedding_model.credentials,
+        db_embed_model.provider,
+        db_embed_model.model,
+        db_embed_model.config,
+        db_embed_model.credentials,
     )
 
 

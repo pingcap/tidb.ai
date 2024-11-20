@@ -49,7 +49,7 @@ export function StackVMMessageAnnotationHistory ({ message }: { message: StackVM
         return stackVMTaskUrl;
       }
 
-      return `https://stackvm-ui.vercel.app/tasks/${taskId}`
+      return `https://stackvm-ui.vercel.app/tasks/${taskId}`;
     } catch {
       return stackVMTaskUrl;
     }
@@ -117,10 +117,10 @@ const itemIconInitial: Target = { color: 'rgb(113 113 122 / 50)' };
 const itemSuccessIconAnimate: Target = { color: 'rgb(34 197 94)' };
 const itemErrorIconAnimate: Target = { color: 'rgb(239 68 68)' };
 
-function StackVMCheckpoint ({ state }: { state: StackVMState }) {
+function StackVMCheckpoint ({ state, pc }: { state: StackVMState, pc: boolean }) {
   const step = useMemo(() => {
-    return state.state.plan.steps.find(step => step.id === `step:${state.state.program_counter}`);
-  }, [state.state]);
+    return state.state.plan.steps.find(step => step.id === `step:${pc ? state.state.program_counter : state.seq_no}`);
+  }, [state.state, state.seq_no, pc]);
 
   if (!step) {
     return null;
@@ -138,10 +138,10 @@ function StackVMCheckpoint ({ state }: { state: StackVMState }) {
   }
 }
 
-function StackVMDetails (state: StackVMState) {
+function StackVMDetails ({ pc, state }: { state: StackVMState, pc: boolean }) {
   const step = useMemo(() => {
-    return state.state.plan.steps.find(step => step.id === `step:${state.state.program_counter}`);
-  }, [state.state]);
+    return state.state.plan.steps.find(step => step.id === `step:${pc ? state.state.program_counter : state.seq_no}`);
+  }, [state.state, state.seq_no, pc]);
 
   if (!step) {
     return null;
@@ -152,11 +152,9 @@ function StackVMDetails (state: StackVMState) {
       return <RemarkContent className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500/50 pt-1 prose-strong:text-muted-foreground">{(step as StackVM.model.StepModel<'reasoning'>).parameters.chain_of_thoughts}</RemarkContent>;
     case 'calling':
       return (
-        <ul className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500/50 pt-1">
-          {state.toolCalls.map(item => (
-            <ToolCallInfo key={item.toolCallId} toolCall={item} />
-          ))}
-        </ul>
+        <div className="ml-2 pl-4 text-muted-foreground text-xs border-l border-l-green-500/50 pt-1">
+          <ToolCallInfo step={step as StackVM.model.StepModel<'calling'>} vars={state.state.variables??{}} pc={state.state.program_counter} toolCalls={state.toolCalls} />
+        </div>
       );
     case 'assign':
       return (
@@ -176,16 +174,18 @@ function StackVMDetails (state: StackVMState) {
   }
 }
 
-function ToolCallInfo ({ toolCall }: { toolCall: StackVMToolCall }) {
+function ToolCallInfo ({ vars, step, pc, toolCalls }: { step: StackVM.model.StepModel<'calling'>, vars: Record<string, unknown>, pc: number | undefined, toolCalls: StackVMToolCall[] }) {
+  const result = toolCalls.find(tc => tc.toolCallId === `${pc}`)?.result;
+
   return (
     <div className="space-y-1">
       <div>
-        <b><code>{toolCall.toolName}</code></b>
+        <b><code>{step.parameters.tool_name}</code></b>
         {' '}
         <span>(</span>
       </div>
       <ul className="space-y-1">
-        {Object.entries(toolCall.args).map(([key, value]) => (
+        {Object.entries(step.parameters.tool_params).map(([key, value]) => (
           <li key={key} className="ml-2 flex gap-2 items-center">
             <div><code>{key}</code>:</div>
             <JsonValueViewer value={value} />
@@ -193,34 +193,23 @@ function ToolCallInfo ({ toolCall }: { toolCall: StackVMToolCall }) {
         ))}
       </ul>
       <span>)</span>
-      {('result' in toolCall) && <>
-        {(toolCall.result && typeof toolCall.result === 'object' && !(toolCall.result instanceof Array))
-          ? (
-            <>
-              <div className="flex items-center gap-2">
-                <b>Result:</b>
-                <span>{'{'}</span>
-              </div>
-              <ul className="space-y-1 block">
-                {Object.entries(toolCall.result).map(([key, value]) => (
-                  <li key={key} className="ml-2 flex gap-2 items-center">
-                    <div><code>{key}</code>:</div>
-                    <JsonValueViewer value={value} />
-                  </li>
-                ))}
-              </ul>
-              <div>{'}'}</div>
-            </>
-          )
-          : <div className="flex items-center gap-2">
-            <b>Result:</b>
-            <JsonValueViewer value={toolCall.result} />
-          </div>}
-      </>
-      }
+      {result != null && <>
+        <div className="flex items-center gap-2">
+          <b>Result:</b>
+          <span>{'{'}</span>
+        </div>
+        <ul className="space-y-1 block">
+          {step.output_vars.map((binding) => (
+            <li key={binding.parameter ?? ''} className="ml-2 flex gap-2 items-center">
+              <div><code>{binding.parameter}</code>:</div>
+              <JsonValueViewer value={result} />
+            </li>
+          ))}
+        </ul>
+        <div>{'}'}</div>
+      </>}
     </div>
-  )
-    ;
+  );
 }
 
 function JsonValueViewer ({ value }: { value: unknown }) {
@@ -282,9 +271,9 @@ function MessageAnnotationHistoryItem ({ history, item: { state, time }, index }
       {index > 1 && <span className="absolute left-2 bg-green-500/50 h-2" style={{ width: 1, top: -8 }} />}
       <div className="flex gap-2 items-center">
         <CheckedCircle className="size-4" initial={itemIconInitial} animate={itemSuccessIconAnimate} />
-        <span>{state.display === '[deprecated]' ? <StackVMCheckpoint state={state.state} /> : state.display}</span>
+        <span>{state.display === '[deprecated]' ? <StackVMCheckpoint state={state.state} pc={false} /> : state.display}</span>
       </div>
-      <StackVMDetails {...state.state} />
+      <StackVMDetails state={state.state} pc={false} />
     </motion.li>
   );
 }
@@ -320,9 +309,9 @@ function MessageAnnotationCurrent ({ history, current }: { history: OngoingState
       <div className="flex gap-2 items-center">
         {(history?.length ?? 0) > 1 && <span className="absolute left-2 h-2 bg-zinc-500/50" style={{ width: 1, top: -8 }} />}
         <Loader2Icon className="size-4 animate-spin repeat-infinite text-muted-foreground" />
-        <span>{current.display === '[deprecated]' ? <StackVMCheckpoint state={current.state} /> : current.display}</span>
+        <span>{current.display === '[deprecated]' ? <StackVMCheckpoint state={current.state} pc /> : current.display}</span>
       </div>
-      <StackVMDetails {...current.state} />
+      <StackVMDetails state={current.state} pc />
     </motion.li>
   );
 }

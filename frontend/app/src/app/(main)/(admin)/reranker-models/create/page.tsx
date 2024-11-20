@@ -11,6 +11,7 @@ export default function Page () {
     <>
       <AdminPageHeading
         breadcrumbs={[
+          { title: 'Models' },
           { title: 'Reranker Models', url: '/reranker-models' },
           { title: 'Create' },
         ]}
