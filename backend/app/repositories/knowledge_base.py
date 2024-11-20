@@ -1,11 +1,12 @@
 from typing import Optional, Type
 from datetime import datetime, UTC
 
+from sqlalchemy.orm.attributes import flag_modified
 from sqlmodel import select, Session, func, update
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
-from app.api.admin_routes.knowledge_base.models import VectorIndexError, KGIndexError
+from app.api.admin_routes.knowledge_base.models import VectorIndexError, KGIndexError, KnowledgeBaseUpdate
 from app.exceptions import KnowledgeBaseNotFoundError
 from app.models import (
     KnowledgeBase,
@@ -47,6 +48,20 @@ class KnowledgeBaseRepo(BaseRepo):
         if kb is None:
             raise KnowledgeBaseNotFoundError(knowledge_base_id)
         return kb
+
+    def update(
+        self,
+        session: Session,
+        knowledge_base: KnowledgeBase,
+        partial_update: KnowledgeBaseUpdate,
+    ) -> KnowledgeBase:
+        for field, value in partial_update.model_dump(exclude_unset=True).items():
+            setattr(knowledge_base, field, value)
+            flag_modified(knowledge_base, field)
+
+        session.commit()
+        session.refresh(knowledge_base)
+        return knowledge_base
 
     def delete(self, session: Session, knowledge_base: KnowledgeBase) -> None:
         knowledge_base.deleted_at = datetime.now(UTC)

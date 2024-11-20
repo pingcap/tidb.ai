@@ -30,7 +30,6 @@ class BaseKnowledgeBaseSetting(BaseModel):
     description: str
     index_methods: list[IndexMethod]
     llm_id: Optional[int] = None
-    data_sources: list[CreateKBDataSourceRequest]
 
     @field_validator("name")
     def name_must_not_be_blank(cls, v: str) -> str:
@@ -47,11 +46,12 @@ class BaseKnowledgeBaseSetting(BaseModel):
         return v
 
 
-class CreateKnowledgeBaseRequest(BaseKnowledgeBaseSetting):
+class KnowledgeBaseCreate(BaseKnowledgeBaseSetting):
     embedding_model_id: Optional[int] = None
+    data_sources: list[CreateKBDataSourceRequest]
 
 
-class UpdateKnowledgeBaseRequest(BaseKnowledgeBaseSetting):
+class KnowledgeBaseUpdate(BaseKnowledgeBaseSetting):
     pass
 
 

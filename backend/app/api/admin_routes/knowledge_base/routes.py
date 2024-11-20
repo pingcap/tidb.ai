@@ -15,7 +15,7 @@ from app.repositories.llm import get_default_db_llm, must_get_llm
 from .models import (
     KnowledgeBaseDetail,
     KnowledgeBaseItem,
-    CreateKnowledgeBaseRequest, ChunkItem, UpdateKnowledgeBaseRequest, VectorIndexError, KGIndexError
+    KnowledgeBaseCreate, ChunkItem, KnowledgeBaseUpdate, VectorIndexError, KGIndexError
 )
 from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.exceptions import (
@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 def create_knowledge_base(
     session: SessionDep,
     user: CurrentSuperuserDep,
-    create: CreateKnowledgeBaseRequest
+    create: KnowledgeBaseCreate
 ) -> KnowledgeBaseDetail:
     try:
         data_sources = [
@@ -130,51 +130,11 @@ def update_knowledge_base_setting(
     session: SessionDep,
     user: CurrentSuperuserDep,
     knowledge_base_id: int,
-    update: UpdateKnowledgeBaseRequest
+    update: KnowledgeBaseUpdate
 ) -> KnowledgeBaseDetail:
     try:
         knowledge_base = knowledge_base_repo.must_get(session, knowledge_base_id)
-        knowledge_base.name = update.name
-        knowledge_base.description = update.description
-        knowledge_base.index_methods = update.index_methods
-        knowledge_base.updated_by = user.id
-
-        if update.llm_id:
-            knowledge_base.llm_id = must_get_llm(session, update.llm_id).id
-        else:
-            knowledge_base.llm_id = get_default_db_llm(session).id
-
-        # Update data sources.
-        data_sources = []
-        for update_data_source in update.data_sources:
-            if update_data_source.id is None:
-                logger.info(f"Create data source <{update_data_source.name}> for knowledge base <{knowledge_base.name}>")
-                data_source = data_source_repo.create(session, DataSource(
-                    name=update_data_source.name,
-                    description='',
-                    data_source_type=update_data_source.data_source_type,
-                    config=update_data_source.config,
-                ))
-            else:
-                data_source = data_source_repo.get(session, update_data_source.id)
-                data_source.name = update_data_source.name
-                data_source.config = update_data_source.config
-            data_sources.append(data_source)
-
-        knowledge_base.data_sources = data_sources
-
-        # Ensure the knowledge-base corresponding table schema are initialized.
-        if IndexMethod.VECTOR in knowledge_base.index_methods:
-            init_kb_tidb_vector_store(session, knowledge_base)
-
-        if IndexMethod.KNOWLEDGE_GRAPH in knowledge_base.index_methods:
-            init_kb_tidb_graph_store(session, knowledge_base)
-
-        session.add(knowledge_base)
-        session.commit()
-
-        # TODO: trigger update the indexes.
-
+        knowledge_base = knowledge_base_repo.update(session, knowledge_base, update)
         return knowledge_base
     except KnowledgeBaseNotFoundError as e:
         raise e
@@ -183,6 +143,7 @@ def update_knowledge_base_setting(
     except Exception as e:
         logging.exception(e)
         raise InternalServerError()
+
 
 @router.delete("/admin/knowledge_bases/{knowledge_base_id}")
 def delete_knowledge_base(
