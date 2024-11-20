@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any, Optional, Type
 from uuid import UUID
 
 from sqlalchemy import DateTime, func
@@ -70,7 +70,7 @@ class Chunk(UUIDBaseModel, UpdatableBaseModel, table=True):
         )
 
 
-def get_kb_chunk_model(kb: KnowledgeBase) -> SQLModel:
+def get_kb_chunk_model(kb: KnowledgeBase) -> Type[SQLModel]:
     vector_dimension = get_kb_vector_dims(kb)
     chunks_table_name = get_kb_chunks_table_name(kb)
     ctx = get_kb_scoped_registry(kb)

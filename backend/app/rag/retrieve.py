@@ -1,5 +1,5 @@
 import logging
-from typing import List, Optional
+from typing import List, Optional, Type
 
 from llama_index.core import VectorStoreIndex
 from llama_index.core.schema import NodeWithScore
@@ -27,9 +27,9 @@ logger = logging.getLogger(__name__)
 
 
 class RetrieveService:
-    _chunk_model: SQLModel = DBChunk
-    _entity_model:SQLModel = DBEntity
-    _relationship_model: SQLModel = DBRelationship
+    _chunk_model: Type[SQLModel] = DBChunk
+    _entity_model: Type[SQLModel] = DBEntity
+    _relationship_model: Type[SQLModel] = DBRelationship
 
     def __init__(
         self,
