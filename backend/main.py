@@ -161,5 +161,49 @@ def runeval(dataset, llm_provider, run_name, tidb_ai_chat_engine):
     eval.run()
 
 
+@cli.command()
+@click.option(
+    "--csv", default="autoflow_dataset.csv",
+    help="Dataset CSV file name that contains two columns `query` and `reference`, default='autoflow_dataset.csv'"
+)
+@click.option(
+    "--llm-provider",
+    default="openai",
+    help="LLM provider, default=openai, options=[openai, gemini]",
+)
+@click.option("--run-name", default=None, help="Run name, default=None")
+@click.option(
+    "--tidb-ai-chat-engine",
+    default="default",
+    help=f"TiDB AI chat engine, default=default",
+)
+@click.option("--run-size", default=30, help="Run size, default=30")
+def runeval_dataset(csv, llm_provider, run_name, tidb_ai_chat_engine, run_size):
+    from app.evaluation.evals import Evaluation
+
+    evaluation = Evaluation(
+        dataset_name="customize",
+        llm_provider=llm_provider,
+        run_name=run_name,
+        tidb_ai_chat_engine=tidb_ai_chat_engine,
+    )
+    evaluation.runeval_dataset(csv_dataset=csv, run_size=run_size)
+
+
+@cli.command()
+@click.option("--query", default=None, help="query")
+def generate_answer_by_tidb_ai(query: str):
+    from app.evaluation.evals import Evaluation
+
+    evaluation = Evaluation(
+        dataset_name="customize",
+        llm_provider="openai",
+        run_name=None,
+        tidb_ai_chat_engine="default",
+    )
+
+    print(evaluation.generate_answer_by_tidb_ai(messages=[{"role": "user", "content": query}]))
+
+
 if __name__ == "__main__":
     cli()

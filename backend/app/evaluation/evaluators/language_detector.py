@@ -9,7 +9,7 @@ from llama_index.core.llms.llm import LLM
 from llama_index.core.output_parsers import PydanticOutputParser
 from llama_index.core.prompts import BasePromptTemplate, PromptTemplate
 from llama_index.core.prompts.mixin import PromptDictType
-from llama_index.core.settings import Settings, llm_from_settings_or_context
+from llama_index.core.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ class LanguageEvaluator(BaseEvaluator):
         # deprecated
         service_context: Optional[ServiceContext] = None,
     ) -> None:
-        self._llm = llm or llm_from_settings_or_context(Settings, service_context)
+        self._llm = llm or Settings.llm
 
         self._eval_template: BasePromptTemplate
         if isinstance(eval_template, str):

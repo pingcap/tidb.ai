@@ -13,7 +13,7 @@ from llama_index.core.prompts import (
 )
 from llama_index.core.prompts.mixin import PromptDictType
 from llama_index.core.service_context import ServiceContext
-from llama_index.core.settings import Settings, llm_from_settings_or_context
+from llama_index.core.settings import Settings
 
 DEFAULT_SYSTEM_TEMPLATE = """
 You are an expert evaluation system that also specialized in database technologies for a question answering chatbot.
@@ -70,7 +70,7 @@ class ToxicityEvaluator(BaseEvaluator):
             [str], Tuple[Optional[float], Optional[str]]
         ] = default_parser,
     ) -> None:
-        self._llm = llm or llm_from_settings_or_context(Settings, service_context)
+        self._llm = llm or Settings.llm
 
         self._eval_template: BasePromptTemplate
         if isinstance(eval_template, str):
