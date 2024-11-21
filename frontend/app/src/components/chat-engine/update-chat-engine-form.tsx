@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import type { KeyOfType } from '@/lib/typing-utils';
 import { capitalCase } from 'change-case-all';
+import { format } from 'date-fns';
 import { FlaskConicalIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { type ReactNode, useTransition } from 'react';
@@ -37,6 +38,16 @@ export function UpdateChatEngineForm ({ chatEngine, defaultChatEngineOptions }: 
     >
       <div className="space-y-8">
         <Section noSeparator title="Basic">
+          <GeneralSettingsField readonly accessor={idAccessor} schema={neverSchema}>
+            <FormFieldBasicLayout name="value" label="ID">
+              <FormInput />
+            </FormFieldBasicLayout>
+          </GeneralSettingsField>
+          <GeneralSettingsField accessor={isDefaultAccessor} schema={isDefaultSchema}>
+            <FormFieldContainedLayout unimportant name="value" label="Is Default" fallbackValue={chatEngine.is_default} description="/// Description TBD">
+              <FormSwitch />
+            </FormFieldContainedLayout>
+          </GeneralSettingsField>
           <GeneralSettingsField accessor={nameAccessor} schema={nameSchema}>
             <FormFieldBasicLayout name="value" label="Name">
               <FormInput />
@@ -51,6 +62,16 @@ export function UpdateChatEngineForm ({ chatEngine, defaultChatEngineOptions }: 
             <FormFieldContainedLayout unimportant name="value" label="Clarify Question" fallbackValue={defaultChatEngineOptions.clarify_question} description="/// Description TBD">
               <FormSwitch />
             </FormFieldContainedLayout>
+          </GeneralSettingsField>
+          <GeneralSettingsField readonly accessor={createdAccessor} schema={neverSchema}>
+            <FormFieldBasicLayout name="value" label="Created At">
+              <FormInput />
+            </FormFieldBasicLayout>
+          </GeneralSettingsField>
+          <GeneralSettingsField readonly accessor={updatedAccessor} schema={neverSchema}>
+            <FormFieldBasicLayout name="value" label="Updated At">
+              <FormInput />
+            </FormFieldBasicLayout>
           </GeneralSettingsField>
         </Section>
         <Section title="Models">
@@ -141,7 +162,7 @@ export function UpdateChatEngineForm ({ chatEngine, defaultChatEngineOptions }: 
   );
 }
 
-const updatableFields = ['name', 'llm_id', 'fast_llm_id', 'reranker_id', 'engine_options'] as const;
+const updatableFields = ['name', 'llm_id', 'fast_llm_id', 'reranker_id', 'engine_options', 'is_default'] as const;
 
 function optionAccessor<K extends keyof ChatEngineOptions> (key: K): GeneralSettingsFieldAccessor<ChatEngine, ChatEngineOptions[K]> {
   return {
@@ -203,17 +224,38 @@ function llmOptionAccessor<K extends keyof ChatEngineLLMOptions> (key: K): Gener
   };
 }
 
+const getDatetimeAccessor = (key: KeyOfType<ChatEngine, Date>): GeneralSettingsFieldAccessor<ChatEngine, string> => {
+  return {
+    path: [key],
+    get (data) {
+      return format(data[key], 'yyyy-MM-dd HH:mm:ss');
+    },
+    set () {
+      throw new Error(`update ${key} is not supported`);
+    },
+  };
+};
+
+const idAccessor = fieldAccessor<ChatEngine, 'id'>('id');
+
+const createdAccessor = getDatetimeAccessor('created_at');
+const updatedAccessor = getDatetimeAccessor('updated_at');
+const neverSchema = z.never();
+
 const nameAccessor = fieldAccessor<ChatEngine, 'name'>('name');
 const nameSchema = z.string().min(1);
 
 const clarifyAccessor = optionAccessor('clarify_question');
 const clarifyAccessorSchema = z.boolean().nullable().optional();
 
-const idAccessor = (id: KeyOfType<ChatEngine, number | null>) => fieldAccessor<ChatEngine, KeyOfType<ChatEngine, number | null>>(id);
+const isDefaultAccessor = fieldAccessor<ChatEngine, 'is_default'>('is_default');
+const isDefaultSchema = z.boolean();
+
+const getIdAccessor = (id: KeyOfType<ChatEngine, number | null>) => fieldAccessor<ChatEngine, KeyOfType<ChatEngine, number | null>>(id);
 const idSchema = z.number().nullable();
-const llmIdAccessor = idAccessor('llm_id');
-const fastLlmIdAccessor = idAccessor('fast_llm_id');
-const rerankerIdAccessor = idAccessor('reranker_id');
+const llmIdAccessor = getIdAccessor('llm_id');
+const fastLlmIdAccessor = getIdAccessor('fast_llm_id');
+const rerankerIdAccessor = getIdAccessor('reranker_id');
 
 const kbAccessor: GeneralSettingsFieldAccessor<ChatEngine, number | null> = {
   path: ['engine_options'],
