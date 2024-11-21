@@ -220,7 +220,7 @@ export function FormCollapsedBasicLayout<
           <FormItem>
             <CollapsibleTrigger className="flex gap-2 items-center group cursor-pointer">
               <PlusIcon className="opacity-50 group-hover:opacity-100 transition-opacity size-4 hidden group-data-[state=closed]:block" />
-              <MinusIcon className="opacity-50 group-hover:opacity-100 transition-opacity size-4 block group-data-[state=closed]:hidden" />
+              <MinusIcon className="opacity-50 group-hover:opacity-100 transition-opacity size-4 hidden group-data-[state=open]:block" />
               <FormLabel className="cursor-pointer">{label}</FormLabel>
             </CollapsibleTrigger>
             <CollapsibleContent>
