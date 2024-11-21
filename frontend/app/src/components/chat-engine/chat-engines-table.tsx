@@ -9,6 +9,7 @@ import { mono } from '@/components/cells/mono';
 import { DangerousActionButton } from '@/components/dangerous-action-button';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { usePush } from '@/components/nextjs/app-router-hooks';
+import { NextLink } from '@/components/nextjs/NextLink';
 import { Button } from '@/components/ui/button';
 import { useDataTable } from '@/components/use-data-table';
 import type { ColumnDef } from '@tanstack/react-table';
@@ -63,6 +64,7 @@ const columns = [
 export function ChatEnginesTable () {
   return (
     <DataTableRemote
+      before={<NextLink href='/chat-engines/new'>New Chat Engine</NextLink>}
       columns={columns}
       apiKey="api.chat-engines.list"
       api={listChatEngines}

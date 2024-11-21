@@ -1,9 +1,11 @@
 import { type EmbeddingModel, listEmbeddingModels } from '@/api/embedding-models';
+import { type KnowledgeBase, type KnowledgeBaseSummary, listKnowledgeBases } from '@/api/knowledge-base';
 import { listLlms, type LLM } from '@/api/llms';
 import type { ProviderOption } from '@/api/providers';
 import { listRerankers, type Reranker } from '@/api/rerankers';
 import { EmbeddingModelInfo } from '@/components/embedding-models/EmbeddingModelInfo';
 import { FormSelect, type FormSelectConfig, type FormSelectProps } from '@/components/form/control-widget';
+import { KBInfo } from '@/components/knowledge-base/KBInfo';
 import { LlmInfo } from '@/components/llm/LlmInfo';
 import { RerankerInfo } from '@/components/reranker/RerankerInfo';
 import { forwardRef } from 'react';
@@ -105,3 +107,25 @@ export const ProviderSelect = forwardRef<any, ProviderSelectProps>(({
 });
 
 ProviderSelect.displayName = 'ProviderSelect';
+
+
+export const KBSelect = forwardRef<any, Omit<FormSelectProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
+  const { data: kbs, isLoading, error } = useSWR('api.knowledge-bases.list-all', () => listKnowledgeBases({ size: 100 }));
+
+  return (
+    <FormSelect
+      {...props}
+      placeholder="Select Knowledge Base"
+      config={{
+        options: kbs?.items ?? [],
+        loading: isLoading,
+        error,
+        renderValue: option => (<span><KBInfo id={option.id} /></span>),
+        renderOption: option => (<span><KBInfo detailed id={option.id} /></span>),
+        key: 'id',
+      } satisfies FormSelectConfig<KnowledgeBaseSummary>}
+    />
+  );
+});
+
+KBSelect.displayName = 'KBSelect';

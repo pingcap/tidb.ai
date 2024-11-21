@@ -8,7 +8,12 @@ export default async function ChatEnginePage ({ params }: { params: { id: string
 
   return (
     <>
-      <AdminPageHeading title={`Chat Engine - ${chatEngine.name}`} />
+      <AdminPageHeading
+        breadcrumbs={[
+          { title: 'Chat Engines', url: '/chat-engines' },
+          { title: chatEngine.name },
+        ]}
+      />
       <div className="xl:pr-side max-w-screen-lg">
         <Card>
           <CardContent className="pt-4">

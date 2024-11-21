@@ -1,6 +1,8 @@
 import type { FormControlWidgetProps } from '@/components/form/control-widget';
 import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { cn } from '@/lib/utils';
 import { MinusIcon, PlusIcon } from 'lucide-react';
 import { cloneElement, type ReactElement, type ReactNode } from 'react';
 import { ControllerRenderProps, FieldPath, type FieldPathByValue, type FieldPathValue, FieldValues } from 'react-hook-form';
@@ -11,18 +13,21 @@ export interface FormFieldLayoutProps<
 > {
   name: TName;
   label: ReactNode;
+  required?: boolean;
   description?: ReactNode;
+  // value = props.value ?? fallbackValue
+  fallbackValue?: FieldPathValue<TFieldValues, TName>;
   children: ((props: ControllerRenderProps<TFieldValues, TName>) => ReactNode) | ReactElement<FormControlWidgetProps<TFieldValues, TName>>;
 }
 
 function renderWidget<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
-> (children: FormFieldLayoutProps<TFieldValues, TName>['children'], props: ControllerRenderProps<TFieldValues, TName>) {
+> (children: FormFieldLayoutProps<TFieldValues, TName>['children'], { value, ...props }: ControllerRenderProps<TFieldValues, TName>, fallbackValue?: FieldPathValue<TFieldValues, TName>) {
   if (typeof children === 'function') {
-    return children(props);
+    return children({ value: value ?? fallbackValue as never, ...props });
   } else {
-    return cloneElement(children, props);
+    return cloneElement(children, { value: value ?? fallbackValue as never, ...props });
   }
 }
 
@@ -33,6 +38,8 @@ export function FormFieldBasicLayout<
   name,
   label,
   description,
+  required,
+  fallbackValue,
   children,
 }: FormFieldLayoutProps<TFieldValues, TName>) {
   return (
@@ -40,9 +47,12 @@ export function FormFieldBasicLayout<
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormLabel>{label}</FormLabel>
+          <FormLabel>
+            {label}
+            {required && <sup className="text-destructive">*</sup>}
+          </FormLabel>
           <FormControl>
-            {renderWidget(children, field)}
+            {renderWidget(children, field, fallbackValue)}
           </FormControl>
           {description && <FormDescription className="break-words">{description}</FormDescription>}
           <FormMessage />
@@ -83,21 +93,27 @@ export function FormFieldContainedLayout<
   name,
   label,
   description,
+  required,
+  fallbackValue,
   children,
-}: FormFieldLayoutProps<TFieldValues, TName>) {
+  unimportant = false,
+}: FormFieldLayoutProps<TFieldValues, TName> & { unimportant?: boolean }) {
   return (
     <FormField<TFieldValues, TName>
       name={name}
       render={({ field }) => (
         <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
           <div className="space-y-0.5">
-            <FormLabel className="text-base">{label}</FormLabel>
+            <FormLabel className={cn(!unimportant && 'text-base')}>
+              {label}
+              {required && <sup className="text-destructive">*</sup>}
+            </FormLabel>
             {description && <FormDescription>
               {description}
             </FormDescription>}
           </div>
           <FormControl>
-            {renderWidget(children, field)}
+            {renderWidget(children, field, fallbackValue)}
           </FormControl>
         </FormItem>
       )}
@@ -181,6 +197,41 @@ export function FormPrimitiveArrayFieldBasicLayout<
           {description && <FormDescription className="break-words">{description}</FormDescription>}
           <FormMessage />
         </FormItem>
+      )}
+    />
+  );
+}
+
+export function FormCollapsedBasicLayout<
+  TFieldValues extends FieldValues = FieldValues,
+  TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
+> ({
+  name,
+  label,
+  description,
+  children,
+  fallbackValue,
+}: FormFieldLayoutProps<TFieldValues, TName>) {
+  return (
+    <FormField<TFieldValues, TName>
+      name={name}
+      render={({ field }) => (
+        <Collapsible>
+          <FormItem>
+            <CollapsibleTrigger className="flex gap-2 items-center group cursor-pointer">
+              <PlusIcon className="opacity-50 group-hover:opacity-100 transition-opacity size-4 hidden group-data-[state=closed]:block" />
+              <MinusIcon className="opacity-50 group-hover:opacity-100 transition-opacity size-4 block group-data-[state=closed]:hidden" />
+              <FormLabel className="cursor-pointer">{label}</FormLabel>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <FormControl>
+                {renderWidget(children, field, fallbackValue)}
+              </FormControl>
+            </CollapsibleContent>
+            {description && <FormDescription className="break-words">{description}</FormDescription>}
+            <FormMessage />
+          </FormItem>
+        </Collapsible>
       )}
     />
   );
