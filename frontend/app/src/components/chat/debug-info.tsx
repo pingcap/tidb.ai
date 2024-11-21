@@ -1,10 +1,8 @@
-import { ChatEngineOptionsDetails } from '@/components/chat-engine/chat-engine-options-details';
 import { type ChatMessageGroup, useChatInfo, useChatMessageField, useCurrentChatController } from '@/components/chat/chat-hooks';
 import { KnowledgeGraphDebugInfo } from '@/components/chat/knowledge-graph-debug-info';
 import { DateFormat } from '@/components/date-format';
 import { OptionDetail } from '@/components/option-detail';
 // import { MessageLangfuse } from '@/components/chat/message-langfuse';
-import { Separator } from '@/components/ui/separator';
 import { differenceInSeconds } from 'date-fns';
 import { WorkflowIcon } from 'lucide-react';
 import 'react-json-view-lite/dist/index.css';
@@ -37,15 +35,10 @@ export function DebugInfo ({ group }: DebugInfoProps) {
               <OptionDetail title="Chat Created At" value={<DateFormat date={chat.created_at} />} />
               <OptionDetail title="Message Created At" value={<DateFormat date={createdAt} />} />
               <OptionDetail title="Message Finished In" value={(createdAt && finishedAt) && `${differenceInSeconds(finishedAt, createdAt)} seconds`} />
+              <OptionDetail title="Chat Engine" value={chat.engine_id} />
             </div>
           </div>
         </section>
-      )}
-      <Separator />
-      {chat?.engine_options && (
-        <div className="space-y-4">
-          <ChatEngineOptionsDetails detailed={false} options={chat.engine_options} />
-        </div>
       )}
     </div>
   );

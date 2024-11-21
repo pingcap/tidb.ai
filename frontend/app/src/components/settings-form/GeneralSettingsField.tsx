@@ -53,11 +53,17 @@ export function GeneralSettingsField<Data, FieldData> ({
 
   return (
     <Form {...form}>
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      <form className="space-y-6" onSubmit={handleSubmit} onReset={(event) => {
+        event.preventDefault();
+        form.reset({
+          value: accessor.get(data),
+        });
+      }}>
         {children}
-        {!readonly && (
-          <div>
-            {form.formState.dirtyFields.value && <Button type="submit" disabled={disabled || readonly || fieldReadonly}>Save</Button>}
+        {!readonly && form.formState.dirtyFields.value && (
+          <div className="flex items-center gap-2">
+            <Button type="submit" disabled={disabled || readonly || fieldReadonly}>Save</Button>
+            <Button type="reset" variant="secondary" disabled={disabled || readonly || fieldReadonly}>Reset</Button>
           </div>
         )}
       </form>

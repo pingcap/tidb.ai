@@ -1,10 +1,12 @@
-import { getChatEngine } from '@/api/chat-engines';
+import { getChatEngine, getDefaultChatEngineOptions } from '@/api/chat-engines';
 import { AdminPageHeading } from '@/components/admin-page-heading';
-import { ChatEngineDetails } from '@/components/chat-engine/chat-engine-details';
-import { Card, CardContent } from '@/components/ui/card';
+import { UpdateChatEngineForm } from '@/components/chat-engine/update-chat-engine-form';
 
 export default async function ChatEnginePage ({ params }: { params: { id: string } }) {
-  const chatEngine = await getChatEngine(parseInt(params.id));
+  const [chatEngine, defaultChatEngineOptions] = await Promise.all([
+    getChatEngine(parseInt(params.id)),
+    getDefaultChatEngineOptions(),
+  ]);
 
   return (
     <>
@@ -14,13 +16,7 @@ export default async function ChatEnginePage ({ params }: { params: { id: string
           { title: chatEngine.name },
         ]}
       />
-      <div className="xl:pr-side max-w-screen-lg">
-        <Card>
-          <CardContent className="pt-4">
-            <ChatEngineDetails chatEngine={chatEngine} />
-          </CardContent>
-        </Card>
-      </div>
+      <UpdateChatEngineForm chatEngine={chatEngine} defaultChatEngineOptions={defaultChatEngineOptions} />
     </>
   );
 }

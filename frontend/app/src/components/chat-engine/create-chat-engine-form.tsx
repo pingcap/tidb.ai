@@ -1,7 +1,7 @@
 'use client';
 
 import { type ChatEngineOptions, createChatEngine } from '@/api/chat-engines';
-import { KBSelect, LLMSelect } from '@/components/form/biz';
+import { KBSelect, LLMSelect, RerankerSelect } from '@/components/form/biz';
 import { FormInput, FormSwitch, FormTextarea } from '@/components/form/control-widget';
 import { FormCollapsedBasicLayout, FormFieldBasicLayout, FormFieldContainedLayout } from '@/components/form/field-layout';
 import { FormRootError } from '@/components/form/root-error';
@@ -86,7 +86,7 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
             <LLMSelect />
           </FormFieldBasicLayout>
           <FormFieldBasicLayout name="reranker_id" label="Reranker">
-            <LLMSelect />
+            <RerankerSelect />
           </FormFieldBasicLayout>
         </Section>
         <Section title="Knowledge Graph">
