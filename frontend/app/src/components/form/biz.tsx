@@ -114,6 +114,7 @@ export const KBSelect = forwardRef<any, Omit<FormSelectProps, 'config'> & { reve
 
   return (
     <FormSelect
+      ref={ref}
       {...props}
       placeholder="Select Knowledge Base"
       config={{

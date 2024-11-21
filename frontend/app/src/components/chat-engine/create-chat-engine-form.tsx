@@ -20,7 +20,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 
 const schema = z.object({
-  name: z.string(),
+  name: z.string().min(1),
   llm_id: z.number().optional(),
   fast_llm_id: z.number().optional(),
   reranker_id: z.number().optional(),
@@ -68,7 +68,7 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
     <Form {...form}>
       <form className="space-y-8" onSubmit={handleSubmit}>
         <Section title="Basic" noSeparator>
-          <FormFieldBasicLayout name="name" label="Name">
+          <FormFieldBasicLayout required name="name" label="Name">
             <FormInput />
           </FormFieldBasicLayout>
           <FormFieldBasicLayout required name="engine_options.knowledge_base.linked_knowledge_base.id" label="Knowledge Base">
