@@ -107,7 +107,7 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
           </FormFieldContainedLayout>
         </Section>
         <Section title="UI">
-          <FormFieldContainedLayout unimportant name="engine_options.hide_sources" label="[Chat UI] Hide Sources" description="/// Description TBD">
+          <FormFieldContainedLayout unimportant name="engine_options.hide_sources" label="Hide Sources" description="/// Description TBD">
             <FormSwitch />
           </FormFieldContainedLayout>
         </Section>
