@@ -52,6 +52,14 @@ You can reach out to us on [@TiDB_Developer](https://twitter.com/TiDB_Developer)
 
 We welcome contributions from the community. If you are interested in contributing to the project, please read the [Contributing Guidelines](/CONTRIBUTING.md).
 
+<a href="https://next.ossinsight.io/widgets/official/compose-last-28-days-stats?repo_id=752946440" target="_blank" style="display: block" align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://next.ossinsight.io/widgets/official/compose-last-28-days-stats/thumbnail.png?repo_id=752946440&image_size=auto&color_scheme=dark" width="655" height="auto">
+    <img alt="Performance Stats of pingcap/autoflow - Last 28 days" src="https://next.ossinsight.io/widgets/official/compose-last-28-days-stats/thumbnail.png?repo_id=752946440&image_size=auto&color_scheme=light" width="655" height="auto">
+  </picture>
+</a>
+<!-- Made with [OSS Insight](https://ossinsight.io/) -->
+
 ## License
 
 TiDB.AI is open-source under the Apache License, Version 2.0. You can [find it here](/LICENSE.txt).
