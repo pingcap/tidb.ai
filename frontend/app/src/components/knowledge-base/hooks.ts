@@ -1,6 +1,11 @@
-import { getKnowledgeGraphIndexProgress, listKnowledgeBases } from '@/api/knowledge-base';
+import { getKnowledgeBaseById, getKnowledgeGraphIndexProgress, listKnowledgeBases } from '@/api/knowledge-base';
 import { useKB } from '@/app/(main)/(admin)/knowledge-bases/[id]/context';
 import useSWR from 'swr';
+
+export function useKnowledgeBase (id: number | null | undefined) {
+  const { data: knowledgeBase, ...rest } = useSWR(id != null && `api.knowledge-bases.get?id=${id}`, () => getKnowledgeBaseById(id!))
+  return { knowledgeBase, ...rest }
+}
 
 export function useKnowledgeBaseDatasource (id: number) {
   const { data_sources } = useKB();
