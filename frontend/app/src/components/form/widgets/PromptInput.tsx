@@ -1,6 +1,6 @@
 import { type FormControlWidgetProps, FormTextarea } from '@/components/form/control-widget';
 import { buttonVariants } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { cn } from '@/lib/utils';
 import { forwardRef } from 'react';
 
@@ -16,6 +16,10 @@ export const PromptInput = forwardRef<any, PromptInputProps>(({ className, ...pr
         <span className="text-muted-foreground">({props.value.length} characters)</span>
       </DialogTrigger>
       <DialogContent className="h-2/3">
+        <DialogHeader className="sr-only">
+          <DialogTitle>Update Prompt</DialogTitle>
+          <DialogDescription />
+        </DialogHeader>
         <FormTextarea {...props} />
       </DialogContent>
     </Dialog>
