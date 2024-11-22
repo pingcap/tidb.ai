@@ -66,7 +66,7 @@ export interface LinkedKnowledgeBaseOptions {
 
 const kbOptionsSchema = z.object({
   linked_knowledge_base: z.object({ id: number().nullable().optional() }).nullable().optional(),
-});
+}).passthrough();
 
 const kgOptionsSchema = z.object({
   depth: z.number().nullable().optional(),
@@ -74,7 +74,7 @@ const kgOptionsSchema = z.object({
   include_meta: z.boolean().nullable().optional(),
   with_degree: z.boolean().nullable().optional(),
   using_intent_search: z.boolean().nullable().optional(),
-}) satisfies ZodType<ChatEngineKnowledgeGraphOptions>;
+}).passthrough() satisfies ZodType<ChatEngineKnowledgeGraphOptions>;
 
 const llmOptionsSchema =
   z.object({
@@ -103,7 +103,7 @@ const chatEngineOptionsSchema = z.object({
   post_verification_url: z.string().nullable().optional(),
   post_verification_token: z.string().nullable().optional(),
   hide_sources: z.boolean().nullable().optional(),
-}) satisfies ZodType<ChatEngineOptions, any, any>;
+}).passthrough() satisfies ZodType<ChatEngineOptions, any, any>;
 
 const chatEngineSchema = z.object({
   id: z.number(),
