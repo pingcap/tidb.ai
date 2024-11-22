@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { differenceInSeconds } from 'date-fns';
 import { WorkflowIcon } from 'lucide-react';
 import 'react-json-view-lite/dist/index.css';
+import { useMemo } from 'react';
 
 export interface DebugInfoProps {
   group: ChatMessageGroup;
@@ -19,12 +20,26 @@ export function DebugInfo ({ group }: DebugInfoProps) {
   const createdAt = useChatMessageField(group.assistant, 'created_at');
   const finishedAt = useChatMessageField(group.assistant, 'finished_at');
 
+  const stackVMUrl = useMemo(() => {
+    if (traceURL) {
+      try {
+        const url = new URL(traceURL);
+        if (url.host === 'stackvm.tidb.ai') {
+          const id = url.searchParams.get('task_id');
+          return `https://stackvm-ui.vercel.app/tasks/${id}`;
+        }
+      } catch {
+        return undefined;
+      }
+    }
+  }, [traceURL]);
+
   return (
     <div className="my-2 p-4 space-y-4 bg-card border rounded text-xs">
       {traceURL && <div className="flex items-center gap-4 text-xs flex-wrap">
-        <a className="underline" target="_blank" href={traceURL}>
+        <a className="underline" target="_blank" href={stackVMUrl ?? traceURL}>
           <WorkflowIcon className="inline w-3 h-3 mr-1" />
-          Langfuse Tracing
+          Tracing URL
         </a>
       </div>}
       {/*<MessageLangfuse group={group} />*/}
