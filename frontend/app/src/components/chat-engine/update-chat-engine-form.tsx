@@ -115,7 +115,7 @@ export function UpdateChatEngineForm ({ chatEngine, defaultChatEngineOptions }: 
             </GeneralSettingsField>
             <GeneralSettingsField accessor={kgDepthAccessor} schema={kgDepthSchema}>
               <FormFieldBasicLayout name="value" label="Depth" fallbackValue={defaultChatEngineOptions.knowledge_graph?.depth}>
-                <FormInput />
+                <FormInput type='number' min={1} />
               </FormFieldBasicLayout>
             </GeneralSettingsField>
             <Grid3>
@@ -331,7 +331,7 @@ const kgUsingIntentSearchAccessor = kgOptionAccessor('using_intent_search');
 const kgUsingIntentSearchSchema = z.boolean().nullable();
 
 const kgDepthAccessor = kgOptionAccessor('depth');
-const kgDepthSchema = z.number().nullable();
+const kgDepthSchema = z.string().pipe(z.coerce.number().int().min(1)).nullable();
 
 const hideSourcesAccessor = optionAccessor('hide_sources');
 const hideSourcesSchema = z.boolean().nullable();

@@ -30,7 +30,9 @@ const schema = z.object({
         id: z.number(),
       }),
     }),
-    knowledge_graph: z.object({}).passthrough(),
+    knowledge_graph: z.object({
+      depth: z.string().pipe(z.coerce.number().min(1)).optional(),
+    }).passthrough(),
     llm: z.object({}).passthrough(),
   }).passthrough(),
 });
@@ -105,7 +107,7 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
               <FormSwitch />
             </FormFieldContainedLayout>
             <FormFieldBasicLayout name="engine_options.knowledge_graph.depth" label="Depth" fallbackValue={defaultChatEngineOptions.knowledge_graph?.depth}>
-              <FormInput />
+              <FormInput type="number" min={1} step={1} />
             </FormFieldBasicLayout>
             <Grid3>
               <FormFieldContainedLayout unimportant name="engine_options.knowledge_graph.include_meta" label="Include Meta" fallbackValue={defaultChatEngineOptions.knowledge_graph?.include_meta} description="/// Description TBD">
