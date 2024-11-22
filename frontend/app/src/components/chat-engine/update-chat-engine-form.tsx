@@ -53,6 +53,18 @@ export function UpdateChatEngineForm ({ chatEngine, defaultChatEngineOptions }: 
               <FormSwitch />
             </FormFieldContainedLayout>
           </GeneralSettingsField>
+          <Grid2>
+            <GeneralSettingsField readonly accessor={createdAccessor} schema={neverSchema}>
+              <FormFieldBasicLayout name="value" label="Created At">
+                <FormInput />
+              </FormFieldBasicLayout>
+            </GeneralSettingsField>
+            <GeneralSettingsField readonly accessor={updatedAccessor} schema={neverSchema}>
+              <FormFieldBasicLayout name="value" label="Updated At">
+                <FormInput />
+              </FormFieldBasicLayout>
+            </GeneralSettingsField>
+          </Grid2>
           <SubSection title="Models">
             <Grid2>
               <GeneralSettingsField accessor={llmIdAccessor} schema={idSchema}>
@@ -81,18 +93,6 @@ export function UpdateChatEngineForm ({ chatEngine, defaultChatEngineOptions }: 
               </GeneralSettingsField>
             </Grid2>
           </SubSection>
-          <Grid2>
-            <GeneralSettingsField readonly accessor={createdAccessor} schema={neverSchema}>
-              <FormFieldBasicLayout name="value" label="Created At">
-                <FormInput />
-              </FormFieldBasicLayout>
-            </GeneralSettingsField>
-            <GeneralSettingsField readonly accessor={updatedAccessor} schema={neverSchema}>
-              <FormFieldBasicLayout name="value" label="Updated At">
-                <FormInput />
-              </FormFieldBasicLayout>
-            </GeneralSettingsField>
-          </Grid2>
         </Section>
 
         <Section title="Retrivel">
