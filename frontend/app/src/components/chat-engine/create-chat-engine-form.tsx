@@ -6,6 +6,7 @@ import { FormInput, FormSwitch, FormTextarea } from '@/components/form/control-w
 import { FormCollapsedBasicLayout, FormFieldBasicLayout, FormFieldContainedLayout } from '@/components/form/field-layout';
 import { FormRootError } from '@/components/form/root-error';
 import { handleSubmitHelper } from '@/components/form/utils';
+import { Grid2, Grid3 } from '@/components/grid/Grid';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
@@ -66,28 +67,32 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
 
   return (
     <Form {...form}>
-      <form className="space-y-8" onSubmit={handleSubmit}>
+      <form className="space-y-8 max-w-screen-md" onSubmit={handleSubmit}>
         <Section title="Basic" noSeparator>
-          <FormFieldBasicLayout required name="name" label="Name">
-            <FormInput />
-          </FormFieldBasicLayout>
-          <FormFieldBasicLayout required name="engine_options.knowledge_base.linked_knowledge_base.id" label="Knowledge Base">
-            <KBSelect />
-          </FormFieldBasicLayout>
+          <Grid2>
+            <FormFieldBasicLayout required name="name" label="Name">
+              <FormInput />
+            </FormFieldBasicLayout>
+            <FormFieldBasicLayout required name="engine_options.knowledge_base.linked_knowledge_base.id" label="Knowledge Base">
+              <KBSelect />
+            </FormFieldBasicLayout>
+          </Grid2>
           <FormFieldContainedLayout unimportant name="engine_options.clarify_question" label="Clarify Question" description="/// Description TBD">
             <FormSwitch />
           </FormFieldContainedLayout>
         </Section>
         <Section title="Models">
-          <FormFieldBasicLayout name="llm_id" label="LLM">
-            <LLMSelect />
-          </FormFieldBasicLayout>
-          <FormFieldBasicLayout name="fast_llm_id" label="Fast LLM">
-            <LLMSelect />
-          </FormFieldBasicLayout>
-          <FormFieldBasicLayout name="reranker_id" label="Reranker">
-            <RerankerSelect />
-          </FormFieldBasicLayout>
+          <Grid3>
+            <FormFieldBasicLayout name="llm_id" label="LLM">
+              <LLMSelect />
+            </FormFieldBasicLayout>
+            <FormFieldBasicLayout name="fast_llm_id" label="Fast LLM">
+              <LLMSelect />
+            </FormFieldBasicLayout>
+            <FormFieldBasicLayout name="reranker_id" label="Reranker">
+              <RerankerSelect />
+            </FormFieldBasicLayout>
+          </Grid3>
         </Section>
         <Section title="Knowledge Graph">
           <FormFieldContainedLayout name="engine_options.knowledge_graph.enabled" label="Enable Knowledge Graph" fallbackValue={defaultChatEngineOptions.knowledge_graph?.enabled} description="/// Description TBD">
@@ -96,15 +101,17 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
           <FormFieldBasicLayout name="engine_options.knowledge_graph.depth" label="Depth" fallbackValue={defaultChatEngineOptions.knowledge_graph?.depth}>
             <FormInput />
           </FormFieldBasicLayout>
-          <FormFieldContainedLayout unimportant name="engine_options.knowledge_graph.include_meta" label="Include Meta" fallbackValue={defaultChatEngineOptions.knowledge_graph?.include_meta} description="/// Description TBD">
-            <FormSwitch />
-          </FormFieldContainedLayout>
-          <FormFieldContainedLayout unimportant name="engine_options.knowledge_graph.with_degree" label="With Degree" fallbackValue={defaultChatEngineOptions.knowledge_graph?.with_degree} description="/// Description TBD">
-            <FormSwitch />
-          </FormFieldContainedLayout>
-          <FormFieldContainedLayout unimportant name="engine_options.knowledge_graph.using_intent_search" label="Using intent search" fallbackValue={defaultChatEngineOptions.knowledge_graph?.using_intent_search} description="/// Description TBD">
-            <FormSwitch />
-          </FormFieldContainedLayout>
+          <Grid3>
+            <FormFieldContainedLayout unimportant name="engine_options.knowledge_graph.include_meta" label="Include Meta" fallbackValue={defaultChatEngineOptions.knowledge_graph?.include_meta} description="/// Description TBD">
+              <FormSwitch />
+            </FormFieldContainedLayout>
+            <FormFieldContainedLayout unimportant name="engine_options.knowledge_graph.with_degree" label="With Degree" fallbackValue={defaultChatEngineOptions.knowledge_graph?.with_degree} description="/// Description TBD">
+              <FormSwitch />
+            </FormFieldContainedLayout>
+            <FormFieldContainedLayout unimportant name="engine_options.knowledge_graph.using_intent_search" label="Using intent search" fallbackValue={defaultChatEngineOptions.knowledge_graph?.using_intent_search} description="/// Description TBD">
+              <FormSwitch />
+            </FormFieldContainedLayout>
+          </Grid3>
         </Section>
         <Section title="UI">
           <FormFieldContainedLayout unimportant name="engine_options.hide_sources" label="Hide Sources" description="/// Description TBD">
@@ -124,12 +131,14 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
             <AlertTitle>Experimental features</AlertTitle>
             <AlertDescription>Do not edit unless you know what are you doing.</AlertDescription>
           </Alert>
-          <FormFieldBasicLayout name="engine_options.post_verification_url" label="Post Verifycation Service URL" fallbackValue={defaultChatEngineOptions.post_verification_url ?? ''}>
-            <FormInput />
-          </FormFieldBasicLayout>
-          <FormFieldBasicLayout name="engine_options.post_verification_token" label="Post Verifycation Service Token" fallbackValue={defaultChatEngineOptions.post_verification_token ?? ''}>
-            <FormInput />
-          </FormFieldBasicLayout>
+          <Grid2>
+            <FormFieldBasicLayout name="engine_options.post_verification_url" label="Post Verifycation Service URL" fallbackValue={defaultChatEngineOptions.post_verification_url ?? ''}>
+              <FormInput />
+            </FormFieldBasicLayout>
+            <FormFieldBasicLayout name="engine_options.post_verification_token" label="Post Verifycation Service Token" fallbackValue={defaultChatEngineOptions.post_verification_token ?? ''}>
+              <FormInput />
+            </FormFieldBasicLayout>
+          </Grid2>
           <FormFieldBasicLayout name="engine_options.external_engine_config.stream_chat_api_url" label="External Chat Engine API URL (StackVM)" fallbackValue={defaultChatEngineOptions.external_engine_config?.stream_chat_api_url ?? ''}>
             <FormInput />
           </FormFieldBasicLayout>

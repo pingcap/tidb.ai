@@ -4,6 +4,7 @@ import { type ChatEngine, type ChatEngineKnowledgeGraphOptions, type ChatEngineL
 import { KBSelect, LLMSelect, RerankerSelect } from '@/components/form/biz';
 import { FormInput, FormSwitch, FormTextarea } from '@/components/form/control-widget';
 import { FormCollapsedBasicLayout, FormFieldBasicLayout, FormFieldContainedLayout } from '@/components/form/field-layout';
+import { Grid2, Grid3 } from '@/components/grid/Grid';
 import { fieldAccessor, GeneralSettingsField, type GeneralSettingsFieldAccessor, GeneralSettingsForm, shallowPick } from '@/components/settings-form';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
@@ -36,60 +37,66 @@ export function UpdateChatEngineForm ({ chatEngine, defaultChatEngineOptions }: 
         }
       }}
     >
-      <div className="space-y-8">
+      <div className="space-y-8 max-w-screen-md">
         <Section noSeparator title="Basic">
           <GeneralSettingsField readonly accessor={idAccessor} schema={neverSchema}>
             <FormFieldBasicLayout name="value" label="ID">
               <FormInput />
             </FormFieldBasicLayout>
           </GeneralSettingsField>
+          <Grid2>
+            <GeneralSettingsField accessor={nameAccessor} schema={nameSchema}>
+              <FormFieldBasicLayout name="value" label="Name">
+                <FormInput />
+              </FormFieldBasicLayout>
+            </GeneralSettingsField>
+            <GeneralSettingsField accessor={kbAccessor} schema={kbSchema}>
+              <FormFieldBasicLayout required name="value" label="Knowledge Base">
+                <KBSelect />
+              </FormFieldBasicLayout>
+            </GeneralSettingsField>
+          </Grid2>
           <GeneralSettingsField accessor={isDefaultAccessor} schema={isDefaultSchema}>
             <FormFieldContainedLayout unimportant name="value" label="Is Default" fallbackValue={chatEngine.is_default} description="/// Description TBD">
               <FormSwitch />
             </FormFieldContainedLayout>
-          </GeneralSettingsField>
-          <GeneralSettingsField accessor={nameAccessor} schema={nameSchema}>
-            <FormFieldBasicLayout name="value" label="Name">
-              <FormInput />
-            </FormFieldBasicLayout>
-          </GeneralSettingsField>
-          <GeneralSettingsField accessor={kbAccessor} schema={kbSchema}>
-            <FormFieldBasicLayout required name="value" label="Knowledge Base">
-              <KBSelect />
-            </FormFieldBasicLayout>
           </GeneralSettingsField>
           <GeneralSettingsField accessor={clarifyAccessor} schema={clarifyAccessorSchema}>
             <FormFieldContainedLayout unimportant name="value" label="Clarify Question" fallbackValue={defaultChatEngineOptions.clarify_question} description="/// Description TBD">
               <FormSwitch />
             </FormFieldContainedLayout>
           </GeneralSettingsField>
-          <GeneralSettingsField readonly accessor={createdAccessor} schema={neverSchema}>
-            <FormFieldBasicLayout name="value" label="Created At">
-              <FormInput />
-            </FormFieldBasicLayout>
-          </GeneralSettingsField>
-          <GeneralSettingsField readonly accessor={updatedAccessor} schema={neverSchema}>
-            <FormFieldBasicLayout name="value" label="Updated At">
-              <FormInput />
-            </FormFieldBasicLayout>
-          </GeneralSettingsField>
+          <Grid2>
+            <GeneralSettingsField readonly accessor={createdAccessor} schema={neverSchema}>
+              <FormFieldBasicLayout name="value" label="Created At">
+                <FormInput />
+              </FormFieldBasicLayout>
+            </GeneralSettingsField>
+            <GeneralSettingsField readonly accessor={updatedAccessor} schema={neverSchema}>
+              <FormFieldBasicLayout name="value" label="Updated At">
+                <FormInput />
+              </FormFieldBasicLayout>
+            </GeneralSettingsField>
+          </Grid2>
         </Section>
         <Section title="Models">
-          <GeneralSettingsField accessor={llmIdAccessor} schema={idSchema}>
-            <FormFieldBasicLayout name="value" label="LLM">
-              <LLMSelect />
-            </FormFieldBasicLayout>
-          </GeneralSettingsField>
-          <GeneralSettingsField accessor={fastLlmIdAccessor} schema={idSchema}>
-            <FormFieldBasicLayout name="value" label="Fast LLM">
-              <LLMSelect />
-            </FormFieldBasicLayout>
-          </GeneralSettingsField>
-          <GeneralSettingsField accessor={rerankerIdAccessor} schema={idSchema}>
-            <FormFieldBasicLayout name="value" label="Reranker">
-              <RerankerSelect />
-            </FormFieldBasicLayout>
-          </GeneralSettingsField>
+          <Grid3>
+            <GeneralSettingsField accessor={llmIdAccessor} schema={idSchema}>
+              <FormFieldBasicLayout name="value" label="LLM">
+                <LLMSelect />
+              </FormFieldBasicLayout>
+            </GeneralSettingsField>
+            <GeneralSettingsField accessor={fastLlmIdAccessor} schema={idSchema}>
+              <FormFieldBasicLayout name="value" label="Fast LLM">
+                <LLMSelect />
+              </FormFieldBasicLayout>
+            </GeneralSettingsField>
+            <GeneralSettingsField accessor={rerankerIdAccessor} schema={idSchema}>
+              <FormFieldBasicLayout name="value" label="Reranker">
+                <RerankerSelect />
+              </FormFieldBasicLayout>
+            </GeneralSettingsField>
+          </Grid3>
         </Section>
         <Section title="Knowledge Graph">
           <GeneralSettingsField accessor={kgEnabledAccessor} schema={kgEnabledSchema}>
@@ -102,21 +109,23 @@ export function UpdateChatEngineForm ({ chatEngine, defaultChatEngineOptions }: 
               <FormInput />
             </FormFieldBasicLayout>
           </GeneralSettingsField>
-          <GeneralSettingsField accessor={kgIncludeMetaAccessor} schema={kgIncludeMetaSchema}>
-            <FormFieldContainedLayout unimportant name="value" label="Include Meta" fallbackValue={defaultChatEngineOptions.knowledge_graph?.include_meta} description="/// Description TBD">
-              <FormSwitch />
-            </FormFieldContainedLayout>
-          </GeneralSettingsField>
-          <GeneralSettingsField accessor={kgWithDegreeAccessor} schema={kgWithDegreeSchema}>
-            <FormFieldContainedLayout unimportant name="value" label="With Degree" fallbackValue={defaultChatEngineOptions.knowledge_graph?.with_degree} description="/// Description TBD">
-              <FormSwitch />
-            </FormFieldContainedLayout>
-          </GeneralSettingsField>
-          <GeneralSettingsField accessor={kgUsingIntentSearchAccessor} schema={kgUsingIntentSearchSchema}>
-            <FormFieldContainedLayout unimportant name="value" label="Using intent search" fallbackValue={defaultChatEngineOptions.knowledge_graph?.using_intent_search} description="/// Description TBD">
-              <FormSwitch />
-            </FormFieldContainedLayout>
-          </GeneralSettingsField>
+          <Grid3>
+            <GeneralSettingsField accessor={kgIncludeMetaAccessor} schema={kgIncludeMetaSchema}>
+              <FormFieldContainedLayout unimportant name="value" label="Include Meta" fallbackValue={defaultChatEngineOptions.knowledge_graph?.include_meta} description="/// Description TBD">
+                <FormSwitch />
+              </FormFieldContainedLayout>
+            </GeneralSettingsField>
+            <GeneralSettingsField accessor={kgWithDegreeAccessor} schema={kgWithDegreeSchema}>
+              <FormFieldContainedLayout unimportant name="value" label="With Degree" fallbackValue={defaultChatEngineOptions.knowledge_graph?.with_degree} description="/// Description TBD">
+                <FormSwitch />
+              </FormFieldContainedLayout>
+            </GeneralSettingsField>
+            <GeneralSettingsField accessor={kgUsingIntentSearchAccessor} schema={kgUsingIntentSearchSchema}>
+              <FormFieldContainedLayout unimportant name="value" label="Using intent search" fallbackValue={defaultChatEngineOptions.knowledge_graph?.using_intent_search} description="/// Description TBD">
+                <FormSwitch />
+              </FormFieldContainedLayout>
+            </GeneralSettingsField>
+          </Grid3>
         </Section>
         <Section title="UI">
           <GeneralSettingsField accessor={hideSourcesAccessor} schema={hideSourcesSchema}>
@@ -141,16 +150,18 @@ export function UpdateChatEngineForm ({ chatEngine, defaultChatEngineOptions }: 
             <AlertDescription>Do not edit unless you know what are you doing.</AlertDescription>
           </Alert>
 
-          <GeneralSettingsField accessor={postVerificationUrlAccessor} schema={postVerificationUrlSchema}>
-            <FormFieldBasicLayout name="value" label="Post Verifycation Service URL" fallbackValue={defaultChatEngineOptions.post_verification_url ?? ''}>
-              <FormInput />
-            </FormFieldBasicLayout>
-          </GeneralSettingsField>
-          <GeneralSettingsField accessor={postVerificationTokenAccessor} schema={postVerificationTokenSchema}>
-            <FormFieldBasicLayout name="value" label="Post Verifycation Service Token" fallbackValue={defaultChatEngineOptions.post_verification_token ?? ''}>
-              <FormInput />
-            </FormFieldBasicLayout>
-          </GeneralSettingsField>
+          <Grid2>
+            <GeneralSettingsField accessor={postVerificationUrlAccessor} schema={postVerificationUrlSchema}>
+              <FormFieldBasicLayout name="value" label="Post Verifycation Service URL" fallbackValue={defaultChatEngineOptions.post_verification_url ?? ''}>
+                <FormInput />
+              </FormFieldBasicLayout>
+            </GeneralSettingsField>
+            <GeneralSettingsField accessor={postVerificationTokenAccessor} schema={postVerificationTokenSchema}>
+              <FormFieldBasicLayout name="value" label="Post Verifycation Service Token" fallbackValue={defaultChatEngineOptions.post_verification_token ?? ''}>
+                <FormInput />
+              </FormFieldBasicLayout>
+            </GeneralSettingsField>
+          </Grid2>
           <GeneralSettingsField accessor={externalEngineAccessor} schema={externalEngineSchema}>
             <FormFieldBasicLayout name="value" label="External Chat Engine API URL (StackVM)" fallbackValue={defaultChatEngineOptions.external_engine_config?.stream_chat_api_url ?? ''}>
               <FormInput />
