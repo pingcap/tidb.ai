@@ -778,35 +778,56 @@ class ChatService:
         chat_params = {
             "goal": goal,
         }
-        res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
+        try:
+            res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
+            res.raise_for_status()
+        except requests.RequestException as e:
+            logger.error(f"Failed to connect to chat API: {str(e)}")
+            yield ChatEvent(
+                event_type=ChatEventType.ERROR_PART,
+                payload=f"Connection error: {str(e)}"
+            )
+            return
 
         # Notice: External type chat engine doesn't support non-streaming mode for now.
         stackvm_response_text = ""
         task_id = None
-        for line in res.iter_lines():
-            if not line:
-                continue
 
-            # Append to final response text.
-            chunk = line.decode('utf-8')
-            if chunk.startswith("0:"):
-                word = json.loads(chunk[2:])
-                stackvm_response_text += word
-                yield ChatEvent(
-                    event_type=ChatEventType.TEXT_PART,
-                    payload=word,
-                )
-            else:
-                yield line + b'\n'
+        try:
+            for line in res.iter_lines():
+                if not line:
+                    continue
 
-            try:
-                if chunk.startswith("8:") and task_id is None:
-                    states = json.loads(chunk[2:])
-                    if len(states) > 0:
-                        # accesss task by http://endpoint/?task_id=$task_id
-                        task_id = states[0].get("task_id")
-            except Exception as e:
-                logger.error(f"Failed to get task_id from chunk: {e}")
+                # Append to final response text.
+                chunk = line.decode('utf-8')
+                if chunk.startswith("0:"):
+                    word = json.loads(chunk[2:])
+                    stackvm_response_text += word
+                    yield ChatEvent(
+                        event_type=ChatEventType.TEXT_PART,
+                        payload=word,
+                    )
+                else:
+                    yield line + b'\n'
+
+                try:
+                    if chunk.startswith("8:") and task_id is None:
+                        states = json.loads(chunk[2:])
+                        if len(states) > 0:
+                            # accesss task by http://endpoint/?task_id=$task_id
+                            task_id = states[0].get("task_id")
+                except Exception as e:
+                    logger.error(f"Failed to get task_id from chunk: {e}")
+        except requests.ChunkedEncodingError as e:
+            logger.error(f"Stream interrupted: {str(e)}")
+            yield ChatEvent(
+                event_type=ChatEventType.ERROR_PART,
+                payload="Stream connection interrupted"
+            )
+        except GeneratorExit:
+            logger.info("Stream processing stopped, cleaning up stream connection")
+            res.close()
+            raise
 
         """
         try:
