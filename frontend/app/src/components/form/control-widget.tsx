@@ -10,7 +10,7 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import type { SwitchProps } from '@radix-ui/react-switch';
 import { CheckIcon, ChevronDown, Loader2Icon, TriangleAlertIcon, XCircleIcon } from 'lucide-react';
 import * as React from 'react';
-import { type FC, forwardRef, type ReactElement, type ReactNode } from 'react';
+import { type FC, forwardRef, type ReactElement, type ReactNode, useState } from 'react';
 import { ControllerRenderProps, FieldPath, FieldValues } from 'react-hook-form';
 
 export interface FormControlWidgetProps<
@@ -143,11 +143,12 @@ export interface FormComboboxProps extends FormControlWidgetProps {
 }
 
 export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeholder, value, onChange, name, disabled, children, ...props }, ref) => {
+  const [open, setOpen] = useState(false);
   const isConfigReady = !config.loading && !config.error;
   const current = config.options.find(option => option[config.key] === value);
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <div className={cn('flex items-center gap-2', (props as any).className)}>
         <PopoverPrimitive.Trigger
           ref={ref}
@@ -202,6 +203,7 @@ export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeh
                 ),
                 (item) => {
                   onChange?.(item[config.key]);
+                  setOpen(false);
                 })}
               {config.options.map(option => (
                 <CommandItem
@@ -213,6 +215,7 @@ export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeh
                     const item = config.options.find(option => String(option[config.key]) === value);
                     if (item) {
                       onChange?.(item[config.key]);
+                      setOpen(false);
                     }
                   }}
                 >
