@@ -87,7 +87,7 @@ class Evaluation:
             "e2e_rag": E2ERagEvaluator(model="gpt-4o"),
         }
 
-    def runeval_dataset(self, csv_dataset: str, run_size: int = 30) -> None:
+    def runeval_dataset(self, csv_dataset: str, run_size: int = 30, checkpoint_file: str = "checkpoint.json", error_file: str = "eval_error.csv") -> None:
         if not os.path.exists(csv_dataset):
             raise FileNotFoundError(f"File not found: {csv_dataset}")
 
@@ -96,19 +96,55 @@ class Evaluation:
         random.shuffle(eval_list)
         eval_list = eval_list[:run_size]
 
+        # checkpoint info
         ragas_list = []
-        for item in tqdm(eval_list):
-            messages = [{"role": "user", "content": item['query']}]
-            response, _ = self._generate_answer_by_tidb_ai(messages)
-            user_input = json.dumps(messages)
+        completed_queries = set()
+        if os.path.exists(checkpoint_file):
+            with open(checkpoint_file, "r") as f:
+                checkpoint_data = json.load(f)
+                completed_queries = set(checkpoint_data["completed_queries"])
+                ragas_list = checkpoint_data["ragas_list"]
 
-            ragas_list.append({
-                "user_input": user_input,
-                "reference": item["reference"],
-                "response": response,
-                # TODO: we cannot get retrieved_contexts now, due to the external engine
-                # "retrieved_contexts": [],
-            })
+        # error info
+        error_list = []
+        errored_queries = set()
+        if os.path.exists(error_file):
+            error_df = pd.read_csv(error_file)
+            error_list = error_df.to_dict(orient='records')
+            errored_queries = set(item["query"] for item in error_list)
+
+        for item in tqdm(eval_list):
+            if item['query'] in completed_queries or item['query'] in errored_queries:
+                continue  # skip completed or errored queries
+
+            messages = [{"role": "user", "content": item['query']}]
+            try:
+                response, _ = self._generate_answer_by_tidb_ai(messages)
+                user_input = json.dumps(messages)
+
+                ragas_list.append({
+                    "user_input": user_input,
+                    "reference": item["reference"],
+                    "response": response,
+                    # TODO: we cannot get retrieved_contexts now, due to the external engine
+                    # "retrieved_contexts": [],
+                })
+
+                # save the checkpoint file
+                completed_queries.add(item['query'])
+                checkpoint_data = {
+                    "completed_queries": list(completed_queries),
+                    "ragas_list": ragas_list
+                }
+                with open(checkpoint_file, "w") as f:
+                    json.dump(checkpoint_data, f)
+            except Exception as e:
+                print(f"Error processing query: {item['query']}, error: {e}")
+                item["error_message"] = str(e)
+                error_list.append(item)  # Add the item to the error list
+
+                # Save the errors to the error file
+                pd.DataFrame(error_list).to_csv(error_file, index=False)
 
         ragas_dataset = EvaluationDataset.from_list(ragas_list)
         evaluator_llm = LangchainLLMWrapper(ChatOpenAI(model="gpt-4o"))
