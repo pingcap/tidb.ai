@@ -1,4 +1,5 @@
 import { getErrorMessage } from '@/lib/errors';
+import { FormEvent } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
 
 export function handleSubmitHelper<Form extends UseFormReturn<any, any, any>> (
@@ -6,7 +7,7 @@ export function handleSubmitHelper<Form extends UseFormReturn<any, any, any>> (
   onValid: Parameters<Form['handleSubmit']>[0],
   onInvalid?: Parameters<Form['handleSubmit']>[1],
 ) {
-  return form.handleSubmit(
+  const handleSubmit = form.handleSubmit(
     async (data) => {
       try {
         await onValid(data);
@@ -16,4 +17,10 @@ export function handleSubmitHelper<Form extends UseFormReturn<any, any, any>> (
     },
     onInvalid,
   );
+
+  return (event: FormEvent<HTMLFormElement>) => {
+    // Prevent submit event being propagated to parent react components.
+    event.stopPropagation();
+    void handleSubmit(event);
+  };
 }

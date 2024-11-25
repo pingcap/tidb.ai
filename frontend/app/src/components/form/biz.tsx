@@ -1,74 +1,196 @@
 import { type EmbeddingModel, listEmbeddingModels } from '@/api/embedding-models';
-import { type KnowledgeBase, type KnowledgeBaseSummary, listKnowledgeBases } from '@/api/knowledge-base';
+import { type KnowledgeBaseSummary, listKnowledgeBases } from '@/api/knowledge-base';
 import { listLlms, type LLM } from '@/api/llms';
 import type { ProviderOption } from '@/api/providers';
 import { listRerankers, type Reranker } from '@/api/rerankers';
-import { EmbeddingModelInfo } from '@/components/embedding-models/EmbeddingModelInfo';
-import { FormSelect, type FormSelectConfig, type FormSelectProps } from '@/components/form/control-widget';
+import { CreateEmbeddingModelForm } from '@/components/embedding-models/CreateEmbeddingModelForm';
+import { FormCombobox, type FormComboboxConfig, type FormComboboxProps, FormSelect, type FormSelectConfig, type FormSelectProps } from '@/components/form/control-widget';
 import { KBInfo } from '@/components/knowledge-base/KBInfo';
-import { LlmInfo } from '@/components/llm/LlmInfo';
+import { CreateLLMForm } from '@/components/llm/CreateLLMForm';
+import { ManagedDialog } from '@/components/managed-dialog';
+import { ManagedPanelContext } from '@/components/managed-panel';
+import { CreateRerankerForm } from '@/components/reranker/CreateRerankerForm';
 import { RerankerInfo } from '@/components/reranker/RerankerInfo';
+import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { PlusIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 import useSWR from 'swr';
 
-export const EmbeddingModelSelect = forwardRef<any, Omit<FormSelectProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
+export const EmbeddingModelSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
   // TODO
-  const { data: embeddingModels, isLoading, error } = useSWR('api.embedding-models.list-all', () => listEmbeddingModels({ size: 100 }));
+  const { data: embeddingModels, isLoading, mutate, error } = useSWR('api.embedding-models.list-all', () => listEmbeddingModels({ size: 100 }));
 
   return (
-    <FormSelect
+    <FormCombobox
       {...props}
       placeholder="Default Embedding Model"
       config={{
         options: embeddingModels?.items ?? [],
+        optionKeywords: option => [option.name, option.provider, option.model],
         loading: isLoading,
         error,
-        renderValue: option => (<span><EmbeddingModelInfo reverse={reverse} id={option.id} /></span>),
-        renderOption: option => (<span><EmbeddingModelInfo detailed reverse={reverse} id={option.id} /></span>),
+        renderValue: option => (<span>{option.name} <span className='text-muted-foreground'>[{option.vector_dimension}]</span></span>),
+        renderOption: option => (
+          <div>
+            <div><strong>{option.name}</strong></div>
+            <div className="text-xs text-muted-foreground">
+              <strong>{option.provider}</strong>:{option.model} [{option.vector_dimension}]
+            </div>
+          </div>
+        ),
+        renderCreateOption: (Wrapper, onCreated) => (
+          <ManagedDialog>
+            <ManagedPanelContext.Consumer>
+              {({ setOpen }) => (
+                <>
+                  <Wrapper onSelect={() => setOpen(true)}>
+                    <span className="flex gap-1 items-center text-muted-foreground">
+                      <PlusIcon className="size-4" />
+                      Create New Embedding Model
+                    </span>
+                  </Wrapper>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        Create New Embedding Model
+                      </DialogTitle>
+                      <DialogDescription />
+                    </DialogHeader>
+                    <CreateEmbeddingModelForm
+                      onCreated={embeddingModel => {
+                        mutate();
+                        onCreated(embeddingModel);
+                        setOpen(false);
+                      }}
+                    />
+                  </DialogContent>
+                </>
+              )}
+            </ManagedPanelContext.Consumer>
+          </ManagedDialog>
+        ),
         key: 'id',
-      } satisfies FormSelectConfig<EmbeddingModel>}
+      } satisfies FormComboboxConfig<EmbeddingModel>}
     />
   );
 });
 
 EmbeddingModelSelect.displayName = 'EmbeddingModelSelect';
 
-export const LLMSelect = forwardRef<any, Omit<FormSelectProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
-  const { data: llms, isLoading, error } = useSWR('api.llms.list-all', () => listLlms({ size: 100 }));
+export const LLMSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
+  const { data: llms, isLoading, mutate, error } = useSWR('api.llms.list-all', () => listLlms({ size: 100 }));
 
   return (
-    <FormSelect
+    <FormCombobox
       {...props}
       placeholder="Default LLM"
       config={{
         options: llms?.items ?? [],
         loading: isLoading,
         error,
-        renderValue: option => (<span><LlmInfo reverse={reverse} id={option.id} /></span>),
-        renderOption: option => (<span><LlmInfo detailed reverse={reverse} id={option.id} /></span>),
+        renderValue: option => (<span>{option.name}</span>),
+        renderOption: option => (
+          <div>
+            <div><strong>{option.name}</strong></div>
+            <div className="text-xs text-muted-foreground">
+              <strong>{option.provider}</strong>:{option.model}
+            </div>
+          </div>
+        ),
+        renderCreateOption: (Wrapper, onCreated) => (
+          <ManagedDialog>
+            <ManagedPanelContext.Consumer>
+              {({ setOpen }) => (
+                <>
+                  <Wrapper onSelect={() => setOpen(true)}>
+                    <span className="flex gap-1 items-center text-muted-foreground">
+                      <PlusIcon className="size-4" />
+                      Create New LLM
+                    </span>
+                  </Wrapper>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        Create New LLM
+                      </DialogTitle>
+                      <DialogDescription />
+                    </DialogHeader>
+                    <CreateLLMForm
+                      onCreated={llm => {
+                        mutate();
+                        onCreated(llm);
+                        setOpen(false);
+                      }}
+                    />
+                  </DialogContent>
+                </>
+              )}
+            </ManagedPanelContext.Consumer>
+          </ManagedDialog>
+        ),
+        optionKeywords: option => [option.name, option.provider, option.model],
         key: 'id',
-      } satisfies FormSelectConfig<LLM>}
+      } satisfies FormComboboxConfig<LLM>}
     />
   );
 });
 
 LLMSelect.displayName = 'LLMSelect';
 
-export const RerankerSelect = forwardRef<any, Omit<FormSelectProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
-  const { data: rerankers, isLoading, error } = useSWR('api.rerankers.list-all', () => listRerankers({ size: 100 }));
+export const RerankerSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
+  const { data: rerankers, mutate, isLoading, error } = useSWR('api.rerankers.list-all', () => listRerankers({ size: 100 }));
 
   return (
-    <FormSelect
+    <FormCombobox
       {...props}
       placeholder="Default Reranker Model"
       config={{
         options: rerankers?.items ?? [],
+        optionKeywords: option => [option.name, option.provider, option.model],
         loading: isLoading,
         error,
-        renderValue: option => (<span><RerankerInfo reverse={reverse} id={option.id} /></span>),
-        renderOption: option => (<span><RerankerInfo detailed reverse={reverse} id={option.id} /></span>),
+        renderValue: option => (<span>{option.name}</span>),
+        renderOption: option => (
+          <div>
+            <div><strong>{option.name}</strong></div>
+            <div className="text-xs text-muted-foreground">
+              <strong>{option.provider}</strong>:{option.model}
+            </div>
+          </div>
+        ),
+        renderCreateOption: (Wrapper, onCreated) => (
+          <ManagedDialog>
+            <ManagedPanelContext.Consumer>
+              {({ setOpen }) => (
+                <>
+                  <Wrapper onSelect={() => setOpen(true)}>
+                    <span className="flex gap-1 items-center text-muted-foreground">
+                      <PlusIcon className="size-4" />
+                      Create New Reranker
+                    </span>
+                  </Wrapper>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>
+                        Create New Reranker
+                      </DialogTitle>
+                      <DialogDescription />
+                    </DialogHeader>
+                    <CreateRerankerForm
+                      onCreated={reranker => {
+                        mutate();
+                        onCreated(reranker);
+                        setOpen(false);
+                      }}
+                    />
+                  </DialogContent>
+                </>
+              )}
+            </ManagedPanelContext.Consumer>
+          </ManagedDialog>
+        ),
         key: 'id',
-      } satisfies FormSelectConfig<Reranker>}
+      } satisfies FormComboboxConfig<Reranker>}
     />
   );
 });
@@ -107,7 +229,6 @@ export const ProviderSelect = forwardRef<any, ProviderSelectProps>(({
 });
 
 ProviderSelect.displayName = 'ProviderSelect';
-
 
 export const KBSelect = forwardRef<any, Omit<FormSelectProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
   const { data: kbs, isLoading, error } = useSWR('api.knowledge-bases.list-all', () => listKnowledgeBases({ size: 100 }));

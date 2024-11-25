@@ -14,7 +14,7 @@ import { Separator } from '@/components/ui/separator';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { capitalCase } from 'change-case-all';
 import { useRouter } from 'next/navigation';
-import { type ReactNode, useTransition } from 'react';
+import { type ReactNode, useId, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
 import { z } from 'zod';
@@ -40,6 +40,7 @@ const schema = z.object({
 export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultChatEngineOptions: ChatEngineOptions }) {
   const [transitioning, startTransition] = useTransition();
   const router = useRouter();
+  const id = useId();
 
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
@@ -56,7 +57,7 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
     startTransition(() => {
       router.push(`/chat-engines/${ce.id}`);
     });
-  }, errors => {
+  }, () => {
     toast.error('Validation failed', {
       description: 'Please check your chat engine configurations.',
       classNames: {
@@ -68,7 +69,7 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
 
   return (
     <Form {...form}>
-      <form className="space-y-8 max-w-screen-md" onSubmit={handleSubmit}>
+      <form id={id} className="space-y-8 max-w-screen-md" onSubmit={handleSubmit}>
         <Section noSeparator title="Info">
           <FormFieldBasicLayout required name="name" label="Name">
             <FormInput />
@@ -171,7 +172,7 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
 
         <FormRootError />
 
-        <Button type="submit" disabled={form.formState.isSubmitting || form.formState.disabled}>Create</Button>
+        <Button type="submit" form={id} disabled={form.formState.isSubmitting || form.formState.disabled}>Create</Button>
       </form>
     </Form>
   );
