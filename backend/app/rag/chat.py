@@ -14,6 +14,7 @@ import jinja2
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.llms import LLM
 from pydantic import BaseModel
+from sqlalchemy import text
 from sqlmodel import Session, select, func, SQLModel
 from llama_index.core import VectorStoreIndex
 from llama_index.core.base.llms.base import ChatMessage
@@ -25,6 +26,7 @@ from llama_index.core.response_synthesizers import get_response_synthesizer
 from langfuse import Langfuse
 from langfuse.llama_index import LlamaIndexCallbackHandler
 
+from app.api.routes.models import RequiredConfigStatus, OptionalConfigStatus, NeedMigrationStatus
 from app.models import (
     User,
     Document as DBDocument,
@@ -38,7 +40,7 @@ from app.models import (
     RerankerModel as DBRerankerModel,
     Chunk as DBChunk,
     Entity as DBEntity,
-    Relationship as DBRelationship,
+    Relationship as DBRelationship, ChatEngine,
 )
 from app.core.config import settings
 from app.models.chunk import get_kb_chunk_model
@@ -1102,11 +1104,18 @@ def get_chat_message_subgraph(
     return entities, relations
 
 
-def check_rag_required_config(session: Session) -> tuple[bool, bool, bool, bool]:
-    # Check if llm, embedding model, and datasource are configured
-    # If any of them is missing, the rag can not work
+def check_rag_required_config(session: Session) -> RequiredConfigStatus:
+    """
+    Check if the required configuration items have been configured, it any of them is
+    missing, the RAG application can not complete its work.
+    """
     has_default_llm = session.scalar(select(func.count(DBLLM.id))) > 0
     has_default_embedding_model = (session.scalar(select(func.count(DBEmbeddingModel.id))) > 0)
+    has_default_chat_engine = (
+        session.scalar(select(func.count(ChatEngine.id)).where(ChatEngine.is_default == True)) > 0
+    )
+
+    # TODO: Remove it after the multiple KB feature is stable.
     has_datasource = session.scalar(select(func.count(DBDataSource.id))) > 0
 
     try:
@@ -1115,18 +1124,43 @@ def check_rag_required_config(session: Session) -> tuple[bool, bool, bool, bool]
         has_knowledge_base = False
         logger.exception(e)
 
-    return has_default_llm, has_default_embedding_model, has_datasource, has_knowledge_base
+    return RequiredConfigStatus(
+        default_llm=has_default_llm,
+        default_embedding_model=has_default_embedding_model,
+        default_chat_engine=has_default_chat_engine,
+        datasource=has_datasource,
+        knowledge_base=has_knowledge_base
+    )
 
 
-def check_rag_optional_config(session: Session) -> tuple[bool, bool]:
+def check_rag_optional_config(session: Session) -> OptionalConfigStatus:
     langfuse = bool(
         SiteSetting.langfuse_host
         and SiteSetting.langfuse_secret_key
         and SiteSetting.langfuse_public_key
     )
     default_reranker = session.scalar(select(func.count(DBRerankerModel.id))) > 0
-    return langfuse, default_reranker
+    return OptionalConfigStatus(
+        langfuse=langfuse,
+        default_reranker=default_reranker,
+    )
 
+
+def check_rag_config_need_migration(session: Session) -> NeedMigrationStatus:
+    """
+    Check if any configuration needs to be migrated.
+    """
+    chat_engines_without_kb_configured = (
+        session.exec(
+            select(ChatEngine.id)
+            .where(ChatEngine.deleted_at == None)
+            .where(text("NOT JSON_CONTAINS_PATH(engine_options, 'one', '$.knowledge_base')"))
+        )
+    )
+
+    return NeedMigrationStatus(
+        chat_engines_without_kb_configured=chat_engines_without_kb_configured,
+    )
 
 class LLMRecommendQuestions(BaseModel):
     """recommend questions respond model"""
@@ -1134,9 +1168,9 @@ class LLMRecommendQuestions(BaseModel):
 
 
 def get_chat_message_recommend_questions(
-        db_session: Session,
-        chat_message: DBChatMessage,
-        engine_name: str = "default",
+    db_session: Session,
+    chat_message: DBChatMessage,
+    engine_name: str = "default",
 ) -> List[str]:
     chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
     _fast_llm = chat_engine_config.get_fast_llama_llm(db_session)
