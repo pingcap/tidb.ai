@@ -21,7 +21,7 @@ import type { ReactNode } from 'react';
 import useSWR from 'swr';
 
 export function Nav () {
-  const { required } = useBootstrapStatus();
+  const { required, need_migration } = useBootstrapStatus();
   const href = useHref();
   const auth = useAuth();
   const user = auth.me;
@@ -45,8 +45,19 @@ export function Nav () {
       title: 'Admin',
       items: [
         { href: '/stats/trending', title: 'Dashboard', icon: ActivitySquareIcon },
-        { href: '/knowledge-bases', title: 'Knowledge Bases', icon: LibraryBigIcon, details: !required.knowledge_base ? <NavWarningDetails>You need to configure at least one knowledge base.</NavWarningDetails> : <KnowledgeBaseNavDetails /> },
-        { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon, details: <ChatEnginesNavDetails /> },
+        {
+          href: '/knowledge-bases',
+          title: 'Knowledge Bases',
+          icon: LibraryBigIcon,
+          details: !!need_migration.chat_engines_without_kb_configured?.length
+            ? <NavWarningDetails>
+              <a href="/releases/0.3.0#manual-migration" className="underline">Manual migration</a> required.
+            </NavWarningDetails>
+            : !required.knowledge_base
+              ? <NavWarningDetails>You need to configure at least one Knowledge Base.</NavWarningDetails>
+              : <KnowledgeBaseNavDetails />,
+        },
+        { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon, details: !required.default_chat_engine ? <NavWarningDetails>You need to configure default Chat Engine.</NavWarningDetails> : <ChatEnginesNavDetails /> },
         {
           parent: true,
           key: 'models',
@@ -54,8 +65,8 @@ export function Nav () {
           icon: ComponentIcon,
           details: (!required.default_llm || !required.default_embedding_model) && <NavWarningDetails />,
           children: [
-            { href: '/llms', title: 'LLMs', icon: BrainCircuitIcon, details: !required.default_llm ? <NavWarningDetails>You need to configure at least one Default LLM.</NavWarningDetails> : <LlmsNavDetails /> },
-            { href: '/embedding-models', title: 'Embedding Models', icon: BinaryIcon, details: !required.default_embedding_model && <NavWarningDetails>You need to configure at least one Default Embedding Model.</NavWarningDetails> },
+            { href: '/llms', title: 'LLMs', icon: BrainCircuitIcon, details: !required.default_llm ? <NavWarningDetails>You need to configure default LLM.</NavWarningDetails> : <LlmsNavDetails /> },
+            { href: '/embedding-models', title: 'Embedding Models', icon: BinaryIcon, details: !required.default_embedding_model && <NavWarningDetails>You need to configure default Embedding Model.</NavWarningDetails> },
             { href: '/reranker-models', title: 'Reranker Models', icon: ShuffleIcon },
           ],
         },
