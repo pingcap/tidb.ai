@@ -536,7 +536,6 @@ class TiDBGraphStore(KnowledgeGraphStore):
         relationship_meta_filters: Dict = {},
         session: Optional[Session] = None,
     ) -> List[SQLModel]:
-        logger.info("debug")
         # select the relationships to rank
         subquery = (
             select(
