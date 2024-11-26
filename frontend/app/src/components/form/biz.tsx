@@ -1,29 +1,31 @@
-import { type EmbeddingModel, listEmbeddingModels } from '@/api/embedding-models';
-import { type KnowledgeBaseSummary, listKnowledgeBases } from '@/api/knowledge-base';
-import { listLlms, type LLM } from '@/api/llms';
+import { type EmbeddingModel } from '@/api/embedding-models';
+import { type KnowledgeBaseSummary } from '@/api/knowledge-base';
+import { type LLM } from '@/api/llms';
 import type { ProviderOption } from '@/api/providers';
-import { listRerankers, type Reranker } from '@/api/rerankers';
+import { type Reranker } from '@/api/rerankers';
 import { CreateEmbeddingModelForm } from '@/components/embedding-models/CreateEmbeddingModelForm';
+import { useAllEmbeddingModels } from '@/components/embedding-models/hooks';
 import { FormCombobox, type FormComboboxConfig, type FormComboboxProps, FormSelect, type FormSelectConfig, type FormSelectProps } from '@/components/form/control-widget';
+import { useAllKnowledgeBases } from '@/components/knowledge-base/hooks';
 import { CreateLLMForm } from '@/components/llm/CreateLLMForm';
+import { useAllLlms } from '@/components/llm/hooks';
 import { ManagedDialog } from '@/components/managed-dialog';
 import { ManagedPanelContext } from '@/components/managed-panel';
 import { CreateRerankerForm } from '@/components/reranker/CreateRerankerForm';
+import { useAllRerankers } from '@/components/reranker/hooks';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertTriangleIcon, DotIcon, PlusIcon } from 'lucide-react';
 import { forwardRef } from 'react';
-import useSWR from 'swr';
 
 export const EmbeddingModelSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
-  // TODO
-  const { data: embeddingModels, isLoading, mutate, error } = useSWR('api.embedding-models.list-all', () => listEmbeddingModels({ size: 100 }));
+  const { data: embeddingModels, isLoading, mutate, error } = useAllEmbeddingModels();
 
   return (
     <FormCombobox
       {...props}
       placeholder="Default Embedding Model"
       config={{
-        options: embeddingModels?.items ?? [],
+        options: embeddingModels ?? [],
         optionKeywords: option => [option.name, option.provider, option.model],
         loading: isLoading,
         error,
@@ -76,14 +78,14 @@ export const EmbeddingModelSelect = forwardRef<any, Omit<FormComboboxProps, 'con
 EmbeddingModelSelect.displayName = 'EmbeddingModelSelect';
 
 export const LLMSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
-  const { data: llms, isLoading, mutate, error } = useSWR('api.llms.list-all', () => listLlms({ size: 100 }));
+  const { data: llms, isLoading, mutate, error } = useAllLlms();
 
   return (
     <FormCombobox
       {...props}
       placeholder="Default LLM"
       config={{
-        options: llms?.items ?? [],
+        options: llms ?? [],
         loading: isLoading,
         error,
         renderValue: option => (<span>{option.name}</span>),
@@ -136,14 +138,14 @@ export const LLMSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { r
 LLMSelect.displayName = 'LLMSelect';
 
 export const RerankerSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
-  const { data: rerankers, mutate, isLoading, error } = useSWR('api.rerankers.list-all', () => listRerankers({ size: 100 }));
+  const { data: rerankers, mutate, isLoading, error } = useAllRerankers();
 
   return (
     <FormCombobox
       {...props}
       placeholder="Default Reranker Model"
       config={{
-        options: rerankers?.items ?? [],
+        options: rerankers ?? [],
         optionKeywords: option => [option.name, option.provider, option.model],
         loading: isLoading,
         error,
@@ -229,7 +231,7 @@ export const ProviderSelect = forwardRef<any, ProviderSelectProps>(({
 ProviderSelect.displayName = 'ProviderSelect';
 
 export const KBSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
-  const { data: kbs, isLoading, error } = useSWR('api.knowledge-bases.list-all', () => listKnowledgeBases({ size: 100 }));
+  const { data: kbs, isLoading, error } = useAllKnowledgeBases();
 
   return (
     <FormCombobox
@@ -237,7 +239,7 @@ export const KBSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { re
       {...props}
       placeholder="Select Knowledge Base"
       config={{
-        options: kbs?.items ?? [],
+        options: kbs ?? [],
         optionKeywords: option => [String(option.id), option.name, option.description],
         loading: isLoading,
         error,
