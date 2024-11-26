@@ -1,4 +1,6 @@
-{
+import type { Meta } from 'nextra';
+
+export default {
   "*": {
     "display": "hidden",
     "theme": {
@@ -12,4 +14,4 @@
   "how-it-works-3-4": "(3/4) Build RAG with TiDB: Single Round Trip CRUD (SQL) > Multiple Round Trip CRUD (SQL + Vector DB API)",
   "how-it-works-2-4": "(2/4) Build RAG with TiDB: Avoid the Synchronization Tax(Sync Script,Network IO,Duplicate Storage)",
   "how-it-works-1-4": "(1/4) Build RAG with TiDB: Minimal Architecture with a All-In-One Database"
-}
+} satisfies Meta
