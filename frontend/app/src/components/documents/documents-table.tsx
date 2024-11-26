@@ -47,7 +47,7 @@ const getColumns = (kbId?: number) => [
     header: 'action',
     cell: ({ row }) => (kbId ?? row.original.knowledge_base?.id) != null && (
       <Dialog>
-        <DialogTrigger>
+        <DialogTrigger asChild>
           <Button className='text-xs p-2' variant="ghost" size="sm">
             Chunks
           </Button>
