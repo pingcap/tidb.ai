@@ -57,6 +57,5 @@ export async function getBootstrapStatus (): Promise<BootstrapStatus> {
 }
 
 export function isBootstrapStatusPassed (bootstrapStatus: BootstrapStatus): boolean {
-  return Object.values(bootstrapStatus.required).reduce((res, flag) => res && flag, true)
-    && !bootstrapStatus.need_migration.chat_engines_without_kb_configured?.length;
+  return Object.values(bootstrapStatus.required).reduce((res, flag) => res && flag, true);
 }
