@@ -4,7 +4,12 @@ import RerankerModelsTable from '@/components/reranker/RerankerModelsTable';
 export default function Page () {
   return (
     <>
-      <AdminPageHeading title="Reranker Models" />
+      <AdminPageHeading
+        breadcrumbs={[
+          { title: 'Models' },
+          { title: 'Reranker Models', docsUrl: '/docs/reranker-model' },
+        ]}
+      />
       <RerankerModelsTable />
     </>
   );
