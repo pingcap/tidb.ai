@@ -45,7 +45,7 @@ const nextConfig = withSvgr({
 const withNextra = nextra({
   theme: 'nextra-theme-docs',
   themeConfig: './theme.config.tsx',
-  flexsearch: {
+  search: {
     codeblocks: false
   },
   defaultShowCopyCode: true,

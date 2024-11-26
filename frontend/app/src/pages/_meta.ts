@@ -1,8 +1,6 @@
-{
-  "index": {
-    "title": "Index",
-    "display": "hidden"
-  },
+import { Meta } from 'nextra';
+
+export default {
   "docs": {
     "type": "page",
     "title": "Docs"
@@ -21,4 +19,4 @@
     "href": "/",
     "newWindow": true
   }
-}
+} satisfies Meta
