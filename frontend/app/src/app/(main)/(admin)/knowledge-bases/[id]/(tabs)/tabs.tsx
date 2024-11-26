@@ -1,10 +1,11 @@
 'use client';
 
+import type { KnowledgeBase } from '@/api/knowledge-base';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import { useTransition } from 'react';
 
-export function KnowledgeBaseTabs ({ id }: { id: number }) {
+export function KnowledgeBaseTabs ({ knowledgeBase }: { knowledgeBase: KnowledgeBase }) {
   const router = useRouter();
   const [transitioning, startTransition] = useTransition();
   const segments = useSelectedLayoutSegments();
@@ -18,52 +19,58 @@ export function KnowledgeBaseTabs ({ id }: { id: number }) {
           disabled={transitioning}
           value=""
           onClick={() => startTransition(() => {
-            router.push(`/knowledge-bases/${id}`);
+            router.push(`/knowledge-bases/${knowledgeBase.id}`);
           })}
         >
           Documents
+          <span className="ml-2 text-xs font-normal">
+            {knowledgeBase.documents_total}
+          </span>
         </TabsTrigger>
         <TabsTrigger
           disabled={transitioning}
           value="data-sources"
           onClick={() => startTransition(() => {
-            router.push(`/knowledge-bases/${id}/data-sources`);
+            router.push(`/knowledge-bases/${knowledgeBase.id}/data-sources`);
           })}
         >
           Data Sources
+          <span className="ml-2 text-xs font-normal">
+            {knowledgeBase.data_sources.length}
+          </span>
         </TabsTrigger>
         <TabsTrigger
           disabled={transitioning}
           value="index-progress"
           onClick={() => startTransition(() => {
-            router.push(`/knowledge-bases/${id}/index-progress`);
+            router.push(`/knowledge-bases/${knowledgeBase.id}/index-progress`);
           })}
         >
           Index Progress
         </TabsTrigger>
-        <TabsTrigger
-          disabled={true}
-          value="retrieval-tester"
-          onClick={() => startTransition(() => {
-            router.push(`/knowledge-bases/${id}/retrieval-tester`);
-          })}
-        >
-          Retrieval Tester
-        </TabsTrigger>
+        {/*<TabsTrigger*/}
+        {/*  disabled={true}*/}
+        {/*  value="retrieval-tester"*/}
+        {/*  onClick={() => startTransition(() => {*/}
+        {/*    router.push(`/knowledge-bases/${knowledgeBase.id}/retrieval-tester`);*/}
+        {/*  })}*/}
+        {/*>*/}
+        {/*  Retrieval Tester*/}
+        {/*</TabsTrigger>*/}
         <TabsTrigger
           disabled={transitioning}
           value="knowledge-graph-explorer"
           onClick={() => startTransition(() => {
-            router.push(`/knowledge-bases/${id}/knowledge-graph-explorer`);
+            router.push(`/knowledge-bases/${knowledgeBase.id}/knowledge-graph-explorer`);
           })}
         >
-          Knowledge Graph Explorer
+          Graph Explorer
         </TabsTrigger>
         <TabsTrigger
           disabled={transitioning}
           value="settings"
           onClick={() => startTransition(() => {
-            router.push(`/knowledge-bases/${id}/settings`);
+            router.push(`/knowledge-bases/${knowledgeBase.id}/settings`);
           })}
         >
           Settings

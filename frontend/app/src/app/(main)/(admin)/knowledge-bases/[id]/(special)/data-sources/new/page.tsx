@@ -1,9 +1,8 @@
 import { cachedGetKnowledgeBaseById } from '@/app/(main)/(admin)/knowledge-bases/[id]/api';
-import { KnowledgeBaseTabs } from '@/app/(main)/(admin)/knowledge-bases/[id]/tabs';
 import { AdminPageHeading } from '@/components/admin-page-heading';
-import type { ReactNode } from 'react';
+import { CreateDatasourceForm } from '@/components/datasource/create-datasource-form';
 
-export default async function KnowledgeBaseLayout ({ params, children }: { params: { id: string }, children: ReactNode }) {
+export default async function NewKnowledgeBaseDataSourcePage ({ params }: { params: { id: string } }) {
   const id = parseInt(decodeURIComponent(params.id));
   const kb = await cachedGetKnowledgeBaseById(id);
 
@@ -12,11 +11,12 @@ export default async function KnowledgeBaseLayout ({ params, children }: { param
       <AdminPageHeading
         breadcrumbs={[
           { title: 'Knowledge Bases', url: '/knowledge-bases' },
-          { title: kb.name },
+          { title: kb.name, url: `/knowledge-bases/${id}` },
+          { title: 'DataSources', url: `/knowledge-bases/${id}/data-sources` },
+          { title: 'New' },
         ]}
       />
-      <KnowledgeBaseTabs id={id} />
-      {children}
+      <CreateDatasourceForm />
     </>
   );
 }

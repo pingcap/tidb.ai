@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/co
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Book, Ellipsis } from 'lucide-react';
+import { AlertTriangleIcon, Book, Ellipsis } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, startTransition, useState } from 'react';
 import { mutate } from 'swr';
@@ -51,7 +51,7 @@ export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase:
             <div className="flex items-center text-xs text-muted-foreground">
               <span>{knowledgeBase.documents_total ?? 0} documents</span>
               <span className="shrink-0 mx-0.5 px-1">·</span>
-              <span>{knowledgeBase.data_sources_total ?? 0} data sources</span>
+              <span>{(knowledgeBase.data_sources_total ?? 0) || <><AlertTriangleIcon className="size-3 inline-flex" /> No</>} data sources</span>
             </div>
           </div>
         </div>
