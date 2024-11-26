@@ -346,9 +346,6 @@ importers:
       react-json-view-lite:
         specifier: ^1.4.0
         version: 1.4.0(react@18.3.1)
-      react-lowlight:
-        specifier: ^3.0.0
-        version: 3.0.0(highlight.js@11.10.0)(react@18.3.1)
       react-textarea-autosize:
         specifier: ^8.5.3
         version: 8.5.3(@types/react@18.3.3)(react@18.3.1)
@@ -3330,9 +3327,6 @@ packages:
   '@types/gtag.js@0.0.20':
     resolution: {integrity: sha512-wwAbk3SA2QeU67unN7zPxjEHmPmlXwZXZvQEpbEUQuMCRGgKyE1m6XDuTUA9b6pCGb/GqJmdfMOY5LuDjJSbbg==}
 
-  '@types/hast@2.3.10':
-    resolution: {integrity: sha512-McWspRw8xx8J9HurkVBfYj0xKoE25tOFlHGdx4MJ5xORQrMGZNqJhVQWaIbm6Oyla5kYOXtDiopzKRJzEOkwJw==}
-
   '@types/hast@3.0.4':
     resolution: {integrity: sha512-WPs+bbQw5aCj+x6laNGWLH3wviHtoCv/P3+otBhbOhJgG8qtpdAMlTCxLtsTWA7LH1Oh/bFCHsBn0TPS5m30EQ==}
 
@@ -5587,9 +5581,9 @@ packages:
     resolution: {integrity: sha512-NqADB8VjPFLM2V0VvHUewwwsw0ZWBaIdgo+ieHtK3hasLz4qeCRjYcqfB6AQrBggRKppKF8L52/VqdVsO47Dlw==}
     engines: {node: '>= 0.4'}
 
-  hash-base@3.0.4:
-    resolution: {integrity: sha512-EeeoJKjTyt868liAlVmcv2ZsUfGHlE3Q+BICOXcZiwN3osr5Q/zFGYmTJpoIzuaSTAwndFy+GqhEwlU4L3j4Ow==}
-    engines: {node: '>=4'}
+  hash-base@3.0.5:
+    resolution: {integrity: sha512-vXm0l45VbcHEVlTCzs8M+s0VeYsB2lnlAaThoLKGXr3bE/VWDOelNUnycUPEhKEaXARL2TEFjBOyUiM6+55KBg==}
+    engines: {node: '>= 0.10'}
 
   hash-base@3.1.0:
     resolution: {integrity: sha512-1nmYp/rhMDiE7AYkDw+lLwlAzz0AntGIe51F3RfFfEqyQ3feY2eI/NcwC6umIQVOASPMsWJLJScWKSSvzL9IVA==}
@@ -5659,14 +5653,6 @@ packages:
 
   highlight.js@11.10.0:
     resolution: {integrity: sha512-SYVnVFswQER+zu1laSya563s+F8VDGt7o35d4utbamowvUNLLMovFqwCLSocpZTz3MgaSRA1IbqRWZv97dtErQ==}
-    engines: {node: '>=12.0.0'}
-
-  highlight.js@11.8.0:
-    resolution: {integrity: sha512-MedQhoqVdr0U6SSnWPzfiadUcDHfN/Wzq25AkXiQv9oiOO/sG0S7XkvpFIqWBl9Yq1UYyYOOVORs5UW2XlPyzg==}
-    engines: {node: '>=12.0.0'}
-
-  highlight.js@11.9.0:
-    resolution: {integrity: sha512-fJ7cW7fQGCYAkgv4CPfwFHrfd/cLS4Hau96JuJ+ZTOWhjnhoeN1ub1tFmALm/+lW5z4WCAuAV9bm05AP0mS6Gw==}
     engines: {node: '>=12.0.0'}
 
   hmac-drbg@1.0.1:
@@ -6453,11 +6439,8 @@ packages:
   lower-case@2.0.2:
     resolution: {integrity: sha512-7fm3l3NAF9WfN6W3JOmf5drwpVqX78JtoGJ3A6W0a6ZnldM41w2fV5D490psKFTpMds8TJse/eHLFFsNHHjHgg==}
 
-  lowlight@2.9.0:
-    resolution: {integrity: sha512-OpcaUTCLmHuVuBcyNckKfH5B0oA4JUavb/M/8n9iAvanJYNQkrVm4pvyX0SUaqkBG4dnWHKt7p50B3ngAG2Rfw==}
-
-  lowlight@3.1.0:
-    resolution: {integrity: sha512-CEbNVoSikAxwDMDPjXlqlFYiZLkDJHwyGu/MfOsJnF3d7f3tds5J3z8s/l9TMXhzfsJCCJEAsD78842mwmg0PQ==}
+  lowlight@3.2.0:
+    resolution: {integrity: sha512-8Me8xHTCBYEXwcJIPcurnXTeERl3plwb4207v6KPye48kX/oaYDiwXy+OCm3M/pyAPUrkMhalKsbYPm24f/UDg==}
 
   lru-cache@10.4.3:
     resolution: {integrity: sha512-JNAzZcXrCt42VGLuYz0zfAzDfAvJWW6AfYlDBQyDV5DClI2m5sAmK+OIO7s59XfsRsWHp02jAJrRadPRGTt6SQ==}
@@ -7530,15 +7513,6 @@ packages:
     engines: {node: '>=14'}
     peerDependencies:
       react: ^16.13.1 || ^17.0.0 || ^18.0.0
-
-  react-lowlight@3.0.0:
-    resolution: {integrity: sha512-s0+T81PsCbUZYd/0XrplGc6kQEUdiwLKI0G6umJP1ViqRoZRCvSuHvXOy20Usd2ywDKWLuVETQgBDPeNQhPNZg==}
-    peerDependencies:
-      highlight.js: ^11.0.0
-      react: '>=16.8.0'
-    peerDependenciesMeta:
-      highlight.js:
-        optional: true
 
   react-refresh@0.14.2:
     resolution: {integrity: sha512-jCvmsr+1IUSMUyzOkRcvnVbX3ZYC6g9TDrDbFuFmRDq7PD4yaGbLKNQL6k2jnArV8hjYxh7hVhAZB6s9HDGpZA==}
@@ -12397,10 +12371,6 @@ snapshots:
 
   '@types/gtag.js@0.0.20': {}
 
-  '@types/hast@2.3.10':
-    dependencies:
-      '@types/unist': 2.0.10
-
   '@types/hast@3.0.4':
     dependencies:
       '@types/unist': 3.0.2
@@ -13349,7 +13319,7 @@ snapshots:
       create-hash: 1.2.0
       create-hmac: 1.1.7
       elliptic: 6.5.7
-      hash-base: 3.0.4
+      hash-base: 3.0.5
       inherits: 2.0.4
       parse-asn1: 5.1.7
       readable-stream: 2.3.8
@@ -15207,7 +15177,7 @@ snapshots:
     dependencies:
       has-symbols: 1.0.3
 
-  hash-base@3.0.4:
+  hash-base@3.0.5:
     dependencies:
       inherits: 2.0.4
       safe-buffer: 5.2.1
@@ -15387,10 +15357,6 @@ snapshots:
   he@1.2.0: {}
 
   highlight.js@11.10.0: {}
-
-  highlight.js@11.8.0: {}
-
-  highlight.js@11.9.0: {}
 
   hmac-drbg@1.0.1:
     dependencies:
@@ -16356,17 +16322,11 @@ snapshots:
     dependencies:
       tslib: 2.6.3
 
-  lowlight@2.9.0:
-    dependencies:
-      '@types/hast': 2.3.10
-      fault: 2.0.1
-      highlight.js: 11.8.0
-
-  lowlight@3.1.0:
+  lowlight@3.2.0:
     dependencies:
       '@types/hast': 3.0.4
       devlop: 1.1.0
-      highlight.js: 11.9.0
+      highlight.js: 11.10.0
 
   lru-cache@10.4.3: {}
 
@@ -17446,7 +17406,7 @@ snapshots:
       asn1.js: 4.10.1
       browserify-aes: 1.2.0
       evp_bytestokey: 1.0.3
-      hash-base: 3.0.4
+      hash-base: 3.0.5
       pbkdf2: 3.1.2
       safe-buffer: 5.2.1
 
@@ -17861,13 +17821,6 @@ snapshots:
     dependencies:
       react: 18.3.1
 
-  react-lowlight@3.0.0(highlight.js@11.10.0)(react@18.3.1):
-    dependencies:
-      lowlight: 2.9.0
-      react: 18.3.1
-    optionalDependencies:
-      highlight.js: 11.10.0
-
   react-refresh@0.14.2: {}
 
   react-remove-scroll-bar@2.3.6(@types/react@18.3.3)(react@18.3.1):
@@ -18094,7 +18047,7 @@ snapshots:
     dependencies:
       '@types/hast': 3.0.4
       hast-util-to-text: 4.0.2
-      lowlight: 3.1.0
+      lowlight: 3.2.0
       unist-util-visit: 5.0.0
       vfile: 6.0.2
 

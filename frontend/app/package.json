@@ -125,7 +125,6 @@
     "nextra-theme-docs": "^3.2.4",
     "postcss": "^8.4.41",
     "react-json-view-lite": "^1.4.0",
-    "react-lowlight": "^3.0.0",
     "react-textarea-autosize": "^8.5.3",
     "remark-directive": "^3.0.0",
     "sass": "^1.77.8",
