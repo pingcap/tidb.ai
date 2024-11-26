@@ -1,26 +1,46 @@
 'use client';
 
+import { logout } from '@/api/auth';
 import { listChatEngines } from '@/api/chat-engines';
-import { listLlms } from '@/api/llms';
+import type { PublicWebsiteSettings } from '@/api/site-settings';
 import { useAuth } from '@/components/auth/AuthProvider';
+import { Branding } from '@/components/branding';
 import { ChatNewDialog } from '@/components/chat/chat-new-dialog';
 import { ChatsHistory } from '@/components/chat/chats-history';
 import { useKnowledgeBases } from '@/components/knowledge-base/hooks';
 import { type NavGroup, SiteNav } from '@/components/site-nav';
-import { SiteNavFooter } from '@/components/site-nav-footer';
 import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { Drawer, DrawerContent, DrawerTrigger } from '@/components/ui/drawer';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useHref } from '@/components/use-href';
-import { ActivitySquareIcon, AlertTriangleIcon, BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, ComponentIcon, FilesIcon, HomeIcon, KeyRoundIcon, LibraryBigIcon, LibraryIcon, MenuIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon } from 'lucide-react';
+import { ActivitySquareIcon, AlertTriangleIcon, BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, ComponentIcon, FilesIcon, HomeIcon, KeyRoundIcon, LibraryBigIcon, LibraryIcon, LogInIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon } from 'lucide-react';
+import NextLink from 'next/link';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
 import useSWR from 'swr';
 
-export function Nav () {
+export function SiteSidebar ({ setting }: { setting: PublicWebsiteSettings }) {
+  return (
+    <Sidebar>
+      <SidebarHeader>
+        <Branding setting={setting} />
+      </SidebarHeader>
+      <SidebarContent>
+        <NavContent />
+      </SidebarContent>
+      <SidebarFooter>
+        <NavFooter />
+      </SidebarFooter>
+    </Sidebar>
+  );
+}
+
+function NavContent () {
   const { required } = useBootstrapStatus();
   const href = useHref();
   const auth = useAuth();
@@ -54,7 +74,7 @@ export function Nav () {
           icon: ComponentIcon,
           details: (!required.default_llm || !required.default_embedding_model) && <NavWarningDetails />,
           children: [
-            { href: '/llms', title: 'LLMs', icon: BrainCircuitIcon, details: !required.default_llm ? <NavWarningDetails>You need to configure at least one Default LLM.</NavWarningDetails> : <LlmsNavDetails /> },
+            { href: '/llms', title: 'LLMs', icon: BrainCircuitIcon, details: !required.default_llm ? <NavWarningDetails>You need to configure at least one Default LLM.</NavWarningDetails> : undefined },
             { href: '/embedding-models', title: 'Embedding Models', icon: BinaryIcon, details: !required.default_embedding_model && <NavWarningDetails>You need to configure at least one Default Embedding Model.</NavWarningDetails> },
             { href: '/reranker-models', title: 'Reranker Models', icon: ShuffleIcon },
           ],
@@ -85,27 +105,51 @@ export function Nav () {
   }
 
   return (
-    <>
-      <SiteNav groups={groups} />
-    </>
+    <SiteNav groups={groups} />
   );
 }
 
-export function NavDrawer () {
+function NavFooter () {
+  const href = useHref();
+  const user = useAuth().me;
+  const router = useRouter();
+
+  if (!user) {
+    return (
+      <Button variant="ghost" asChild>
+        <NextLink href={`/auth/login?callbackUrl=${encodeURIComponent(href)}`} prefetch={false} className="items-center w-full gap-2">
+          <LogInIcon size="1em" />
+          Login
+        </NextLink>
+      </Button>
+    );
+  }
   return (
-    <Drawer>
-      <DrawerTrigger className="flex md:hidden flex-shrink-0" asChild>
-        <Button variant="ghost" size="icon">
-          <MenuIcon className="w-4 h-4" />
-        </Button>
-      </DrawerTrigger>
-      <DrawerContent className="px-2">
-        <ScrollArea className="h-[50vh]">
-          <Nav />
-          <SiteNavFooter className="bg-background" />
-        </ScrollArea>
-      </DrawerContent>
-    </Drawer>
+    <div className="flex items-center gap-2">
+      <DropdownMenu>
+        <DropdownMenuTrigger>
+          <Avatar className="border dark:bg-primary bg-primary-foreground p-0.5 w-8 h-8">
+            {/*{user.image && <AvatarImage src={user.image} />}*/}
+            <AvatarFallback className="text-xs">
+              {/*{user.image ? <Skeleton className="w-full h-full" /> : user.name}*/}
+              {user.email.slice(0, 2)}
+            </AvatarFallback>
+          </Avatar>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent collisionPadding={8} side="top">
+          <DropdownMenuItem onClick={() => {
+            logout().finally(() => {
+              router.refresh();
+            });
+          }}>
+            Sign out
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <span className="text-sm font-semibold">
+        {user.email}
+      </span>
+    </div>
   );
 }
 
@@ -143,16 +187,6 @@ function KnowledgeBaseNavDetails () {
 
 function ChatEnginesNavDetails () {
   const { data, isLoading } = useSWR('api.chat-engines.list-all', () => listChatEngines({ page: 1, size: 100 }));
-
-  if (isLoading) {
-    return <Skeleton className="flex-shrink-0 w-6 h-4" />;
-  }
-
-  return <CountSpan>{data?.total}</CountSpan>;
-}
-
-function LlmsNavDetails () {
-  const { data, isLoading } = useSWR('api.chat-engines.list?page=0&size=10', () => listLlms({ page: 1, size: 10 }));
 
   if (isLoading) {
     return <Skeleton className="flex-shrink-0 w-6 h-4" />;
