@@ -5,14 +5,12 @@ import type { ProviderOption } from '@/api/providers';
 import { listRerankers, type Reranker } from '@/api/rerankers';
 import { CreateEmbeddingModelForm } from '@/components/embedding-models/CreateEmbeddingModelForm';
 import { FormCombobox, type FormComboboxConfig, type FormComboboxProps, FormSelect, type FormSelectConfig, type FormSelectProps } from '@/components/form/control-widget';
-import { KBInfo } from '@/components/knowledge-base/KBInfo';
 import { CreateLLMForm } from '@/components/llm/CreateLLMForm';
 import { ManagedDialog } from '@/components/managed-dialog';
 import { ManagedPanelContext } from '@/components/managed-panel';
 import { CreateRerankerForm } from '@/components/reranker/CreateRerankerForm';
-import { RerankerInfo } from '@/components/reranker/RerankerInfo';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { PlusIcon } from 'lucide-react';
+import { AlertTriangleIcon, DotIcon, PlusIcon } from 'lucide-react';
 import { forwardRef } from 'react';
 import useSWR from 'swr';
 
@@ -29,7 +27,7 @@ export const EmbeddingModelSelect = forwardRef<any, Omit<FormComboboxProps, 'con
         optionKeywords: option => [option.name, option.provider, option.model],
         loading: isLoading,
         error,
-        renderValue: option => (<span>{option.name} <span className='text-muted-foreground'>[{option.vector_dimension}]</span></span>),
+        renderValue: option => (<span>{option.name} <span className="text-muted-foreground">[{option.vector_dimension}]</span></span>),
         renderOption: option => (
           <div>
             <div><strong>{option.name}</strong></div>
@@ -230,22 +228,56 @@ export const ProviderSelect = forwardRef<any, ProviderSelectProps>(({
 
 ProviderSelect.displayName = 'ProviderSelect';
 
-export const KBSelect = forwardRef<any, Omit<FormSelectProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
+export const KBSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
   const { data: kbs, isLoading, error } = useSWR('api.knowledge-bases.list-all', () => listKnowledgeBases({ size: 100 }));
 
   return (
-    <FormSelect
+    <FormCombobox
       ref={ref}
       {...props}
       placeholder="Select Knowledge Base"
       config={{
         options: kbs?.items ?? [],
+        optionKeywords: option => [String(option.id), option.name, option.description],
         loading: isLoading,
         error,
-        renderValue: option => (<span><KBInfo id={option.id} /></span>),
-        renderOption: option => (<span><KBInfo detailed id={option.id} /></span>),
+        renderValue: option => (
+          <div className="">
+            <span>{option.name}</span>
+            <div className="text-xs text-muted-foreground ml-2 inline-flex gap-1 items-center">
+              <span>
+                {(option.documents_total ?? 0) || <><AlertTriangleIcon className="text-yellow-600 dark:text-yellow-400 inline-flex size-3 mr-0.5" /> no</>} documents
+              </span>
+              <DotIcon className="size-4" />
+              <span className="text-xs text-muted-foreground">
+                {(option.data_sources_total ?? 0) || <><AlertTriangleIcon className="inline-flex size-3 mr-0.5" /> no</>} data sources
+              </span>
+            </div>
+          </div>
+        ),
+        renderOption: option => (
+          <div className="space-y-1">
+            <div>
+              <strong>
+                {option.name}
+              </strong>
+            </div>
+            <div className="text-xs text-muted-foreground flex gap-1 items-center">
+              <span>
+                {(option.documents_total ?? 0) || <><AlertTriangleIcon className="text-yellow-600 dark:text-yellow-400 inline-flex size-3 mr-0.5" /> no</>} documents
+              </span>
+              <DotIcon className="size-4" />
+              <span>
+                {(option.data_sources_total ?? 0) || <><AlertTriangleIcon className="inline-flex size-3 mr-0.5" /> no</>} data sources
+              </span>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {option.description}
+            </div>
+          </div>
+        ),
         key: 'id',
-      } satisfies FormSelectConfig<KnowledgeBaseSummary>}
+      } satisfies FormComboboxConfig<KnowledgeBaseSummary>}
     />
   );
 });
