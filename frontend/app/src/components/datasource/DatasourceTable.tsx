@@ -14,7 +14,7 @@ const helper = createColumnHelper<DeprecatedDatasource>();
 const columns = [
   helper.accessor('name', { cell: link({ url: datasource => `/datasources/${datasource.id}` }) }),
   helper.accessor('data_source_type', {}),
-  helper.accessor('llm_id', { cell: (ctx) => <LlmInfo className="justify-end" reverse id={ctx.getValue()} /> }),
+  helper.accessor('llm_id', { cell: (ctx) => <LlmInfo className="justify-end" id={ctx.getValue()} /> }),
   helper.accessor('build_kg_index', {}),
   helper.accessor('user_id', {}),
   helper.display({
