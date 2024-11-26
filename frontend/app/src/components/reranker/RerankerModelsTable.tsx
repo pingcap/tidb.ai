@@ -48,10 +48,9 @@ const columns: ColumnDef<Reranker, any>[] = [
     cell: ({ row }) => {
       const { model, provider } = row.original;
       return (
-        <span className="flex gap-1 items-center">
-          <Badge variant="secondary">{provider}</Badge>
-          <Badge variant="outline">{model}</Badge>
-        </span>
+        <>
+          <strong>{provider}</strong>:<span>{model}</span>
+        </>
       );
     },
   }),
