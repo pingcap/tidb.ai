@@ -59,7 +59,7 @@ services:
         max-file: "6"
 
   local-embedding-reranker:
-    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-local-embedding-reranker:v3-with-cache
+    image: registry.cn-beijing.aliyuncs.com/pingcap-ee/tidb.ai-local-embedding-reranker:v4-with-cache
     ports:
       - 5001:5001
     environment:

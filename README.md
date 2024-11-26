@@ -13,6 +13,8 @@
 
 ## Introduction
 
+<a href="https://trendshift.io/repositories/12294" target="_blank"><img src="https://trendshift.io/api/badge/repositories/12294" alt="pingcap%2Fautoflow | Trendshift" style="width: 250px; height: 55px;" width="250" height="55"/></a>
+
 An open source GraphRAG (Knowledge Graph) built on top of [TiDB Vector](https://www.pingcap.com/ai?utm_source=tidb.ai&utm_medium=community) and [LlamaIndex](https://github.com/run-llama/llama_index) and [DSPy](https://github.com/stanfordnlp/dspy).
 
 - **Live Demo**: [TiDB.AI](https://tidb.ai)
