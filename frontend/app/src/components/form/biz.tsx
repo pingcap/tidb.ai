@@ -5,7 +5,7 @@ import type { ProviderOption } from '@/api/providers';
 import { type Reranker } from '@/api/rerankers';
 import { CreateEmbeddingModelForm } from '@/components/embedding-models/CreateEmbeddingModelForm';
 import { useAllEmbeddingModels } from '@/components/embedding-models/hooks';
-import { FormCombobox, type FormComboboxConfig, type FormComboboxProps, FormSelect, type FormSelectConfig, type FormSelectProps } from '@/components/form/control-widget';
+import { FormCombobox, type FormComboboxConfig, type FormComboboxProps } from '@/components/form/control-widget';
 import { useAllKnowledgeBases } from '@/components/knowledge-base/hooks';
 import { CreateLLMForm } from '@/components/llm/CreateLLMForm';
 import { useAllLlms } from '@/components/llm/hooks';
@@ -197,7 +197,7 @@ export const RerankerSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> 
 
 RerankerSelect.displayName = 'RerankerSelect';
 
-export interface ProviderSelectProps<Provider extends ProviderOption = ProviderOption> extends Omit<FormSelectProps, 'config'> {
+export interface ProviderSelectProps<Provider extends ProviderOption = ProviderOption> extends Omit<FormComboboxProps, 'config'> {
   options: ProviderOption[] | undefined;
   isLoading: boolean;
   error: unknown;
@@ -207,22 +207,24 @@ export const ProviderSelect = forwardRef<any, ProviderSelectProps>(({
   options, isLoading, error, ...props
 }, ref) => {
   return (
-    <FormSelect
+    <FormCombobox
       ref={ref}
       config={{
         options: options ?? [],
+        optionKeywords: option => [option.provider, option.provider_description ?? '', option.provider_display_name ?? ''],
         loading: isLoading,
         error,
         renderOption: option => (
-          <>
-            <div className="text-sm font-bold max-w-screen-sm">{option.provider_display_name ?? option.provider}</div>
+          <div>
+            <div className="text-sm font-bold">{option.provider_display_name ?? option.provider}</div>
             {option.provider_description && <div className="text-xs text-muted-foreground break-words" style={{ maxWidth: 'calc(var(--radix-select-trigger-width) - 68px)' }}>{option.provider_description}</div>}
-          </>
+          </div>
         ),
         itemClassName: 'space-y-1',
         renderValue: option => option.provider_display_name ?? option.provider,
         key: 'provider',
-      } satisfies FormSelectConfig<ProviderOption>}
+      } satisfies FormComboboxConfig<ProviderOption>}
+      contentWidth="anchor"
       {...props}
     />
   );

@@ -42,7 +42,7 @@ export function CreateKnowledgeBaseForm ({}: {}) {
 
   return (
     <Form {...form}>
-      <form id={id} className="space-y-4" onSubmit={handleSubmit}>
+      <form id={id} className="max-w-screen-sm space-y-4" onSubmit={handleSubmit}>
         <FormFieldBasicLayout name="name" label="Name">
           <FormInput placeholder="The name of the knowledge base" />
         </FormFieldBasicLayout>
