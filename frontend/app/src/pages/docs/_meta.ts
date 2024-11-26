@@ -1,4 +1,6 @@
-{
+import type { Meta } from 'nextra';
+
+export default {
   "-- Getting Started": {
     "type": "separator",
     "title": "Getting Started"
@@ -42,4 +44,4 @@
     "type": "separator"
   },
   "releases": "Releases"
-}
+} satisfies Meta

@@ -16,7 +16,7 @@ export interface TableHeadingProps {
 
 export function AdminPageHeading ({ title, description, actions, breadcrumbs }: TableHeadingProps) {
   return (
-    <div className="flex items-center gap-2 mb-2">
+    <div className="flex items-center gap-2 mb-2 pl-8">
       {breadcrumbs && (
         <Breadcrumb>
           <BreadcrumbList>
@@ -37,7 +37,7 @@ export function AdminPageHeading ({ title, description, actions, breadcrumbs }: 
       )}
       <div>
         {title && <h2 className="text-2xl flex-shrink-0 font-semibold">{title}</h2>}
-        <p className="mt-2text-sm text-muted-foreground">
+        <p className="mt-2 text-sm text-muted-foreground">
           {description}
         </p>
       </div>
