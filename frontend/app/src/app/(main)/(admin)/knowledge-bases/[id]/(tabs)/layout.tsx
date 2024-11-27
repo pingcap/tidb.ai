@@ -50,7 +50,7 @@ export default function KnowledgeBaseLayout ({ params, children }: { params: { i
         <SecondaryNavigatorList>
           <KnowledgeBaseTabs knowledgeBaseId={id} />
         </SecondaryNavigatorList>
-        <SecondaryNavigatorMain className="space-y-4">
+        <SecondaryNavigatorMain className="space-y-4 px-2">
           {children}
         </SecondaryNavigatorMain>
       </SecondaryNavigatorLayout>

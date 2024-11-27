@@ -24,7 +24,7 @@ export default function SiteSettingsLayout ({ children }: { children: ReactNode 
             JS Widget
           </SecondaryNavigatorLink>
         </SecondaryNavigatorList>
-        <SecondaryNavigatorMain>
+        <SecondaryNavigatorMain className="px-2">
           {children}
         </SecondaryNavigatorMain>
       </SecondaryNavigatorLayout>
