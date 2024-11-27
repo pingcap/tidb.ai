@@ -30,9 +30,9 @@ from app.rag.node_postprocessor.metadata_post_filter import MetadataFilters
 from app.rag.node_postprocessor.baisheng_reranker import BaishengRerank
 from app.rag.node_postprocessor.local_reranker import LocalRerank
 from app.rag.embeddings.local_embedding import LocalEmbedding
-from app.repositories import chat_engine_repo
-from app.repositories.embedding_model import embedding_model_repo
-from app.repositories.llm import get_default_db_llm
+from app.repositories import chat_engine_repo, knowledge_base_repo
+from app.repositories.embedding_model import embed_model_repo
+from app.repositories.llm import llm_repo
 from app.types import LLMProvider, EmbeddingProvider, RerankerProvider
 from app.rag.default_prompt import (
     DEFAULT_INTENT_GRAPH_KNOWLEDGE,
@@ -256,9 +256,7 @@ def get_llm(
 
 
 def get_default_llm(session: Session) -> LLM:
-    db_llm = get_default_db_llm(session)
-    if not db_llm:
-        raise ValueError("No default LLM found in DB")
+    db_llm = llm_repo.must_get_default_llm(session)
     return get_llm(
         db_llm.provider,
         db_llm.model,
@@ -316,9 +314,7 @@ def get_embedding_model(
 
 
 def get_default_embedding_model(session: Session) -> BaseEmbedding:
-    db_embed_model = embedding_model_repo.get_default_model(session)
-    if not db_embed_model:
-        raise ValueError("No default embedding model found in DB")
+    db_embed_model = embed_model_repo.must_get_default_model(session)
     return get_embedding_model(
         db_embed_model.provider,
         db_embed_model.model,

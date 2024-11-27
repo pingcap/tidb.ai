@@ -52,6 +52,7 @@ from app.rag.chat_stream_protocol import (
     ChatEvent,
 )
 from app.models.relationship import get_kb_relationship_model
+from app.rag.knowledge_base.config import get_kb_embed_model
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.knowledge_graph.graph_store.tidb_graph_editor import legacy_tidb_graph_editor
@@ -77,15 +78,15 @@ class ChatService:
     _relationship_db_model: Type[SQLModel] = DBRelationship
 
     def __init__(
-            self,
-            *,
-            db_session: Session,
-            user: User,
-            browser_id: str,
-            origin: str,
-            chat_messages: List[ChatMessage],
-            engine_name: str = "default",
-            chat_id: Optional[UUID] = None,
+        self,
+        *,
+        db_session: Session,
+        user: User,
+        browser_id: str,
+        origin: str,
+        chat_messages: List[ChatMessage],
+        engine_name: str = "default",
+        chat_id: Optional[UUID] = None,
     ) -> None:
         self.db_session = db_session
         self.user = user
@@ -157,6 +158,7 @@ class ChatService:
             self._node_postprocessors = [self._metadata_filter]
             self._similarity_top_k = 10
 
+        # Langfuse
         self.langfuse_host = SiteSetting.langfuse_host
         self.langfuse_secret_key = SiteSetting.langfuse_secret_key
         self.langfuse_public_key = SiteSetting.langfuse_public_key
@@ -164,13 +166,16 @@ class ChatService:
             self.langfuse_host and self.langfuse_secret_key and self.langfuse_public_key
         )
 
+        # TODO: Support multiple knowledge base retrieve.
         if self.chat_engine_config.knowledge_base:
-            # TODO: Support multiple knowledge base retrieve.
             linked_knowledge_base = self.chat_engine_config.knowledge_base.linked_knowledge_base
             kb = knowledge_base_repo.must_get(db_session, linked_knowledge_base.id)
+            self._embed_model = get_kb_embed_model(db_session, kb)
             self._chunk_db_model = get_kb_chunk_model(kb)
             self._entity_db_model = get_kb_entity_model(kb)
             self._relationship_db_model = get_kb_relationship_model(kb)
+        else:
+            self._embed_model = get_default_embedding_model(db_session)
 
     def chat(self) -> Generator[ChatEvent | str, None, None]:
         try:
@@ -188,13 +193,13 @@ class ChatService:
             )
 
     def _search_kg(
-            self,
-            kg_config: KnowledgeGraphOption,
-            fast_dspy_lm: dspy.LM,
-            embed_model: BaseEmbedding,
-            get_llamaindex_callback_manager: Callable[[], Optional[CallbackManager]],
-            trace_url: str,
-            annotation_silent: bool = False,
+        self,
+        kg_config: KnowledgeGraphOption,
+        fast_dspy_lm: dspy.LM,
+        embed_model: BaseEmbedding,
+        get_llamaindex_callback_manager: Callable[[], Optional[CallbackManager]],
+        trace_url: str,
+        annotation_silent: bool = False,
     ) -> Generator[ChatEvent | str, None, Tuple[List[dict], List[dict], List[dict], dict, str]]:
         """
         Search the knowledge graph for relevant entities, relationships, and chunks.
@@ -308,12 +313,12 @@ class ChatService:
         return entities, relations, chunks, graph_data_source_ids, graph_knowledges_context
 
     def _get_llamaindex_callback_manager(
-            self,
-            langfuse: Optional[Langfuse] = None,
-            trace_id: Optional[str] = None,
-            llm: Optional[LLM] = None,
-            fast_llm: Optional[LLM] = None,
-            embed_model: Optional[BaseEmbedding] = None,
+        self,
+        langfuse: Optional[Langfuse] = None,
+        trace_id: Optional[str] = None,
+        llm: Optional[LLM] = None,
+        fast_llm: Optional[LLM] = None,
+        embed_model: Optional[BaseEmbedding] = None,
     ) -> CallbackManager:
         # Why we don't use high-level decorator `observe()` as \
         #   `https://langfuse.com/docs/integrations/llama-index/get-started` suggested?
@@ -373,12 +378,12 @@ class ChatService:
         clarifying_question: str
 
     def _refine_or_early_stop(
-            self,
-            get_llamaindex_callback_manager: Callable[[], Optional[CallbackManager]],
-            fast_llm: LLM,
-            graph_knowledges_context: str,
-            refined_question_prompt: Optional[str] = None,
-            annotation_silent: bool = False,
+        self,
+        get_llamaindex_callback_manager: Callable[[], Optional[CallbackManager]],
+        fast_llm: LLM,
+        graph_knowledges_context: str,
+        refined_question_prompt: Optional[str] = None,
+        annotation_silent: bool = False,
     ) -> Generator[ChatEvent | str, None, Tuple[bool, str, str]]:
         """
         Determine whether to refine the user question or early stop the conversation with a clarifying question.
@@ -473,13 +478,13 @@ class ChatService:
         return False, "", refined_question
 
     def _gen_answer_via_llama_index(
-            self,
-            get_llamaindex_callback_manager: Callable[[], Optional[CallbackManager]],
-            refined_question: str,
-            graph_knowledges_context: str,
-            llm: LLM,
-            embed_model: BaseEmbedding,
-            annotation_silent: bool = False,
+        self,
+        get_llamaindex_callback_manager: Callable[[], Optional[CallbackManager]],
+        refined_question: str,
+        graph_knowledges_context: str,
+        llm: LLM,
+        embed_model: BaseEmbedding,
+        annotation_silent: bool = False,
     ) -> Generator[ChatEvent | str, None, Tuple[StreamingResponse, List[dict]]]:
         if not annotation_silent:
             yield ChatEvent(
@@ -547,13 +552,13 @@ class ChatService:
         return response, source_documents
 
     def _chat_finish(
-            self,
-            db_assistant_message: ChatMessage,
-            db_user_message: ChatMessage,
-            response_text: str,
-            source_documents: List[dict],
-            graph_data_source_ids: dict,
-            annotation_silent: bool = False,
+        self,
+        db_assistant_message: ChatMessage,
+        db_user_message: ChatMessage,
+        response_text: str,
+        source_documents: List[dict],
+        graph_data_source_ids: dict,
+        annotation_silent: bool = False,
     ):
         if not annotation_silent:
             yield ChatEvent(
@@ -614,7 +619,7 @@ class ChatService:
             ),
         )
 
-        _embed_model = get_default_embedding_model(self.db_session)
+        # TODO: remove to __init__?
         _llm = self.chat_engine_config.get_llama_llm(self.db_session)
         _fast_llm = self.chat_engine_config.get_fast_llama_llm(self.db_session)
         _fast_dspy_lm = self.chat_engine_config.get_fast_dspy_lm(self.db_session)
@@ -634,7 +639,7 @@ class ChatService:
                 trace_id=trace_id,
                 llm=_llm,
                 fast_llm=_fast_llm,
-                embed_model=_embed_model,
+                embed_model=self._embed_model,
             )
 
         # 1. Retrieve entities, relations, and chunks from the knowledge graph
@@ -642,7 +647,7 @@ class ChatService:
         entities, relations, chunks, graph_data_source_ids, graph_knowledges_context = yield from self._search_kg(
             kg_config=kg_config,
             fast_dspy_lm=_fast_dspy_lm,
-            embed_model=_embed_model,
+            embed_model=self._embed_model,
             trace_url=trace_url,
             get_llamaindex_callback_manager=_get_llamaindex_callback_manager_in_chat,
         )
@@ -667,7 +672,7 @@ class ChatService:
                 refined_question=refined_question,
                 graph_knowledges_context=graph_knowledges_context,
                 llm=_llm,
-                embed_model=_embed_model,
+                embed_model=self._embed_model,
             )
 
             response_text = ""
@@ -719,27 +724,13 @@ class ChatService:
             ),
         )
 
-        _embed_model = get_default_embedding_model(self.db_session)
+        # TODO: remove to __init__?
         _fast_dspy_lm = self.chat_engine_config.get_fast_dspy_lm(self.db_session)
         _fast_llm = self.chat_engine_config.get_fast_llama_llm(self.db_session)
 
         # retrieve entities, relations, and chunks from the knowledge graph
         # this retrieve progress is only for the clarifying question checking
         try:
-            """
-            kg_config = self.chat_engine_config.knowledge_graph
-            _, _, _, graph_data_source_ids, graph_knowledges_context = yield from self._search_kg(
-                kg_config=kg_config,
-                fast_dspy_lm=_fast_dspy_lm,
-                embed_model=_embed_model,
-                trace_url="",
-                get_llamaindex_callback_manager=lambda: self._get_llamaindex_callback_manager(
-                    fast_llm=_fast_llm,
-                    embed_model=_embed_model,
-                ),
-                annotation_silent=True,
-            )
-            """
             graph_data_source_ids = []
             graph_knowledges_context = ""
 
@@ -747,7 +738,7 @@ class ChatService:
             early_stop, clarifying_question, goal = yield from self._refine_or_early_stop(
                 get_llamaindex_callback_manager=lambda: self._get_llamaindex_callback_manager(
                     fast_llm=_fast_llm,
-                    embed_model=_embed_model,
+                    embed_model=self._embed_model,
                 ),
                 fast_llm=_fast_llm,
                 graph_knowledges_context=graph_knowledges_context,
@@ -810,31 +801,6 @@ class ChatService:
             except Exception as e:
                 logger.error(f"Failed to get task_id from chunk: {e}")
 
-        """
-        try:
-            response_text = ""
-            final_answer_gen = _fast_llm.stream(
-                get_prompt_by_jinja2_template(
-                    self.chat_engine_config.llm.condense_answer_prompt,
-                    chat_history=self.chat_history,
-                    question=self.user_question,
-                    agent_answer=stackvm_response_text,
-                )
-            )
-            for word in final_answer_gen:
-                response_text += word
-                yield ChatEvent(
-                    event_type=ChatEventType.TEXT_PART,
-                    payload=word,
-                )
-        except Exception as e:
-            for word in stackvm_response_text:
-                yield ChatEvent(
-                    event_type=ChatEventType.TEXT_PART,
-                    payload=word,
-                )
-            logger.error(f"Failed to refine question: {e}")
-        """
         response_text = stackvm_response_text
         base_url = stream_chat_api_url.replace('/api/stream_execute_vm', '')
         db_assistant_message.content = response_text
@@ -1031,8 +997,9 @@ def get_graph_data_from_langfuse(trace_url: str):
 def get_chat_message_subgraph(
     session: Session,
     chat_message: DBChatMessage,
+    embed_model: BaseEmbedding,
     entity_db_model: SQLModel = DBEntity,
-    relationship_db_model: SQLModel = DBRelationship
+    relationship_db_model: SQLModel = DBRelationship,
 ) -> Tuple[List, List]:
     if chat_message.role != MessageRole.USER:
         return [], []
@@ -1089,7 +1056,7 @@ def get_chat_message_subgraph(
     graph_store = TiDBGraphStore(
         dspy_lm=chat_engine_config.get_fast_dspy_lm(session),
         session=session,
-        embed_model=get_default_embedding_model(session),
+        embed_model=embed_model,
         entity_db_model=entity_db_model,
         relationship_db_model=relationship_db_model,
     )

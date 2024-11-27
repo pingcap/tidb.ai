@@ -12,7 +12,9 @@ from fastapi.responses import StreamingResponse
 from fastapi_pagination import Params, Page
 
 from app.api.deps import SessionDep, OptionalUserDep, CurrentUserDep
-from app.repositories import chat_repo
+from app.rag.chat_config import get_default_embedding_model, ChatEngineConfig
+from app.rag.knowledge_base.config import get_kb_embed_model
+from app.repositories import chat_repo, knowledge_base_repo
 from app.models import Chat, ChatUpdate
 from app.rag.chat import (
     ChatService,
@@ -193,7 +195,16 @@ def get_chat_subgraph(session: SessionDep, user: OptionalUserDep, chat_message_i
     if not user_can_view_chat(chat_message.chat, user):
         raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Access denied")
 
-    entities, relations = get_chat_message_subgraph(session, chat_message)
+    engine_options = chat_message.chat.engine_options
+    chat_engine_config = ChatEngineConfig.validate(engine_options)
+
+    if chat_engine_config.knowledge_base:
+        kb = knowledge_base_repo.must_get(session, chat_engine_config.knowledge_base.linked_knowledge_base.id)
+        embed_model = get_kb_embed_model(session, kb)
+    else:
+        embed_model = get_default_embedding_model(session)
+
+    entities, relations = get_chat_message_subgraph(session, chat_message, embed_model)
     return SubgraphResponse(entities=entities, relationships=relations)
 
 

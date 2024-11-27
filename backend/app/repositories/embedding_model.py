@@ -3,10 +3,10 @@ from typing import Type
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlalchemy.orm.attributes import flag_modified
-from sqlmodel import Session, select, update, SQLModel
+from sqlmodel import Session, select, update
 
 from app.api.admin_routes.embedding_model.models import EmbeddingModelUpdate, EmbeddingModelCreate
-from app.exceptions import EmbeddingModelNotFoundError
+from app.exceptions import DefaultEmbeddingModelNotFoundError, EmbeddingModelNotFoundError
 from app.models import  EmbeddingModel
 from app.repositories.base_repo import BaseRepo
 
@@ -17,11 +17,11 @@ class EmbeddingModelRepo(BaseRepo):
     def create(self, session: Session, create: EmbeddingModelCreate):
         # If there is currently no model, the first model is
         # automatically set as the default model.
-        if not embedding_model_repo.exists_any_model(session):
+        if not embed_model_repo.exists_any_model(session):
             create.is_default = True
 
         if create.is_default:
-            embedding_model_repo.unset_default_model(session)
+            embed_model_repo.unset_default_model(session)
 
         embed_model = EmbeddingModel(
             name=create.name,
@@ -36,6 +36,7 @@ class EmbeddingModelRepo(BaseRepo):
         session.refresh(embed_model)
 
         return embed_model
+
 
     def exists_any_model(self, session: Session) -> bool:
         stmt = select(EmbeddingModel).with_for_update().limit(1)
@@ -63,6 +64,13 @@ class EmbeddingModelRepo(BaseRepo):
                 .order_by(EmbeddingModel.updated_at.desc())
                 .limit(1))
         return session.exec(stmt).first()
+
+
+    def must_get_default_model(self, session: Session) -> Type[EmbeddingModel]:
+        embed_model = self.get_default_model(session)
+        if embed_model is None:
+            raise DefaultEmbeddingModelNotFoundError()
+        return embed_model
 
 
     def unset_default_model(self, session: Session):
@@ -101,4 +109,4 @@ class EmbeddingModelRepo(BaseRepo):
         return embed_model
 
 
-embedding_model_repo = EmbeddingModelRepo()
+embed_model_repo = EmbeddingModelRepo()
