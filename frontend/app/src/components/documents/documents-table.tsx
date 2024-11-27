@@ -73,17 +73,13 @@ const getColumns = (kbId?: number) => [
   }),
 ] as ColumnDef<Document>[];
 
-export function DocumentsTable ({ knowledgeBaseId }: { knowledgeBaseId?: number }) {
+export function DocumentsTable ({ knowledgeBaseId }: { knowledgeBaseId: number }) {
   const [filters, setFilters] = useState<ListDocumentsTableFilters>({});
 
   const columns = useMemo(() => {
-    if (knowledgeBaseId != null) {
-      const columns = [...getColumns(knowledgeBaseId)];
-      columns.splice(1, 1);
-      return columns;
-    } else {
-      return getColumns(knowledgeBaseId);
-    }
+    const columns = [...getColumns(knowledgeBaseId)];
+    columns.splice(1, 1);
+    return columns;
   }, [knowledgeBaseId]);
 
   return (
