@@ -52,6 +52,8 @@ export function DatasourceCard ({ knowledgeBaseId, datasource }: { knowledgeBase
             await deleteDatasource(knowledgeBaseId, datasource.id);
           }}
           asChild
+          dialogTitle={`Confirm to delete the datasource ${datasource.name} #${datasource.id}`}
+          dialogDescription={<>All <b>documents</b>, <b>chunks</b>, <b>entities</b> and <b>relationships</b> related to this datasource will be <b>deleted</b>. This action cannot be undone.</>}
         >
           <Button variant="ghost" className="hover:text-destructive hover:bg-destructive/10" size="sm">Delete</Button>
         </DangerousActionButton>
