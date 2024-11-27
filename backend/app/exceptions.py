@@ -36,13 +36,6 @@ class DefaultEmbeddingModelNotFoundError(HTTPException):
         self.detail = f"default embedding model is not found"
 
 
-class DataSourceNotFoundError(HTTPException):
-    status_code = 404
-
-    def __init__(self, data_source_id: int):
-        self.detail = f"data source #{data_source_id} is not found"
-
-
 class KnowledgeBaseNotFoundError(HTTPException):
     status_code = 404
 
