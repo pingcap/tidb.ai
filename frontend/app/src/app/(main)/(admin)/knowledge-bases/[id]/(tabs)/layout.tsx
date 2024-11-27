@@ -4,6 +4,7 @@ import { KnowledgeBaseTabs } from '@/app/(main)/(admin)/knowledge-bases/[id]/(ta
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { ArrowRightIcon } from '@/components/icons';
 import { useKnowledgeBase } from '@/components/knowledge-base/hooks';
+import { SecondaryNavigatorLayout, SecondaryNavigatorList, SecondaryNavigatorMain } from '@/components/secondary-navigator-list';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import Link from 'next/link';
@@ -45,8 +46,14 @@ export default function KnowledgeBaseLayout ({ params, children }: { params: { i
           },
         ]}
       />
-      <KnowledgeBaseTabs knowledgeBaseId={id} />
-      {children}
+      <SecondaryNavigatorLayout>
+        <SecondaryNavigatorList>
+          <KnowledgeBaseTabs knowledgeBaseId={id} />
+        </SecondaryNavigatorList>
+        <SecondaryNavigatorMain className="space-y-4">
+          {children}
+        </SecondaryNavigatorMain>
+      </SecondaryNavigatorLayout>
     </>
   );
 }
