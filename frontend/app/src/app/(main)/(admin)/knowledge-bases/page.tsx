@@ -11,7 +11,11 @@ export default function KnowledgeBasesPage () {
 
   return (
     <>
-      <AdminPageHeading title="Knowledge Bases" />
+      <AdminPageHeading
+        breadcrumbs={[
+          { title: 'Knowledge Bases' },
+        ]}
+      />
       <NextLink href="/knowledge-bases/new">
         New Knowledge Base
       </NextLink>

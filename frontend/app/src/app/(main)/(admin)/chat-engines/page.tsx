@@ -4,7 +4,11 @@ import { ChatEnginesTable } from '@/components/chat-engine/chat-engines-table';
 export default function ChatEnginesPage () {
   return (
     <>
-      <AdminPageHeading title="Chat Engines" />
+      <AdminPageHeading
+        breadcrumbs={[
+          { title: 'Chat Engines', docsUrl: '/docs/chat-engine' },
+        ]}
+      />
       <ChatEnginesTable />
     </>
   );
