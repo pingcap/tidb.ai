@@ -1,5 +1,6 @@
 import { deleteKnowledgeBase, type KnowledgeBaseSummary } from '@/api/knowledge-base';
 import { DangerousActionButton } from '@/components/dangerous-action-button';
+import { mutateKnowledgeBases } from '@/components/knowledge-base/hooks';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/components/ui/card';
@@ -10,7 +11,6 @@ import { cn } from '@/lib/utils';
 import { AlertTriangleIcon, Book, Ellipsis } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, startTransition, useState } from 'react';
-import { mutate } from 'swr';
 
 export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase: KnowledgeBaseSummary, children?: ReactNode }) {
   const router = useRouter();
@@ -31,12 +31,7 @@ export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase:
 
   const handleDelete = async () => {
     await deleteKnowledgeBase(knowledgeBase.id);
-    await mutate(key => {
-      if (typeof key === 'string') {
-        return key.startsWith('api.knowledge-bases.list?');
-      }
-      return false;
-    });
+    await mutateKnowledgeBases();
     setDropdownOpen(false);
   };
 
@@ -74,12 +69,12 @@ export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase:
                 <Ellipsis className="size-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" align='end' alignOffset={-9} onClick={event => event.stopPropagation()}>
+            <DropdownMenuContent className="w-56" align="end" alignOffset={-9} onClick={event => event.stopPropagation()}>
               <DropdownMenuItem onSelect={handleMenuItemSettingSelect}>Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DangerousActionButton action={handleDelete} asChild>
                 <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
+                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
                   onSelect={event => event.preventDefault()}
                 >
                   Delete

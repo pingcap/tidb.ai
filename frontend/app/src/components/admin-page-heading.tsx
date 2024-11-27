@@ -1,4 +1,7 @@
+'use client';
+
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import { useSettingContext } from '@/components/website-setting-provider';
 import { HelpCircleIcon } from 'lucide-react';
 import Link from 'next/link';
 import { Fragment, type ReactNode } from 'react';
@@ -10,22 +13,24 @@ export interface BreadcrumbItem {
 }
 
 export interface TableHeadingProps {
-  /**
-   * @deprecated
-   */
-  title?: ReactNode;
   breadcrumbs?: BreadcrumbItem[];
 }
 
-export function AdminPageHeading ({ title, breadcrumbs }: TableHeadingProps) {
+export function AdminPageHeading ({ breadcrumbs }: TableHeadingProps) {
+  const { title: siteTitle } = useSettingContext();
   return (
-    <div className="flex items-center gap-2 mb-2 pl-8">
+    <div className="mb-2 pl-8">
       {breadcrumbs && (
         <Breadcrumb>
           <BreadcrumbList>
+            <BreadcrumbLink asChild>
+              <Link href="/">
+                {siteTitle}
+              </Link>
+            </BreadcrumbLink>
             {breadcrumbs.map((item, index) => (
               <Fragment key={index}>
-                {index > 0 && <BreadcrumbSeparator />}
+                <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   {item.url
                     ? <BreadcrumbLink asChild><Link href={item.url}>{item.title}</Link></BreadcrumbLink>
@@ -33,7 +38,7 @@ export function AdminPageHeading ({ title, breadcrumbs }: TableHeadingProps) {
                       ? <BreadcrumbPage>{item.title}</BreadcrumbPage>
                       : <span>{item.title}</span>}
                   {item.docsUrl
-                    ? <a href={item.docsUrl} target='_blank'><HelpCircleIcon className="size-4" /></a>
+                    ? <a href={item.docsUrl} target="_blank"><HelpCircleIcon className="size-4" /></a>
                     : undefined}
                 </BreadcrumbItem>
               </Fragment>
@@ -41,10 +46,6 @@ export function AdminPageHeading ({ title, breadcrumbs }: TableHeadingProps) {
           </BreadcrumbList>
         </Breadcrumb>
       )}
-      <div>
-        {title && <h2 className="text-2xl flex-shrink-0 font-semibold">{title}</h2>}
-      </div>
     </div>
-  )
-    ;
+  );
 }

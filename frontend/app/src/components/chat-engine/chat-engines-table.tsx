@@ -7,7 +7,6 @@ import { datetime } from '@/components/cells/datetime';
 import { link } from '@/components/cells/link';
 import { mono } from '@/components/cells/mono';
 import { DataTableRemote } from '@/components/data-table-remote';
-import { NextLink } from '@/components/nextjs/NextLink';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { CopyIcon, TrashIcon } from 'lucide-react';
@@ -59,7 +58,6 @@ const columns = [
 export function ChatEnginesTable () {
   return (
     <DataTableRemote
-      before={<NextLink href="/chat-engines/new">New Chat Engine</NextLink>}
       columns={columns}
       apiKey="api.chat-engines.list"
       api={listChatEngines}

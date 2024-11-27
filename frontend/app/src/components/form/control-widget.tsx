@@ -171,25 +171,10 @@ export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeh
             ? <Loader2Icon className="size-4 opacity-50 animate-spin repeat-infinite" />
             : config.error
               ? <TriangleAlertIcon className="size-4 text-destructive opacity-50" />
-              : <ChevronDown className="h-4 w-4 opacity-50" />}
+              : config.clearable !== false && current != null && !disabled
+                ? <FormComboboxClearButton onClick={() => onChange?.(null)} />
+                : <ChevronDown className="h-4 w-4 opacity-50" />}
         </PopoverPrimitive.Trigger>
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {(config.clearable !== false && current != null && !disabled) && <button
-                className="ml-2 opacity-50 hover:opacity-100"
-                type="button"
-                onClick={(event) => {
-                  onChange?.(null);
-                }}>
-                <XCircleIcon className="size-4" />
-              </button>}
-            </TooltipTrigger>
-            <TooltipContent>
-              Clear select
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
       </div>
       <PopoverContent className={cn('p-0 focus:outline-none', contentWidth === 'anchor' && 'w-[--radix-popover-trigger-width]')} align="start" collisionPadding={8}>
         <Command>
@@ -236,3 +221,20 @@ export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeh
 });
 
 FormCombobox.displayName = 'FormCombobox';
+
+function FormComboboxClearButton ({ onClick }: { onClick?: () => void }) {
+  return (
+    <TooltipProvider delayDuration={0}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button className="ml-2 opacity-50 hover:opacity-100" type="button" onClick={onClick}>
+            <XCircleIcon className="size-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          Clear select
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
