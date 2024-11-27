@@ -55,7 +55,7 @@ from app.models.relationship import get_kb_relationship_model
 from app.rag.knowledge_base.config import get_kb_embed_model
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
-from app.rag.knowledge_graph.graph_store.tidb_graph_editor import legacy_tidb_graph_editor
+from app.rag.knowledge_graph.graph_store.tidb_graph_editor import TiDBGraphEditor
 
 from app.rag.knowledge_graph import KnowledgeGraphIndex
 from app.rag.chat_config import ChatEngineConfig, get_default_embedding_model, KnowledgeGraphOption
@@ -995,6 +995,7 @@ def get_graph_data_from_langfuse(trace_url: str):
 
 
 def get_chat_message_subgraph(
+    graph_editor: TiDBGraphEditor,
     session: Session,
     chat_message: DBChatMessage,
     embed_model: BaseEmbedding,
@@ -1007,12 +1008,12 @@ def get_chat_message_subgraph(
     # try to get subgraph from chat_message.graph_data
     try:
         if (
-                chat_message.graph_data
-                and "relationships" in chat_message.graph_data
-                and len(chat_message.graph_data["relationships"]) > 0
+            chat_message.graph_data
+            and "relationships" in chat_message.graph_data
+            and len(chat_message.graph_data["relationships"]) > 0
         ):
             relationship_ids = chat_message.graph_data["relationships"]
-            all_entities, all_relationships = legacy_tidb_graph_editor.get_relationship_by_ids(
+            all_entities, all_relationships = graph_editor.get_relationship_by_ids(
                 session, relationship_ids
             )
             entities = [
