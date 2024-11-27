@@ -7,7 +7,11 @@ import { type ReactNode } from 'react';
 export default function SiteSettingsLayout ({ children }: { children: ReactNode }) {
   return (
     <div className="relative">
-      <AdminPageHeading title="Site Settings" />
+      <AdminPageHeading
+        breadcrumbs={[
+          { title: 'Site Settings' },
+        ]}
+      />
       <SecondaryNavigatorLayout>
         <SecondaryNavigatorList>
           <SecondaryNavigatorLink pathname="/site-settings">
