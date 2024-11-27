@@ -61,6 +61,20 @@ def list_datasources(
     return data_source_repo.paginate(session, params)
 
 
+@router.get("/admin/datasources/{data_source_id}", deprecated=True)
+def get_datasource(
+        session: SessionDep,
+        user: CurrentSuperuserDep,
+        data_source_id: int,
+) -> DataSource:
+    data_source = data_source_repo.get(session, data_source_id)
+    if data_source is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Data source not found",
+        )
+    return data_source
+
 @router.delete("/admin/datasources/{data_source_id}", deprecated=True)
 def delete_datasource(
     session: SessionDep,
