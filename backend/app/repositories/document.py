@@ -2,7 +2,7 @@ from sqlmodel import select, Session, col
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
-from app.api.admin_routes.document.models import DocumentFilters
+from app.api.admin_routes.knowledge_base.document.models import DocumentFilters
 from app.models import Document
 from app.repositories.base_repo import BaseRepo
 
