@@ -37,8 +37,8 @@ class TiDBGraphEditor:
             self._embed_model = resolve_embed_model(embed_model)
         else:
             self._embed_model = OpenAIEmbedding(
-            model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL
-        )
+                model=OpenAIEmbeddingModelType.TEXT_EMBED_3_SMALL
+            )
 
 
     def get_entity(self, session: Session, entity_id: int) -> Optional[SQLModel]:
