@@ -87,7 +87,7 @@ class IndexService:
 
         graph_store = get_kb_tidb_graph_store(session, self._knowledge_base)
         graph_index: KnowledgeGraphIndex = KnowledgeGraphIndex.from_existing(
-            dspy_lm=self._dspy_lm, kg_store=graph_store
+            dspy_lm=self._dspy_lm, kg_store=graph_store,
         )
 
         node = db_chunk.to_llama_text_node()

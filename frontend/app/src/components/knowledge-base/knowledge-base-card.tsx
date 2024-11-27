@@ -6,7 +6,8 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/co
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Book, Ellipsis } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { AlertTriangleIcon, Book, Ellipsis } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, startTransition, useState } from 'react';
 import { mutate } from 'swr';
@@ -40,7 +41,7 @@ export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase:
   };
 
   return (
-    <Card className="cursor-pointer transition-colors hover:bg-muted/50 max-h-64" onClick={handleCardClick}>
+    <Card className={cn('cursor-pointer transition-colors hover:bg-muted/50 max-h-64', dropdownOpen && 'bg-muted/50')} onClick={handleCardClick}>
       <CardHeader className="p-4">
         <div className="flex justify-start space-x-4">
           <div className="flex border w-10 h-10 rounded-md justify-center items-center bg-secondary">
@@ -51,7 +52,7 @@ export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase:
             <div className="flex items-center text-xs text-muted-foreground">
               <span>{knowledgeBase.documents_total ?? 0} documents</span>
               <span className="shrink-0 mx-0.5 px-1">·</span>
-              <span>{knowledgeBase.data_sources_total ?? 0} data sources</span>
+              <span>{(knowledgeBase.data_sources_total ?? 0) || <><AlertTriangleIcon className="size-3 inline-flex" /> No</>} data sources</span>
             </div>
           </div>
         </div>
@@ -73,7 +74,7 @@ export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase:
                 <Ellipsis className="size-5" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-56" onClick={event => event.stopPropagation()}>
+            <DropdownMenuContent className="w-56" align='end' alignOffset={-9} onClick={event => event.stopPropagation()}>
               <DropdownMenuItem onSelect={handleMenuItemSettingSelect}>Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DangerousActionButton action={handleDelete} asChild>

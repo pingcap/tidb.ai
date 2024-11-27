@@ -1,11 +1,10 @@
-import { uploadFiles } from '@/api/datasources';
 import { createKnowledgeBase } from '@/api/knowledge-base';
 import { EmbeddingModelSelect, LLMSelect } from '@/components/form/biz';
 import { FormInput, FormTextarea } from '@/components/form/control-widget';
 import { FormFieldBasicLayout } from '@/components/form/field-layout';
 import { handleSubmitHelper } from '@/components/form/utils';
-import { createDatasourceSchema, FormCreateDataSources } from '@/components/knowledge-base/form-create-data-sources';
 import { FormIndexMethods } from '@/components/knowledge-base/form-index-methods';
+import { mutateKnowledgeBases } from '@/components/knowledge-base/hooks';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,58 +25,26 @@ export function CreateKnowledgeBaseForm ({}: {}) {
       name: '',
       description: '',
       index_methods: ['vector'],
-      data_sources: [
-        { name: 'Default Datasource', description: '', data_source_type: 'file', files: [] },
-      ],
+      data_sources: [],
     },
   });
 
   const handleSubmit = handleSubmitHelper(form, async (data) => {
-    const dataSources = await Promise.all(data.data_sources.map(async (ds) => {
-      switch (ds.data_source_type) {
-        case 'file': {
-          const { files, ...rest } = ds;
-          const uploadedFiles = await uploadFiles(ds.files);
-          return {
-            ...rest,
-            config: uploadedFiles.map(f => ({
-              file_id: f.id,
-              file_name: f.name,
-            })),
-          };
-        }
-        case 'web_single_page': {
-          const { urls, ...rest } = ds;
-
-          return {
-            ...rest,
-            config: { urls },
-          };
-        }
-
-        case 'web_sitemap':
-          const { url, ...rest } = ds;
-
-          return {
-            ...rest,
-            config: { url },
-          };
-      }
-    }));
 
     const kb = await createKnowledgeBase({
       ...data,
-      data_sources: dataSources,
+      data_sources: [],
     });
 
     startTransition(() => {
-      router.push(`/knowledge-bases/${kb.id}`);
+      router.push(`/knowledge-bases/${kb.id}/data-sources`);
+      mutateKnowledgeBases();
     });
   });
 
   return (
     <Form {...form}>
-      <form id={id} className="space-y-4" onSubmit={handleSubmit}>
+      <form id={id} className="max-w-screen-sm space-y-4" onSubmit={handleSubmit}>
         <FormFieldBasicLayout name="name" label="Name">
           <FormInput placeholder="The name of the knowledge base" />
         </FormFieldBasicLayout>
@@ -90,7 +57,6 @@ export function CreateKnowledgeBaseForm ({}: {}) {
         <FormFieldBasicLayout name="embedding_model_id" label="Embedding Model" description="Specify the embedding model used to convert the corpus into vector embedding. If not specified, the default model will be used.">
           <EmbeddingModelSelect />
         </FormFieldBasicLayout>
-        <FormCreateDataSources />
         <FormFieldBasicLayout name="index_methods" label="Index Methods">
           <FormIndexMethods />
         </FormFieldBasicLayout>
@@ -106,5 +72,5 @@ const createKnowledgeBaseParamsSchema = z.object({
   index_methods: z.enum(['knowledge_graph', 'vector']).array(),
   llm_id: z.number().nullable().optional(),
   embedding_model_id: z.number().nullable().optional(),
-  data_sources: createDatasourceSchema.array(), // use external form
+  data_sources: z.never().array().length(0), // use external form
 });
