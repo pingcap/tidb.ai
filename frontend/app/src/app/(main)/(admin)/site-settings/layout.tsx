@@ -1,7 +1,7 @@
 'use client';
 
 import { AdminPageHeading } from '@/components/admin-page-heading';
-import { SecondaryNavigator, SecondaryNavigatorLink, SecondaryNavigatorLayout } from '@/components/secondary-navigator';
+import { SecondaryNavigatorLayout, SecondaryNavigatorLink, SecondaryNavigatorList, SecondaryNavigatorMain } from '@/components/secondary-navigator-list';
 import { type ReactNode } from 'react';
 
 export default function SiteSettingsLayout ({ children }: { children: ReactNode }) {
@@ -9,7 +9,7 @@ export default function SiteSettingsLayout ({ children }: { children: ReactNode 
     <div className="relative">
       <AdminPageHeading title="Site Settings" />
       <SecondaryNavigatorLayout>
-        <SecondaryNavigator>
+        <SecondaryNavigatorList>
           <SecondaryNavigatorLink pathname="/site-settings">
             Website
           </SecondaryNavigatorLink>
@@ -19,10 +19,10 @@ export default function SiteSettingsLayout ({ children }: { children: ReactNode 
           <SecondaryNavigatorLink pathname="/site-settings/custom_js">
             JS Widget
           </SecondaryNavigatorLink>
-        </SecondaryNavigator>
-        <div className='flex-1 overflow-x-hidden'>
+        </SecondaryNavigatorList>
+        <SecondaryNavigatorMain>
           {children}
-        </div>
+        </SecondaryNavigatorMain>
       </SecondaryNavigatorLayout>
     </div>
   );
