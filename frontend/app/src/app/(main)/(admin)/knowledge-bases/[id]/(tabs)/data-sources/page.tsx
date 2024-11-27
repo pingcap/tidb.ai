@@ -1,12 +1,16 @@
-import { cachedGetKnowledgeBaseById } from '@/app/(main)/(admin)/knowledge-bases/[id]/api';
+'use client';
+
 import { DatasourceCard } from '@/components/datasource/datasource-card';
 import { DatasourceCreateOption } from '@/components/datasource/datasource-create-option';
 import { NoDatasourcePlaceholder } from '@/components/datasource/no-datasource-placeholder';
+import { useAllKnowledgeBaseDataSources, useKnowledgeBase } from '@/components/knowledge-base/hooks';
+import { Skeleton } from '@/components/ui/skeleton';
 import { FileDownIcon, GlobeIcon, PaperclipIcon } from 'lucide-react';
 
-export default async function KnowledgeBaseDataSourcesPage ({ params }: { params: { id: string } }) {
+export default function KnowledgeBaseDataSourcesPage ({ params }: { params: { id: string } }) {
   const id = parseInt(decodeURIComponent(params.id));
-  const kb = await cachedGetKnowledgeBaseById(id);
+  const { knowledgeBase } = useKnowledgeBase(id);
+  const { data: dataSources, isLoading } = useAllKnowledgeBaseDataSources(id);
 
   return (
     <div className="space-y-8 max-w-screen-sm">
@@ -41,10 +45,11 @@ export default async function KnowledgeBaseDataSourcesPage ({ params }: { params
       </section>
       <section className="space-y-4">
         <h3>Browse existing Data Sources</h3>
-        {kb.data_sources.map(datasource => (
-          <DatasourceCard key={datasource.id} datasource={datasource} />
+        {isLoading && <Skeleton className="h-20 rounded-lg" />}
+        {dataSources?.map(datasource => (
+          <DatasourceCard key={datasource.id} knowledgeBaseId={id} datasource={datasource} />
         ))}
-        {kb.data_sources.length === 0 && (
+        {knowledgeBase?.data_sources_total === 0 && (
           <NoDatasourcePlaceholder />
         )}
       </section>

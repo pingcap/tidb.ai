@@ -1,11 +1,12 @@
 'use client';
 
-import type { KnowledgeBase } from '@/api/knowledge-base';
+import { useKnowledgeBase } from '@/components/knowledge-base/hooks';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useRouter, useSelectedLayoutSegments } from 'next/navigation';
 import { useTransition } from 'react';
 
-export function KnowledgeBaseTabs ({ knowledgeBase }: { knowledgeBase: KnowledgeBase }) {
+export function KnowledgeBaseTabs ({ knowledgeBaseId }: { knowledgeBaseId: number }) {
+  const { knowledgeBase } = useKnowledgeBase(knowledgeBaseId);
   const router = useRouter();
   const [transitioning, startTransition] = useTransition();
   const segments = useSelectedLayoutSegments();
@@ -19,31 +20,31 @@ export function KnowledgeBaseTabs ({ knowledgeBase }: { knowledgeBase: Knowledge
           disabled={transitioning}
           value=""
           onClick={() => startTransition(() => {
-            router.push(`/knowledge-bases/${knowledgeBase.id}`);
+            router.push(`/knowledge-bases/${knowledgeBaseId}`);
           })}
         >
           Documents
           <span className="ml-2 text-xs font-normal">
-            {knowledgeBase.documents_total}
+            {knowledgeBase?.documents_total}
           </span>
         </TabsTrigger>
         <TabsTrigger
           disabled={transitioning}
           value="data-sources"
           onClick={() => startTransition(() => {
-            router.push(`/knowledge-bases/${knowledgeBase.id}/data-sources`);
+            router.push(`/knowledge-bases/${knowledgeBaseId}/data-sources`);
           })}
         >
           Data Sources
           <span className="ml-2 text-xs font-normal">
-            {knowledgeBase.data_sources.length}
+            {knowledgeBase?.data_sources_total}
           </span>
         </TabsTrigger>
         <TabsTrigger
           disabled={transitioning}
           value="index-progress"
           onClick={() => startTransition(() => {
-            router.push(`/knowledge-bases/${knowledgeBase.id}/index-progress`);
+            router.push(`/knowledge-bases/${knowledgeBaseId}/index-progress`);
           })}
         >
           Index Progress
@@ -61,7 +62,7 @@ export function KnowledgeBaseTabs ({ knowledgeBase }: { knowledgeBase: Knowledge
           disabled={transitioning}
           value="knowledge-graph-explorer"
           onClick={() => startTransition(() => {
-            router.push(`/knowledge-bases/${knowledgeBase.id}/knowledge-graph-explorer`);
+            router.push(`/knowledge-bases/${knowledgeBaseId}/knowledge-graph-explorer`);
           })}
         >
           Graph Explorer
@@ -70,7 +71,7 @@ export function KnowledgeBaseTabs ({ knowledgeBase }: { knowledgeBase: Knowledge
           disabled={transitioning}
           value="settings"
           onClick={() => startTransition(() => {
-            router.push(`/knowledge-bases/${knowledgeBase.id}/settings`);
+            router.push(`/knowledge-bases/${knowledgeBaseId}/settings`);
           })}
         >
           Settings

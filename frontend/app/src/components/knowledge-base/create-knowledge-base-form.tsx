@@ -4,6 +4,7 @@ import { FormInput, FormTextarea } from '@/components/form/control-widget';
 import { FormFieldBasicLayout } from '@/components/form/field-layout';
 import { handleSubmitHelper } from '@/components/form/utils';
 import { FormIndexMethods } from '@/components/knowledge-base/form-index-methods';
+import { mutateKnowledgeBases } from '@/components/knowledge-base/hooks';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -37,6 +38,7 @@ export function CreateKnowledgeBaseForm ({}: {}) {
 
     startTransition(() => {
       router.push(`/knowledge-bases/${kb.id}/data-sources`);
+      mutateKnowledgeBases();
     });
   });
 

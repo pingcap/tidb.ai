@@ -1,6 +1,6 @@
 'use client';
 
-import type { Datasource } from '@/api/datasources';
+import { type Datasource, deleteDatasource } from '@/api/datasources';
 import { DangerousActionButton } from '@/components/dangerous-action-button';
 import { UpdateDatasourceForm } from '@/components/datasource/update-datasource-form';
 import { ManagedDialog } from '@/components/managed-dialog';
@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { FileDownIcon, GlobeIcon, PaperclipIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-export function DatasourceCard ({ datasource }: { datasource: Datasource }) {
+export function DatasourceCard ({ knowledgeBaseId, datasource }: { knowledgeBaseId: number, datasource: Datasource }) {
   const router = useRouter();
 
   return (
@@ -36,6 +36,7 @@ export function DatasourceCard ({ datasource }: { datasource: Datasource }) {
             <ManagedPanelContext.Consumer>
               {({ setOpen }) => (
                 <UpdateDatasourceForm
+                  knowledgeBaseId={knowledgeBaseId}
                   datasource={datasource}
                   onUpdated={() => {
                     router.refresh();
@@ -48,7 +49,7 @@ export function DatasourceCard ({ datasource }: { datasource: Datasource }) {
         </ManagedDialog>
         <DangerousActionButton
           action={async () => {
-            // TODO
+            await deleteDatasource(knowledgeBaseId, datasource.id);
           }}
           asChild
         >

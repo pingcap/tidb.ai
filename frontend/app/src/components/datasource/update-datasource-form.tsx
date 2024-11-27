@@ -1,4 +1,4 @@
-import type { Datasource } from '@/api/datasources';
+import { type Datasource, updateDatasource } from '@/api/datasources';
 import { FormInput } from '@/components/form/control-widget';
 import { FormFieldBasicLayout } from '@/components/form/field-layout';
 import { handleSubmitHelper } from '@/components/form/utils';
@@ -8,7 +8,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 
-export function UpdateDatasourceForm ({ datasource, onUpdated }: { datasource: Datasource, onUpdated?: () => void }) {
+export function UpdateDatasourceForm ({ knowledgeBaseId, datasource, onUpdated }: { knowledgeBaseId: number, datasource: Datasource, onUpdated?: () => void }) {
   const form = useForm<UpdateDatasourceFormParams>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -16,9 +16,8 @@ export function UpdateDatasourceForm ({ datasource, onUpdated }: { datasource: D
     },
   });
 
-  const handleSubmit = handleSubmitHelper(form, data => {
-    // TODO
-
+  const handleSubmit = handleSubmitHelper(form, async data => {
+    await updateDatasource(knowledgeBaseId, datasource.id, data);
     onUpdated?.();
   });
 

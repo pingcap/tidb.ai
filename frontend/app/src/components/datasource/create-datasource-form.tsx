@@ -1,6 +1,4 @@
-'use client';
-
-import { type BaseCreateDatasourceParams, type CreateDatasourceSpecParams, uploadFiles } from '@/api/datasources';
+import { type BaseCreateDatasourceParams, createDatasource, type CreateDatasourceSpecParams, uploadFiles } from '@/api/datasources';
 import { FormInput } from '@/components/form/control-widget';
 import { FormFieldBasicLayout, FormPrimitiveArrayFieldBasicLayout } from '@/components/form/field-layout';
 import { handleSubmitHelper } from '@/components/form/utils';
@@ -19,7 +17,7 @@ const types = ['file', 'web_single_page', 'web_sitemap'] as const;
 
 const isType = (value: string | null): value is typeof types[number] => types.includes(value as any);
 
-export function CreateDatasourceForm () {
+export function CreateDatasourceForm ({ knowledgeBaseId, onCreated }: { knowledgeBaseId: number, onCreated?: () => void }) {
   const usp = useSearchParams()!;
 
   const uType = usp.get('type');
@@ -35,7 +33,8 @@ export function CreateDatasourceForm () {
 
   const handleSubmit = handleSubmitHelper(form, async (ds) => {
     const createParams = await preCreate(ds);
-    // TODO: Create data source
+    await createDatasource(knowledgeBaseId, createParams);
+    onCreated?.();
   });
 
   return (

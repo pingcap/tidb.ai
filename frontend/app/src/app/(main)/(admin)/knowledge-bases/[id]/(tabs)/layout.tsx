@@ -1,15 +1,17 @@
+'use client';
+
 import { KnowledgeBaseTabs } from '@/app/(main)/(admin)/knowledge-bases/[id]/(tabs)/tabs';
-import { cachedGetKnowledgeBaseById } from '@/app/(main)/(admin)/knowledge-bases/[id]/api';
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { ArrowRightIcon } from '@/components/icons';
+import { useKnowledgeBase } from '@/components/knowledge-base/hooks';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { AlertTriangleIcon } from 'lucide-react';
+import { AlertTriangleIcon, Loader2Icon } from 'lucide-react';
 import Link from 'next/link';
 import type { ReactNode } from 'react';
 
-export default async function KnowledgeBaseLayout ({ params, children }: { params: { id: string }, children: ReactNode }) {
+export default function KnowledgeBaseLayout ({ params, children }: { params: { id: string }, children: ReactNode }) {
   const id = parseInt(decodeURIComponent(params.id));
-  const kb = await cachedGetKnowledgeBaseById(id);
+  const { knowledgeBase } = useKnowledgeBase(id);
 
   return (
     <>
@@ -19,7 +21,7 @@ export default async function KnowledgeBaseLayout ({ params, children }: { param
           {
             title: (
               <span className="flex gap-1 items-center">
-                {!kb.data_sources.length && (
+                {knowledgeBase?.data_sources_total === 0 && (
                   <TooltipProvider delayDuration={0}>
                     <Tooltip>
                       <TooltipTrigger>
@@ -36,14 +38,14 @@ export default async function KnowledgeBaseLayout ({ params, children }: { param
                   </TooltipProvider>
                 )}
                 <span>
-                  {kb.name}
+                  {knowledgeBase?.name ?? <Loader2Icon className="size-4 animate-spin repeat-infinite" />}
                 </span>
               </span>
             ),
           },
         ]}
       />
-      <KnowledgeBaseTabs knowledgeBase={kb} />
+      <KnowledgeBaseTabs knowledgeBaseId={id} />
       {children}
     </>
   );
