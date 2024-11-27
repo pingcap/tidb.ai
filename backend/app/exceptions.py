@@ -22,6 +22,19 @@ class DBLLMNotFoundError(HTTPException):
         self.detail = f"llm #{knowledge_base_id} is not found"
 
 
+class DBRerankerNotFoundError(HTTPException):
+    status_code = 404
+
+    def __init__(self, reranker_id: int):
+        self.detail = f"reranker #{reranker_id} is not found"
+
+class DefaultRerankerNotFoundError(HTTPException):
+    status_code = 404
+
+    def __init__(self):
+        self.detail = f"default reranker is not found"
+
+
 class KnowledgeBaseNotFoundError(HTTPException):
     status_code = 404
 
