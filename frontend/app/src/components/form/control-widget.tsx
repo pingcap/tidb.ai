@@ -10,7 +10,7 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import type { SwitchProps } from '@radix-ui/react-switch';
 import { CheckIcon, ChevronDown, Loader2Icon, TriangleAlertIcon, XCircleIcon } from 'lucide-react';
 import * as React from 'react';
-import { type FC, forwardRef, type ReactElement, type ReactNode } from 'react';
+import { type FC, forwardRef, type ReactElement, type ReactNode, useState } from 'react';
 import { ControllerRenderProps, FieldPath, FieldValues } from 'react-hook-form';
 
 export interface FormControlWidgetProps<
@@ -140,14 +140,16 @@ export interface FormComboboxProps extends FormControlWidgetProps {
   children?: ReactElement;
   placeholder?: string;
   config: FormComboboxConfig<any>;
+  contentWidth?: 'anchor';
 }
 
-export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeholder, value, onChange, name, disabled, children, ...props }, ref) => {
+export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeholder, value, onChange, name, disabled, children, contentWidth, ...props }, ref) => {
+  const [open, setOpen] = useState(false);
   const isConfigReady = !config.loading && !config.error;
   const current = config.options.find(option => option[config.key] === value);
 
   return (
-    <Popover>
+    <Popover open={open} onOpenChange={setOpen}>
       <div className={cn('flex items-center gap-2', (props as any).className)}>
         <PopoverPrimitive.Trigger
           ref={ref}
@@ -189,7 +191,7 @@ export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeh
           </Tooltip>
         </TooltipProvider>
       </div>
-      <PopoverContent className="p-0 focus:outline-none" align="start" collisionPadding={8}>
+      <PopoverContent className={cn('p-0 focus:outline-none', contentWidth === 'anchor' && 'w-[--radix-popover-trigger-width]')} align="start" collisionPadding={8}>
         <Command>
           <CommandInput />
           <CommandList>
@@ -202,17 +204,19 @@ export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeh
                 ),
                 (item) => {
                   onChange?.(item[config.key]);
+                  setOpen(false);
                 })}
               {config.options.map(option => (
                 <CommandItem
                   key={option[config.key]}
                   value={String(option[config.key])}
-                  keywords={config.optionKeywords(option)}
+                  keywords={config.optionKeywords(option).flatMap(item => item.split(/\s+/))}
                   className={cn('group', config.itemClassName)}
                   onSelect={value => {
                     const item = config.options.find(option => String(option[config.key]) === value);
                     if (item) {
                       onChange?.(item[config.key]);
+                      setOpen(false);
                     }
                   }}
                 >

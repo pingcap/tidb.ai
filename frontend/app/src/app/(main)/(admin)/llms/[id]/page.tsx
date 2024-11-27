@@ -21,7 +21,7 @@ export default function Page ({ params }: { params: { id: string } }) {
       <AdminPageHeading
         breadcrumbs={[
           { title: 'Models' },
-          { title: 'LLMs', url: '/llms' },
+          { title: 'LLMs', url: '/llms', docsUrl: '/docs/llm' },
           { title: data ? data.name : <Loader2Icon className="size-4 animate-spin repeat-infinite" /> },
         ]}
       />

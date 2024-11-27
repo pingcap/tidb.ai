@@ -18,8 +18,22 @@ class ChatNotFound(ChatException):
 class DBLLMNotFoundError(HTTPException):
     status_code = 404
 
-    def __init__(self, knowledge_base_id: int):
-        self.detail = f"llm #{knowledge_base_id} is not found"
+    def __init__(self, llm_id: int):
+        self.detail = f"llm #{llm_id} is not found"
+
+
+class DefaultLLMNotFoundError(HTTPException):
+    status_code = 404
+
+    def __init__(self):
+        self.detail = f"default llm is not found"
+
+
+class DefaultEmbeddingModelNotFoundError(HTTPException):
+    status_code = 404
+
+    def __init__(self):
+        self.detail = f"default embedding model is not found"
 
 
 class KnowledgeBaseNotFoundError(HTTPException):
@@ -27,6 +41,12 @@ class KnowledgeBaseNotFoundError(HTTPException):
 
     def __init__(self, knowledge_base_id: int):
         self.detail = f"knowledge base #{knowledge_base_id} is not found"
+
+class KBDataSourceNotFoundError(HTTPException):
+    status_code = 404
+
+    def __init__(self, kb_id: int, data_source_id: int):
+        self.detail = f"data source #{data_source_id} is not found in knowledge base #{kb_id}"
 
 class KBNoLLMConfiguredError(HTTPException):
     status_code = 500

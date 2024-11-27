@@ -3,13 +3,8 @@ import { useConfig, DocsThemeConfig, Link } from 'nextra-theme-docs';
 
 let themeConfig: DocsThemeConfig = {
   docsRepositoryBase: 'https://github.com/pingcap/tidb.ai/tree/main/frontend/app',
-  useNextSeoProps () {
-    return {
-      titleTemplate: '%s - TiDB.AI',
-    };
-  },
   project: {
-    link: 'https://github.com/pingcap/tidb.ai',
+    link: 'https://github.com/pingcap/autoflow',
   },
   // chat: {
   //   link: 'https://tidb.ai/discord',
@@ -65,9 +60,9 @@ let themeConfig: DocsThemeConfig = {
       </>
     ),
   },
-  head: () => {
+  head: function Head() {
     const { asPath, defaultLocale, locale } = useRouter();
-    const { frontMatter } = useConfig();
+    const { frontMatter, title } = useConfig();
     const url =
       'https://tidb.ai' +
       (defaultLocale === locale ? asPath : `/${locale}${asPath}`);
@@ -92,6 +87,7 @@ let themeConfig: DocsThemeConfig = {
           type="image/svg+xml"
           media="(prefers-color-scheme: light)"
         />
+        <title>{`${title} - TiDB.AI`}</title>
       </>
     );
   },
@@ -132,7 +128,7 @@ let themeConfig: DocsThemeConfig = {
     toggleButton: true,
   },
   footer: {
-    text: (
+    content: (
       <span>
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -159,13 +155,15 @@ let themeConfig: DocsThemeConfig = {
       </span>
     ),
   },
-  primaryHue: {
-    dark: 0,
-    light: 0,
-  },
-  primarySaturation: {
-    dark: 0,
-    light: 0,
+  color: {
+    hue: {
+      dark: 0,
+      light: 0,
+    },
+    saturation: {
+      dark: 0,
+      light: 0,
+    }
   },
   // ... other theme options
   components: {
