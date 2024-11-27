@@ -89,7 +89,7 @@ function DatasourceCardDetails ({ datasource }: { datasource: Datasource }) {
                 return (
                   <>
                     {datasource.config[0]?.file_name}
-                    <Popover>
+                    {(datasource.config.length > 1) && <Popover>
                       <PopoverTrigger className="ml-2 font-medium">
                         +{datasource.config.length - 1} files
                       </PopoverTrigger>
@@ -98,7 +98,7 @@ function DatasourceCardDetails ({ datasource }: { datasource: Datasource }) {
                           <span key={file.file_id}>{file.file_name}</span>
                         ))}
                       </PopoverContent>
-                    </Popover>
+                    </Popover>}
                   </>
                 );
               }
