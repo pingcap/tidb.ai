@@ -106,8 +106,7 @@ const uploadSchema = z.object({
   created_at: zodJsonDate().optional(),
   updated_at: zodJsonDate().optional(),
 }) satisfies ZodType<Upload, any, any>;
-
-const datasourceOverviewSchema = z.object({
+z.object({
   vector_index: indexSchema,
   documents: totalSchema,
   chunks: totalSchema,
