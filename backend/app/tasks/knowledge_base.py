@@ -20,18 +20,19 @@ from ..rag.knowledge_base.index_store import get_kb_tidb_vector_store, get_kb_ti
 logger = get_task_logger(__name__)
 
 @celery_app.task
-def import_documents_for_knowledge_base(knowledge_base_id: int):
+def import_documents_for_knowledge_base(kb_id: int):
     try:
         with Session(engine) as session:
-            kb = knowledge_base_repo.must_get(session, knowledge_base_id)
+            kb = knowledge_base_repo.must_get(session, kb_id)
             data_sources = kb.data_sources
             for data_source in data_sources:
                 import_documents_from_kb_datasource(kb.id, data_source.id)
-        logger.info(f"Successfully imported documents for knowledge base #{knowledge_base_id}")
+
+        logger.info(f"Successfully imported documents for knowledge base #{kb_id}")
     except KnowledgeBaseNotFoundError:
-        logger.error(f"Knowledge base #{knowledge_base_id} is not found")
+        logger.error(f"Knowledge base #{kb_id} is not found")
     except Exception as e:
-        logger.exception(f"Failed to import documents for knowledge base #{knowledge_base_id}", exc_info=e)
+        logger.exception(f"Failed to import documents for knowledge base #{kb_id}", exc_info=e)
 
 
 @celery_app.task
@@ -56,6 +57,9 @@ def import_documents_from_kb_datasource(kb_id: int, data_source_id: int):
                 session.commit()
 
                 build_index_for_document.delay(kb_id, document.id)
+
+        stats_for_knowledge_base.delay(kb_id)
+        logger.info(f"Successfully imported documents for from datasource #{data_source_id}")
     except Exception as e:
         logger.exception(
             f"Failed to import documents from data source #{data_source_id} of knowledge base #{kb_id}",
@@ -194,3 +198,5 @@ def purge_kb_datasource_related_resources(kb_id: int, datasource_id: int):
         logger.info(f"Deleted data source #{datasource_id} successfully.")
 
         session.commit()
+
+    stats_for_knowledge_base.delay(kb_id)
