@@ -19,16 +19,15 @@ const isType = (value: string | null): value is typeof types[number] => types.in
 
 export function CreateDatasourceForm ({ knowledgeBaseId, onCreated }: { knowledgeBaseId: number, onCreated?: () => void }) {
   const usp = useSearchParams()!;
-
   const uType = usp.get('type');
 
   const form = useForm<CreateDatasourceFormParams>({
     resolver: zodResolver(createDatasourceSchema),
-    defaultValues: {
-      data_source_type: isType(uType) ? uType : 'file',
+    defaultValues: switchDatasource({
+      data_source_type: 'file',
       name: '',
       files: [],
-    },
+    }, isType(uType) ? uType : 'file'),
   });
 
   const handleSubmit = handleSubmitHelper(form, async (ds) => {
@@ -129,6 +128,10 @@ export const createDatasourceSchema = z.object({
 ]));
 
 function switchDatasource (data: CreateDatasourceFormParams, type: CreateDatasourceSpecParams['data_source_type']): CreateDatasourceFormParams {
+  if (data.data_source_type === type) {
+    return data;
+  }
+
   switch (type) {
     case 'file':
       return {
