@@ -145,13 +145,13 @@ function NavFooter () {
 
 function NavWarningDetails ({ children }: { children?: ReactNode }) {
   if (!children) {
-    return <AlertTriangleIcon className="text-yellow-600 dark:text-yellow-400 size-4" />;
+    return <AlertTriangleIcon className="text-warning size-4" />;
   }
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger>
-          <AlertTriangleIcon className="text-yellow-600 dark:text-yellow-400 size-4" />
+          <AlertTriangleIcon className="text-warning size-4" />
         </TooltipTrigger>
         <TooltipContent>
           {children}

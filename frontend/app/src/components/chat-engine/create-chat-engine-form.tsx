@@ -60,13 +60,7 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
       router.push(`/chat-engines/${ce.id}`);
     });
   }, () => {
-    toast.error('Validation failed', {
-      description: 'Please check your chat engine configurations.',
-      classNames: {
-        toast: 'group-[.toaster]:bg-destructive group-[.toaster]:text-destructive-foreground',
-        description: 'group-[.toast]:text-destructive-foreground/70',
-      },
-    });
+    toast.error('Validation failed', { description: 'Please check your chat engine configurations.' });
   });
 
   return (

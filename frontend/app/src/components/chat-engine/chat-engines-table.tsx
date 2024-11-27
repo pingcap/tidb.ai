@@ -32,7 +32,7 @@ const columns = [
             name: `${name} Copy`, llm_id, fast_llm_id, engine_options,
           })
             .then(newEngine => {
-              toast('Chat Engine successfully cloned.');
+              toast.success('Chat Engine successfully cloned.');
               startTransition(() => {
                 router.push(`/chat-engines/${newEngine.id}`);
               });

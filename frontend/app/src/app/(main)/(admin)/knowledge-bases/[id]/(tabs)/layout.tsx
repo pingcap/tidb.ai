@@ -26,7 +26,7 @@ export default function KnowledgeBaseLayout ({ params, children }: { params: { i
                   <TooltipProvider delayDuration={0}>
                     <Tooltip>
                       <TooltipTrigger>
-                        <AlertTriangleIcon className="size-4 text-yellow-600 dark:text-yellow-400" />
+                        <AlertTriangleIcon className="size-4 text-warning" />
                       </TooltipTrigger>
                       <TooltipContent align="start">
                         <p>This Knowledge Base has no datasource.</p>

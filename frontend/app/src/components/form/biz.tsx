@@ -250,7 +250,7 @@ export const KBSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { re
             <span>{option.name}</span>
             <div className="text-xs text-muted-foreground ml-2 inline-flex gap-1 items-center">
               <span>
-                {(option.documents_total ?? 0) || <><AlertTriangleIcon className="text-yellow-600 dark:text-yellow-400 inline-flex size-3 mr-0.5" /> no</>} documents
+                {(option.documents_total ?? 0) || <><AlertTriangleIcon className="text-warning inline-flex size-3 mr-0.5" /> no</>} documents
               </span>
               <DotIcon className="size-4" />
               <span className="text-xs text-muted-foreground">
@@ -268,7 +268,7 @@ export const KBSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { re
             </div>
             <div className="text-xs text-muted-foreground flex gap-1 items-center">
               <span>
-                {(option.documents_total ?? 0) || <><AlertTriangleIcon className="text-yellow-600 dark:text-yellow-400 inline-flex size-3 mr-0.5" /> no</>} documents
+                {(option.documents_total ?? 0) || <><AlertTriangleIcon className="text-warning inline-flex size-3 mr-0.5" /> no</>} documents
               </span>
               <DotIcon className="size-4" />
               <span>

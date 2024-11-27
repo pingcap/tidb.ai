@@ -94,7 +94,7 @@ export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: b
       throw new Error(error || 'Test LLM failed');
     }
     const llm = await createLlm(values);
-    toast(`LLM ${llm.name} successfully created.`);
+    toast.success(`LLM ${llm.name} successfully created.`);
     onCreated?.(llm);
   });
 

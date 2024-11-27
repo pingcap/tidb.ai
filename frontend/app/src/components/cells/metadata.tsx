@@ -19,7 +19,7 @@ export const metadataCell = (props: CellContext<any, any>) => {
     warningEl = (
       <Tooltip>
         <TooltipTrigger>
-          <span className='inline-flex gap-1 items-center text-yellow-400'>
+          <span className='inline-flex gap-1 items-center text-warning'>
             <AlertTriangleIcon className="ml-1 w-4 h-4" />
             {warnings.length}
           </span>
