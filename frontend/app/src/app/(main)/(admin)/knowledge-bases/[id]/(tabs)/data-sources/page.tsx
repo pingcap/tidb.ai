@@ -3,13 +3,12 @@
 import { DatasourceCard } from '@/components/datasource/datasource-card';
 import { DatasourceCreateOption } from '@/components/datasource/datasource-create-option';
 import { NoDatasourcePlaceholder } from '@/components/datasource/no-datasource-placeholder';
-import { useAllKnowledgeBaseDataSources, useKnowledgeBase } from '@/components/knowledge-base/hooks';
+import { useAllKnowledgeBaseDataSources } from '@/components/knowledge-base/hooks';
 import { Skeleton } from '@/components/ui/skeleton';
 import { FileDownIcon, GlobeIcon, PaperclipIcon } from 'lucide-react';
 
 export default function KnowledgeBaseDataSourcesPage ({ params }: { params: { id: string } }) {
   const id = parseInt(decodeURIComponent(params.id));
-  const { knowledgeBase } = useKnowledgeBase(id);
   const { data: dataSources, isLoading } = useAllKnowledgeBaseDataSources(id);
 
   return (
