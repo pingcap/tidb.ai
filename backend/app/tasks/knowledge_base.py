@@ -10,7 +10,7 @@ from app.models import (
 )
 from app.models.knowledge_base import KnowledgeBase
 from app.rag.datasource import get_data_source_loader
-from app.repositories import knowledge_base_repo, data_source_repo
+from app.repositories import knowledge_base_repo
 from .build_index import build_index_for_document
 from ..models.chunk import get_kb_chunk_model
 from ..models.entity import get_kb_entity_model
