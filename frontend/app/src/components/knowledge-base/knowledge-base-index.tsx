@@ -2,7 +2,6 @@
 
 import { type DatasourceKgIndexError, type DatasourceVectorIndexError } from '@/api/datasources';
 import { listKnowledgeBaseKgIndexErrors, listKnowledgeBaseVectorIndexErrors, retryKnowledgeBaseAllFailedTasks } from '@/api/knowledge-base';
-import { useKB } from '@/app/(main)/(admin)/knowledge-bases/[id]/context';
 import { link } from '@/components/cells/link';
 import { IndexProgressChart, IndexProgressChartPlaceholder } from '@/components/charts/IndexProgressChart';
 import { TotalCard } from '@/components/charts/TotalCard';
@@ -17,7 +16,6 @@ import { ArrowRightIcon, FileTextIcon, PuzzleIcon, RouteIcon } from 'lucide-reac
 import Link from 'next/link';
 
 export function KnowledgeBaseIndexProgress ({ id }: { id: number }) {
-  const { index_methods } = useKB();
   const { progress, isLoading } = useKnowledgeBaseIndexProgress(id);
 
   return (

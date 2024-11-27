@@ -2,15 +2,12 @@
 
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import KnowledgeBaseEmptyState from '@/components/knowledge-base/empty-state';
-import { useKnowledgeBases } from '@/components/knowledge-base/hooks';
+import { useAllKnowledgeBases } from '@/components/knowledge-base/hooks';
 import { KnowledgeBaseCard, KnowledgeBaseCardPlaceholder } from '@/components/knowledge-base/knowledge-base-card';
 import { NextLink } from '@/components/nextjs/NextLink';
-import type { PaginationState } from '@tanstack/table-core';
-import { useState } from 'react';
 
 export default function KnowledgeBasesPage () {
-  const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 });
-  const { knowledgeBases, isLoading } = useKnowledgeBases(pagination.pageIndex, pagination.pageSize);
+  const { data: knowledgeBases, isLoading } = useAllKnowledgeBases();
 
   return (
     <>
@@ -25,9 +22,9 @@ export default function KnowledgeBasesPage () {
       {
         isLoading
           ? <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4"><KnowledgeBaseCardPlaceholder /></div>
-          : !!knowledgeBases?.items.length
+          : !!knowledgeBases?.length
             ? <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {knowledgeBases?.items.map(kb => (
+              {knowledgeBases.map(kb => (
                 <KnowledgeBaseCard key={kb.id} knowledgeBase={kb} />
               ))}
             </div>

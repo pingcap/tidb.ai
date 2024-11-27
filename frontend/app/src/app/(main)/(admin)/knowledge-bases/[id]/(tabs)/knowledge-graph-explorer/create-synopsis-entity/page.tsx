@@ -15,7 +15,7 @@ export default function CreateSynopsisEntityPage ({ params }: { params: { id: st
 
   return (
     <>
-      <NextLink href='.'>
+      <NextLink href=''>
         Back
       </NextLink>
       <GraphCreateEntity knowledgeBaseId={kbId} onCreated={handleCreateEntity} />

@@ -140,9 +140,10 @@ export interface FormComboboxProps extends FormControlWidgetProps {
   children?: ReactElement;
   placeholder?: string;
   config: FormComboboxConfig<any>;
+  contentWidth?: 'anchor';
 }
 
-export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeholder, value, onChange, name, disabled, children, ...props }, ref) => {
+export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeholder, value, onChange, name, disabled, children, contentWidth, ...props }, ref) => {
   const [open, setOpen] = useState(false);
   const isConfigReady = !config.loading && !config.error;
   const current = config.options.find(option => option[config.key] === value);
@@ -190,7 +191,7 @@ export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeh
           </Tooltip>
         </TooltipProvider>
       </div>
-      <PopoverContent className="p-0 focus:outline-none" align="start" collisionPadding={8}>
+      <PopoverContent className={cn('p-0 focus:outline-none', contentWidth === 'anchor' && 'w-[--radix-popover-trigger-width]')} align="start" collisionPadding={8}>
         <Command>
           <CommandInput />
           <CommandList>
@@ -209,7 +210,7 @@ export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeh
                 <CommandItem
                   key={option[config.key]}
                   value={String(option[config.key])}
-                  keywords={config.optionKeywords(option)}
+                  keywords={config.optionKeywords(option).flatMap(item => item.split(/\s+/))}
                   className={cn('group', config.itemClassName)}
                   onSelect={value => {
                     const item = config.options.find(option => String(option[config.key]) === value);
