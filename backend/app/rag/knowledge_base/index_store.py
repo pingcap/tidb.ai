@@ -50,7 +50,7 @@ def init_kb_tidb_graph_store(session: Session, kb: KnowledgeBase) -> TiDBGraphSt
 
 
 def get_kb_tidb_graph_editor(session: Session, kb: KnowledgeBase) -> TiDBGraphEditor:
-    entity_model = get_kb_entity_model(kb)
-    relationship_model = get_kb_relationship_model(kb)
-    init_kb_tidb_vector_store(session, kb)
-    return TiDBGraphEditor(entity_model, relationship_model)
+    entity_db_model = get_kb_entity_model(kb)
+    relationship_db_model = get_kb_relationship_model(kb)
+    embed_model = get_kb_embed_model(session, kb)
+    return TiDBGraphEditor(entity_db_model, relationship_db_model, embed_model)
