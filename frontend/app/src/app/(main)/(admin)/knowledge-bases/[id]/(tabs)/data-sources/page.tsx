@@ -49,7 +49,7 @@ export default function KnowledgeBaseDataSourcesPage ({ params }: { params: { id
         {dataSources?.map(datasource => (
           <DatasourceCard key={datasource.id} knowledgeBaseId={id} datasource={datasource} />
         ))}
-        {knowledgeBase?.data_sources_total === 0 && (
+        {dataSources?.length === 0 && (
           <NoDatasourcePlaceholder />
         )}
       </section>
