@@ -1,6 +1,5 @@
 import logging
 import os
-import random
 
 import requests
 import typing
@@ -93,7 +92,6 @@ class Evaluation:
 
         df = pd.read_csv(csv_dataset)
         eval_list = df.to_dict(orient='records')
-        random.shuffle(eval_list)
         eval_list = eval_list[:run_size]
 
         # checkpoint info
@@ -128,6 +126,9 @@ class Evaluation:
                     "response": response,
                     # TODO: we cannot get retrieved_contexts now, due to the external engine
                     # "retrieved_contexts": [],
+
+                    # Add rest fields from raw data
+                    **{k: v for k, v in item.items() if k not in ["query", "reference"]}
                 })
 
                 # save the checkpoint file
@@ -148,7 +149,7 @@ class Evaluation:
 
         ragas_dataset = EvaluationDataset.from_list(ragas_list)
         evaluator_llm = LangchainLLMWrapper(ChatOpenAI(model="gpt-4o"))
-        evaluator_embeddings = LangchainEmbeddingsWrapper(OpenAIEmbeddings())
+        evaluator_embeddings = LangchainEmbeddingsWrapper(OpenAIEmbeddings(model="text-embedding-3-large"))
         metrics = [
             # LLMContextRecall(llm=evaluator_llm),  # retrieved_contexts required
             FactualCorrectness(llm=evaluator_llm),
@@ -157,8 +158,13 @@ class Evaluation:
         ]
         results = evaluate(dataset=ragas_dataset, metrics=metrics)
         df_results = results.to_pandas()
-        df_results = df_results.applymap(lambda x: x.replace('\n', '\\n').replace('\r', '\\r') if isinstance(x, str) else x)
-        df_results.to_csv(f"results_{self.run_name}.csv")
+
+        df_raw_data = pd.DataFrame(ragas_list)
+        additional_columns = df_raw_data.drop(columns=['user_input', 'reference', 'response'])
+        df_results_combined = pd.concat([df_results, additional_columns], axis=1)
+
+        df_results_combined = df_results_combined.applymap(lambda x: x.replace('\n', '\\n').replace('\r', '\\r') if isinstance(x, str) else x)
+        df_results_combined.to_csv(f"results_{self.run_name}.csv", index=False)
 
         print(f"Saved results to results_{self.run_name}.csv")
 
@@ -239,6 +245,7 @@ class Evaluation:
             headers={
                 "Content-Type": "application/json",
                 "Authorization": f"Bearer {settings.TIDB_AI_API_KEY}",
+                "Origin": "evaluation",
             },
             json={
                 "messages": messages,
