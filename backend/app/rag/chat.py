@@ -765,41 +765,62 @@ class ChatService:
             logger.error(f"Failed to search kg or refine question: {e}")
             goal = self.user_question
 
-        stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
-        logger.debug(
-            f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
-        chat_params = {
-            "goal": goal,
-        }
-        res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
-
-        # Notice: External type chat engine doesn't support non-streaming mode for now.
-        stackvm_response_text = ""
-        task_id = None
-        for line in res.iter_lines():
-            if not line:
-                continue
-
-            # Append to final response text.
-            chunk = line.decode('utf-8')
-            if chunk.startswith("0:"):
-                word = json.loads(chunk[2:])
-                stackvm_response_text += word
-                yield ChatEvent(
-                    event_type=ChatEventType.TEXT_PART,
-                    payload=word,
-                )
-            else:
-                yield line + b'\n'
-
+        cache_messages = None
+        if settings.ENABLE_QUESTION_CACHE:
             try:
-                if chunk.startswith("8:") and task_id is None:
-                    states = json.loads(chunk[2:])
-                    if len(states) > 0:
-                        # accesss task by http://endpoint/?task_id=$task_id
-                        task_id = states[0].get("task_id")
+                logger.info(f"start to find_recent_assistant_messages_by_goal with goal: {goal}")
+                cache_messages = chat_repo.find_recent_assistant_messages_by_goal(self.db_session,goal)
+                logger.debug(f"find_recent_assistant_messages_by_goal result: {cache_messages}")
             except Exception as e:
-                logger.error(f"Failed to get task_id from chunk: {e}")
+                logger.error(f"Failed to find recent assistant messages by goal: {e}")
+
+        stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
+        if cache_messages and len(cache_messages) > 0:
+            stackvm_response_text = cache_messages[0].content
+            task_id = cache_messages[0].meta.get("task_id")
+            for chunk in stackvm_response_text.split(". "):
+                if chunk:
+                    if not chunk.endswith("."):
+                        chunk += ". "
+                    yield ChatEvent(
+                        event_type=ChatEventType.TEXT_PART,
+                        payload=chunk,
+                    )
+        else:
+            logger.debug(
+                f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
+            chat_params = {
+                "goal": goal,
+            }
+            res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
+
+            # Notice: External type chat engine doesn't support non-streaming mode for now.
+            stackvm_response_text = ""
+            task_id = None
+            for line in res.iter_lines():
+                if not line:
+                    continue
+
+                # Append to final response text.
+                chunk = line.decode('utf-8')
+                if chunk.startswith("0:"):
+                    word = json.loads(chunk[2:])
+                    stackvm_response_text += word
+                    yield ChatEvent(
+                        event_type=ChatEventType.TEXT_PART,
+                        payload=word,
+                    )
+                else:
+                    yield line + b'\n'
+
+                try:
+                    if chunk.startswith("8:") and task_id is None:
+                        states = json.loads(chunk[2:])
+                        if len(states) > 0:
+                            # accesss task by http://endpoint/?task_id=$task_id
+                            task_id = states[0].get("task_id")
+                except Exception as e:
+                    logger.error(f"Failed to get task_id from chunk: {e}")
 
         response_text = stackvm_response_text
         base_url = stream_chat_api_url.replace('/api/stream_execute_vm', '')
@@ -807,7 +828,6 @@ class ChatService:
         db_assistant_message.trace_url = f"{base_url}?task_id={task_id}" if task_id else ""
         db_assistant_message.meta = {
             "task_id": task_id,
-            "stackvm_response_text": stackvm_response_text,
             "goal": goal,
         }
         db_assistant_message.updated_at = datetime.now(UTC)
@@ -816,7 +836,6 @@ class ChatService:
         db_user_message.trace_url = f"{base_url}?task_id={task_id}" if task_id else ""
         db_user_message.meta = {
             "task_id": task_id,
-            "stackvm_response_text": stackvm_response_text,
             "goal": goal,
         }
         db_user_message.updated_at = datetime.now(UTC)

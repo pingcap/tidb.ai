@@ -1,7 +1,7 @@
 import enum
 from uuid import UUID
 from typing import Optional, List
-from datetime import datetime, UTC, date
+from datetime import datetime, UTC, date, timedelta
 from collections import defaultdict
 
 from sqlmodel import select, Session, or_, func, case
@@ -110,6 +110,36 @@ class ChatRepo(BaseRepo):
         session.commit()
         session.refresh(chat_message)
         return chat_message
+
+    def find_recent_assistant_messages_by_goal(
+        self,
+        session: Session,
+        goal: str,
+        days: int = 2
+    ) -> List[ChatMessage]:
+        """
+        Search for 'assistant' role chat messages with a specific goal within the recent days.
+
+        Args:
+            session (Session): The database session.
+            goal (str): The goal value to match in meta.goal.
+            days (int, optional): Number of recent days to include in the search. Defaults to 2.
+
+        Returns:
+            List[ChatMessage]: A list of ChatMessage instances that match the criteria.
+        """
+        # Calculate the cutoff datetime based on the current UTC time minus the specified number of days
+        cutoff = datetime.now(UTC) - timedelta(days=days)
+
+        # Construct the query to filter messages
+        query = select(ChatMessage).where(
+            ChatMessage.role == 'assistant',  # Filter for role 'assistant'
+            func.JSON_UNQUOTE(func.JSON_EXTRACT(ChatMessage.meta, '$.goal')) == goal,  # Match the specified goal in meta
+            ChatMessage.created_at >= cutoff  # Ensure the message was created within the cutoff
+        )
+
+        # Execute the query and retrieve all matching records
+        return session.exec(query).all()
 
     def chat_trend_by_user(
         self, session: Session, start_date: date, end_date: date
