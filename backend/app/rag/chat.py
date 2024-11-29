@@ -767,9 +767,12 @@ class ChatService:
 
         cache_messages = None
         if settings.ENABLE_QUESTION_CACHE:
-            logger.info(f"start to find_recent_assistant_messages_by_goal with goal: {goal}")
-            cache_messages = chat_repo.find_recent_assistant_messages_by_goal(self.db_session,goal)
-            logger.info(f"find_recent_assistant_messages_by_goal result: {cache_messages}")
+            try:
+                logger.info(f"start to find_recent_assistant_messages_by_goal with goal: {goal}")
+                cache_messages = chat_repo.find_recent_assistant_messages_by_goal(self.db_session,goal)
+                logger.info(f"find_recent_assistant_messages_by_goal result: {cache_messages}")
+            except Exception as e:
+                logger.error(f"Failed to find recent assistant messages by goal: {e}")
 
         if cache_messages and len(cache_messages) > 0:
             stackvm_response_text = cache_messages[0].content
