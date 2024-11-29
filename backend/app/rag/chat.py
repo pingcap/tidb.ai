@@ -774,6 +774,7 @@ class ChatService:
             except Exception as e:
                 logger.error(f"Failed to find recent assistant messages by goal: {e}")
 
+        stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
         if cache_messages and len(cache_messages) > 0:
             stackvm_response_text = cache_messages[0].content
             task_id = cache_messages[0].meta.get("task_id")
@@ -786,7 +787,6 @@ class ChatService:
                         payload=chunk,
                     )
         else:
-            stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
             logger.debug(
                 f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
             chat_params = {
