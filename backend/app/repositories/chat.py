@@ -136,7 +136,7 @@ class ChatRepo(BaseRepo):
             ChatMessage.role == 'assistant',  # Filter for role 'assistant'
             func.JSON_UNQUOTE(func.JSON_EXTRACT(ChatMessage.meta, '$.goal')) == goal,  # Match the specified goal in meta
             ChatMessage.created_at >= cutoff,  # Ensure the message was created within the cutoff
-            func.JSON_EXTRACT(ChatMessage.meta, '$.is_best_answer') == 'true'  # Ensure 'is_best_answer' is true in meta
+            func.JSON_EXTRACT(ChatMessage.meta, '$.is_best_answer') == True  # Ensure 'is_best_answer' is true in meta
         ).order_by(desc(ChatMessage.created_at))  # Order by created_at in descending order
 
         # Execute the query and retrieve all matching records
