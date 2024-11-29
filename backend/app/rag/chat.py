@@ -770,7 +770,7 @@ class ChatService:
             try:
                 logger.info(f"start to find_recent_assistant_messages_by_goal with goal: {goal}")
                 cache_messages = chat_repo.find_recent_assistant_messages_by_goal(self.db_session,goal)
-                logger.info(f"find_recent_assistant_messages_by_goal result: {cache_messages}")
+                logger.debug(f"find_recent_assistant_messages_by_goal result: {cache_messages}")
             except Exception as e:
                 logger.error(f"Failed to find recent assistant messages by goal: {e}")
 
