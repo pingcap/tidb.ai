@@ -131,6 +131,8 @@ class ChatRepo(BaseRepo):
         # Calculate the cutoff datetime based on the current UTC time minus the specified number of days
         cutoff = datetime.now(UTC) - timedelta(days=days)
 
+        logger.info(f"Searching for recent assistant messages with goal '{goal}' since {cutoff}")
+
         # Construct the query to filter messages
         query = select(ChatMessage).where(
             ChatMessage.role == 'assistant',  # Filter for role 'assistant'
