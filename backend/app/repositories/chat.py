@@ -1,18 +1,15 @@
 import enum
-import logging
 from uuid import UUID
 from typing import Optional, List
 from datetime import datetime, UTC, date, timedelta
 from collections import defaultdict
 
-from sqlmodel import select, Session, or_, func, case, cast, String
+from sqlmodel import select, Session, or_, func, case
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
 from app.models import Chat, User, ChatMessage, ChatUpdate
 from app.repositories.base_repo import BaseRepo
-
-logger = logging.getLogger(__name__)
 
 
 class ChatRepo(BaseRepo):
@@ -134,12 +131,10 @@ class ChatRepo(BaseRepo):
         # Calculate the cutoff datetime based on the current UTC time minus the specified number of days
         cutoff = datetime.now(UTC) - timedelta(days=days)
 
-        logger.info(f"Searching for recent assistant messages with goal '{goal}' since {cutoff}")
-
         # Construct the query to filter messages
         query = select(ChatMessage).where(
             ChatMessage.role == 'assistant',  # Filter for role 'assistant'
-            cast(ChatMessage.meta['goal'], String) == goal,  # Match the specified goal in meta
+            func.JSON_UNQUOTE(func.JSON_EXTRACT(ChatMessage.meta, '$.goal')) == goal,  # Match the specified goal in meta
             ChatMessage.created_at >= cutoff  # Ensure the message was created within the cutoff
         )
 
