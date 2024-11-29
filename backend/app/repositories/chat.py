@@ -115,7 +115,7 @@ class ChatRepo(BaseRepo):
         self,
         session: Session,
         goal: str,
-        days: int = 2
+        days: int = 15
     ) -> List[ChatMessage]:
         """
         Search for 'assistant' role chat messages with a specific goal within the recent days.
