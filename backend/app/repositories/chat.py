@@ -1,4 +1,5 @@
 import enum
+import logging
 from uuid import UUID
 from typing import Optional, List
 from datetime import datetime, UTC, date, timedelta
@@ -10,6 +11,8 @@ from fastapi_pagination.ext.sqlmodel import paginate
 
 from app.models import Chat, User, ChatMessage, ChatUpdate
 from app.repositories.base_repo import BaseRepo
+
+logger = logging.getLogger(__name__)
 
 
 class ChatRepo(BaseRepo):
