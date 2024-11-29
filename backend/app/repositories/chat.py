@@ -134,7 +134,7 @@ class ChatRepo(BaseRepo):
         # Construct the query to filter messages
         query = select(ChatMessage).where(
             ChatMessage.role == 'assistant',  # Filter for role 'assistant'
-            ChatMessage.meta['goal'].astext == goal,  # Match the specified goal in meta
+            cast(ChatMessage.meta['goal'], String) == goal,  # Match the specified goal in meta
             ChatMessage.created_at >= cutoff  # Ensure the message was created within the cutoff
         )
 
