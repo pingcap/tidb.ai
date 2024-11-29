@@ -4,7 +4,7 @@ from typing import Optional, List
 from datetime import datetime, UTC, date, timedelta
 from collections import defaultdict
 
-from sqlmodel import select, Session, or_, func, case
+from sqlmodel import select, Session, or_, func, case, desc
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
@@ -135,8 +135,9 @@ class ChatRepo(BaseRepo):
         query = select(ChatMessage).where(
             ChatMessage.role == 'assistant',  # Filter for role 'assistant'
             func.JSON_UNQUOTE(func.JSON_EXTRACT(ChatMessage.meta, '$.goal')) == goal,  # Match the specified goal in meta
-            ChatMessage.created_at >= cutoff  # Ensure the message was created within the cutoff
-        )
+            ChatMessage.created_at >= cutoff,  # Ensure the message was created within the cutoff
+            func.JSON_EXTRACT(ChatMessage.meta, '$.is_best_answer') == True  # Ensure 'is_best_answer' is true in meta
+        ).order_by(desc(ChatMessage.created_at))  # Order by created_at in descending order
 
         # Execute the query and retrieve all matching records
         return session.exec(query).all()
