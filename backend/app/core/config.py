@@ -101,7 +101,8 @@ class Settings(BaseSettings):
     # If using a different embedding model, adjust these values according to the model's specifications.
     # For example:
     #   maidalun1020/bce-embedding-base_v1: EMBEDDING_DIMS=768   EMBEDDING_MAX_TOKENS=512
-    EMBEDDING_DIMS: int = 1536
+    #   bge-m3: EMBEDDING_DIMS=1024   EMBEDDING_MAX_TOKENS=8191
+    EMBEDDING_DIMS: int = 1024
     EMBEDDING_MAX_TOKENS: int = 8191
 
     @computed_field  # type: ignore[misc]

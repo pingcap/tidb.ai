@@ -3,7 +3,7 @@ name = "tidb-ai-python"
 version = "0.1.0"
 description = "Add your description here"
 authors = [
-    { name = "wd0517", email = "me@wangdi.ink" }
+    { name = "社恐患者杨老师", email = "zhizhengyang@aliyun.com" }
 ]
 dependencies = [
     "fastapi>=0.115.4",

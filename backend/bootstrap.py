@@ -14,6 +14,7 @@ async def ensure_admin_user(session: AsyncSession) -> None:
     if not user:
         from app.auth.users import create_user
 
+        #admin_email = "zhizhengyang@aliyun.com"
         admin_email = "admin@example.com"
         admin_password = secrets.token_urlsafe(16)
         user = await create_user(

@@ -77,4 +77,18 @@ admin_reranker_model_options: List[RerankerModelOption] = [
         credentials_type="str",
         default_credentials="dummy",
     ),
+    RerankerModelOption(
+        provider=RerankerProvider.AI302,
+        provider_display_name="302AI",
+        default_reranker_model="bge-reranker-v2-m3",
+        reranker_model_description="",
+        default_top_n=10,
+        default_config={
+            "api_url": "https://api.302.ai/v1/rerank",
+        },
+        credentials_display_name="302AI API Key",
+        credentials_description="",
+        credentials_type="str",
+        default_credentials="sk-****",
+    ),
 ]

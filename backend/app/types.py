@@ -4,10 +4,11 @@ import enum
 class LLMProvider(str, enum.Enum):
     OPENAI = "openai"
     GEMINI = "gemini"
-    ANTHROPIC_VERTEX = "anthropic_vertex"
+    ANTHROPIC = "anthropic"
     OPENAI_LIKE = "openai_like"
     BEDROCK = "bedrock"
     OLLAMA = "ollama"
+    AI302 = "302ai"
 
 
 class EmbeddingProvider(str, enum.Enum):
@@ -17,6 +18,8 @@ class EmbeddingProvider(str, enum.Enum):
     OLLAMA = "ollama"
     LOCAL = "local"
     OPENAI_LIKE = "openai_like"
+    AI302 = "302ai"
+
 
 
 class RerankerProvider(str, enum.Enum):
@@ -24,6 +27,7 @@ class RerankerProvider(str, enum.Enum):
     COHERE = "cohere"
     BAISHENG = "baisheng"
     LOCAL = "local"
+    AI302 = "302ai"
 
 
 class MimeTypes(str, enum.Enum):
