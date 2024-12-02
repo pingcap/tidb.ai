@@ -287,6 +287,7 @@ Instructions:
 3. Ensure each question logically follows from the context of the provided chat message.
 4. Keep questions concise yet insightful to maximize engagement.
 5. Use the same language with the chat message content.
+6. Each question should end with a question mark.
 
 Now, generate 3–5 follow-up questions below:
 """
