@@ -179,6 +179,7 @@ jobs:
             echo "TIDB_USER=${{secrets.E2E_TIDB_USER}}" > .env.backend.local
             echo "TIDB_PASSWORD=${{secrets.E2E_TIDB_PASSWORD}}" >> .env.backend.local
             echo "TIDB_HOST=${{secrets.E2E_TIDB_HOST}}" >> .env.backend.local
+            echo "" > .env.backend.generated
 
         - name: Fetch Images
           run: ./prepare-test.sh
