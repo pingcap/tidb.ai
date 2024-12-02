@@ -14,7 +14,7 @@ from app.api.deps import CurrentSuperuserDep, SessionDep
 from app.exceptions import EmbeddingModelNotFoundError, InternalServerError
 from app.rag.chat_config import get_embedding_model
 from app.rag.embed_model_option import EmbeddingModelOption, admin_embed_model_options
-from app.repositories.embedding_model import embedding_model_repo
+from app.repositories.embedding_model import embed_model_repo
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ def create_embedding_model(
     create: EmbeddingModelCreate,
 ) -> EmbeddingModelDetail:
     try:
-        return embedding_model_repo.create(session, create)
+        return embed_model_repo.create(session, create)
     except Exception as e:
         logger.exception(e)
         raise InternalServerError()
@@ -56,7 +56,7 @@ def test_embedding_model(
         expected_length = create.vector_dimension
         if len(embedding) != expected_length:
             raise ValueError(
-                f"Currently we only support {expected_length} dims embedding, got {len(embedding)} dims."
+                f"Embedding model is configured with {expected_length} dimensions, but got vector embedding with {len(embedding)} dimensions."
             )
         success = True
         error = ""
@@ -72,7 +72,7 @@ def list_embedding_models(
     user: CurrentSuperuserDep,
     params: Params = Depends()
 ) -> Page[EmbeddingModelItem]:
-    return embedding_model_repo.paginate(session, params)
+    return embed_model_repo.paginate(session, params)
 
 
 @router.get("/admin/embedding-models/{model_id}")
@@ -82,7 +82,7 @@ def get_embedding_model_detail(
     model_id: int
 ) -> EmbeddingModelDetail:
     try:
-        return embedding_model_repo.must_get(session, model_id)
+        return embed_model_repo.must_get(session, model_id)
     except EmbeddingModelNotFoundError as e:
         raise e
     except Exception as e:
@@ -98,8 +98,8 @@ def update_embedding_model(
     update: EmbeddingModelUpdate,
 ) -> EmbeddingModelDetail:
     try:
-        embed_model = embedding_model_repo.must_get(session, model_id)
-        embedding_model_repo.update(session, embed_model, update)
+        embed_model = embed_model_repo.must_get(session, model_id)
+        embed_model_repo.update(session, embed_model, update)
         return embed_model
     except EmbeddingModelNotFoundError as e:
         raise e
@@ -115,8 +115,8 @@ def set_default_embedding_model(
     model_id: int
 ) -> EmbeddingModelDetail:
     try:
-        embed_model = embedding_model_repo.must_get(session, model_id)
-        embedding_model_repo.set_default_model(session, model_id)
+        embed_model = embed_model_repo.must_get(session, model_id)
+        embed_model_repo.set_default_model(session, model_id)
         session.refresh(embed_model)
         return embed_model
     except EmbeddingModelNotFoundError as e:

@@ -67,17 +67,21 @@ export function FormFieldInlineLayout<
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 > ({
   name,
+  label,
   description,
   children,
-}: Omit<FormFieldLayoutProps<TFieldValues, TName>, 'label'>) {
+}: FormFieldLayoutProps<TFieldValues, TName>) {
   return (
     <FormField<TFieldValues, TName>
       name={name}
       render={({ field }) => (
         <FormItem>
-          <FormControl>
-            {renderWidget(children, field)}
-          </FormControl>
+          <div className="flex items-center gap-2">
+            <FormControl>
+              {renderWidget(children, field)}
+            </FormControl>
+            <FormLabel>{label}</FormLabel>
+          </div>
           {description && <FormDescription>{description}</FormDescription>}
           <FormMessage />
         </FormItem>

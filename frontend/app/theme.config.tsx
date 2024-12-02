@@ -4,7 +4,7 @@ import { useConfig, DocsThemeConfig, Link } from 'nextra-theme-docs';
 let themeConfig: DocsThemeConfig = {
   docsRepositoryBase: 'https://github.com/pingcap/tidb.ai/tree/main/frontend/app',
   project: {
-    link: 'https://github.com/pingcap/tidb.ai',
+    link: 'https://github.com/pingcap/autoflow',
   },
   // chat: {
   //   link: 'https://tidb.ai/discord',

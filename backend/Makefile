@@ -18,4 +18,4 @@ run_dev_server:
 
 run_dev_celery_worker:
 	@echo "Running celery..."
-	@rye run celery -A app.celery worker --pool solo --concurrency=1 --loglevel=DEBUG
+	@rye run celery -A app.celery worker

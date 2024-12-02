@@ -1,27 +1,15 @@
 'use client';
 
 import { listRerankers, type Reranker } from '@/api/rerankers';
-import { DataTableHeading } from '@/components/data-table-heading';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { Badge } from '@/components/ui/badge';
-import { buttonVariants } from '@/components/ui/button';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
-import { PlusIcon } from 'lucide-react';
 import Link from 'next/link';
 
 export default function RerankerModelsTable () {
   return (
     <DataTableRemote
-      before={(
-        <DataTableHeading>
-          <span className="ml-auto" />
-          <Link className={buttonVariants({ variant: 'default', className: 'gap-2' })} href="/reranker-models/create">
-            <PlusIcon className="size-4" />
-            New
-          </Link>
-        </DataTableHeading>
-      )}
       columns={columns}
       apiKey="api.rerankers.list"
       api={listRerankers}
@@ -48,10 +36,9 @@ const columns: ColumnDef<Reranker, any>[] = [
     cell: ({ row }) => {
       const { model, provider } = row.original;
       return (
-        <span className="flex gap-1 items-center">
-          <Badge variant="secondary">{provider}</Badge>
-          <Badge variant="outline">{model}</Badge>
-        </span>
+        <>
+          <strong>{provider}</strong>:<span>{model}</span>
+        </>
       );
     },
   }),

@@ -1,15 +1,14 @@
 import logging
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, logger, Query
+from fastapi import APIRouter, Depends, Query
 from fastapi_pagination import Params, Page
 
 from app.models.chunk import get_kb_chunk_model
 from app.rag.knowledge_base.index_store import init_kb_tidb_vector_store, init_kb_tidb_graph_store
 from app.repositories.chunk import ChunkRepo
-from app.repositories.embedding_model import embedding_model_repo
-from app.repositories.llm import get_default_db_llm
-
+from app.repositories.embedding_model import embed_model_repo
+from app.repositories.llm import llm_repo
 
 from .models import (
     KnowledgeBaseDetail,
@@ -20,9 +19,7 @@ from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.exceptions import (
     InternalServerError,
     KnowledgeBaseNotFoundError,
-    KBNoVectorIndexConfiguredError,
-    KBNoLLMConfiguredError,
-    KBNoEmbedModelConfiguredError
+    KBNoVectorIndexConfiguredError
 )
 from app.models import (
     KnowledgeBase,
@@ -33,8 +30,11 @@ from app.tasks import (
     build_index_for_document,
 )
 from app.repositories import knowledge_base_repo, data_source_repo, document_repo
-from app.tasks.knowledge_base import import_documents_for_knowledge_base, purge_knowledge_base_related_resources, \
-    stats_for_knowledge_base
+from app.tasks.knowledge_base import (
+    import_documents_for_knowledge_base,
+    stats_for_knowledge_base,
+    purge_knowledge_base_related_resources
+)
 from ..document.models import DocumentItem, DocumentFilters
 
 router = APIRouter()
@@ -52,34 +52,24 @@ def create_knowledge_base(
             data_source_repo.create(session, DataSource(
                 name=data_source.name,
                 description='',
+                user_id=user.id,
                 data_source_type=data_source.data_source_type,
                 config=data_source.config,
             )) for data_source in create.data_sources
         ]
 
-        db_llm_id = create.llm_id
-        if not db_llm_id:
-            default_llm = get_default_db_llm(session)
-            if default_llm:
-                db_llm_id = default_llm.id
-            else:
-                raise KBNoLLMConfiguredError()
+        if not create.llm_id:
+            create.llm_id = llm_repo.must_get_default_llm(session).id
 
-        db_embed_model_id = create.embedding_model_id
-        if not db_embed_model_id:
-            default_embed_model = embedding_model_repo.get_default_model(session)
-            if default_embed_model:
-                db_embed_model_id = default_embed_model.id
-            else:
-                raise KBNoEmbedModelConfiguredError()
-
+        if not create.embedding_model_id:
+            create.embedding_model_id = embed_model_repo.must_get_default_model(session).id
 
         knowledge_base = KnowledgeBase(
             name=create.name,
             description=create.description,
             index_methods=create.index_methods,
-            llm_id=db_llm_id,
-            embedding_model_id=db_embed_model_id,
+            llm_id=create.llm_id,
+            embedding_model_id=create.embedding_model_id,
             data_sources=data_sources,
             created_by=user.id,
             updated_by=user.id,
@@ -97,7 +87,7 @@ def create_knowledge_base(
     except KBNoVectorIndexConfiguredError as e:
         raise e
     except Exception as e:
-        logging.exception(e)
+        logger.exception(e)
         raise InternalServerError()
 
 
@@ -141,7 +131,7 @@ def update_knowledge_base_setting(
     except KBNoVectorIndexConfiguredError as e:
         raise e
     except Exception as e:
-        logging.exception(e)
+        logger.exception(e)
         raise InternalServerError()
 
 

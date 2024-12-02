@@ -90,7 +90,7 @@ export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transi
       throw new Error(error || 'Test Embedding Model failed.');
     }
     const embeddingModel = await createEmbeddingModel(values);
-    toast('Embedding Model successfully created.');
+    toast.success('Embedding Model successfully created.');
     onCreated?.(embeddingModel);
   });
 

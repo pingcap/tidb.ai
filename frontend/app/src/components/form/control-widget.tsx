@@ -1,3 +1,4 @@
+import { Checkbox } from '@/components/ui/checkbox';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
@@ -10,7 +11,7 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import type { SwitchProps } from '@radix-ui/react-switch';
 import { CheckIcon, ChevronDown, Loader2Icon, TriangleAlertIcon, XCircleIcon } from 'lucide-react';
 import * as React from 'react';
-import { type FC, forwardRef, type ReactElement, type ReactNode, useState } from 'react';
+import { type ComponentProps, type FC, forwardRef, type ReactElement, type ReactNode, useState } from 'react';
 import { ControllerRenderProps, FieldPath, FieldValues } from 'react-hook-form';
 
 export interface FormControlWidgetProps<
@@ -41,6 +42,22 @@ export const FormSwitch = forwardRef<any, FormSwitchProps>(({ value, onChange, .
 });
 
 FormSwitch.displayName = 'FormSwitch';
+
+export interface FormCheckoutProps extends FormControlWidgetProps, Omit<ComponentProps<typeof Checkbox>, 'checked' | 'onCheckedChange' | keyof FormControlWidgetProps> {
+}
+
+export const FormCheckbox = forwardRef<any, FormCheckoutProps>(({ value, onChange, ...props }, forwardedRef) => {
+  return (
+    <Checkbox
+      {...props}
+      ref={forwardedRef}
+      checked={value}
+      onCheckedChange={onChange}
+    />
+  );
+});
+
+FormCheckbox.displayName = 'FormCheckbox';
 
 export interface FormSelectConfig<T extends object> {
   loading?: boolean;
@@ -140,9 +157,10 @@ export interface FormComboboxProps extends FormControlWidgetProps {
   children?: ReactElement;
   placeholder?: string;
   config: FormComboboxConfig<any>;
+  contentWidth?: 'anchor';
 }
 
-export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeholder, value, onChange, name, disabled, children, ...props }, ref) => {
+export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeholder, value, onChange, name, disabled, children, contentWidth = 'anchor', ...props }, ref) => {
   const [open, setOpen] = useState(false);
   const isConfigReady = !config.loading && !config.error;
   const current = config.options.find(option => option[config.key] === value);
@@ -170,27 +188,12 @@ export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeh
             ? <Loader2Icon className="size-4 opacity-50 animate-spin repeat-infinite" />
             : config.error
               ? <TriangleAlertIcon className="size-4 text-destructive opacity-50" />
-              : <ChevronDown className="h-4 w-4 opacity-50" />}
+              : config.clearable !== false && current != null && !disabled
+                ? <FormComboboxClearButton onClick={() => onChange?.(null)} />
+                : <ChevronDown className="h-4 w-4 opacity-50" />}
         </PopoverPrimitive.Trigger>
-        <TooltipProvider delayDuration={0}>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              {(config.clearable !== false && current != null && !disabled) && <button
-                className="ml-2 opacity-50 hover:opacity-100"
-                type="button"
-                onClick={(event) => {
-                  onChange?.(null);
-                }}>
-                <XCircleIcon className="size-4" />
-              </button>}
-            </TooltipTrigger>
-            <TooltipContent>
-              Clear select
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
       </div>
-      <PopoverContent className="p-0 focus:outline-none" align="start" collisionPadding={8}>
+      <PopoverContent className={cn('p-0 focus:outline-none', contentWidth === 'anchor' && 'w-[--radix-popover-trigger-width]')} align="start" collisionPadding={8}>
         <Command>
           <CommandInput />
           <CommandList>
@@ -209,7 +212,7 @@ export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeh
                 <CommandItem
                   key={option[config.key]}
                   value={String(option[config.key])}
-                  keywords={config.optionKeywords(option)}
+                  keywords={config.optionKeywords(option).flatMap(item => item.split(/\s+/))}
                   className={cn('group', config.itemClassName)}
                   onSelect={value => {
                     const item = config.options.find(option => String(option[config.key]) === value);
@@ -235,3 +238,20 @@ export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeh
 });
 
 FormCombobox.displayName = 'FormCombobox';
+
+function FormComboboxClearButton ({ onClick }: { onClick?: () => void }) {
+  return (
+    <TooltipProvider delayDuration={0}>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button className="ml-2 opacity-50 hover:opacity-100" type="button" onClick={onClick}>
+            <XCircleIcon className="size-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          Clear select
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}

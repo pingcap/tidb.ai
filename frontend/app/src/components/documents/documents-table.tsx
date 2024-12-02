@@ -8,10 +8,12 @@ import { DataTableRemote } from '@/components/data-table-remote';
 import { DocumentPreviewDialog } from '@/components/document-viewer';
 import { DocumentsTableFilters } from '@/components/documents/documents-table-filters';
 import { DocumentChunksTable } from '@/components/knowledge-base/document-chunks-table';
+import { NextLink } from '@/components/nextjs/NextLink';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import type { CellContext, ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
+import { UploadIcon } from 'lucide-react';
 import { useMemo, useState } from 'react';
 
 const helper = createColumnHelper<Document>();
@@ -28,13 +30,14 @@ const href = (cell: CellContext<any, string>) => <a className="underline" href={
 const getColumns = (kbId?: number) => [
   helper.accessor('id', { cell: mono }),
   helper.accessor('knowledge_base', { cell: ctx => <KnowledgeBaseCell {...ctx.getValue()} /> }),
-  helper.display({ id: 'name', header: 'name', cell: ({ row }) =>
-    <DocumentPreviewDialog
-      title={row.original.source_uri}
-      name={row.original.name}
-      mime={row.original.mime_type}
-      content={row.original.content}
-    />
+  helper.display({
+    id: 'name', header: 'name', cell: ({ row }) =>
+      <DocumentPreviewDialog
+        title={row.original.source_uri}
+        name={row.original.name}
+        mime={row.original.mime_type}
+        content={row.original.content}
+      />,
   }),
   helper.accessor('source_uri', { cell: href }),
   helper.accessor('mime_type', { cell: mono }),
@@ -47,8 +50,8 @@ const getColumns = (kbId?: number) => [
     header: 'action',
     cell: ({ row }) => (kbId ?? row.original.knowledge_base?.id) != null && (
       <Dialog>
-        <DialogTrigger>
-          <Button className='text-xs p-2' variant="ghost" size="sm">
+        <DialogTrigger asChild>
+          <Button className="text-xs p-2" variant="ghost" size="sm">
             Chunks
           </Button>
         </DialogTrigger>
@@ -70,23 +73,28 @@ const getColumns = (kbId?: number) => [
   }),
 ] as ColumnDef<Document>[];
 
-export function DocumentsTable ({ knowledgeBaseId }: { knowledgeBaseId?: number }) {
+export function DocumentsTable ({ knowledgeBaseId }: { knowledgeBaseId: number }) {
   const [filters, setFilters] = useState<ListDocumentsTableFilters>({});
 
   const columns = useMemo(() => {
-    if (knowledgeBaseId != null) {
-      const columns = [...getColumns(knowledgeBaseId)];
-      columns.splice(1, 1);
-      return columns;
-    } else {
-      return getColumns(knowledgeBaseId);
-    }
+    const columns = [...getColumns(knowledgeBaseId)];
+    columns.splice(1, 1);
+    return columns;
   }, [knowledgeBaseId]);
 
   return (
     <DataTableRemote
       toolbar={((table) => (
-        <DocumentsTableFilters table={table} onFilterChange={setFilters} />
+        <div className="space-y-2">
+          <NextLink
+            href={`/knowledge-bases/${knowledgeBaseId}/data-sources/new?type=file`}
+            variant="secondary"
+          >
+            <UploadIcon />
+            Upload documents
+          </NextLink>
+          <DocumentsTableFilters table={table} onFilterChange={setFilters} />
+        </div>
       ))}
       columns={columns}
       apiKey={knowledgeBaseId != null ? `api.datasource.${knowledgeBaseId}.documents` : 'api.documents.list'}

@@ -6,9 +6,9 @@ import { boolean } from '@/components/cells/boolean';
 import { datetime } from '@/components/cells/datetime';
 import { mono } from '@/components/cells/mono';
 import { DataTableRemote } from '@/components/data-table-remote';
-import { NextLink } from '@/components/nextjs/NextLink';
 import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { NextLink } from '@/components/nextjs/NextLink';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { AlertTriangleIcon, CopyIcon, TrashIcon } from 'lucide-react';
@@ -34,7 +34,7 @@ const columns = [
             name: `${name} Copy`, llm_id, fast_llm_id, engine_options,
           })
             .then(newEngine => {
-              toast('Chat Engine successfully cloned.');
+              toast.success('Chat Engine successfully cloned.');
               startTransition(() => {
                 router.push(`/chat-engines/${newEngine.id}`);
               });
@@ -61,7 +61,6 @@ const columns = [
 export function ChatEnginesTable () {
   return (
     <DataTableRemote
-      before={<NextLink href="/chat-engines/new">New Chat Engine</NextLink>}
       columns={columns}
       apiKey="api.chat-engines.list"
       api={listChatEngines}

@@ -14,7 +14,7 @@ export default function Page () {
       <AdminPageHeading
         breadcrumbs={[
           { title: 'Models' },
-          { title: 'LLMs', url: '/llms' },
+          { title: 'LLMs', url: '/llms', docsUrl: '/docs/llm' },
           { title: 'Create' },
         ]}
       />

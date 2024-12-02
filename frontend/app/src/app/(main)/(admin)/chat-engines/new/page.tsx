@@ -8,7 +8,7 @@ export default async function NewChatEnginePage () {
     <>
       <AdminPageHeading
         breadcrumbs={[
-          { title: 'Chat Engines', url: '/chat-engines' },
+          { title: 'Chat Engines', docsUrl: '/docs/chat-engine', url: '/chat-engines' },
           { title: 'New' },
         ]}
       />
