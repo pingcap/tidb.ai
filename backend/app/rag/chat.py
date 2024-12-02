@@ -1160,7 +1160,7 @@ def get_chat_message_recommend_questions(
     engine_name: str = "default",
 ) -> List[str]:
     chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
-    _fast_llm = chat_engine_config.get_fast_llama_llm(db_session)
+    llm = chat_engine_config.get_llama_llm(db_session)
 
     statement = (
         select(RecommendQuestion.questions)
@@ -1172,13 +1172,34 @@ def get_chat_message_recommend_questions(
     if questions is not None:
         return questions
 
-    recommend_questions = _fast_llm.structured_predict(
+    recommend_questions = llm.structured_predict(
         output_cls=LLMRecommendQuestions,
         prompt=get_prompt_by_jinja2_template(
             chat_engine_config.llm.further_questions_prompt,
             chat_message_content=chat_message.content,
         ),
     )
+
+    longest_question = 0
+    for question in recommend_questions.questions:
+        longest_question = max(longest_question, len(question))
+
+    # check the output by if the output with format and the length
+    questions = ",".join(recommend_questions.questions)
+    if "##" in questions or "**" in questions or longest_question > 500:
+        regenerate_content = f"""
+        Please note that you are generating a question list. You previously generated it incorrectly; try again.
+        ----------------------------------------
+        {chat_message.content}
+        """
+        # with format or too long for per question, it's not a question list, generate again
+        recommend_questions = llm.structured_predict(
+            output_cls=LLMRecommendQuestions,
+            prompt=get_prompt_by_jinja2_template(
+                chat_engine_config.llm.further_questions_prompt,
+                chat_message_content=regenerate_content,
+            ),
+        )
 
     db_session.add(RecommendQuestion(
         chat_message_id=chat_message.id,
