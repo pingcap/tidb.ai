@@ -8,7 +8,6 @@ import { mono } from '@/components/cells/mono';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { NextLink } from '@/components/nextjs/NextLink';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { AlertTriangleIcon, CopyIcon, TrashIcon } from 'lucide-react';
@@ -82,7 +81,7 @@ function NameLink ({ chatEngine }: { chatEngine: ChatEngine }) {
       {kbNotConfigured && <TooltipProvider>
         <Tooltip>
           <TooltipTrigger asChild>
-            <AlertTriangleIcon className="text-amber-500 inline-flex mr-1 size-3" />
+            <AlertTriangleIcon className="text-warning inline-flex mr-1 size-3" />
           </TooltipTrigger>
           <TooltipContent className="text-xs" align="start">
             Knowledge Base not configured.
