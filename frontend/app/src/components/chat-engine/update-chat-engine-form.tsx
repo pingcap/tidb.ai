@@ -2,8 +2,8 @@
 
 import { type ChatEngine, type ChatEngineKnowledgeGraphOptions, type ChatEngineLLMOptions, type ChatEngineOptions, updateChatEngine } from '@/api/chat-engines';
 import { KBSelect, LLMSelect, RerankerSelect } from '@/components/form/biz';
-import { FormInput, FormSwitch } from '@/components/form/control-widget';
-import { FormFieldBasicLayout, FormFieldContainedLayout } from '@/components/form/field-layout';
+import { FormCheckbox, FormInput, FormSwitch } from '@/components/form/control-widget';
+import { FormFieldBasicLayout, FormFieldContainedLayout, FormFieldInlineLayout } from '@/components/form/field-layout';
 import { PromptInput } from '@/components/form/widgets/PromptInput';
 import { SecondaryNavigatorItem, SecondaryNavigatorLayout, SecondaryNavigatorList, SecondaryNavigatorMain } from '@/components/secondary-navigator-list';
 import { fieldAccessor, GeneralSettingsField, type GeneralSettingsFieldAccessor, GeneralSettingsForm, shallowPick } from '@/components/settings-form';
@@ -126,19 +126,19 @@ export function UpdateChatEngineForm ({ chatEngine, defaultChatEngineOptions }: 
               </FormFieldBasicLayout>
             </GeneralSettingsField>
             <GeneralSettingsField accessor={kgIncludeMetaAccessor} schema={kgIncludeMetaSchema}>
-              <FormFieldContainedLayout unimportant name="value" label="Include Meta" fallbackValue={defaultChatEngineOptions.knowledge_graph?.include_meta} description="/// Description TBD">
-                <FormSwitch />
-              </FormFieldContainedLayout>
+              <FormFieldInlineLayout name="value" label="Include Meta" fallbackValue={defaultChatEngineOptions.knowledge_graph?.include_meta} description="/// Description TBD">
+                <FormCheckbox />
+              </FormFieldInlineLayout>
             </GeneralSettingsField>
             <GeneralSettingsField accessor={kgWithDegreeAccessor} schema={kgWithDegreeSchema}>
-              <FormFieldContainedLayout unimportant name="value" label="With Degree" fallbackValue={defaultChatEngineOptions.knowledge_graph?.with_degree} description="/// Description TBD">
-                <FormSwitch />
-              </FormFieldContainedLayout>
+              <FormFieldInlineLayout name="value" label="With Degree" fallbackValue={defaultChatEngineOptions.knowledge_graph?.with_degree} description="/// Description TBD">
+                <FormCheckbox />
+              </FormFieldInlineLayout>
             </GeneralSettingsField>
             <GeneralSettingsField accessor={kgUsingIntentSearchAccessor} schema={kgUsingIntentSearchSchema}>
-              <FormFieldContainedLayout unimportant name="value" label="Using intent search" fallbackValue={defaultChatEngineOptions.knowledge_graph?.using_intent_search} description="/// Description TBD">
-                <FormSwitch />
-              </FormFieldContainedLayout>
+              <FormFieldInlineLayout name="value" label="Using intent search" fallbackValue={defaultChatEngineOptions.knowledge_graph?.using_intent_search} description="/// Description TBD">
+                <FormCheckbox />
+              </FormFieldInlineLayout>
             </GeneralSettingsField>
             {(['intent_graph_knowledge', 'normal_graph_knowledge'] as const).map(type => (
               <GeneralSettingsField key={type} accessor={llmAccessor[type]} schema={llmSchema}>
@@ -162,9 +162,9 @@ export function UpdateChatEngineForm ({ chatEngine, defaultChatEngineOptions }: 
 
         <Section title="Features">
           <GeneralSettingsField accessor={hideSourcesAccessor} schema={hideSourcesSchema}>
-            <FormFieldContainedLayout unimportant name="value" label="Hide Sources" fallbackValue={defaultChatEngineOptions.hide_sources} description="/// Description TBD">
-              <FormSwitch />
-            </FormFieldContainedLayout>
+            <FormFieldInlineLayout name="value" label="Hide Sources" fallbackValue={defaultChatEngineOptions.hide_sources} description="/// Description TBD">
+              <FormCheckbox />
+            </FormFieldInlineLayout>
           </GeneralSettingsField>
           <SubSection title="Clarify Question">
             <GeneralSettingsField accessor={clarifyAccessor} schema={clarifyAccessorSchema}>
@@ -379,7 +379,7 @@ const externalEngineSchema = z.string().nullable();
 function Section ({ title, children }: { title: string, children: ReactNode }) {
   return (
     <>
-      <SecondaryNavigatorMain className="max-w-screen-sm space-y-6 px-2" value={title} strategy="mount">
+      <SecondaryNavigatorMain className="max-w-screen-sm space-y-8 px-2" value={title} strategy="mount">
         {children}
       </SecondaryNavigatorMain>
     </>
