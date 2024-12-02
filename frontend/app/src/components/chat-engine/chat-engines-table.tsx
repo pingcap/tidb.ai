@@ -4,20 +4,22 @@ import { type ChatEngine, createChatEngine, deleteChatEngine, listChatEngines } 
 import { actions } from '@/components/cells/actions';
 import { boolean } from '@/components/cells/boolean';
 import { datetime } from '@/components/cells/datetime';
-import { link } from '@/components/cells/link';
 import { mono } from '@/components/cells/mono';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { NextLink } from '@/components/nextjs/NextLink';
+import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
-import { CopyIcon, TrashIcon } from 'lucide-react';
+import { AlertTriangleIcon, CopyIcon, TrashIcon } from 'lucide-react';
+import Link from 'next/link';
 import { toast } from 'sonner';
 
 const helper = createColumnHelper<ChatEngine>();
 
 const columns = [
   helper.accessor('id', { cell: mono }),
-  helper.accessor('name', { cell: link({ url: row => `/chat-engines/${row.id}` }) }),
+  helper.accessor('name', { cell: context => <NameLink chatEngine={context.row.original} /> }),
   helper.accessor('created_at', { cell: datetime }),
   helper.accessor('updated_at', { cell: datetime }),
   helper.accessor('is_default', { cell: boolean }),
@@ -65,5 +67,30 @@ export function ChatEnginesTable () {
       api={listChatEngines}
       idColumn="id"
     />
+  );
+}
+
+function NameLink ({ chatEngine }: { chatEngine: ChatEngine }) {
+  const { need_migration } = useBootstrapStatus();
+
+  const kbNotConfigured = !!need_migration.chat_engines_without_kb_configured?.includes(chatEngine.id);
+
+  return (
+    <Link
+      className="underline font-mono"
+      href={`/chat-engines/${chatEngine.id}`}
+    >
+      {kbNotConfigured && <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <AlertTriangleIcon className="text-amber-500 inline-flex mr-1 size-3" />
+          </TooltipTrigger>
+          <TooltipContent className="text-xs" align="start">
+            Knowledge Base not configured.
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>}
+      {chatEngine.name}
+    </Link>
   );
 }

@@ -69,15 +69,22 @@ function NavContent () {
           href: '/knowledge-bases',
           title: 'Knowledge Bases',
           icon: LibraryBigIcon,
+          details: !required.knowledge_base
+            ? <NavWarningDetails>You need to configure at least one Knowledge Base.</NavWarningDetails>
+            : <KnowledgeBaseNavDetails />,
+        },
+        {
+          href: '/chat-engines',
+          title: 'Chat Engines',
+          icon: BotMessageSquareIcon,
           details: !!need_migration.chat_engines_without_kb_configured?.length
             ? <NavWarningDetails>
-              <a href="/releases/0.3.0#manual-migration" className="underline">Manual migration</a> required.
+              Some ChatEngine need to <a href="/releases/0.3.0#manual-migration" className="underline">configure KnowledgeBase</a>.
             </NavWarningDetails>
-            : !required.knowledge_base
-              ? <NavWarningDetails>You need to configure at least one Knowledge Base.</NavWarningDetails>
-              : <KnowledgeBaseNavDetails />,
+            : !required.default_chat_engine
+              ? <NavWarningDetails>You need to configure default Chat Engine.</NavWarningDetails>
+              : <ChatEnginesNavDetails />,
         },
-        { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon, details: !required.default_chat_engine ? <NavWarningDetails>You need to configure default Chat Engine.</NavWarningDetails> : <ChatEnginesNavDetails /> },
         {
           parent: true,
           key: 'models',
