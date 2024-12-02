@@ -1,6 +1,6 @@
 'use client';
 
-import type { BootstrapStatus, RequiredBootstrapStatus } from '@/api/system';
+import type { BootstrapStatus } from '@/api/system';
 import { createContext, type ReactNode, useContext } from 'react';
 
 const BootstrapStatusContext = createContext<BootstrapStatus>({
@@ -8,11 +8,15 @@ const BootstrapStatusContext = createContext<BootstrapStatus>({
     knowledge_base: false,
     datasource: false,
     default_embedding_model: false,
+    default_chat_engine: false,
     default_llm: false,
   },
   optional: {
     langfuse: false,
     default_reranker: false,
+  },
+  need_migration: {
+    chat_engines_without_kb_configured: [-1],
   },
 });
 

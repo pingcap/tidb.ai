@@ -40,7 +40,7 @@ export function SiteSidebar ({ setting }: { setting: PublicWebsiteSettings }) {
 }
 
 function NavContent () {
-  const { required } = useBootstrapStatus();
+  const { required, need_migration } = useBootstrapStatus();
   const href = useHref();
   const auth = useAuth();
   const user = auth.me;
@@ -64,8 +64,26 @@ function NavContent () {
       title: 'Admin',
       items: [
         { href: '/stats/trending', title: 'Dashboard', icon: ActivitySquareIcon },
-        { href: '/knowledge-bases', title: 'Knowledge Bases', icon: LibraryBigIcon, details: !required.knowledge_base ? <NavWarningDetails>You need to configure at least one knowledge base.</NavWarningDetails> : <KnowledgeBaseNavDetails /> },
-        { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon, details: <ChatEnginesNavDetails /> },
+        {
+          href: '/knowledge-bases',
+          title: 'Knowledge Bases',
+          icon: LibraryBigIcon,
+          details: !required.knowledge_base
+            ? <NavWarningDetails>You need to configure at least one Knowledge Base.</NavWarningDetails>
+            : <KnowledgeBaseNavDetails />,
+        },
+        {
+          href: '/chat-engines',
+          title: 'Chat Engines',
+          icon: BotMessageSquareIcon,
+          details: !!need_migration.chat_engines_without_kb_configured?.length
+            ? <NavWarningDetails>
+              Some ChatEngine need to <a href="/releases/0.3.0#manual-migration" className="underline">configure KnowledgeBase</a>.
+            </NavWarningDetails>
+            : !required.default_chat_engine
+              ? <NavWarningDetails>You need to configure default Chat Engine.</NavWarningDetails>
+              : <ChatEnginesNavDetails />,
+        },
         {
           parent: true,
           key: 'models',
