@@ -31,20 +31,13 @@ test.fail('Bootstrap', async ({ page }) => {
     await expect(page).toHaveTitle('TiDB.AI');
   });
 
-  const hasWizardDialog = await test.step('Wizard Dialog', async () => {
-    if ((await page.getByText('Almost there...').count()) === 0) {
-      console.warn('Already bootstrapped.');
-      return false;
-    }
+  const hasWizardAlert = await page.getByText('This site is not ready to use yet.').isVisible();
 
-    return true;
-  });
-
-  if (!hasWizardDialog) {
+  if (!hasWizardAlert) {
     return;
   }
 
-  await test.step('Login', async () => {
+  await test.step('Login to configure models', async () => {
     if (await page.getByRole('button', { name: 'Login', exact: true }).count() === 0) {
       console.warn('Already logged in');
       return;
@@ -62,17 +55,28 @@ test.fail('Bootstrap', async ({ page }) => {
     await loginButton.click();
 
     // Wait login
-    await page.getByText('Your app is not fully configured yet. Please complete the setup process.').waitFor();
+    await page.getByText(USERNAME).waitFor({ state: 'visible' });
   });
+
+  await test.step('Open admin side menu', async () => {
+    const modelTab = page.getByText('Models', { exact: true }).and(page.locator('[data-sidebar="menu-button"]'));
+    if ((await modelTab.getAttribute('data-state')) !== 'open') {
+      await modelTab.click();
+    }
+  });
+
+  async function clickTab (text: string, url: string) {
+    await page.getByText(text, { exact: true }).and(page.locator('[data-sidebar="menu-sub-button"]')).click();
+    await page.waitForURL(url);
+    await page.waitForLoadState('networkidle');
+  }
 
   // Setup reranker
   await test.step(`Create Default Reranker (${E2E_RERANKER_PROVIDER} ${E2E_RERANKER_MODEL})`, async () => {
-    const header = page.getByText('Setup default Reranker');
-    if (await header.locator('.lucide-circle-alert').count() === 0) {
-      // Already configured.
-      console.warn('Default Reranker already configured.');
-    } else {
-      await header.click();
+    await clickTab('Reranker Models', '/reranker-models');
+
+    if (await page.getByText('E2E Reranker').count() === 0) {
+      await page.getByText('New Reranker Model').click();
 
       // Fill name
       const nameInput = await page.waitForSelector('[name=name]');
@@ -106,22 +110,16 @@ test.fail('Bootstrap', async ({ page }) => {
       await createButton.scrollIntoViewIfNeeded();
       await createButton.click();
 
-      // Wait for finish by check the alert icon in header disappear
-      try {
-        await header.locator('.lucide-circle-alert').waitFor({ state: 'detached', timeout: 10000 });
-      } catch (e) {
-        throw new Error(await page.getByText('Failed to').locator('..').textContent({ timeout: 1000 }));
-      }
+      // Wait for finish by check the url changes
+      await page.waitForURL(/\/reranker-models\/.+/);
     }
   });
 
   await test.step(`Create Default LLM (${E2E_LLM_PROVIDER} ${E2E_LLM_MODEL})`, async () => {
-    const header = page.getByText('Setup default LLM');
-    if (await header.locator('.lucide-circle-alert').count() === 0) {
-      // Already configured.
-      console.warn('Default LLM already configured.');
-    } else {
-      await header.click();
+    await clickTab('LLMs', '/llms');
+
+    if (await page.getByText('E2E LLM').count() === 0) {
+      await page.getByText('New LLM').click();
 
       // Fill name
       const nameInput = await page.waitForSelector('[name=name]');
@@ -153,22 +151,16 @@ test.fail('Bootstrap', async ({ page }) => {
       await createButton.scrollIntoViewIfNeeded();
       await createButton.click();
 
-      // Wait for finish by check the alert icon in header disappear
-      try {
-        await header.locator('.lucide-circle-alert').waitFor({ state: 'detached', timeout: 10000 });
-      } catch (e) {
-        throw new Error(await page.getByText('Failed to').locator('..').textContent({ timeout: 1000 }));
-      }
+      // Wait for finish by check the url changes
+      await page.waitForURL(/\/llms\/.+/);
     }
   });
 
   await test.step(`Create Default Embedding model (${E2E_EMBEDDING_PROVIDER} ${E2E_EMBEDDING_MODEL || 'default'})`, async () => {
-    const header = page.getByText('Setup default Embedding Model');
-    if (await header.locator('.lucide-circle-alert').count() === 0) {
-      // Already configured.
-      console.warn('Default Embedding Model already configured.');
-    } else {
-      await header.click();
+    await clickTab('Embedding Models', '/embedding-models');
+
+    if (await page.getByText('E2E Embedding Model').count() === 0) {
+      await page.getByText('New Embedding Model').click();
 
       // Fill name
       const nameInput = await page.waitForSelector('[name=name]');
@@ -193,15 +185,12 @@ test.fail('Bootstrap', async ({ page }) => {
       await createButton.scrollIntoViewIfNeeded();
       await createButton.click();
 
-      // Wait for finish by check the alert icon in header disappear
-      try {
-        await header.locator('.lucide-circle-alert').waitFor({ state: 'detached', timeout: 10000 });
-      } catch (e) {
-        throw new Error(await page.getByText('Failed to').locator('..').textContent({ timeout: 1000 }));
-      }
+      // Wait for finish by check the url changes
+      await page.waitForURL(/\/embedding-models\/.+/);
     }
   });
 
+  // SHOULD FAIL FROM HERE
   // Create Datasource
   await test.step('Create Datasource', async () => {
     const header = page.getByText('Setup Datasource');
