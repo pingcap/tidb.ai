@@ -6,7 +6,7 @@ from fastapi_pagination.ext.sqlmodel import paginate
 from sqlalchemy import update
 from sqlmodel import select, Session
 
-from app.exceptions import DefaultLLMNotFoundError, LLMNotFoundError
+from app.exceptions import DefaultLLMNotFound, LLMNotFound
 from app.models import (
     LLM as DBLLM
 )
@@ -28,7 +28,7 @@ class LLMRepo(BaseRepo):
     def must_get(self, session: Session, llm_id: int) -> Type[DBLLM]:
         db_llm = self.get(session, llm_id)
         if db_llm is None:
-            raise LLMNotFoundError(llm_id)
+            raise LLMNotFound(llm_id)
         return db_llm
 
     def get_default(self, session: Session) -> Type[DBLLM] | None:
@@ -43,7 +43,7 @@ class LLMRepo(BaseRepo):
     def must_get_default(self, session: Session) -> Type[DBLLM]:
         db_llm = self.get_default(session)
         if db_llm is None:
-            raise DefaultLLMNotFoundError()
+            raise DefaultLLMNotFound()
         return db_llm
 
     def create(self, session: Session, llm: DBLLM) -> DBLLM:

@@ -4,7 +4,7 @@ from sqlmodel import Session, select
 
 from app.celery import app as celery_app
 from app.core.db import engine
-from app.exceptions import KBNotFoundError
+from app.exceptions import KBNotFound
 from app.models import (
     Document, KnowledgeBaseDataSource, DataSource,
 )
@@ -29,7 +29,7 @@ def import_documents_for_knowledge_base(kb_id: int):
                 import_documents_from_kb_datasource(kb.id, data_source.id)
 
         logger.info(f"Successfully imported documents for knowledge base #{kb_id}")
-    except KBNotFoundError:
+    except KBNotFound:
         logger.error(f"Knowledge base #{kb_id} is not found")
     except Exception as e:
         logger.exception(f"Failed to import documents for knowledge base #{kb_id}", exc_info=e)
@@ -83,7 +83,7 @@ def stats_for_knowledge_base(knowledge_base_id: int):
             session.commit()
 
         logger.info(f"Successfully running stats for knowledge base #{knowledge_base_id}")
-    except KBNotFoundError:
+    except KBNotFound:
         logger.error(f"Knowledge base #{knowledge_base_id} is not found")
     except Exception as e:
         logger.exception(f"Failed to run stats for knowledge base #{knowledge_base_id}", exc_info=e)

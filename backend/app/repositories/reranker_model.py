@@ -5,7 +5,7 @@ from fastapi_pagination.ext.sqlmodel import paginate
 from sqlalchemy import update
 from sqlmodel import select, Session
 
-from app.exceptions import RerankerModelNotFoundError, DefaultRerankerModelNotFoundError
+from app.exceptions import RerankerModelNotFound, DefaultRerankerModelNotFound
 from app.models import RerankerModel
 from app.repositories.base_repo import BaseRepo
 
@@ -29,7 +29,7 @@ class RerankerModelRepo(BaseRepo):
     def must_get(self, session: Session, reranker_model_id: int) -> Type[RerankerModel]:
         db_reranker_model = self.get(session, reranker_model_id)
         if db_reranker_model is None:
-            raise RerankerModelNotFoundError(reranker_model_id)
+            raise RerankerModelNotFound(reranker_model_id)
         return db_reranker_model
 
     def get_default(self, session: Session) -> Optional[RerankerModel]:
@@ -44,7 +44,7 @@ class RerankerModelRepo(BaseRepo):
     def must_get_default(self, session: Session) -> RerankerModel:
         db_reranker_model = self.get_default(session)
         if db_reranker_model is None:
-            raise DefaultRerankerModelNotFoundError()
+            raise DefaultRerankerModelNotFound()
         return db_reranker_model
 
     def create(self, session: Session, reranker_model: RerankerModel) -> RerankerModel:

@@ -13,7 +13,7 @@ from sqlmodel import (
     SQLModel,
 )
 
-from app.exceptions import KBDataSourceNotFoundError
+from app.exceptions import KBDataSourceNotFound
 from app.models.auth import User
 from app.models.data_source import DataSource
 from app.models.embed_model import EmbeddingModel
@@ -102,5 +102,5 @@ class KnowledgeBase(SQLModel, table=True):
     def must_get_data_source_by_id(self, data_source_id: int) -> DataSource:
         data_source = self.get_data_source_by_id(data_source_id)
         if data_source is None:
-            raise KBDataSourceNotFoundError(self.id, data_source_id)
+            raise KBDataSourceNotFound(self.id, data_source_id)
         return data_source

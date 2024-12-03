@@ -9,22 +9,28 @@ class InternalServerError(HTTPException):
 
 # Chat
 
-class ChatException(Exception):
+class ChatException(HTTPException):
     pass
 
 class ChatNotFound(ChatException):
-    pass
+    status_code = 404
+
+    def __init__(self, chat_id: int):
+        self.detail = f"chat #{chat_id} is not found"
 
 
 # LLM
 
-class LLMNotFoundError(HTTPException):
+class LLMException(HTTPException):
+    pass
+
+class LLMNotFound(LLMException):
     status_code = 404
 
     def __init__(self, llm_id: int):
         self.detail = f"llm #{llm_id} is not found"
 
-class DefaultLLMNotFoundError(HTTPException):
+class DefaultLLMNotFound(LLMException):
     status_code = 404
 
     def __init__(self):
@@ -33,13 +39,16 @@ class DefaultLLMNotFoundError(HTTPException):
 
 # Embedding model
 
-class EmbeddingModelNotFoundError(HTTPException):
+class EmbeddingModelException(HTTPException):
+    pass
+
+class EmbeddingModelNotFound(EmbeddingModelException):
     status_code = 404
 
     def __init__(self, model_id: int):
         self.detail = f"embedding model with id {model_id} not found"
 
-class DefaultEmbeddingModelNotFoundError(HTTPException):
+class DefaultEmbeddingModelNotFound(EmbeddingModelException):
     status_code = 404
 
     def __init__(self):
@@ -48,13 +57,16 @@ class DefaultEmbeddingModelNotFoundError(HTTPException):
 
 # Reranker model
 
-class RerankerModelNotFoundError(HTTPException):
+class RerankerModelException(HTTPException):
+    pass
+
+class RerankerModelNotFound(RerankerModelException):
     status_code = 404
 
     def __init__(self, model_id: int):
         self.detail = f"reranker model #{model_id} not found"
 
-class DefaultRerankerModelNotFoundError(HTTPException):
+class DefaultRerankerModelNotFound(RerankerModelException):
     status_code = 404
 
     def __init__(self):
@@ -63,37 +75,40 @@ class DefaultRerankerModelNotFoundError(HTTPException):
 
 # Knowledge base
 
-class KBNotFoundError(HTTPException):
+class KBException(HTTPException):
+    pass
+
+class KBNotFound(KBException):
     status_code = 404
 
     def __init__(self, knowledge_base_id: int):
         self.detail = f"knowledge base #{knowledge_base_id} is not found"
 
-class KBDataSourceNotFoundError(HTTPException):
+class KBDataSourceNotFound(KBException):
     status_code = 404
 
     def __init__(self, kb_id: int, data_source_id: int):
         self.detail = f"data source #{data_source_id} is not found in knowledge base #{kb_id}"
 
-class KBNoLLMConfiguredError(HTTPException):
+class KBNoLLMConfigured(KBException):
     status_code = 500
 
     def __init__(self):
         self.detail = f"must configured a LLM for knowledge base"
 
-class KBNoEmbedModelConfiguredError(HTTPException):
+class KBNoEmbedModelConfigured(KBException):
     status_code = 500
 
     def __init__(self):
         self.detail = f"must configured a embedding model for knowledge base"
 
-class KBNoVectorIndexConfiguredError(HTTPException):
+class KBNoVectorIndexConfigured(KBException):
     status_code = 500
 
     def __init__(self):
         self.detail = f"must configured vector index as one of the index method for knowledge base, which is required for now"
 
-class KBNotAllowedUpdateEmbedModel(HTTPException):
+class KBNotAllowedUpdateEmbedModel(KBException):
     status_code = 500
 
     def __init__(self):
