@@ -231,7 +231,7 @@ def get_recommend_questions(session: SessionDep, chat_message_id: int):
 
 
 @router.post("/chat-messages/{chat_message_id}/recommend-questions", response_model=List[str])
-def get_recommend_questions(session: SessionDep, chat_message_id: int):
+def refresh_recommend_questions(session: SessionDep, chat_message_id: int):
     chat_message = chat_repo.get_message(session, chat_message_id)
     if not chat_message or len(chat_message.content) == 0:
         raise HTTPException(
