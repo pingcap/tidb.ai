@@ -57,6 +57,7 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
     // TODO: refactor types
     const ce = await createChatEngine(data as never);
     startTransition(() => {
+      router.refresh();
       router.push(`/chat-engines/${ce.id}`);
     });
   }, () => {

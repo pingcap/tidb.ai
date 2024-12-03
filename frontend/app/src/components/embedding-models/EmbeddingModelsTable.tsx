@@ -26,7 +26,7 @@ const columns: ColumnDef<EmbeddingModel, any>[] = [
     cell: ({ row }) => {
       const { id, name, is_default } = row.original;
       return (
-        <Link className="flex gap-1 items-center underline" href={`#`}>
+        <Link className="flex gap-1 items-center underline" href={`/embedding-models/${id}`}>
           {is_default && <Badge>default</Badge>}
           {name}
         </Link>
