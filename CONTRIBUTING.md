@@ -13,7 +13,7 @@ In this section, you should have some prerequisites software installed on your l
 * [Docker Compose](https://docs.docker.com/compose/install/)
 * [Python](https://www.python.org/downloads/)
 * [Node.js](https://nodejs.org/en/download/)
-* [TiDB Serverless](https://pingcap.com/ai)
+* [TiDB Cloud Serverless](https://pingcap.com/ai/?utm_source=tidb.ai&utm_medium=community) or [TiDB Self-Managed](https://www.pingcap.com/tidb-self-managed/?utm_source=tidb.ai&utm_medium=community)
 
 #### Setting up your development environment
 

@@ -3,8 +3,8 @@
 import { type ChatEngineOptions, createChatEngine } from '@/api/chat-engines';
 import { FormSection, FormSectionsProvider, useFormSectionFields } from '@/components/form-sections';
 import { KBSelect, LLMSelect, RerankerSelect } from '@/components/form/biz';
-import { FormInput, FormSwitch } from '@/components/form/control-widget';
-import { FormFieldBasicLayout, FormFieldContainedLayout } from '@/components/form/field-layout';
+import { FormCheckbox, FormInput, FormSwitch } from '@/components/form/control-widget';
+import { FormFieldBasicLayout, FormFieldContainedLayout, FormFieldInlineLayout } from '@/components/form/field-layout';
 import { FormRootError } from '@/components/form/root-error';
 import { handleSubmitHelper } from '@/components/form/utils';
 import { PromptInput } from '@/components/form/widgets/PromptInput';
@@ -57,6 +57,7 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
     // TODO: refactor types
     const ce = await createChatEngine(data as never);
     startTransition(() => {
+      router.refresh();
       router.push(`/chat-engines/${ce.id}`);
     });
   }, () => {
@@ -115,15 +116,15 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
                 <FormFieldBasicLayout name="engine_options.knowledge_graph.depth" label="Depth" fallbackValue={defaultChatEngineOptions.knowledge_graph?.depth}>
                   <FormInput type="number" min={1} step={1} />
                 </FormFieldBasicLayout>
-                <FormFieldContainedLayout unimportant name="engine_options.knowledge_graph.include_meta" label="Include Meta" fallbackValue={defaultChatEngineOptions.knowledge_graph?.include_meta} description="/// Description TBD">
-                  <FormSwitch />
-                </FormFieldContainedLayout>
-                <FormFieldContainedLayout unimportant name="engine_options.knowledge_graph.with_degree" label="With Degree" fallbackValue={defaultChatEngineOptions.knowledge_graph?.with_degree} description="/// Description TBD">
-                  <FormSwitch />
-                </FormFieldContainedLayout>
-                <FormFieldContainedLayout unimportant name="engine_options.knowledge_graph.using_intent_search" label="Using intent search" fallbackValue={defaultChatEngineOptions.knowledge_graph?.using_intent_search} description="/// Description TBD">
-                  <FormSwitch />
-                </FormFieldContainedLayout>
+                <FormFieldInlineLayout name="engine_options.knowledge_graph.include_meta" label="Include Meta" fallbackValue={defaultChatEngineOptions.knowledge_graph?.include_meta} description="/// Description TBD">
+                  <FormCheckbox />
+                </FormFieldInlineLayout>
+                <FormFieldInlineLayout name="engine_options.knowledge_graph.with_degree" label="With Degree" fallbackValue={defaultChatEngineOptions.knowledge_graph?.with_degree} description="/// Description TBD">
+                  <FormCheckbox />
+                </FormFieldInlineLayout>
+                <FormFieldInlineLayout name="engine_options.knowledge_graph.using_intent_search" label="Using intent search" fallbackValue={defaultChatEngineOptions.knowledge_graph?.using_intent_search} description="/// Description TBD">
+                  <FormCheckbox />
+                </FormFieldInlineLayout>
                 {(['intent_graph_knowledge', 'normal_graph_knowledge'] as const).map(field => (
                   <FormFieldBasicLayout key={field} name={`engine_options.llm.${field}`} label={capitalCase(field)} fallbackValue={defaultChatEngineOptions.llm?.[field]} description={llmPromptDescriptions[field]}>
                     <PromptInput />
@@ -139,9 +140,9 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
               ))}
             </Section>
             <Section title="Features">
-              <FormFieldContainedLayout unimportant name="engine_options.hide_sources" label="Hide Reference Sources" description="/// Description TBD">
-                <FormSwitch />
-              </FormFieldContainedLayout>
+              <FormFieldInlineLayout name="engine_options.hide_sources" label="Hide Reference Sources" description="/// Description TBD">
+                <FormCheckbox />
+              </FormFieldInlineLayout>
               <SubSection title="Clarify Question">
                 <FormFieldContainedLayout unimportant name="engine_options.clarify_question" label="Clarify Question" description="/// Description TBD">
                   <FormSwitch />
@@ -201,7 +202,7 @@ function SectionTabTrigger ({ value, required }: { value: string, required?: boo
 function Section ({ title, children }: { title: string, children: ReactNode }) {
   return (
     <FormSection value={title}>
-      <SecondaryNavigatorMain className="space-y-6 max-w-screen-sm px-2" value={title} strategy="hidden">
+      <SecondaryNavigatorMain className="space-y-8 max-w-screen-sm px-2" value={title} strategy="hidden">
         {children}
       </SecondaryNavigatorMain>
     </FormSection>

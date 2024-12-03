@@ -1,3 +1,4 @@
+import { Checkbox } from '@/components/ui/checkbox';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent } from '@/components/ui/popover';
 import { Select, SelectContent, SelectItem } from '@/components/ui/select';
@@ -10,7 +11,7 @@ import * as SelectPrimitive from '@radix-ui/react-select';
 import type { SwitchProps } from '@radix-ui/react-switch';
 import { CheckIcon, ChevronDown, Loader2Icon, TriangleAlertIcon, XCircleIcon } from 'lucide-react';
 import * as React from 'react';
-import { type FC, forwardRef, type ReactElement, type ReactNode, useState } from 'react';
+import { type ComponentProps, type FC, forwardRef, type ReactElement, type ReactNode, useState } from 'react';
 import { ControllerRenderProps, FieldPath, FieldValues } from 'react-hook-form';
 
 export interface FormControlWidgetProps<
@@ -41,6 +42,22 @@ export const FormSwitch = forwardRef<any, FormSwitchProps>(({ value, onChange, .
 });
 
 FormSwitch.displayName = 'FormSwitch';
+
+export interface FormCheckoutProps extends FormControlWidgetProps, Omit<ComponentProps<typeof Checkbox>, 'checked' | 'onCheckedChange' | keyof FormControlWidgetProps> {
+}
+
+export const FormCheckbox = forwardRef<any, FormCheckoutProps>(({ value, onChange, ...props }, forwardedRef) => {
+  return (
+    <Checkbox
+      {...props}
+      ref={forwardedRef}
+      checked={value}
+      onCheckedChange={onChange}
+    />
+  );
+});
+
+FormCheckbox.displayName = 'FormCheckbox';
 
 export interface FormSelectConfig<T extends object> {
   loading?: boolean;
@@ -143,7 +160,7 @@ export interface FormComboboxProps extends FormControlWidgetProps {
   contentWidth?: 'anchor';
 }
 
-export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeholder, value, onChange, name, disabled, children, contentWidth, ...props }, ref) => {
+export const FormCombobox = forwardRef<any, FormComboboxProps>(({ config, placeholder, value, onChange, name, disabled, children, contentWidth = 'anchor', ...props }, ref) => {
   const [open, setOpen] = useState(false);
   const isConfigReady = !config.loading && !config.error;
   const current = config.options.find(option => option[config.key] === value);
