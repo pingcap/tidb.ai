@@ -6,7 +6,7 @@ from sqlalchemy.orm.attributes import flag_modified
 from sqlmodel import Session, select, update
 
 from app.api.admin_routes.embedding_model.models import EmbeddingModelUpdate, EmbeddingModelCreate
-from app.exceptions import DefaultEmbeddingModelNotFoundError, EmbeddingModelNotFoundError
+from app.exceptions import DefaultEmbeddingModelNotFound, EmbeddingModelNotFound
 from app.models import  EmbeddingModel
 from app.repositories.base_repo import BaseRepo
 
@@ -46,7 +46,7 @@ class EmbeddingModelRepo(BaseRepo):
     def must_get(self, session, model_id: int) -> Type[EmbeddingModel]:
         db_embed_model = self.get(session, model_id)
         if db_embed_model is None:
-            raise EmbeddingModelNotFoundError(model_id)
+            raise EmbeddingModelNotFound(model_id)
         return db_embed_model
 
 
@@ -58,18 +58,20 @@ class EmbeddingModelRepo(BaseRepo):
         return paginate(session, query, params)
 
 
-    def get_default_model(self, session: Session) -> Type[EmbeddingModel]:
-        stmt = (select(EmbeddingModel)
+    def get_default(self, session: Session) -> Type[EmbeddingModel]:
+        stmt = (
+            select(EmbeddingModel)
                 .where(EmbeddingModel.is_default == True)
                 .order_by(EmbeddingModel.updated_at.desc())
-                .limit(1))
+                .limit(1)
+        )
         return session.exec(stmt).first()
 
 
-    def must_get_default_model(self, session: Session) -> Type[EmbeddingModel]:
-        embed_model = self.get_default_model(session)
+    def must_get_default(self, session: Session) -> Type[EmbeddingModel]:
+        embed_model = self.get_default(session)
         if embed_model is None:
-            raise DefaultEmbeddingModelNotFoundError()
+            raise DefaultEmbeddingModelNotFound()
         return embed_model
 
 

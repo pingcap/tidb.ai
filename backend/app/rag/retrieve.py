@@ -14,7 +14,7 @@ from app.models import (
 from app.models.chunk import get_kb_chunk_model
 from app.models.entity import get_kb_entity_model
 from app.rag.chat import get_prompt_by_jinja2_template
-from app.rag.chat_config import ChatEngineConfig, get_default_embedding_model
+from app.rag.chat_config import ChatEngineConfig, get_default_embed_model
 from app.models.relationship import get_kb_relationship_model
 from app.models.patch.sql_model import SQLModel
 from app.rag.knowledge_base.config import get_kb_embed_model
@@ -53,7 +53,7 @@ class RetrieveService:
             self._relationship_model = get_kb_relationship_model(kb)
             self._embed_model = get_kb_embed_model(self.db_session, kb)
         else:
-            self._embed_model = get_default_embedding_model(self.db_session)
+            self._embed_model = get_default_embed_model(self.db_session)
 
 
     def retrieve(self, question: str, top_k: int = 10) -> List[DBDocument]:

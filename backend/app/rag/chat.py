@@ -58,7 +58,7 @@ from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.knowledge_graph.graph_store.tidb_graph_editor import TiDBGraphEditor
 
 from app.rag.knowledge_graph import KnowledgeGraphIndex
-from app.rag.chat_config import ChatEngineConfig, get_default_embedding_model, KnowledgeGraphOption
+from app.rag.chat_config import ChatEngineConfig, get_default_embed_model, KnowledgeGraphOption
 from app.rag.types import (
     MyCBEventType,
     ChatMessageSate,
@@ -175,11 +175,14 @@ class ChatService:
             self._entity_db_model = get_kb_entity_model(kb)
             self._relationship_db_model = get_kb_relationship_model(kb)
         else:
-            self._embed_model = get_default_embedding_model(db_session)
+            self._embed_model = get_default_embed_model(db_session)
 
     def chat(self) -> Generator[ChatEvent | str, None, None]:
         try:
-            if self.chat_engine_config.external_engine_config:
+            if (
+                self.chat_engine_config.external_engine_config and
+                self.chat_engine_config.external_engine_config.stream_chat_api_url
+            ):
                 for event in self._external_chat():
                     yield event
             else:
@@ -1101,21 +1104,12 @@ def check_rag_required_config(session: Session) -> RequiredConfigStatus:
     has_default_chat_engine = (
         session.scalar(select(func.count(ChatEngine.id)).where(ChatEngine.is_default == True)) > 0
     )
-
-    # TODO: Remove it after the multiple KB feature is stable.
-    has_datasource = session.scalar(select(func.count(DBDataSource.id))) > 0
-
-    try:
-        has_knowledge_base = session.scalar(select(func.count(DBKnowledgeBase.id))) > 0
-    except Exception as e:
-        has_knowledge_base = False
-        logger.exception(e)
+    has_knowledge_base = session.scalar(select(func.count(DBKnowledgeBase.id))) > 0
 
     return RequiredConfigStatus(
         default_llm=has_default_llm,
         default_embedding_model=has_default_embedding_model,
         default_chat_engine=has_default_chat_engine,
-        datasource=has_datasource,
         knowledge_base=has_knowledge_base
     )
 
@@ -1141,7 +1135,7 @@ def check_rag_config_need_migration(session: Session) -> NeedMigrationStatus:
         session.exec(
             select(ChatEngine.id)
             .where(ChatEngine.deleted_at == None)
-            .where(text("NOT JSON_CONTAINS_PATH(engine_options, 'one', '$.knowledge_base')"))
+            .where(text("JSON_EXTRACT(engine_options, '$.knowledge_base.linked_knowledge_base') IS NULL"))
         )
     )
 
