@@ -3,6 +3,7 @@ from uuid import UUID
 from typing import List, Optional
 from http import HTTPStatus
 
+from langsmith import expect
 from pydantic import (
     BaseModel,
     field_validator,
@@ -31,7 +32,9 @@ from app.rag.types import (
     ChatEventType,
     ChatMessageSate,
 )
-from app.exceptions import ChatNotFound
+from app.exceptions import ChatNotFound, DefaultLLMNotFound, DefaultEmbeddingModelNotFound, LLMNotFound, \
+    EmbeddingModelNotFound, KBNotFound, InternalServerError, RerankerModelNotFound, \
+    DefaultRerankerModelNotFound, LLMException, EmbeddingModelException, RerankerModelException
 
 logger = logging.getLogger(__name__)
 
@@ -81,13 +84,17 @@ def chats(
             chat_messages=chat_request.messages,
             engine_name=chat_request.chat_engine,
         )
-    except ChatNotFound:
-        raise HTTPException(status_code=HTTPStatus.NOT_FOUND, detail="Chat not found")
+    except ChatNotFound as e:
+        raise e
+    except LLMException as e:
+        raise e
+    except EmbeddingModelException as e:
+        raise e
+    except RerankerModelException as e:
+        raise e
     except Exception as e:
         logger.exception(e)
-        raise HTTPException(
-            status_code=HTTPStatus.INTERNAL_SERVER_ERROR,
-        )
+        raise InternalServerError()
 
     if chat_request.stream:
         return StreamingResponse(

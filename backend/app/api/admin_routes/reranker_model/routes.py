@@ -12,7 +12,7 @@ from starlette import status
 
 from app.api.admin_routes.llm.routes import LLMTestResult
 from app.api.deps import CurrentSuperuserDep, SessionDep
-from app.exceptions import RerankerModelNotFoundError, InternalServerError
+from app.exceptions import RerankerModelNotFound, InternalServerError
 from app.models import RerankerModel, AdminRerankerModel, ChatEngine
 from app.rag.chat_config import get_reranker_model
 from app.rag.reranker_model_option import RerankerModelOption, admin_reranker_model_options
@@ -98,7 +98,7 @@ def get_reranker_model_detail(
 ) -> AdminRerankerModel:
     try:
         return reranker_model_repo.must_get(reranker_model_id)
-    except RerankerModelNotFoundError as e:
+    except RerankerModelNotFound as e:
         raise e
     except Exception as e:
         logger.error(e)

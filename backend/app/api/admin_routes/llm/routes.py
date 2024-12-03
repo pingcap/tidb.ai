@@ -7,7 +7,7 @@ from pydantic import BaseModel
 from sqlalchemy import update
 
 from app.api.deps import CurrentSuperuserDep, SessionDep
-from app.exceptions import InternalServerError, LLMNotFoundError
+from app.exceptions import InternalServerError, LLMNotFound
 from app.models import AdminLLM, LLM, ChatEngine, DataSource, KnowledgeBase
 from app.rag.chat_config import get_llm
 from app.rag.llm_option import LLMOption, admin_llm_options
@@ -75,7 +75,7 @@ def get_llm_detail(
 ) -> AdminLLM:
     try:
         return llm_repo.must_get(session, llm_id)
-    except LLMNotFoundError as e:
+    except LLMNotFound as e:
         raise e
     except Exception as e:
         logger.exception(e)
