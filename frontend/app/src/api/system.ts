@@ -1,4 +1,5 @@
 import { authenticationHeaders, handleResponse, requestUrl } from '@/lib/request';
+
 import { z } from 'zod';
 
 export interface RequiredBootstrapStatus {
@@ -6,7 +7,6 @@ export interface RequiredBootstrapStatus {
   default_embedding_model: boolean;
   default_chat_engine: boolean;
   knowledge_base: boolean;
-  datasource: boolean;
 }
 
 export interface OptionalBootstrapStatus {
@@ -29,7 +29,6 @@ const requiredBootstrapStatusSchema = z.object({
   default_embedding_model: z.boolean(),
   default_chat_engine: z.boolean(),
   knowledge_base: z.boolean(),
-  datasource: z.boolean(),
 });
 
 const optionalBootstrapStatusSchema = z.object({
