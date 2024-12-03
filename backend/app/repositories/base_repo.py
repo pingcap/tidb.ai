@@ -15,3 +15,4 @@ class BaseRepo:
         session.commit()
         session.refresh(obj)
         return obj
+

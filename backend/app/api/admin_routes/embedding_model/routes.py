@@ -12,7 +12,7 @@ from app.api.admin_routes.embedding_model.models import (
 )
 from app.api.deps import CurrentSuperuserDep, SessionDep
 from app.exceptions import EmbeddingModelNotFoundError, InternalServerError
-from app.rag.chat_config import get_embedding_model
+from app.rag.chat_config import get_embed_model
 from app.rag.embed_model_option import EmbeddingModelOption, admin_embed_model_options
 from app.repositories.embedding_model import embed_model_repo
 
@@ -46,7 +46,7 @@ def test_embedding_model(
     create: EmbeddingModelCreate,
 ) -> EmbeddingModelTestResult:
     try:
-        embed_model = get_embedding_model(
+        embed_model = get_embed_model(
             provider=create.provider,
             model=create.model,
             config=create.config,

@@ -1,26 +1,28 @@
 from http import HTTPStatus
 from fastapi import HTTPException
 
+# Common
 
 class InternalServerError(HTTPException):
     def __init__(self):
         super().__init__(HTTPStatus.INTERNAL_SERVER_ERROR)
 
+# Chat
 
 class ChatException(Exception):
     pass
-
 
 class ChatNotFound(ChatException):
     pass
 
 
-class DBLLMNotFoundError(HTTPException):
+# LLM
+
+class LLMNotFoundError(HTTPException):
     status_code = 404
 
     def __init__(self, llm_id: int):
         self.detail = f"llm #{llm_id} is not found"
-
 
 class DefaultLLMNotFoundError(HTTPException):
     status_code = 404
@@ -29,6 +31,14 @@ class DefaultLLMNotFoundError(HTTPException):
         self.detail = f"default llm is not found"
 
 
+# Embedding model
+
+class EmbeddingModelNotFoundError(HTTPException):
+    status_code = 404
+
+    def __init__(self, model_id: int):
+        self.detail = f"embedding model with id {model_id} not found"
+
 class DefaultEmbeddingModelNotFoundError(HTTPException):
     status_code = 404
 
@@ -36,7 +46,18 @@ class DefaultEmbeddingModelNotFoundError(HTTPException):
         self.detail = f"default embedding model is not found"
 
 
-class KnowledgeBaseNotFoundError(HTTPException):
+# Reranker model
+
+class RerankerModelNotFoundError(HTTPException):
+    status_code = 404
+
+    def __init__(self, model_id: int):
+        self.detail = f"Reranker model with id {model_id} not found"
+
+
+# Knowledge base
+
+class KBNotFoundError(HTTPException):
     status_code = 404
 
     def __init__(self, knowledge_base_id: int):
@@ -52,32 +73,22 @@ class KBNoLLMConfiguredError(HTTPException):
     status_code = 500
 
     def __init__(self):
-        self.detail = f"Must configured a LLM for knowledge base"
-
+        self.detail = f"must configured a LLM for knowledge base"
 
 class KBNoEmbedModelConfiguredError(HTTPException):
     status_code = 500
 
     def __init__(self):
-        self.detail = f"Must configured a embedding model for knowledge base"
-
+        self.detail = f"must configured a embedding model for knowledge base"
 
 class KBNoVectorIndexConfiguredError(HTTPException):
     status_code = 500
 
     def __init__(self):
-        self.detail = f"Must configured vector index as one of the index method for knowledge base, which is required for now"
+        self.detail = f"must configured vector index as one of the index method for knowledge base, which is required for now"
 
-
-class EmbeddingModelNotFoundError(HTTPException):
-    status_code = 404
-
-    def __init__(self, model_id: int):
-        self.detail = f"Embedding model with id {model_id} not found"
-
-
-class NotAllowedUpdateEmbeddingModel(HTTPException):
+class KBNotAllowedUpdateEmbedModel(HTTPException):
     status_code = 500
 
     def __init__(self):
-        self.detail = f"Doesn't allowed update embedding model once knowledge base been created"
+        self.detail = f"update embedding model is not allowed once the knowledge base has been created"

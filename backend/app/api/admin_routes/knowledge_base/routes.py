@@ -18,7 +18,7 @@ from .models import (
 from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.exceptions import (
     InternalServerError,
-    KnowledgeBaseNotFoundError,
+    KBNotFoundError,
     KBNoVectorIndexConfiguredError
 )
 from app.models import (
@@ -108,7 +108,7 @@ def get_knowledge_base(
 ) -> KnowledgeBaseDetail:
     try:
         return knowledge_base_repo.must_get(session, knowledge_base_id)
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFoundError as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -126,7 +126,7 @@ def update_knowledge_base_setting(
         knowledge_base = knowledge_base_repo.must_get(session, knowledge_base_id)
         knowledge_base = knowledge_base_repo.update(session, knowledge_base, update)
         return knowledge_base
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFoundError as e:
         raise e
     except KBNoVectorIndexConfiguredError as e:
         raise e
@@ -154,7 +154,7 @@ def delete_knowledge_base(
         return {
             "detail": f"Knowledge base #{knowledge_base_id} is deleted successfully"
         }
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFoundError as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -173,7 +173,7 @@ def get_knowledge_base_index_overview(
         stats_for_knowledge_base.delay(knowledge_base.id)
 
         return knowledge_base_repo.get_index_overview(session, knowledge_base)
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFoundError as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -196,7 +196,7 @@ def list_knowledge_base_documents(
             filters=filters,
             params=params,
         )
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFoundError as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -214,7 +214,7 @@ def list_knowledge_base_chunks(
         kb = knowledge_base_repo.must_get(session, kb_id)
         chunk_repo = ChunkRepo(get_kb_chunk_model(kb))
         return chunk_repo.get_document_chunks(session, doc_id)
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFoundError as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -242,7 +242,7 @@ def batch_reindex_knowledge_base_documents(
         return {
             "detail": f"Triggered {len(document_ids)} documents to reindex knowledge base #{kb_id} successfully"
         }
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFoundError as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -259,7 +259,7 @@ def list_kb_vector_index_errors(
     try:
         kb = knowledge_base_repo.must_get(session, kb_id)
         return knowledge_base_repo.list_vector_index_built_errors(session, kb, params)
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFoundError as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -276,7 +276,7 @@ def list_kb_kg_index_errors(
     try:
         kb = knowledge_base_repo.must_get(session, kb_id)
         return knowledge_base_repo.list_kg_index_built_errors(session, kb, params)
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFoundError as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -307,7 +307,7 @@ def retry_failed_tasks(
         return {
             "detail": f"Triggered reindex {len(document_ids)} documents and {len(chunk_ids)} chunks of knowledge base #{kb_id}."
         }
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFoundError as e:
         raise e
     except Exception as e:
         logger.exception(e)

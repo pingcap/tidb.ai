@@ -3,7 +3,7 @@ from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, field_validator, Field
 
-from app.api.admin_routes.knowledge_base.data_sources.models import KBDataSource, KBDataSourceCreate
+from app.api.admin_routes.knowledge_base.data_source.models import KBDataSource, KBDataSourceCreate
 from app.api.admin_routes.models import EmbeddingModelDescriptor, LLMDescriptor, UserDescriptor
 from app.exceptions import KBNoVectorIndexConfiguredError
 from app.models import KgIndexStatus

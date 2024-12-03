@@ -12,7 +12,7 @@ from fastapi.responses import StreamingResponse
 from fastapi_pagination import Params, Page
 
 from app.api.deps import SessionDep, OptionalUserDep, CurrentUserDep
-from app.rag.chat_config import get_default_embedding_model, ChatEngineConfig
+from app.rag.chat_config import get_default_embed_model, ChatEngineConfig, must_get_default_embed_model
 from app.rag.knowledge_base.config import get_kb_embed_model
 from app.rag.knowledge_base.index_store import get_kb_tidb_graph_editor
 from app.rag.knowledge_graph.graph_store.tidb_graph_editor import legacy_tidb_graph_editor
@@ -205,7 +205,7 @@ def get_chat_subgraph(session: SessionDep, user: OptionalUserDep, chat_message_i
         embed_model = get_kb_embed_model(session, kb)
         graph_editor = get_kb_tidb_graph_editor(session, kb)
     else:
-        embed_model = get_default_embedding_model(session)
+        embed_model = must_get_default_embed_model(session)
         graph_editor = legacy_tidb_graph_editor
 
     entities, relations = get_chat_message_subgraph(graph_editor, session, chat_message, embed_model)

@@ -58,7 +58,7 @@ from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.knowledge_graph.graph_store.tidb_graph_editor import TiDBGraphEditor
 
 from app.rag.knowledge_graph import KnowledgeGraphIndex
-from app.rag.chat_config import ChatEngineConfig, get_default_embedding_model, KnowledgeGraphOption
+from app.rag.chat_config import ChatEngineConfig, get_default_embed_model, KnowledgeGraphOption
 from app.rag.types import (
     MyCBEventType,
     ChatMessageSate,
@@ -175,7 +175,7 @@ class ChatService:
             self._entity_db_model = get_kb_entity_model(kb)
             self._relationship_db_model = get_kb_relationship_model(kb)
         else:
-            self._embed_model = get_default_embedding_model(db_session)
+            self._embed_model = get_default_embed_model(db_session)
 
     def chat(self) -> Generator[ChatEvent | str, None, None]:
         try:
@@ -1141,7 +1141,7 @@ def check_rag_config_need_migration(session: Session) -> NeedMigrationStatus:
         session.exec(
             select(ChatEngine.id)
             .where(ChatEngine.deleted_at == None)
-            .where(text("NOT JSON_CONTAINS_PATH(engine_options, 'one', '$.knowledge_base')"))
+            .where(text("JSON_EXTRACT(engine_options, '$.knowledge_base.linked_knowledge_base') IS NOT NULL"))
         )
     )
 
