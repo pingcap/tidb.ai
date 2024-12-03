@@ -3,7 +3,6 @@ from uuid import UUID
 from typing import List, Optional
 from http import HTTPStatus
 
-from langsmith import expect
 from pydantic import (
     BaseModel,
     field_validator,
@@ -13,7 +12,7 @@ from fastapi.responses import StreamingResponse
 from fastapi_pagination import Params, Page
 
 from app.api.deps import SessionDep, OptionalUserDep, CurrentUserDep
-from app.rag.chat_config import get_default_embed_model, ChatEngineConfig, must_get_default_embed_model
+from app.rag.chat_config import ChatEngineConfig, must_get_default_embed_model
 from app.rag.knowledge_base.config import get_kb_embed_model
 from app.rag.knowledge_base.index_store import get_kb_tidb_graph_editor
 from app.rag.knowledge_graph.graph_store.tidb_graph_editor import legacy_tidb_graph_editor
