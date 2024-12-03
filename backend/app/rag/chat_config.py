@@ -84,6 +84,7 @@ class KnowledgeGraphOption(BaseModel):
 
 
 class ExternalChatEngine(BaseModel):
+    # TODO: add enable flag for this config.
     stream_chat_api_url: str = None
 
 

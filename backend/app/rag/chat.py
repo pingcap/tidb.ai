@@ -179,7 +179,10 @@ class ChatService:
 
     def chat(self) -> Generator[ChatEvent | str, None, None]:
         try:
-            if self.chat_engine_config.external_engine_config:
+            if (
+                self.chat_engine_config.external_engine_config and
+                self.chat_engine_config.external_engine_config.stream_chat_api_url
+            ):
                 for event in self._external_chat():
                     yield event
             else:
