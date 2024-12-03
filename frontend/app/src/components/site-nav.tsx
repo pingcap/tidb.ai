@@ -242,7 +242,7 @@ function SiteNavLinkItem ({ item, active, sub = false }: { item: NavLinkItem, ac
           {el}
         </Link>
       </MenuButton>
-      {badge && <SidebarMenuBadge>{badge}</SidebarMenuBadge>}
+      {badge && <SidebarMenuBadge className='pointer-events-auto'>{badge}</SidebarMenuBadge>}
     </MenuItem>
   );
 }

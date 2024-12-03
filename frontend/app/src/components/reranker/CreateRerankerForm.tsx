@@ -98,7 +98,7 @@ export function CreateRerankerForm ({ transitioning, onCreated }: { transitionin
       throw new Error(error || 'Test Reranker failed');
     }
     const reranker = await createReranker(values);
-    toast('Reranker successfully created.');
+    toast.success('Reranker successfully created.');
     onCreated?.(reranker);
   });
 

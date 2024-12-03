@@ -30,9 +30,10 @@ from app.rag.node_postprocessor.metadata_post_filter import MetadataFilters
 from app.rag.node_postprocessor.baisheng_reranker import BaishengRerank
 from app.rag.node_postprocessor.local_reranker import LocalRerank
 from app.rag.embeddings.local_embedding import LocalEmbedding
-from app.repositories import chat_engine_repo, knowledge_base_repo
+from app.repositories import chat_engine_repo
 from app.repositories.embedding_model import embed_model_repo
 from app.repositories.llm import llm_repo
+from app.repositories.reranker_model import reranker_model_repo
 from app.types import LLMProvider, EmbeddingProvider, RerankerProvider
 from app.rag.default_prompt import (
     DEFAULT_INTENT_GRAPH_KNOWLEDGE,
@@ -68,6 +69,7 @@ class LLMOption(BaseModel):
     condense_answer_prompt: str = DEFAULT_CONDENSE_ANSWER_PROMPT
     generate_goal_prompt: str = DEFAULT_GENERATE_GOAL_PROMPT
 
+
 class VectorSearchOption(BaseModel):
     metadata_post_filters: Optional[MetadataFilters] = None
 
@@ -82,6 +84,7 @@ class KnowledgeGraphOption(BaseModel):
 
 
 class ExternalChatEngine(BaseModel):
+    # TODO: add enable flag for this config.
     stream_chat_api_url: str = None
 
 
@@ -191,6 +194,8 @@ class ChatEngineConfig(BaseModel):
         )
 
 
+# LLM
+
 def get_llm(
     provider: LLMProvider,
     model: str,
@@ -254,9 +259,19 @@ def get_llm(
         case _:
             raise ValueError(f"Got unknown LLM provider: {provider}")
 
+def get_default_llm(session: Session) -> Optional[LLM]:
+    db_llm = llm_repo.get_default(session)
+    if not db_llm:
+        return None
+    return get_llm(
+        db_llm.provider,
+        db_llm.model,
+        db_llm.config,
+        db_llm.credentials,
+    )
 
-def get_default_llm(session: Session) -> LLM:
-    db_llm = llm_repo.must_get_default_llm(session)
+def must_get_default_llm(session: Session) -> LLM:
+    db_llm = llm_repo.must_get_default(session)
     return get_llm(
         db_llm.provider,
         db_llm.model,
@@ -265,7 +280,9 @@ def get_default_llm(session: Session) -> LLM:
     )
 
 
-def get_embedding_model(
+# Embedding model
+
+def get_embed_model(
     provider: EmbeddingProvider,
     model: str,
     config: dict,
@@ -312,16 +329,28 @@ def get_embedding_model(
         case _:
             raise ValueError(f"Got unknown embedding provider: {provider}")
 
-
-def get_default_embedding_model(session: Session) -> BaseEmbedding:
-    db_embed_model = embed_model_repo.must_get_default_model(session)
-    return get_embedding_model(
+def get_default_embed_model(session: Session) -> Optional[BaseEmbedding]:
+    db_embed_model = embed_model_repo.get_default(session)
+    if not db_embed_model:
+        return None
+    return get_embed_model(
         db_embed_model.provider,
         db_embed_model.model,
         db_embed_model.config,
         db_embed_model.credentials,
     )
 
+def must_get_default_embed_model(session: Session) -> BaseEmbedding:
+    db_embed_model = embed_model_repo.must_get_default(session)
+    return get_embed_model(
+        db_embed_model.provider,
+        db_embed_model.model,
+        db_embed_model.config,
+        db_embed_model.credentials,
+    )
+
+
+# Reranker model
 
 def get_reranker_model(
     provider: RerankerProvider,
@@ -359,11 +388,8 @@ def get_reranker_model(
         case _:
             raise ValueError(f"Got unknown reranker provider: {provider}")
 
-
 def get_default_reranker_model(session: Session) -> Optional[BaseNodePostprocessor]:
-    db_reranker = session.exec(
-        select(DBRerankerModel).order_by(DBRerankerModel.is_default.desc()).limit(1)
-    ).first()
+    db_reranker = reranker_model_repo.get_default(session)
     if not db_reranker:
         return None
     return get_reranker_model(
@@ -374,6 +400,17 @@ def get_default_reranker_model(session: Session) -> Optional[BaseNodePostprocess
         db_reranker.credentials,
     )
 
+def must_get_default_reranker_model(session: Session) -> BaseNodePostprocessor:
+    db_reranker = reranker_model_repo.must_get_default(session)
+    return get_reranker_model(
+        db_reranker.provider,
+        db_reranker.model,
+        db_reranker.top_n,
+        db_reranker.config,
+        db_reranker.credentials,
+    )
+
+# Metadata post filter
 
 def get_metadata_post_filter(
     filters: Optional[MetadataFilters] = None,

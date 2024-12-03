@@ -2,8 +2,7 @@ import type { StorybookConfig } from '@storybook/nextjs';
 
 const config: StorybookConfig = {
   stories: [
-    '../src/!(pages)/**/*.mdx',
-    '../src/!(pages)/**/*.stories.@(js|jsx|mjs|ts|tsx)',
+    '../src/!(pages)/**/*.stories.@(js|jsx|mjs|ts|tsx|mdx)',
   ],
   addons: [
     '@storybook/addon-onboarding',

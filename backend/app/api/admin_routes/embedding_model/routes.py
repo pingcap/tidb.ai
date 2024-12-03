@@ -11,8 +11,8 @@ from app.api.admin_routes.embedding_model.models import (
     EmbeddingModelTestResult, EmbeddingModelCreate
 )
 from app.api.deps import CurrentSuperuserDep, SessionDep
-from app.exceptions import EmbeddingModelNotFoundError, InternalServerError
-from app.rag.chat_config import get_embedding_model
+from app.exceptions import EmbeddingModelNotFound, InternalServerError
+from app.rag.chat_config import get_embed_model
 from app.rag.embed_model_option import EmbeddingModelOption, admin_embed_model_options
 from app.repositories.embedding_model import embed_model_repo
 
@@ -46,7 +46,7 @@ def test_embedding_model(
     create: EmbeddingModelCreate,
 ) -> EmbeddingModelTestResult:
     try:
-        embed_model = get_embedding_model(
+        embed_model = get_embed_model(
             provider=create.provider,
             model=create.model,
             config=create.config,
@@ -83,7 +83,7 @@ def get_embedding_model_detail(
 ) -> EmbeddingModelDetail:
     try:
         return embed_model_repo.must_get(session, model_id)
-    except EmbeddingModelNotFoundError as e:
+    except EmbeddingModelNotFound as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -101,7 +101,7 @@ def update_embedding_model(
         embed_model = embed_model_repo.must_get(session, model_id)
         embed_model_repo.update(session, embed_model, update)
         return embed_model
-    except EmbeddingModelNotFoundError as e:
+    except EmbeddingModelNotFound as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -119,7 +119,7 @@ def set_default_embedding_model(
         embed_model_repo.set_default_model(session, model_id)
         session.refresh(embed_model)
         return embed_model
-    except EmbeddingModelNotFoundError as e:
+    except EmbeddingModelNotFound as e:
         raise e
     except Exception as e:
         logger.exception(e)

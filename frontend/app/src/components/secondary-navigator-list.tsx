@@ -87,6 +87,7 @@ export const SecondaryNavigatorMain = forwardRef<HTMLDivElement, Omit<TabsPrimit
         value={value}
         forceMount={strategy !== 'mount' ? true : undefined}
         className={cn(classNames, strategy === 'hidden' && 'hidden data-[state=active]:block')}
+        tabIndex={undefined}
         {...props}
       />
     );

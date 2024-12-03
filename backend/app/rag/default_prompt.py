@@ -287,6 +287,7 @@ Instructions:
 3. Ensure each question logically follows from the context of the provided chat message.
 4. Keep questions concise yet insightful to maximize engagement.
 5. Use the same language with the chat message content.
+6. Each question should end with a question mark.
 
 Now, generate 3–5 follow-up questions below:
 """
@@ -347,13 +348,11 @@ Given the conversation history between the User and Assistant, along with the la
     - Produce a goal string in the following format:
       "[Refined Question] (Lang: [Detected Language], Format: [Format], Background: [Specified Goal Scenario])"
 
-**Example**:
+**Example 1**:
 
 Chat history:
 
 []
-
----------------------
 
 Follow-up question:
 
@@ -364,6 +363,20 @@ Follow-up question:
 Goal:
 
 Does encryption at rest in TiDB affect the data compression ratio? (Lang: Chinese, Format: text, Background: TiDB product related consulting.)
+
+**Example 2**:
+
+Chat history:
+
+[]
+
+Follow-up question:
+
+"干嘛的？"
+
+Goal:
+
+What can you do? (Lang: Chinese, Format: text, Background: General inquiry about the assistant's capabilities.)
 
 **Your Task**:
 

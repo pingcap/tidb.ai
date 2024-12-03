@@ -8,7 +8,7 @@ from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
 from app.api.admin_routes.knowledge_base.models import VectorIndexError, KGIndexError, KnowledgeBaseUpdate
-from app.exceptions import KBDataSourceNotFoundError, KnowledgeBaseNotFoundError
+from app.exceptions import KBDataSourceNotFound, KBNotFound
 from app.models import (
     KnowledgeBase,
     Document,
@@ -48,7 +48,7 @@ class KnowledgeBaseRepo(BaseRepo):
     def must_get(self, session: Session, knowledge_base_id: int, show_soft_deleted: bool = True) -> Optional[KnowledgeBase]:
         kb = self.get(session, knowledge_base_id, show_soft_deleted)
         if kb is None:
-            raise KnowledgeBaseNotFoundError(knowledge_base_id)
+            raise KBNotFound(knowledge_base_id)
         return kb
 
     def update(
@@ -284,7 +284,7 @@ class KnowledgeBaseRepo(BaseRepo):
     ) -> DataSource:
         data_source = self.get_kb_datasource(session, kb, datasource_id, show_soft_deleted)
         if data_source is None:
-            raise KBDataSourceNotFoundError(kb.id, datasource_id)
+            raise KBDataSourceNotFound(kb.id, datasource_id)
         return data_source
 
     def add_kb_datasource(self, session: Session, kb: KnowledgeBase, data_source: DataSource) -> DataSource:

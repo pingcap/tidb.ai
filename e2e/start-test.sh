@@ -13,35 +13,34 @@ TAG="${F_BOLD}${F_UNDERLINED}${C_AQUA}[TiDB.AI Integration Test]${NO_FORMAT}"
 echo -e "$TAG Creating temp dir"
 export E2E_DATA_STORAGE_DIR=$(mktemp -d "${TMPDIR:-/tmp/}"/tidbai-storage.XXXXXXXX | sed 's#//#/#g')
 export E2E_DATA_REDIS_DIR=$(mktemp -d "${TMPDIR:-/tmp/}"/tidbai-redis.XXXXXXXX | sed 's#//#/#g')
-export E2E_DATA_TIDB_DIR=$(mktemp -d "${TMPDIR:-/tmp/}"/tidbai-storage.XXXXXXXX | sed 's#//#/#g')
 echo E2E_DOCKER_TAG_FRONTEND: ${E2E_DOCKER_TAG_FRONTEND}
 echo E2E_DOCKER_TAG_BACKEND: ${E2E_DOCKER_TAG_BACKEND}
 echo E2E_DATA_STORAGE_DIR: ${E2E_DATA_STORAGE_DIR}
 echo E2E_DATA_REDIS_DIR: ${E2E_DATA_REDIS_DIR}
-echo E2E_DATA_TIDB_DIR: ${E2E_DATA_TIDB_DIR}
 
 echo -e "$TAG Starting TiDB"
-docker compose up -d tidb
 
 # Cleanups
 function clean_up {
   ARG=$?
   echo -e "$TAG Cleaning up..."
-  docker compose down frontend background backend tidb redis static-web-server
 
-  rm -rf ${E2E_DATA_STORAGE_DIR} ${E2E_DATA_REDIS_DIR} ${E2E_DATA_TIDB_DIR} || echo "Failed to remove temp dirs."
+  # Stop dockers
+  docker compose down frontend background backend redis static-web-server
+
+  echo "$TAG Dropping temp database"
+  node ./scripts/drop-temp-serverless-cluster.mjs
+
+  # Remove temp dirs
+  rm -rf ${E2E_DATA_STORAGE_DIR} ${E2E_DATA_REDIS_DIR} || echo "Failed to remove temp dirs."
 
   exit $ARG
 }
 
 trap clean_up EXIT
 
-
-echo -e "$TAG Wait until TiDB ready..."
-while ! docker compose exec tidb /bin/bash -c "curl http://127.0.0.1:10080/status" > /dev/null 2>/dev/null
-do
-  sleep 1
-done
+echo -e "$TAG Create temp database..."
+node ./scripts/create-temp-serverless-cluster.mjs
 
 echo -e "$TAG Execute migrations"
 docker compose run --rm backend /bin/sh -c "alembic upgrade head"

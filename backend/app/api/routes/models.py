@@ -5,7 +5,6 @@ class RequiredConfigStatus(BaseModel):
     default_llm: bool
     default_embedding_model: bool
     default_chat_engine: bool
-    datasource: bool
     knowledge_base: bool
 
 

@@ -15,8 +15,10 @@ from .models import (
 from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.exceptions import (
     InternalServerError,
-    KnowledgeBaseNotFoundError,
-    KBNoVectorIndexConfiguredError
+    KBNotFound,
+    KBNoVectorIndexConfigured,
+    DefaultLLMNotFound,
+    DefaultEmbeddingModelNotFound
 )
 from app.models import (
     KnowledgeBase,
@@ -55,10 +57,10 @@ def create_knowledge_base(
         ]
 
         if not create.llm_id:
-            create.llm_id = llm_repo.must_get_default_llm(session).id
+            create.llm_id = llm_repo.must_get_default(session).id
 
         if not create.embedding_model_id:
-            create.embedding_model_id = embed_model_repo.must_get_default_model(session).id
+            create.embedding_model_id = embed_model_repo.must_get_default(session).id
 
         knowledge_base = KnowledgeBase(
             name=create.name,
@@ -80,7 +82,11 @@ def create_knowledge_base(
         import_documents_for_knowledge_base.delay(knowledge_base.id)
 
         return knowledge_base
-    except KBNoVectorIndexConfiguredError as e:
+    except KBNoVectorIndexConfigured as e:
+        raise e
+    except DefaultLLMNotFound as e:
+        raise e
+    except DefaultEmbeddingModelNotFound as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -104,7 +110,7 @@ def get_knowledge_base(
 ) -> KnowledgeBaseDetail:
     try:
         return knowledge_base_repo.must_get(session, knowledge_base_id)
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFound as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -122,9 +128,9 @@ def update_knowledge_base_setting(
         knowledge_base = knowledge_base_repo.must_get(session, knowledge_base_id)
         knowledge_base = knowledge_base_repo.update(session, knowledge_base, update)
         return knowledge_base
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFound as e:
         raise e
-    except KBNoVectorIndexConfiguredError as e:
+    except KBNoVectorIndexConfigured as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -150,7 +156,7 @@ def delete_knowledge_base(
         return {
             "detail": f"Knowledge base #{knowledge_base_id} is deleted successfully"
         }
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFound as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -169,7 +175,7 @@ def get_knowledge_base_index_overview(
         stats_for_knowledge_base.delay(knowledge_base.id)
 
         return knowledge_base_repo.get_index_overview(session, knowledge_base)
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFound as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -186,7 +192,7 @@ def list_kb_vector_index_errors(
     try:
         kb = knowledge_base_repo.must_get(session, kb_id)
         return knowledge_base_repo.list_vector_index_built_errors(session, kb, params)
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFound as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -203,7 +209,7 @@ def list_kb_kg_index_errors(
     try:
         kb = knowledge_base_repo.must_get(session, kb_id)
         return knowledge_base_repo.list_kg_index_built_errors(session, kb, params)
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFound as e:
         raise e
     except Exception as e:
         logger.exception(e)
@@ -234,7 +240,7 @@ def retry_failed_tasks(
         return {
             "detail": f"Triggered reindex {len(document_ids)} documents and {len(chunk_ids)} chunks of knowledge base #{kb_id}."
         }
-    except KnowledgeBaseNotFoundError as e:
+    except KBNotFound as e:
         raise e
     except Exception as e:
         logger.exception(e)

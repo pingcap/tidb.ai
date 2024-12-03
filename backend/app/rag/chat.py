@@ -58,7 +58,7 @@ from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
 from app.rag.knowledge_graph.graph_store.tidb_graph_editor import TiDBGraphEditor
 
 from app.rag.knowledge_graph import KnowledgeGraphIndex
-from app.rag.chat_config import ChatEngineConfig, get_default_embedding_model, KnowledgeGraphOption
+from app.rag.chat_config import ChatEngineConfig, get_default_embed_model, KnowledgeGraphOption
 from app.rag.types import (
     MyCBEventType,
     ChatMessageSate,
@@ -175,11 +175,14 @@ class ChatService:
             self._entity_db_model = get_kb_entity_model(kb)
             self._relationship_db_model = get_kb_relationship_model(kb)
         else:
-            self._embed_model = get_default_embedding_model(db_session)
+            self._embed_model = get_default_embed_model(db_session)
 
     def chat(self) -> Generator[ChatEvent | str, None, None]:
         try:
-            if self.chat_engine_config.external_engine_config:
+            if (
+                self.chat_engine_config.external_engine_config and
+                self.chat_engine_config.external_engine_config.stream_chat_api_url
+            ):
                 for event in self._external_chat():
                     yield event
             else:
@@ -765,41 +768,62 @@ class ChatService:
             logger.error(f"Failed to search kg or refine question: {e}")
             goal = self.user_question
 
-        stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
-        logger.debug(
-            f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
-        chat_params = {
-            "goal": goal,
-        }
-        res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
-
-        # Notice: External type chat engine doesn't support non-streaming mode for now.
-        stackvm_response_text = ""
-        task_id = None
-        for line in res.iter_lines():
-            if not line:
-                continue
-
-            # Append to final response text.
-            chunk = line.decode('utf-8')
-            if chunk.startswith("0:"):
-                word = json.loads(chunk[2:])
-                stackvm_response_text += word
-                yield ChatEvent(
-                    event_type=ChatEventType.TEXT_PART,
-                    payload=word,
-                )
-            else:
-                yield line + b'\n'
-
+        cache_messages = None
+        if settings.ENABLE_QUESTION_CACHE:
             try:
-                if chunk.startswith("8:") and task_id is None:
-                    states = json.loads(chunk[2:])
-                    if len(states) > 0:
-                        # accesss task by http://endpoint/?task_id=$task_id
-                        task_id = states[0].get("task_id")
+                logger.info(f"start to find_recent_assistant_messages_by_goal with goal: {goal}")
+                cache_messages = chat_repo.find_recent_assistant_messages_by_goal(self.db_session,goal)
+                logger.debug(f"find_recent_assistant_messages_by_goal result: {cache_messages}")
             except Exception as e:
-                logger.error(f"Failed to get task_id from chunk: {e}")
+                logger.error(f"Failed to find recent assistant messages by goal: {e}")
+
+        stream_chat_api_url = self.chat_engine_config.external_engine_config.stream_chat_api_url
+        if cache_messages and len(cache_messages) > 0:
+            stackvm_response_text = cache_messages[0].content
+            task_id = cache_messages[0].meta.get("task_id")
+            for chunk in stackvm_response_text.split(". "):
+                if chunk:
+                    if not chunk.endswith("."):
+                        chunk += ". "
+                    yield ChatEvent(
+                        event_type=ChatEventType.TEXT_PART,
+                        payload=chunk,
+                    )
+        else:
+            logger.debug(
+                f"Chatting with external chat engine (api_url: {stream_chat_api_url}) to answer for user question: {self.user_question}")
+            chat_params = {
+                "goal": goal,
+            }
+            res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
+
+            # Notice: External type chat engine doesn't support non-streaming mode for now.
+            stackvm_response_text = ""
+            task_id = None
+            for line in res.iter_lines():
+                if not line:
+                    continue
+
+                # Append to final response text.
+                chunk = line.decode('utf-8')
+                if chunk.startswith("0:"):
+                    word = json.loads(chunk[2:])
+                    stackvm_response_text += word
+                    yield ChatEvent(
+                        event_type=ChatEventType.TEXT_PART,
+                        payload=word,
+                    )
+                else:
+                    yield line + b'\n'
+
+                try:
+                    if chunk.startswith("8:") and task_id is None:
+                        states = json.loads(chunk[2:])
+                        if len(states) > 0:
+                            # accesss task by http://endpoint/?task_id=$task_id
+                            task_id = states[0].get("task_id")
+                except Exception as e:
+                    logger.error(f"Failed to get task_id from chunk: {e}")
 
         response_text = stackvm_response_text
         base_url = stream_chat_api_url.replace('/api/stream_execute_vm', '')
@@ -807,7 +831,6 @@ class ChatService:
         db_assistant_message.trace_url = f"{base_url}?task_id={task_id}" if task_id else ""
         db_assistant_message.meta = {
             "task_id": task_id,
-            "stackvm_response_text": stackvm_response_text,
             "goal": goal,
         }
         db_assistant_message.updated_at = datetime.now(UTC)
@@ -816,7 +839,6 @@ class ChatService:
         db_user_message.trace_url = f"{base_url}?task_id={task_id}" if task_id else ""
         db_user_message.meta = {
             "task_id": task_id,
-            "stackvm_response_text": stackvm_response_text,
             "goal": goal,
         }
         db_user_message.updated_at = datetime.now(UTC)
@@ -1082,21 +1104,12 @@ def check_rag_required_config(session: Session) -> RequiredConfigStatus:
     has_default_chat_engine = (
         session.scalar(select(func.count(ChatEngine.id)).where(ChatEngine.is_default == True)) > 0
     )
-
-    # TODO: Remove it after the multiple KB feature is stable.
-    has_datasource = session.scalar(select(func.count(DBDataSource.id))) > 0
-
-    try:
-        has_knowledge_base = session.scalar(select(func.count(DBKnowledgeBase.id))) > 0
-    except Exception as e:
-        has_knowledge_base = False
-        logger.exception(e)
+    has_knowledge_base = session.scalar(select(func.count(DBKnowledgeBase.id))) > 0
 
     return RequiredConfigStatus(
         default_llm=has_default_llm,
         default_embedding_model=has_default_embedding_model,
         default_chat_engine=has_default_chat_engine,
-        datasource=has_datasource,
         knowledge_base=has_knowledge_base
     )
 
@@ -1122,7 +1135,7 @@ def check_rag_config_need_migration(session: Session) -> NeedMigrationStatus:
         session.exec(
             select(ChatEngine.id)
             .where(ChatEngine.deleted_at == None)
-            .where(text("NOT JSON_CONTAINS_PATH(engine_options, 'one', '$.knowledge_base')"))
+            .where(text("JSON_EXTRACT(engine_options, '$.knowledge_base.linked_knowledge_base') IS NULL"))
         )
     )
 
@@ -1141,7 +1154,7 @@ def get_chat_message_recommend_questions(
     engine_name: str = "default",
 ) -> List[str]:
     chat_engine_config = ChatEngineConfig.load_from_db(db_session, engine_name)
-    _fast_llm = chat_engine_config.get_fast_llama_llm(db_session)
+    llm = chat_engine_config.get_llama_llm(db_session)
 
     statement = (
         select(RecommendQuestion.questions)
@@ -1153,13 +1166,34 @@ def get_chat_message_recommend_questions(
     if questions is not None:
         return questions
 
-    recommend_questions = _fast_llm.structured_predict(
+    recommend_questions = llm.structured_predict(
         output_cls=LLMRecommendQuestions,
         prompt=get_prompt_by_jinja2_template(
             chat_engine_config.llm.further_questions_prompt,
             chat_message_content=chat_message.content,
         ),
     )
+
+    longest_question = 0
+    for question in recommend_questions.questions:
+        longest_question = max(longest_question, len(question))
+
+    # check the output by if the output with format and the length
+    questions = ",".join(recommend_questions.questions)
+    if "##" in questions or "**" in questions or longest_question > 500:
+        regenerate_content = f"""
+        Please note that you are generating a question list. You previously generated it incorrectly; try again.
+        ----------------------------------------
+        {chat_message.content}
+        """
+        # with format or too long for per question, it's not a question list, generate again
+        recommend_questions = llm.structured_predict(
+            output_cls=LLMRecommendQuestions,
+            prompt=get_prompt_by_jinja2_template(
+                chat_engine_config.llm.further_questions_prompt,
+                chat_message_content=regenerate_content,
+            ),
+        )
 
     db_session.add(RecommendQuestion(
         chat_message_id=chat_message.id,
