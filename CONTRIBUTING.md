@@ -19,6 +19,12 @@ In this section, you should have some prerequisites software installed on your l
 
 Setting up the project on your local machine is the first step to contributing to the project. You can clone the project from the GitHub repository and then start the project on your local machine. You can follow the instructions in the [Deployment Guide](https://tidb.ai/docs/deploy-with-docker) file to set up the project on your local machine.
 
+To test your local changes, you can build and run the project using:
+
+```bash
+docker compose -f docker-compose.build.yml up
+```
+
 ### Your First Contribution
 
 All set to participate in the project? You can start by looking at the [open issues](https://github.com/pingcap/tidb.ai/issues) in this repo.
