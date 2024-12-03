@@ -1141,7 +1141,7 @@ def check_rag_config_need_migration(session: Session) -> NeedMigrationStatus:
         session.exec(
             select(ChatEngine.id)
             .where(ChatEngine.deleted_at == None)
-            .where(text("JSON_EXTRACT(engine_options, '$.knowledge_base.linked_knowledge_base') IS NOT NULL"))
+            .where(text("JSON_EXTRACT(engine_options, '$.knowledge_base.linked_knowledge_base') IS NULL"))
         )
     )
 
