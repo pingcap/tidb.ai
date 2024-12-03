@@ -52,7 +52,13 @@ class RerankerModelNotFoundError(HTTPException):
     status_code = 404
 
     def __init__(self, model_id: int):
-        self.detail = f"Reranker model with id {model_id} not found"
+        self.detail = f"reranker model #{model_id} not found"
+
+class DefaultRerankerModelNotFoundError(HTTPException):
+    status_code = 404
+
+    def __init__(self):
+        self.detail = f"default reranker model is not found"
 
 
 # Knowledge base

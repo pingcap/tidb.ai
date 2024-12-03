@@ -19,7 +19,9 @@ from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.exceptions import (
     InternalServerError,
     KBNotFoundError,
-    KBNoVectorIndexConfiguredError
+    KBNoVectorIndexConfiguredError,
+    DefaultLLMNotFoundError,
+    DefaultEmbeddingModelNotFoundError
 )
 from app.models import (
     KnowledgeBase,
@@ -59,10 +61,10 @@ def create_knowledge_base(
         ]
 
         if not create.llm_id:
-            create.llm_id = llm_repo.must_get_default_llm(session).id
+            create.llm_id = llm_repo.must_get_default(session).id
 
         if not create.embedding_model_id:
-            create.embedding_model_id = embed_model_repo.must_get_default_model(session).id
+            create.embedding_model_id = embed_model_repo.must_get_default(session).id
 
         knowledge_base = KnowledgeBase(
             name=create.name,
@@ -85,6 +87,10 @@ def create_knowledge_base(
 
         return knowledge_base
     except KBNoVectorIndexConfiguredError as e:
+        raise e
+    except DefaultLLMNotFoundError as e:
+        raise e
+    except DefaultEmbeddingModelNotFoundError as e:
         raise e
     except Exception as e:
         logger.exception(e)

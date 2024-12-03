@@ -1101,21 +1101,12 @@ def check_rag_required_config(session: Session) -> RequiredConfigStatus:
     has_default_chat_engine = (
         session.scalar(select(func.count(ChatEngine.id)).where(ChatEngine.is_default == True)) > 0
     )
-
-    # TODO: Remove it after the multiple KB feature is stable.
-    has_datasource = session.scalar(select(func.count(DBDataSource.id))) > 0
-
-    try:
-        has_knowledge_base = session.scalar(select(func.count(DBKnowledgeBase.id))) > 0
-    except Exception as e:
-        has_knowledge_base = False
-        logger.exception(e)
+    has_knowledge_base = session.scalar(select(func.count(DBKnowledgeBase.id))) > 0
 
     return RequiredConfigStatus(
         default_llm=has_default_llm,
         default_embedding_model=has_default_embedding_model,
         default_chat_engine=has_default_chat_engine,
-        datasource=has_datasource,
         knowledge_base=has_knowledge_base
     )
 

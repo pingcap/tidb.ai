@@ -58,16 +58,18 @@ class EmbeddingModelRepo(BaseRepo):
         return paginate(session, query, params)
 
 
-    def get_default_model(self, session: Session) -> Type[EmbeddingModel]:
-        stmt = (select(EmbeddingModel)
+    def get_default(self, session: Session) -> Type[EmbeddingModel]:
+        stmt = (
+            select(EmbeddingModel)
                 .where(EmbeddingModel.is_default == True)
                 .order_by(EmbeddingModel.updated_at.desc())
-                .limit(1))
+                .limit(1)
+        )
         return session.exec(stmt).first()
 
 
-    def must_get_default_model(self, session: Session) -> Type[EmbeddingModel]:
-        embed_model = self.get_default_model(session)
+    def must_get_default(self, session: Session) -> Type[EmbeddingModel]:
+        embed_model = self.get_default(session)
         if embed_model is None:
             raise DefaultEmbeddingModelNotFoundError()
         return embed_model

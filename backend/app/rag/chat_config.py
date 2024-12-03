@@ -259,7 +259,7 @@ def get_llm(
             raise ValueError(f"Got unknown LLM provider: {provider}")
 
 def get_default_llm(session: Session) -> Optional[LLM]:
-    db_llm = llm_repo.get_default_llm(session)
+    db_llm = llm_repo.get_default(session)
     if not db_llm:
         return None
     return get_llm(
@@ -270,7 +270,7 @@ def get_default_llm(session: Session) -> Optional[LLM]:
     )
 
 def must_get_default_llm(session: Session) -> LLM:
-    db_llm = llm_repo.must_get_default_llm(session)
+    db_llm = llm_repo.must_get_default(session)
     return get_llm(
         db_llm.provider,
         db_llm.model,
@@ -329,7 +329,7 @@ def get_embed_model(
             raise ValueError(f"Got unknown embedding provider: {provider}")
 
 def get_default_embed_model(session: Session) -> Optional[BaseEmbedding]:
-    db_embed_model = embed_model_repo.get_default_model(session)
+    db_embed_model = embed_model_repo.get_default(session)
     if not db_embed_model:
         return None
     return get_embed_model(
@@ -340,7 +340,7 @@ def get_default_embed_model(session: Session) -> Optional[BaseEmbedding]:
     )
 
 def must_get_default_embed_model(session: Session) -> BaseEmbedding:
-    db_embed_model = embed_model_repo.must_get_default_model(session)
+    db_embed_model = embed_model_repo.must_get_default(session)
     return get_embed_model(
         db_embed_model.provider,
         db_embed_model.model,
@@ -388,7 +388,7 @@ def get_reranker_model(
             raise ValueError(f"Got unknown reranker provider: {provider}")
 
 def get_default_reranker_model(session: Session) -> Optional[BaseNodePostprocessor]:
-    db_reranker = reranker_model_repo.get_default_model(session)
+    db_reranker = reranker_model_repo.get_default(session)
     if not db_reranker:
         return None
     return get_reranker_model(
@@ -400,7 +400,7 @@ def get_default_reranker_model(session: Session) -> Optional[BaseNodePostprocess
     )
 
 def must_get_default_reranker_model(session: Session) -> BaseNodePostprocessor:
-    db_reranker = reranker_model_repo.must_get_default_model(session)
+    db_reranker = reranker_model_repo.must_get_default(session)
     return get_reranker_model(
         db_reranker.provider,
         db_reranker.model,

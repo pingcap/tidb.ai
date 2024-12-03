@@ -1,4 +1,4 @@
-from typing import Type, List
+from typing import Type, Optional
 
 from fastapi import Depends
 from fastapi_pagination import Params, Page
@@ -22,18 +22,26 @@ class LLMRepo(BaseRepo):
         query = query.order_by(DBLLM.is_default.desc(), DBLLM.created_at.desc())
         return paginate(session, query, params)
 
+    def get(self, session: Session, llm_id: int) -> Optional[DBLLM]:
+        return session.get(DBLLM, llm_id)
+
     def must_get(self, session: Session, llm_id: int) -> Type[DBLLM]:
         db_llm = self.get(session, llm_id)
         if db_llm is None:
             raise LLMNotFoundError(llm_id)
         return db_llm
 
-    def get_default_llm(self, session: Session) -> Type[DBLLM] | None:
-        stmt = select(DBLLM).where(DBLLM.is_default == True).order_by(DBLLM.updated_at.desc()).limit(1)
+    def get_default(self, session: Session) -> Type[DBLLM] | None:
+        stmt = (
+            select(DBLLM)
+                .where(DBLLM.is_default == True)
+                .order_by(DBLLM.updated_at.desc())
+                .limit(1)
+        )
         return session.exec(stmt).first()
 
-    def must_get_default_llm(self, session: Session) -> Type[DBLLM]:
-        db_llm = self.get_default_llm(session)
+    def must_get_default(self, session: Session) -> Type[DBLLM]:
+        db_llm = self.get_default(session)
         if db_llm is None:
             raise DefaultLLMNotFoundError()
         return db_llm

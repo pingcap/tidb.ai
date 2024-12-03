@@ -69,12 +69,12 @@ def test_llm(
 
 @router.get("/admin/llms/{llm_id}")
 def get_llm_detail(
-    llm_id: int,
     session: SessionDep,
     user: CurrentSuperuserDep,
+    llm_id: int,
 ) -> AdminLLM:
     try:
-        return llm_repo.must_get(LLM, llm_id)
+        return llm_repo.must_get(session, llm_id)
     except LLMNotFoundError as e:
         raise e
     except Exception as e:

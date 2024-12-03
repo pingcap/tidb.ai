@@ -1,11 +1,11 @@
-from typing import Type
+from typing import Type, Optional
 
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlalchemy import update
 from sqlmodel import select, Session
 
-from app.exceptions import RerankerModelNotFoundError
+from app.exceptions import RerankerModelNotFoundError, DefaultRerankerModelNotFoundError
 from app.models import RerankerModel
 from app.repositories.base_repo import BaseRepo
 
@@ -23,10 +23,28 @@ class RerankerModelRepo(BaseRepo):
         query = query.order_by(RerankerModel.is_default.desc(), RerankerModel.created_at.desc())
         return paginate(session, query, params)
 
+    def get(self, session: Session, reranker_model_id: int) -> Optional[RerankerModel]:
+        return session.get(RerankerModel, reranker_model_id)
+
     def must_get(self, session: Session, reranker_model_id: int) -> Type[RerankerModel]:
         db_reranker_model = self.get(session, reranker_model_id)
         if db_reranker_model is None:
             raise RerankerModelNotFoundError(reranker_model_id)
+        return db_reranker_model
+
+    def get_default(self, session: Session) -> Optional[RerankerModel]:
+        stmt = (
+            select(RerankerModel)
+                .where(RerankerModel.is_default == True)
+                .order_by(RerankerModel.updated_at.desc())
+                .limit(1)
+        )
+        return session.exec(stmt).first()
+
+    def must_get_default(self, session: Session) -> RerankerModel:
+        db_reranker_model = self.get_default(session)
+        if db_reranker_model is None:
+            raise DefaultRerankerModelNotFoundError()
         return db_reranker_model
 
     def create(self, session: Session, reranker_model: RerankerModel) -> RerankerModel:
