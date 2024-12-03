@@ -61,7 +61,7 @@ services:
       - local-embedding-reranker
 
   redis:
-    image: redis:7.2.4
+    image: redis:6.0.16 
     volumes:
       - ./redis-data:/data
     command: ["redis-server", "--loglevel", "warning"]
