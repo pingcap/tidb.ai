@@ -38,6 +38,8 @@ test.fail('Bootstrap', async ({ page }) => {
   }
 
   await test.step('Login to configure models', async () => {
+    await page.waitForLoadState('networkidle');
+
     if (await page.getByRole('button', { name: 'Login', exact: true }).count() === 0) {
       console.warn('Already logged in');
       return;
