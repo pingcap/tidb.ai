@@ -2,6 +2,7 @@ from typing import Type
 
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
+from sqlalchemy import func
 from sqlalchemy.orm.attributes import flag_modified
 from sqlmodel import Session, select, update
 
@@ -67,6 +68,11 @@ class EmbeddingModelRepo(BaseRepo):
         )
         return session.exec(stmt).first()
 
+    def has_default(self, session: Session) -> bool:
+        return session.scalar(
+            select(func.count(EmbeddingModel.id))
+                .where(EmbeddingModel.is_default == True)
+        ) > 0
 
     def must_get_default(self, session: Session) -> Type[EmbeddingModel]:
         embed_model = self.get_default(session)

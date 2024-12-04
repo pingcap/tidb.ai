@@ -120,8 +120,12 @@ def remove_kb_datasource(
 
         # Flag the data source to be deleted, it will be deleted completely by the background job.
         knowledge_base_repo.remove_kb_datasource(session, kb, data_source)
+        session.commit()
 
-        purge_kb_datasource_related_resources.delay(kb_id, data_source_id)
+        purge_kb_datasource_related_resources.apply_async(
+            args=[kb_id, data_source_id],
+            countdown=5
+        )
 
         return {
             "detail": "success"

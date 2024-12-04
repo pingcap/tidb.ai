@@ -65,7 +65,9 @@ from app.rag.types import (
     ChatEventType,
     MessageRole,
 )
-from app.repositories import chat_repo, knowledge_base_repo
+from app.repositories import chat_repo, knowledge_base_repo, chat_engine_repo
+from app.repositories.embedding_model import embed_model_repo
+from app.repositories.llm import llm_repo
 from app.site_settings import SiteSetting
 from app.exceptions import ChatNotFound
 
@@ -1099,11 +1101,9 @@ def check_rag_required_config(session: Session) -> RequiredConfigStatus:
     Check if the required configuration items have been configured, it any of them is
     missing, the RAG application can not complete its work.
     """
-    has_default_llm = session.scalar(select(func.count(DBLLM.id))) > 0
-    has_default_embedding_model = (session.scalar(select(func.count(DBEmbeddingModel.id))) > 0)
-    has_default_chat_engine = (
-        session.scalar(select(func.count(ChatEngine.id)).where(ChatEngine.is_default == True)) > 0
-    )
+    has_default_llm = llm_repo.has_default(session)
+    has_default_embedding_model = embed_model_repo.has_default(session)
+    has_default_chat_engine = chat_engine_repo.has_default(session)
     has_knowledge_base = session.scalar(select(func.count(DBKnowledgeBase.id))) > 0
 
     return RequiredConfigStatus(

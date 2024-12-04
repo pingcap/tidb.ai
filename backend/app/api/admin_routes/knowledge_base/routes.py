@@ -1,19 +1,16 @@
 import logging
-from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends
 from fastapi_pagination import Params, Page
 
-from app.models.chunk import get_kb_chunk_model
 from app.rag.knowledge_base.index_store import init_kb_tidb_vector_store, init_kb_tidb_graph_store
-from app.repositories.chunk import ChunkRepo
 from app.repositories.embedding_model import embed_model_repo
 from app.repositories.llm import llm_repo
 
 from .models import (
     KnowledgeBaseDetail,
     KnowledgeBaseItem,
-    KnowledgeBaseCreate, ChunkItem, KnowledgeBaseUpdate, VectorIndexError, KGIndexError
+    KnowledgeBaseCreate, KnowledgeBaseUpdate, VectorIndexError, KGIndexError
 )
 from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.exceptions import (
@@ -31,13 +28,12 @@ from app.tasks import (
     build_kg_index_for_chunk,
     build_index_for_document,
 )
-from app.repositories import knowledge_base_repo, data_source_repo, document_repo
+from app.repositories import knowledge_base_repo, data_source_repo
 from app.tasks.knowledge_base import (
     import_documents_for_knowledge_base,
     stats_for_knowledge_base,
     purge_knowledge_base_related_resources
 )
-from ..document.models import DocumentItem, DocumentFilters
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -179,75 +175,6 @@ def get_knowledge_base_index_overview(
         stats_for_knowledge_base.delay(knowledge_base.id)
 
         return knowledge_base_repo.get_index_overview(session, knowledge_base)
-    except KBNotFound as e:
-        raise e
-    except Exception as e:
-        logger.exception(e)
-        raise InternalServerError()
-
-
-@router.get("/admin/knowledge_bases/{kb_id}/documents")
-def list_knowledge_base_documents(
-    session: SessionDep,
-    user: CurrentSuperuserDep,
-    kb_id: int,
-    filters: Annotated[DocumentFilters, Query()],
-    params: Params = Depends(),
-) -> Page[DocumentItem]:
-    try:
-        kb = knowledge_base_repo.must_get(session, kb_id)
-        filters.knowledge_base_id = kb.id
-        return document_repo.paginate(
-            session=session,
-            filters=filters,
-            params=params,
-        )
-    except KBNotFound as e:
-        raise e
-    except Exception as e:
-        logger.exception(e)
-        raise InternalServerError()
-
-
-@router.get("/admin/knowledge_bases/{kb_id}/documents/{doc_id}/chunks")
-def list_knowledge_base_chunks(
-    session: SessionDep,
-    user: CurrentSuperuserDep,
-    kb_id: int,
-    doc_id: int,
-) -> list[ChunkItem]:
-    try:
-        kb = knowledge_base_repo.must_get(session, kb_id)
-        chunk_repo = ChunkRepo(get_kb_chunk_model(kb))
-        return chunk_repo.get_document_chunks(session, doc_id)
-    except KBNotFound as e:
-        raise e
-    except Exception as e:
-        logger.exception(e)
-        raise InternalServerError()
-
-
-@router.post("/admin/knowledge_bases/{kb_id}/documents/reindex")
-def batch_reindex_knowledge_base_documents(
-    session: SessionDep,
-    user: CurrentSuperuserDep,
-    kb_id: int,
-    document_ids: list[int]
-) -> dict:
-    try:
-        kb = knowledge_base_repo.must_get(session, kb_id)
-        chunk_repo = ChunkRepo(get_kb_chunk_model(kb))
-
-        for document_id in document_ids:
-            build_index_for_document.delay(kb.id, document_id)
-
-            chunks = chunk_repo.get_document_chunks(session, document_id)
-            for chunk in chunks:
-                build_kg_index_for_chunk.delay(kb.id, chunk.id)
-
-        return {
-            "detail": f"Triggered {len(document_ids)} documents to reindex knowledge base #{kb_id} successfully"
-        }
     except KBNotFound as e:
         raise e
     except Exception as e:

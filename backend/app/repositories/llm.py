@@ -3,7 +3,7 @@ from typing import Type, Optional
 from fastapi import Depends
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
-from sqlalchemy import update
+from sqlalchemy import update, func
 from sqlmodel import select, Session
 
 from app.exceptions import DefaultLLMNotFound, LLMNotFound
@@ -45,6 +45,12 @@ class LLMRepo(BaseRepo):
         if db_llm is None:
             raise DefaultLLMNotFound()
         return db_llm
+
+    def has_default(self, session: Session) -> bool:
+        return session.scalar(
+            select(func.count(DBLLM.id))
+                .where(DBLLM.is_default == True)
+        ) > 0
 
     def create(self, session: Session, llm: DBLLM) -> DBLLM:
         # If there is no exiting model, the first model is
