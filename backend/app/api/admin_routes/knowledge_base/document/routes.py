@@ -6,6 +6,7 @@ from fastapi_pagination import Params, Page
 
 from app.api.admin_routes.knowledge_base.models import ChunkItem
 from app.api.deps import SessionDep, CurrentSuperuserDep
+from app.models import Document
 from app.models.chunk import get_kb_chunk_model
 from app.models.entity import get_kb_entity_model
 from app.models.relationship import get_kb_relationship_model
@@ -45,6 +46,24 @@ def list_kb_documents(
             filters=filters,
             params=params,
         )
+    except KBNotFound as e:
+        raise e
+    except Exception as e:
+        logger.exception(e)
+        raise InternalServerError()
+
+
+@router.get("/admin/knowledge_bases/{kb_id}/documents/{document_id}")
+def get_document_by_id(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    kb_id: int,
+    doc_id: int,
+) -> Document:
+    try:
+        document = document_repo.must_get(session, doc_id)
+        assert document.knowledge_base_id == kb_id
+        return document
     except KBNotFound as e:
         raise e
     except Exception as e:
