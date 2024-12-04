@@ -213,7 +213,8 @@ def get_llm(
             )
         case LLMProvider.OPENAI_LIKE:
             llm = OpenAILike(model=model, api_key=credentials, **config)
-            llm.context_window = 200000
+            if not config.get('context_window'):
+                llm.context_window = 200 * 1000
             return llm
         case LLMProvider.GEMINI:
             os.environ["GOOGLE_API_KEY"] = credentials
