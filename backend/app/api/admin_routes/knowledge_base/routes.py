@@ -156,31 +156,31 @@ def list_kb_linked_chat_engines(
         raise InternalServerError()
 
 
-@router.delete("/admin/knowledge_bases/{knowledge_base_id}")
+@router.delete("/admin/knowledge_bases/{kb_id}")
 def delete_knowledge_base(
     session: SessionDep,
     user: CurrentSuperuserDep,
-    knowledge_base_id: int
+    kb_id: int
 ):
     try:
-        kb = knowledge_base_repo.must_get(session, knowledge_base_id)
+        kb = knowledge_base_repo.must_get(session, kb_id)
 
         # Check if the knowledge base has linked chat engines.
         linked_chat_engines = knowledge_base_repo.list_linked_chat_engines(session, kb.id)
         if len(linked_chat_engines) > 0:
-            raise KBIsUsedByChatEngines(len(linked_chat_engines))
+            raise KBIsUsedByChatEngines(kb_id, len(linked_chat_engines))
 
         # Delete knowledge base.
         knowledge_base_repo.delete(session, kb)
 
         # Trigger purge knowledge base related resources after 5 seconds.
         purge_knowledge_base_related_resources.apply_async(
-            args=[knowledge_base_id],
+            args=[kb_id],
             countdown=5
         )
 
         return {
-            "detail": f"Knowledge base #{knowledge_base_id} is deleted successfully"
+            "detail": f"Knowledge base #{kb_id} is deleted successfully"
         }
     except KBException as e:
         raise e

@@ -117,8 +117,8 @@ class KBNotAllowedUpdateEmbedModel(KBException):
 class KBIsUsedByChatEngines(KBException):
     status_code = 500
 
-    def __init__(self, count: int):
-        self.detail = f"knowledge base is used by {count} chat engines, please unlink them before deleting"
+    def __init__(self, kb_id, chat_engines_num: int):
+        self.detail = f"knowledge base #{kb_id} is used by {chat_engines_num} chat engines, please unlink them before deleting"
 
 # Document
 
