@@ -1,4 +1,4 @@
-from typing import Optional, Type
+from typing import List, Optional, Type
 from datetime import datetime, UTC
 
 from sqlalchemy import delete
@@ -15,6 +15,7 @@ from app.models import (
     DocIndexTaskStatus,
     KgIndexStatus, Chunk, KnowledgeBaseDataSource,
 )
+from app.models.chat_engine import ChatEngine
 from app.models.chunk import get_kb_chunk_model
 from app.models.data_source import DataSource
 from app.models.knowledge_base import IndexMethod
@@ -316,5 +317,13 @@ class KnowledgeBaseRepo(BaseRepo):
         )
         session.exec(stmt)
 
+    def list_linked_chat_engines(self, session: Session, kb_id: int) -> List[ChatEngine]:
+        return session.exec(
+            select(ChatEngine)
+                .where(
+                    ChatEngine.deleted_at == None,
+                    func.JSON_UNQUOTE(func.JSON_EXTRACT(ChatEngine.engine_options, '$.knowledge_base.linked_knowledge_base.id')) == kb_id
+                )
+        ).all()
 
 knowledge_base_repo = KnowledgeBaseRepo()

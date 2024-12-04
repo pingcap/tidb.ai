@@ -15,10 +15,12 @@ from .models import (
 from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.exceptions import (
     InternalServerError,
+    KBException,
     KBNotFound,
     KBNoVectorIndexConfigured,
     DefaultLLMNotFound,
-    DefaultEmbeddingModelNotFound
+    DefaultEmbeddingModelNotFound,
+    KBIsUsedByChatEngines
 )
 from app.models import (
     KnowledgeBase,
@@ -28,12 +30,13 @@ from app.tasks import (
     build_kg_index_for_chunk,
     build_index_for_document,
 )
-from app.repositories import knowledge_base_repo, data_source_repo
+from app.repositories import knowledge_base_repo, data_source_repo, chat_engine_repo
 from app.tasks.knowledge_base import (
     import_documents_for_knowledge_base,
     stats_for_knowledge_base,
     purge_knowledge_base_related_resources
 )
+from ..models import ChatEngineDescriptor
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -137,26 +140,49 @@ def update_knowledge_base_setting(
         raise InternalServerError()
 
 
-@router.delete("/admin/knowledge_bases/{knowledge_base_id}")
+@router.get("/admin/knowledge_bases/{kb_id}/linked_chat_engines")
+def list_kb_linked_chat_engines(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    kb_id: int
+) -> list[ChatEngineDescriptor]:
+    try:
+        kb = knowledge_base_repo.must_get(session, kb_id)
+        return knowledge_base_repo.list_linked_chat_engines(session, kb.id)
+    except KBNotFound as e:
+        raise e
+    except Exception as e:
+        logger.exception(e)
+        raise InternalServerError()
+
+
+@router.delete("/admin/knowledge_bases/{kb_id}")
 def delete_knowledge_base(
     session: SessionDep,
     user: CurrentSuperuserDep,
-    knowledge_base_id: int
+    kb_id: int
 ):
     try:
-        knowledge_base = knowledge_base_repo.must_get(session, knowledge_base_id)
-        knowledge_base_repo.delete(session, knowledge_base)
+        kb = knowledge_base_repo.must_get(session, kb_id)
+
+        # Check if the knowledge base has linked chat engines.
+        linked_chat_engines = knowledge_base_repo.list_linked_chat_engines(session, kb.id)
+        if len(linked_chat_engines) > 0:
+            raise KBIsUsedByChatEngines(kb_id, len(linked_chat_engines))
+
+        # Delete knowledge base.
+        knowledge_base_repo.delete(session, kb)
 
         # Trigger purge knowledge base related resources after 5 seconds.
         purge_knowledge_base_related_resources.apply_async(
-            args=[knowledge_base_id],
+            args=[kb_id],
             countdown=5
         )
 
         return {
-            "detail": f"Knowledge base #{knowledge_base_id} is deleted successfully"
+            "detail": f"Knowledge base #{kb_id} is deleted successfully"
         }
-    except KBNotFound as e:
+    except KBException as e:
         raise e
     except Exception as e:
         logger.exception(e)
