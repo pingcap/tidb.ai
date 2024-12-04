@@ -18,11 +18,11 @@ class EmbeddingModelRepo(BaseRepo):
     def create(self, session: Session, create: EmbeddingModelCreate):
         # If there is currently no model, the first model is
         # automatically set as the default model.
-        if not embed_model_repo.exists_any_model(session):
+        if not self.exists_any_model(session):
             create.is_default = True
 
         if create.is_default:
-            embed_model_repo.unset_default_model(session)
+            self.unset_default_model(session)
 
         embed_model = EmbeddingModel(
             name=create.name,
@@ -30,7 +30,8 @@ class EmbeddingModelRepo(BaseRepo):
             model=create.model,
             vector_dimension=create.vector_dimension,
             config=create.config,
-            credentials=create.credentials
+            credentials=create.credentials,
+            is_default=create.is_default,
         )
         session.add(embed_model)
         session.commit()
@@ -59,45 +60,6 @@ class EmbeddingModelRepo(BaseRepo):
         return paginate(session, query, params)
 
 
-    def get_default(self, session: Session) -> Type[EmbeddingModel]:
-        stmt = (
-            select(EmbeddingModel)
-                .where(EmbeddingModel.is_default == True)
-                .order_by(EmbeddingModel.updated_at.desc())
-                .limit(1)
-        )
-        return session.exec(stmt).first()
-
-    def has_default(self, session: Session) -> bool:
-        return session.scalar(
-            select(func.count(EmbeddingModel.id))
-                .where(EmbeddingModel.is_default == True)
-        ) > 0
-
-    def must_get_default(self, session: Session) -> Type[EmbeddingModel]:
-        embed_model = self.get_default(session)
-        if embed_model is None:
-            raise DefaultEmbeddingModelNotFound()
-        return embed_model
-
-
-    def unset_default_model(self, session: Session):
-        session.exec(
-            update(EmbeddingModel)
-            .values(is_default=False)
-            .where(EmbeddingModel.is_default == True)
-        )
-
-    def set_default_model(self, session: Session, new_default_model_id: int):
-        self.unset_default_model(session)
-        session.exec(
-            update(EmbeddingModel)
-                .values(is_default=True)
-                .where(EmbeddingModel.id == new_default_model_id)
-        )
-        session.commit()
-
-
     def update(
         self,
         session: Session,
@@ -115,6 +77,42 @@ class EmbeddingModelRepo(BaseRepo):
         session.commit()
         session.refresh(embed_model)
         return embed_model
+
+
+    # Default model
+
+    def get_default(self, session: Session) -> Type[EmbeddingModel]:
+        stmt = (
+            select(EmbeddingModel)
+                .where(EmbeddingModel.is_default == True)
+                .limit(1)
+        )
+        return session.exec(stmt).first()
+
+    def has_default(self, session: Session) -> bool:
+        return self.get_default(session) is not None
+
+    def must_get_default(self, session: Session) -> Type[EmbeddingModel]:
+        embed_model = self.get_default(session)
+        if embed_model is None:
+            raise DefaultEmbeddingModelNotFound()
+        return embed_model
+
+    def unset_default_model(self, session: Session):
+        session.exec(
+            update(EmbeddingModel)
+            .values(is_default=False)
+            .where(EmbeddingModel.is_default == True)
+        )
+
+    def set_default_model(self, session: Session, new_default_model_id: int):
+        self.unset_default_model(session)
+        session.exec(
+            update(EmbeddingModel)
+                .values(is_default=True)
+                .where(EmbeddingModel.id == new_default_model_id)
+        )
+        session.commit()
 
 
 embed_model_repo = EmbeddingModelRepo()
