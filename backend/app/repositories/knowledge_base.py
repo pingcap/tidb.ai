@@ -22,8 +22,7 @@ from app.models.knowledge_base import IndexMethod
 from app.models.relationship import get_kb_relationship_model
 from app.repositories.base_repo import BaseRepo
 from app.repositories.chunk import ChunkRepo
-from app.repositories.entity import EntityRepo
-from app.repositories.relationship import RelationshipRepo
+from app.repositories.graph import GraphRepo
 
 
 class KnowledgeBaseRepo(BaseRepo):
@@ -117,13 +116,13 @@ class KnowledgeBaseRepo(BaseRepo):
 
     def count_relationships(self, session: Session, kb: KnowledgeBase):
         relationship_model = get_kb_relationship_model(kb)
-        relationship_repo = RelationshipRepo(relationship_model)
-        return relationship_repo.count(session)
+        graph_repo = GraphRepo(relationship_model=relationship_model)
+        return graph_repo.count_relationships(session)
 
     def count_entities(self, session: Session, kb: KnowledgeBase):
         entity_model = get_kb_entity_model(kb)
-        entity_repo = EntityRepo(entity_model)
-        return entity_repo.count(session)
+        graph_repo = GraphRepo(entity_model=entity_model)
+        return graph_repo.count_entities(session)
 
     def count_documents_by_vector_index_status(self, session: Session, kb: KnowledgeBase) -> dict:
         stmt = (

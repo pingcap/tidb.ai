@@ -113,3 +113,10 @@ class KBNotAllowedUpdateEmbedModel(KBException):
 
     def __init__(self):
         self.detail = f"update embedding model is not allowed once the knowledge base has been created"
+
+# Document
+
+class DocumentNotFound(KBException):
+    status_code = 404
+    def __init__(self, document_id: int):
+        self.detail = f"document #{document_id} is not found"
