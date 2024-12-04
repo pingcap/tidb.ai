@@ -168,6 +168,14 @@ export async function getKnowledgeBaseDocumentChunks (id: number, documentId: nu
     .then(handleResponse(knowledgeGraphDocumentChunkSchema.array()));
 }
 
+export async function deleteKnowledgeBaseDocument (id: number, documentId: number) {
+  return await fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}/documents/${documentId}`), {
+    method: 'DELETE',
+    headers: await authenticationHeaders(),
+  })
+    .then(handleErrors);
+}
+
 export async function createKnowledgeBase (params: CreateKnowledgeBaseParams) {
   return await fetch(requestUrl('/api/v1/admin/knowledge_bases'), {
     method: 'POST',
