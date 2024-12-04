@@ -17,12 +17,10 @@ from app.models import (
 )
 from app.models.chunk import get_kb_chunk_model
 from app.models.data_source import DataSource
-from app.models.entity import get_kb_entity_model
 from app.models.knowledge_base import IndexMethod
-from app.models.relationship import get_kb_relationship_model
 from app.repositories.base_repo import BaseRepo
 from app.repositories.chunk import ChunkRepo
-from app.repositories.graph import GraphRepo
+from app.repositories.graph import get_kb_graph_repo
 
 
 class KnowledgeBaseRepo(BaseRepo):
@@ -115,13 +113,11 @@ class KnowledgeBaseRepo(BaseRepo):
         return chunk_repo.count(session)
 
     def count_relationships(self, session: Session, kb: KnowledgeBase):
-        relationship_model = get_kb_relationship_model(kb)
-        graph_repo = GraphRepo(relationship_model=relationship_model)
+        graph_repo = get_kb_graph_repo(kb)
         return graph_repo.count_relationships(session)
 
     def count_entities(self, session: Session, kb: KnowledgeBase):
-        entity_model = get_kb_entity_model(kb)
-        graph_repo = GraphRepo(entity_model=entity_model)
+        graph_repo = get_kb_graph_repo(kb)
         return graph_repo.count_entities(session)
 
     def count_documents_by_vector_index_status(self, session: Session, kb: KnowledgeBase) -> dict:
@@ -319,7 +315,6 @@ class KnowledgeBaseRepo(BaseRepo):
             KnowledgeBaseDataSource.data_source_id == data_source.id
         )
         session.exec(stmt)
-        session.commit()
 
 
 knowledge_base_repo = KnowledgeBaseRepo()

@@ -2,20 +2,24 @@ from typing import Type
 
 from sqlmodel import Session, select, func, delete, SQLModel
 
-from app.models import (
-    Entity as DBEntity,
-    Relationship as DBRelationship, Document,
-)
+from app.models.document import Document
+from app.models.knowledge_base import KnowledgeBase
+from app.models.chunk import get_kb_chunk_model
+from app.models.entity import get_kb_entity_model
+from app.models.relationship import get_kb_relationship_model
+
 
 class GraphRepo:
 
     def __init__(
         self,
-        entity_model: Type[SQLModel] = DBEntity,
-        relationship_model: Type[SQLModel] = DBRelationship
+        entity_model: Type[SQLModel],
+        relationship_model: Type[SQLModel],
+        chunk_model: Type[SQLModel],
     ):
         self.entity_model = entity_model
         self.relationship_model = relationship_model
+        self.chunk_model = chunk_model
 
     def count_entities(self, session: Session):
         return session.scalar(select(func.count(self.entity_model.id)))
@@ -50,4 +54,9 @@ class GraphRepo:
         stmt = delete(self.relationship_model).where(self.relationship_model.chunk_id.in_(chunk_ids_subquery))
         session.exec(stmt)
 
-graph_repo = GraphRepo()
+
+def get_kb_graph_repo(kb: KnowledgeBase) -> GraphRepo:
+    chunk_model = get_kb_chunk_model(kb)
+    entity_model = get_kb_entity_model(kb)
+    relationship_model = get_kb_relationship_model(kb)
+    return GraphRepo(entity_model, relationship_model, chunk_model)
