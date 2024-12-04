@@ -53,7 +53,7 @@ def list_kb_documents(
         raise InternalServerError()
 
 
-@router.get("/admin/knowledge_bases/{kb_id}/documents/{document_id}")
+@router.get("/admin/knowledge_bases/{kb_id}/documents/{doc_id}")
 def get_document_by_id(
     session: SessionDep,
     user: CurrentSuperuserDep,
