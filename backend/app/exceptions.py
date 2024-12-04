@@ -114,6 +114,12 @@ class KBNotAllowedUpdateEmbedModel(KBException):
     def __init__(self):
         self.detail = f"update embedding model is not allowed once the knowledge base has been created"
 
+class KBIsUsedByChatEngines(KBException):
+    status_code = 500
+
+    def __init__(self, count: int):
+        self.detail = f"knowledge base is used by {count} chat engines, please unlink them before deleting"
+
 # Document
 
 class DocumentNotFound(KBException):
