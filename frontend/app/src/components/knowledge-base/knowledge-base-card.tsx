@@ -1,6 +1,7 @@
-import { deleteKnowledgeBase, type KnowledgeBaseSummary } from '@/api/knowledge-base';
+import { deleteKnowledgeBase, getKnowledgeBaseLinkedChatEngines, type KnowledgeBaseSummary } from '@/api/knowledge-base';
 import { DangerousActionButton } from '@/components/dangerous-action-button';
 import { mutateKnowledgeBases } from '@/components/knowledge-base/hooks';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader } from '@/components/ui/card';
@@ -8,13 +9,15 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
-import { AlertTriangleIcon, Book, Ellipsis } from 'lucide-react';
+import { AlertTriangleIcon, Book, Ellipsis, TriangleAlertIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { ReactNode, startTransition, useState } from 'react';
+import useSWR from 'swr';
 
 export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase: KnowledgeBaseSummary, children?: ReactNode }) {
   const router = useRouter();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const { data: linkedChatEngines } = useSWR(`api.knowledge-bases.${knowledgeBase.id}.linked-chat-engines`, () => getKnowledgeBaseLinkedChatEngines(knowledgeBase.id));
 
   const handleCardClick = () => {
     startTransition(() => {
@@ -49,6 +52,9 @@ export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase:
               <span className="shrink-0 mx-0.5 px-1">·</span>
               <span>{(knowledgeBase.data_sources_total ?? 0) || <><AlertTriangleIcon className="size-3 inline-flex" /> No</>} data sources</span>
             </div>
+            <div className="flex items-center text-xs text-muted-foreground">
+              <span>{linkedChatEngines?.length ?? <Skeleton className="inline-flex h-3 w-6 rounded" />} linked chat engines</span>
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -72,9 +78,19 @@ export function KnowledgeBaseCard ({ knowledgeBase, children }: { knowledgeBase:
             <DropdownMenuContent className="w-56" align="end" alignOffset={-9} onClick={event => event.stopPropagation()}>
               <DropdownMenuItem onSelect={handleMenuItemSettingSelect}>Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DangerousActionButton action={handleDelete} asChild>
+              <DangerousActionButton
+                action={handleDelete}
+                asChild
+                actionDisabled={(linkedChatEngines?.length ?? 0) > 0}
+                actionDisabledReason={<Alert variant="warning">
+                  <TriangleAlertIcon />
+                  <AlertTitle>Cannot delete this Knowledge Base</AlertTitle>
+                  <AlertDescription>This Knowledge Base was linked to at least one Chat Engine(s). Please unlink all Chat Engines to continue.</AlertDescription>
+                </Alert>}
+              >
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive focus:bg-destructive/10"
+                  disabled={linkedChatEngines == null}
                   onSelect={event => event.preventDefault()}
                 >
                   Delete
