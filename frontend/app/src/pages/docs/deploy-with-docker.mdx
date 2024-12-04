@@ -18,26 +18,61 @@ This document provides instructions for deploying the entire RAG using Docker Co
 
 2. Select an embedding model for pingcap/autoflow.
 
-    We recommend using the OpenAI text-embedding-3-small model for autoflow, but you can also use other supported embedding models.
+    We recommend using the OpenAI `text-embedding-3-small` model for Autoflow due to its performance and compatibility. However, other supported embedding models can also be utilized.
 
     - OpenAI
-        - text-embedding-3-small
-            - EMBEDDING_DIMS: 1536
-            - EMBEDDING_MAX_TOKENS: 8191
+        - **Model:** `text-embedding-3-small`
+            - **Embedding Dimensions (EMBEDDING_DIMS):** 1536
+            - **Maximum Tokens (EMBEDDING_MAX_TOKENS):** 8191
     - JinaAI
-        - jina-clip-v1
-            - EMBEDDING_DIMS: 768
-            - EMBEDDING_MAX_TOKENS: 8192
-        - find more models in https://jina.ai/embeddings/
-    - ZhipuAI
-        - embedding-3
-            - EMBEDDING_DIMS: 2048
-            - EMBEDDING_MAX_TOKENS: 8192
-        - Find more details in https://open.bigmodel.cn/dev/api/vector/embedding-3
+        - **Model:** `jina-clip-v1`
+            - **Embedding Dimensions (EMBEDDING_DIMS):** 768
+            - **Maximum Tokens (EMBEDDING_MAX_TOKENS):** 8192
+        - Additional models can be found at [JinaAI Embeddings](https://jina.ai/embeddings/).
     - Local Embedding Server
-        - BAAI/bge-m3
-            - EMBEDDING_DIMS: 1024
-            - EMBEDDING_MAX_TOKENS: 8192
+        - **Model:** `BAAI/bge-m3`
+            - **Embedding Dimensions (EMBEDDING_DIMS):** 1024
+            - **Maximum Tokens (EMBEDDING_MAX_TOKENS):** 8192
+
+    We also support embedding models that conform to the OpenAI API format. You can select the "OpenAI-Like" option to use your own embedding model. Details for specific models are provided below:
+
+    - ZhipuAI (Default Option for OpenAI-Like)
+        - **Model:** `embedding-3`
+            - **Embedding Dimensions (EMBEDDING_DIMS):** 2048
+            - **Maximum Tokens (EMBEDDING_MAX_TOKENS):** 8192
+        - More information is available at [ZhipuAI API Documentation](https://open.bigmodel.cn/dev/api/vector/embedding-3).
+        - **Configuration Note:** Since ZhipuAI is the default option for OpenAI-Like models, no additional configuration is required in the "Advanced Settings".
+    - Other OpenAI-Like Models
+        - **Set EMBEDDING_DIMS and EMBEDDING_MAX_TOKENS**: Refer to the model's API documentation to find the correct values for `EMBEDDING_DIMS` and `EMBEDDING_MAX_TOKENS`.
+        - **Configure API Base in "Advanced Settings"**:
+
+            Add the following configuration in JSON format:
+
+            ```json
+            {
+                "api_base": "{api_base}",
+            }
+            ```
+
+            <Callout>
+            OpenAI and ZhipuAI models have predefined configurations in their types. These examples are provided for reference when integrating other models.
+            </Callout>
+
+            - Example 1: For OpenAI's embedding API (`https://api.openai.com/v1/embeddings`), the `api_base` should be set to `https://api.openai.com/v1`, resulting in the following configuration:
+
+                ```json
+                {
+                    "api_base": "https://api.openai.com/v1"
+                }
+                ```
+
+            - Example 2: For ZhipuAI's embedding API (`https://open.bigmodel.cn/api/paas/v4/embeddings`), the `api_base` should be set to `https://open.bigmodel.cn/api/paas/v4`, resulting in the following configuration:
+
+                ```json
+                {
+                    "api_base": "https://open.bigmodel.cn/api/paas/v4"
+                }
+                ```
 
 import { Callout } from 'nextra/components'
 
