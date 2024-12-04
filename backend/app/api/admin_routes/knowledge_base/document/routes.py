@@ -74,34 +74,6 @@ def list_kb_document_chunks(
         raise InternalServerError()
 
 
-@router.post("/admin/knowledge_bases/{kb_id}/documents/reindex")
-def batch_reindex_kb_documents(
-    session: SessionDep,
-    user: CurrentSuperuserDep,
-    kb_id: int,
-    document_ids: list[int]
-) -> dict:
-    try:
-        kb = knowledge_base_repo.must_get(session, kb_id)
-        chunk_repo = ChunkRepo(get_kb_chunk_model(kb))
-
-        for document_id in document_ids:
-            build_index_for_document.delay(kb.id, document_id)
-
-            chunks = chunk_repo.get_document_chunks(session, document_id)
-            for chunk in chunks:
-                build_kg_index_for_chunk.delay(kb.id, chunk.id)
-
-        return {
-            "detail": f"Triggered {len(document_ids)} documents to reindex knowledge base #{kb_id} successfully"
-        }
-    except KBNotFound as e:
-        raise e
-    except Exception as e:
-        logger.exception(e)
-        raise InternalServerError()
-
-
 @router.delete("/admin/knowledge_bases/{kb_id}/documents/{document_id}")
 def remove_kb_document(
     session: SessionDep,
