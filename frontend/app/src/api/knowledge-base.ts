@@ -36,6 +36,7 @@
  */
 
 import { type BaseCreateDatasourceParams, type CreateDatasourceSpecParams, type Datasource, type DatasourceKgIndexError, datasourceSchema, type DatasourceVectorIndexError } from '@/api/datasources';
+import { documentSchema } from '@/api/documents';
 import { type EmbeddingModelSummary, embeddingModelSummarySchema } from '@/api/embedding-models';
 import { type LLMSummary, llmSummarySchema } from '@/api/llms';
 import { type IndexProgress, indexSchema, indexStatusSchema, type IndexTotalStats, totalSchema } from '@/api/rag';
@@ -166,6 +167,13 @@ export async function getKnowledgeBaseDocumentChunks (id: number, documentId: nu
     headers: await authenticationHeaders(),
   })
     .then(handleResponse(knowledgeGraphDocumentChunkSchema.array()));
+}
+
+export async function getKnowledgeBaseDocument (id: number, documentId: number) {
+  return await fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}/documents/${documentId}`), {
+    headers: await authenticationHeaders(),
+  })
+    .then(handleResponse(documentSchema));
 }
 
 export async function deleteKnowledgeBaseDocument (id: number, documentId: number) {

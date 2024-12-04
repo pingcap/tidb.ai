@@ -1,6 +1,6 @@
 'use client';
 
-import { getKnowledgeBaseDocumentChunks } from '@/api/knowledge-base';
+import { getKnowledgeBaseDocument, getKnowledgeBaseDocumentChunks } from '@/api/knowledge-base';
 import { AdminPageHeading } from '@/components/admin-page-heading';
 import { DateFormat } from '@/components/date-format';
 import { CodeInput } from '@/components/form/widgets/CodeInput';
@@ -11,10 +11,12 @@ import useSWR from 'swr';
 
 export default function DocumentChunksPage ({ params }: { params: { id: string, documentId: string } }) {
   const kbId = parseInt(decodeURIComponent(params.id));
-  const { knowledgeBase } = useKnowledgeBase(kbId);
   const documentId = parseInt(decodeURIComponent(params.documentId));
+  const { knowledgeBase } = useKnowledgeBase(kbId);
 
-  const { data = [], isLoading } = useSWR(`api.knowledge-bases.${kbId}.document.${documentId}.chunks`, () => getKnowledgeBaseDocumentChunks(kbId, documentId), {
+  const { data: document } = useSWR(`api.knowledge-bases.${kbId}.documents.${documentId}`, () => getKnowledgeBaseDocument(kbId, documentId));
+
+  const { data = [], isLoading } = useSWR(`api.knowledge-bases.${kbId}.documents.${documentId}.chunks`, () => getKnowledgeBaseDocumentChunks(kbId, documentId), {
     revalidateOnFocus: false,
   });
 
@@ -24,7 +26,7 @@ export default function DocumentChunksPage ({ params }: { params: { id: string, 
         breadcrumbs={[
           { title: 'Knowledge Bases', url: '/knowledge-bases' },
           { title: knowledgeBase?.name ?? <Loader2Icon className="size-4 animate-spin repeat-infinite" />, url: `/knowledge-bases/${kbId}` },
-          { title: 'Document' },
+          { title: document?.name ?? <Loader2Icon className="size-4 animate-spin repeat-infinite" /> },
           { title: 'Chunks' },
         ]}
       />
