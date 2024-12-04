@@ -57,10 +57,6 @@ class DocumentRepo(BaseRepo):
             raise DocumentNotFound(doc_id)
         return doc
 
-    def delete_by_id(self, session: Session, document_id: int):
-        stmt = delete(Document).where(Document.id == document_id)
-        session.exec(stmt)
-
     def delete_by_datasource(self, session: Session, datasource_id: int):
         stmt = delete(Document).where(Document.data_source_id == datasource_id)
         session.exec(stmt)
