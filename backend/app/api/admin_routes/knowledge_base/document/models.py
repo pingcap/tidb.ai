@@ -44,9 +44,3 @@ class DocumentItem(BaseModel):
     last_modified_at: datetime
     created_at: datetime
     updated_at: datetime
-
-
-class KBDocumentUpload(BaseModel):
-    file_id: int
-    file_name: str
-
