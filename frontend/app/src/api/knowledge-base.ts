@@ -148,6 +148,12 @@ const kgIndexErrorSchema = z.object({
   error: z.string().nullable(),
 }) satisfies ZodType<DatasourceKgIndexError, any, any>;
 
+const knowledgeBaseLinkedChatEngine = z.object({
+  id: z.number(),
+  name: z.string(),
+  is_default: z.boolean(),
+})
+
 export async function listKnowledgeBases ({ page = 1, size = 10 }: PageParams) {
   return await fetch(requestUrl('/api/v1/admin/knowledge_bases', { page, size }), {
     headers: await authenticationHeaders(),
@@ -173,7 +179,14 @@ export async function getKnowledgeBaseDocument (id: number, documentId: number) 
   return await fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}/documents/${documentId}`), {
     headers: await authenticationHeaders(),
   })
-    .then(handleResponse(documentSchema));
+    .then(handleResponse(documentSchema.omit({ knowledge_base: true, data_source: true })));
+}
+
+export async function getKnowledgeBaseLinkedChatEngines (id: number) {
+  return await fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}/linked_chat_engines`), {
+    headers: await authenticationHeaders(),
+  })
+    .then(handleResponse(knowledgeBaseLinkedChatEngine.array()));
 }
 
 export async function deleteKnowledgeBaseDocument (id: number, documentId: number) {
