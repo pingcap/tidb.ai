@@ -19,7 +19,7 @@ export default function KnowledgeBaseLayout ({ params, children }: { params: { i
         breadcrumbs={[
           { title: 'Knowledge Bases', url: '/knowledge-bases' },
           {
-            alert: {
+            alert: knowledgeBase?.data_sources_total === 0 ? {
               variant: 'warning',
               content: <>
                 <p>This Knowledge Base has no datasource.</p>
@@ -28,7 +28,7 @@ export default function KnowledgeBaseLayout ({ params, children }: { params: { i
                   <ArrowRightIcon className="size-4" />
                 </Link>
               </>,
-            },
+            } : undefined,
             title: knowledgeBase?.name ?? <Loader2Icon className="size-4 animate-spin repeat-infinite" />,
           },
         ]}
