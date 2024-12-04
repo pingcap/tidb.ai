@@ -111,3 +111,21 @@ def delete_llm(
     session.delete(llm)
     session.commit()
     return llm
+
+
+@router.put("/admin/llms/{llm_id}/set_default")
+def set_default_llm(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    llm_id: int
+) -> AdminLLM:
+    try:
+        llm = llm_repo.must_get(session, llm_id)
+        llm_repo.set_default_model(session, llm_id)
+        session.refresh(llm)
+        return llm
+    except LLMNotFound as e:
+        raise e
+    except Exception as e:
+        logger.exception(e)
+        raise InternalServerError()

@@ -97,11 +97,11 @@ def get_reranker_model_detail(
     user: CurrentSuperuserDep,
 ) -> AdminRerankerModel:
     try:
-        return reranker_model_repo.must_get(reranker_model_id)
+        return reranker_model_repo.must_get(session, reranker_model_id)
     except RerankerModelNotFound as e:
         raise e
     except Exception as e:
-        logger.error(e)
+        logger.exception(e)
         raise InternalServerError()
 
 
@@ -124,3 +124,21 @@ def delete_reranker_model(
 
     session.delete(reranker_model)
     session.commit()
+
+
+@router.put("/admin/reranker-models/{reranker_model_id}/set_default")
+def set_default_reranker_model(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    reranker_model_id: int
+) -> AdminRerankerModel:
+    try:
+        reranker_model = reranker_model_repo.must_get(session, reranker_model_id)
+        reranker_model_repo.set_default_model(session, reranker_model_id)
+        session.refresh(reranker_model)
+        return reranker_model
+    except RerankerModelNotFound as e:
+        raise e
+    except Exception as e:
+        logger.exception(e)
+        raise InternalServerError()
