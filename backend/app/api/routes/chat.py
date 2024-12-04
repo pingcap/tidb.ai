@@ -85,6 +85,8 @@ def chats(
         )
     except ChatNotFound as e:
         raise e
+    except KBNotFound as e:
+        raise e
     except LLMException as e:
         raise e
     except EmbeddingModelException as e:
