@@ -179,7 +179,7 @@ export async function getKnowledgeBaseDocument (id: number, documentId: number) 
   return await fetch(requestUrl(`/api/v1/admin/knowledge_bases/${id}/documents/${documentId}`), {
     headers: await authenticationHeaders(),
   })
-    .then(handleResponse(documentSchema));
+    .then(handleResponse(documentSchema.omit({ knowledge_base: true, data_source: true })));
 }
 
 export async function getKnowledgeBaseLinkedChatEngines (id: number) {
