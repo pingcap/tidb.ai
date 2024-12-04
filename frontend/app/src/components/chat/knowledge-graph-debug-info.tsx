@@ -18,7 +18,7 @@ export function KnowledgeGraphDebugInfo ({ group }: { group: ChatMessageGroup })
   const canEdit = !!auth.me?.is_superuser && kbId != null;
 
   const shouldFetch = (!ongoing || ongoing.finished || couldFetchKnowledgeGraphDebugInfo(ongoing));
-  const { data: span, isLoading, mutate } = useSWR(
+  const { data: span, isLoading, mutate, error } = useSWR(
     shouldFetch && `api.chats.get-message-subgraph?id=${group.user.id}`,
     () => getChatMessageSubgraph(group.user.id),
     {
@@ -29,10 +29,10 @@ export function KnowledgeGraphDebugInfo ({ group }: { group: ChatMessageGroup })
   );
 
   useEffect(() => {
-    if (shouldFetch && !isLoading && !span) {
+    if (shouldFetch && !error && !isLoading && !span) {
       mutate(undefined, true);
     }
-  }, [span, isLoading, shouldFetch]);
+  }, [span, isLoading, error, shouldFetch]);
 
   const network = useNetwork(span);
 
