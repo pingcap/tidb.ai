@@ -19,12 +19,15 @@ The LLM is used for extracting knowledge from docs and generating responses. You
 
 [Configure  LLM](./llm)
 
+![Set up LLM model](https://github.com/user-attachments/assets/c343c1bb-1c82-4fab-a3b9-72987d271a45)
 
 ### Configure the Embedding Model
 
 The Embedding Model is a machine learning model that is trained to generate embeddings for a given input. We must translate text to vectors with this model before insert vector to database.
 
 [Configure  Embedding Service](./embedding-model)
+
+![Set up Embedding model](https://github.com/user-attachments/assets/2d78b771-d759-481c-a2ef-92333281ff1e)
 
 ### Configure the Reranker [Optional]
 
@@ -36,15 +39,20 @@ The Reranker is a machine learning model that is trained to rerank the results r
 > But we recommend you to use a reranker model to improve the performance of the answers.
 
 
-## Step 3: Add Data Source
+## Step 3: Add a New Knowledge Base
 
 After deployment and configuration, you need to add data source to the tool for example your own docs, knowledge base, etc.
 
-[Add Data Source](./data-source)
+![Add Knowledge Base](https://github.com/user-attachments/assets/f78be4ac-0211-48bf-9706-bb36240414cd)
+
 
 > After adding data source, there will be a period of time for the tool to index the data. During this time, the tool will not be able to provide answers to users.
 
-## Step 4: Usage
+## Step 4: Set up the Chat Engine
+
+
+
+## Step 5: Usage
 
 After deployment, configuration and adding data source, you can use the tool to chat with users to answer their questions.
 
