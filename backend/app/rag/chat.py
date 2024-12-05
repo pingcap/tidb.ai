@@ -14,7 +14,7 @@ import jinja2
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.llms import LLM
 from pydantic import BaseModel
-from sqlalchemy import text
+from sqlalchemy import text, delete
 from sqlmodel import Session, select, func, SQLModel
 from llama_index.core import VectorStoreIndex
 from llama_index.core.base.llms.base import ChatMessage
@@ -1146,6 +1146,15 @@ def check_rag_config_need_migration(session: Session) -> NeedMigrationStatus:
 class LLMRecommendQuestions(BaseModel):
     """recommend questions respond model"""
     questions: List[str]
+
+
+def remove_chat_message_recommend_questions(
+    db_session: Session,
+    chat_message_id: int,
+) -> None:
+    delete_stmt = delete(RecommendQuestion).where(RecommendQuestion.chat_message_id == chat_message_id)
+    db_session.exec(delete_stmt)
+    db_session.commit()
 
 
 def get_chat_message_recommend_questions(
