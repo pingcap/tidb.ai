@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, field_validator
@@ -45,6 +46,8 @@ class EmbeddingModelDetail(BaseModel):
     vector_dimension: int
     config: dict | list | None
     is_default: bool
+    created_at: datetime
+    updated_at: datetime
 
 
 class EmbeddingModelTestResult(BaseModel):
