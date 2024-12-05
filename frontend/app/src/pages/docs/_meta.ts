@@ -31,6 +31,9 @@ export default {
   "reranker-model": {
     "title": "Reranker Model"
   },
+  "knowledge-base": {
+    "title": "Knowledge Base"
+  },
   "data-source": {
     "title": "Data Source"
   },
