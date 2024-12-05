@@ -1,14 +1,11 @@
 import logging
 from typing import List
 
-from fastapi import Depends, HTTPException, APIRouter
+from fastapi import Depends, APIRouter
 from fastapi_pagination import Params, Page
-from fastapi_pagination.ext.sqlmodel import paginate
 
 from llama_index.core.schema import NodeWithScore, TextNode
 from sqlalchemy import update
-from sqlmodel import select
-from starlette import status
 
 from app.api.admin_routes.llm.routes import LLMTestResult
 from app.api.deps import CurrentSuperuserDep, SessionDep
@@ -111,7 +108,7 @@ def delete_reranker_model(
     session: SessionDep,
     user: CurrentSuperuserDep,
 ):
-    reranker_model = reranker_model_repo.must_get(RerankerModel, reranker_model_id)
+    reranker_model = reranker_model_repo.must_get(session, reranker_model_id)
 
     # FIXME: Should be replaced with a new reranker or prohibit users from operating,
     #  If the current reranker is used by a Chat Engine or Knowledge Base.
