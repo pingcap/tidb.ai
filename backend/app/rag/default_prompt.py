@@ -409,6 +409,22 @@ How is Oracle? (Lang: Chinese, Format: text, Background: Other topics.)
 
 ---------------------
 
+**Example 4**:
+
+Chat history:
+
+[]
+
+Follow-up question:
+
+"Why is TiDB Serverless up to 70% cheaper than MySQL RDS? (use a table if possible)"
+
+Goal:
+
+Why is TiDB Serverless up to 70% cheaper than MySQL RDS? Please provide a comparison in a table format if possible. (Lang: English, Format: table, Background: Cost comparison between TiDB Serverless and MySQL RDS.)
+
+---------------------
+
 **Your Task**:
 
 Chat history:
