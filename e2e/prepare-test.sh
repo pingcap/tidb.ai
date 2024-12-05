@@ -2,4 +2,4 @@
 
 set -e
 
-docker compose pull frontend background backend tidb redis static-web-server
+docker compose pull frontend background backend redis static-web-server

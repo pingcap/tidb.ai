@@ -1,8 +1,12 @@
+from typing import Type
+
+from sqlalchemy import delete
 from sqlmodel import select, Session, col
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
-from app.api.admin_routes.document.models import DocumentFilters
+from app.api.admin_routes.knowledge_base.document.models import DocumentFilters
+from app.exceptions import DocumentNotFound
 from app.models import Document
 from app.repositories.base_repo import BaseRepo
 
@@ -46,6 +50,16 @@ class DocumentRepo(BaseRepo):
         # Make sure the newer edited record is always on top
         stmt = stmt.order_by(Document.updated_at.desc())
         return paginate(session, stmt, params)
+
+    def must_get(self, session: Session, doc_id: int) -> Type[Document]:
+        doc = session.get(Document, doc_id)
+        if not doc:
+            raise DocumentNotFound(doc_id)
+        return doc
+
+    def delete_by_datasource(self, session: Session, datasource_id: int):
+        stmt = delete(Document).where(Document.data_source_id == datasource_id)
+        session.exec(stmt)
 
 
 document_repo = DocumentRepo()

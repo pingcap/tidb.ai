@@ -186,7 +186,7 @@ function Operations ({ refreshing, name, defaultValue }: { refreshing: boolean, 
 
   return (
     <div className="flex gap-2 items-center">
-      {(isDirty || deferredIsDirty) && <Button className={cn('gap-2 items-center', successAndWaitRefreshing && 'bg-green-500')} type="submit" disabled={isSubmitting || successAndWaitRefreshing || disabled}>
+      {(isDirty || deferredIsDirty) && <Button className={cn('gap-2 items-center', successAndWaitRefreshing && 'bg-success')} type="submit" disabled={isSubmitting || successAndWaitRefreshing || disabled}>
         {(isSubmitting) && <Loader2Icon className="size-4 animate-spin repeat-infinite" />}
         {successAndWaitRefreshing && <CheckIcon className="size-4" />}
         {isSubmitting ? 'Saving...' : refreshing ? 'Saved' : 'Save'}

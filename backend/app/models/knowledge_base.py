@@ -13,6 +13,7 @@ from sqlmodel import (
     SQLModel,
 )
 
+from app.exceptions import KBDataSourceNotFound
 from app.models.auth import User
 from app.models.data_source import DataSource
 from app.models.embed_model import EmbeddingModel
@@ -94,3 +95,12 @@ class KnowledgeBase(SQLModel, table=True):
 
     def __hash__(self):
         return hash(self.id)
+    
+    def get_data_source_by_id(self, data_source_id: int) -> Optional[DataSource]:
+        return next((ds for ds in self.data_sources if ds.id == data_source_id and not ds.deleted_at), None)
+    
+    def must_get_data_source_by_id(self, data_source_id: int) -> DataSource:
+        data_source = self.get_data_source_by_id(data_source_id)
+        if data_source is None:
+            raise KBDataSourceNotFound(self.id, data_source_id)
+        return data_source

@@ -1,9 +1,9 @@
 <!-- markdownlint-disable MD033 MD041 -->
 
 <div align="center">
-<h1>autoflow</h1>
+<h1>AutoFlow</h1>
   <a href='https://www.pingcap.com/tidb-cloud-serverless/?utm_source=tidb.ai&utm_medium=community'>
-    <img src="https://raw.githubusercontent.com/pingcap/tidb.ai/main/frontend/app/public/nextra/icon-dark.svg" alt="TiDB.AI" width =100 height=100></img>
+    <img src="https://raw.githubusercontent.com/pingcap/tidb.ai/main/frontend/app/public/nextra/icon-dark.svg" alt="AutoFlow" width =100 height=100></img>
   </a>
 </div>
 
@@ -24,15 +24,11 @@ An open source GraphRAG (Knowledge Graph) built on top of [TiDB Vector](https://
 
 1. **Perplexity-style Conversational Search page**: Our platform features an advanced built-in website crawler, designed to elevate your browsing experience. This crawler effortlessly navigates official and documentation sites, ensuring comprehensive coverage and streamlined search processes through sitemap URL scraping.
 
-    ![out-of-box-conversational-search](https://github.com/pingcap/tidb.ai/assets/1237528/9cc87d32-14ac-47c6-b664-efa7ec53e751 "Image Title")
-
-    You can even edit the Knowledge Graph to add more information or correct any inaccuracies. This feature is particularly useful for enhancing the search experience and ensuring that the information provided is accurate and up-to-date.
-
-    ![out-of-box-conversational-search](https://github.com/pingcap/tidb.ai/assets/1237528/7bc57b34-99b7-4c4b-a098-9ad33dd0dfdc "Image Title")
+![Image](https://github.com/user-attachments/assets/50a4e5ce-8b93-446a-8ce7-11ed7844bd1e)
 
 2. **Embeddable JavaScript Snippet**: Integrate our conversational search window effortlessly into your website by copying and embedding a simple JavaScript code snippet. This widget, typically placed at the bottom right corner of your site, facilitates instant responses to product-related queries.
 
-![embeddable-javascript-snippet](https://github.com/pingcap/tidb.ai/assets/1237528/5a445231-a27a-4ae6-8287-a4f8cf7b64d0 "Image Title")
+![Image](https://github.com/user-attachments/assets/f0dc82db-c14d-4863-a242-c7da3a719568)
 
 ## Deploy
 

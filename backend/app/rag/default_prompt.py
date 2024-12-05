@@ -287,6 +287,7 @@ Instructions:
 3. Ensure each question logically follows from the context of the provided chat message.
 4. Keep questions concise yet insightful to maximize engagement.
 5. Use the same language with the chat message content.
+6. Each question should end with a question mark.
 
 Now, generate 3–5 follow-up questions below:
 """
@@ -336,34 +337,77 @@ Given the conversation history between the User and Assistant, along with the la
 1. **Language Detection**:
     - Analyze the User's follow-up question to determine the language used.
 
-2. **Goal Generation**:
+2. **Context Classification**:
+    - **Determine Relevance to TiDB**:
+        - Assess whether the follow-up question is related to TiDB products, support, or any TiDB-related context.
+    - **Set Background Accordingly**:
+        - **If Related to TiDB**:
+            - Set the background to encompass the relevant TiDB context. This may include aspects like TiDB features, configurations, best practices, troubleshooting, or general consulting related to TiDB.
+            - Example backgrounds:
+                - "TiDB product configuration and optimization."
+                - "TiDB troubleshooting and support."
+                - "TiDB feature consultation."
+        - **If Unrelated to TiDB**:
+            - Set the background to "Other topics."
+
+3. **Goal Generation**:
     - Determine the latest User intent from the follow-up question and the chat history.
     - Reformulate the latest User follow-up question into a clear, standalone question suitable for processing by the agent.
     - Specify the detected language for the answer.
     - Define the desired answer format.
     - Include any additional requirements as needed.
 
-3. **Output**:
+4. **Output**:
     - Produce a goal string in the following format:
       "[Refined Question] (Lang: [Detected Language], Format: [Format], Background: [Specified Goal Scenario])"
 
-**Example**:
+**Example 1**:
 
 Chat history:
 
 []
 
----------------------
-
 Follow-up question:
 
 "tidb encryption at rest 会影响数据压缩比例吗？"
 
----------------------
-
 Goal:
 
 Does encryption at rest in TiDB affect the data compression ratio? (Lang: Chinese, Format: text, Background: TiDB product related consulting.)
+
+---------------------
+
+**Example 2**:
+
+Chat history:
+
+[]
+
+Follow-up question:
+
+"干嘛的？"
+
+Goal:
+
+What can you do? (Lang: Chinese, Format: text, Background: General inquiry about the assistant's capabilities.)
+
+---------------------
+
+**Example 3**:
+
+Chat history:
+
+[]
+
+Follow-up question:
+
+"oracle 怎么样？"
+
+Goal:
+
+How is Oracle? (Lang: Chinese, Format: text, Background: Other topics.)
+
+---------------------
 
 **Your Task**:
 
@@ -371,13 +415,9 @@ Chat history:
 
 {{chat_history}}
 
----------------------
-
 Follow-up question:
 
 {{question}}
-
----------------------
 
 Goal:
 """

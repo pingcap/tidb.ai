@@ -1,13 +1,13 @@
 'use client';
 
 import { logout } from '@/api/auth';
-import { listChatEngines } from '@/api/chat-engines';
 import type { PublicWebsiteSettings } from '@/api/site-settings';
 import { useAuth } from '@/components/auth/AuthProvider';
 import { Branding } from '@/components/branding';
+import { useAllChatEngines } from '@/components/chat-engine/hooks';
 import { ChatNewDialog } from '@/components/chat/chat-new-dialog';
 import { ChatsHistory } from '@/components/chat/chats-history';
-import { useKnowledgeBases } from '@/components/knowledge-base/hooks';
+import { useAllKnowledgeBases } from '@/components/knowledge-base/hooks';
 import { type NavGroup, SiteNav } from '@/components/site-nav';
 import { useBootstrapStatus } from '@/components/system/BootstrapStatusProvider';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -17,12 +17,11 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/compone
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useHref } from '@/components/use-href';
-import { ActivitySquareIcon, AlertTriangleIcon, BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, ComponentIcon, FilesIcon, HomeIcon, KeyRoundIcon, LibraryBigIcon, LibraryIcon, LogInIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon } from 'lucide-react';
+import { ActivitySquareIcon, AlertTriangleIcon, BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, ComponentIcon, HomeIcon, KeyRoundIcon, LibraryBigIcon, LogInIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon } from 'lucide-react';
 import NextLink from 'next/link';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import type { ReactNode } from 'react';
-import useSWR from 'swr';
 
 export function SiteSidebar ({ setting }: { setting: PublicWebsiteSettings }) {
   return (
@@ -41,7 +40,7 @@ export function SiteSidebar ({ setting }: { setting: PublicWebsiteSettings }) {
 }
 
 function NavContent () {
-  const { required } = useBootstrapStatus();
+  const { required, need_migration } = useBootstrapStatus();
   const href = useHref();
   const auth = useAuth();
   const user = auth.me;
@@ -65,8 +64,26 @@ function NavContent () {
       title: 'Admin',
       items: [
         { href: '/stats/trending', title: 'Dashboard', icon: ActivitySquareIcon },
-        { href: '/knowledge-bases', title: 'Knowledge Bases', icon: LibraryBigIcon, details: !required.knowledge_base ? <NavWarningDetails>You need to configure at least one knowledge base.</NavWarningDetails> : <KnowledgeBaseNavDetails /> },
-        { href: '/chat-engines', title: 'Chat Engines', icon: BotMessageSquareIcon, details: <ChatEnginesNavDetails /> },
+        {
+          href: '/knowledge-bases',
+          title: 'Knowledge Bases',
+          icon: LibraryBigIcon,
+          details: !required.knowledge_base
+            ? <NavWarningDetails>You need to configure at least one Knowledge Base.</NavWarningDetails>
+            : <KnowledgeBaseNavDetails />,
+        },
+        {
+          href: '/chat-engines',
+          title: 'Chat Engines',
+          icon: BotMessageSquareIcon,
+          details: !!need_migration.chat_engines_without_kb_configured?.length
+            ? <NavWarningDetails>
+              Some ChatEngine need to <a href="/releases/0.3.0#manual-migration" className="underline">configure KnowledgeBase</a>.
+            </NavWarningDetails>
+            : !required.default_chat_engine
+              ? <NavWarningDetails>You need to configure default Chat Engine.</NavWarningDetails>
+              : <ChatEnginesNavDetails />,
+        },
         {
           parent: true,
           key: 'models',
@@ -81,15 +98,6 @@ function NavContent () {
         },
         { href: '/feedbacks', title: 'Feedbacks', icon: MessageCircleQuestionIcon },
         { href: '/site-settings', title: 'Settings', icon: CogIcon },
-      ],
-      sectionProps: { className: 'mt-auto mb-0' },
-    });
-
-    groups.push({
-      title: 'Legacy',
-      items: [
-        { href: '/documents', title: 'Documents', icon: FilesIcon },
-        { href: '/datasources', title: 'Datasources', icon: LibraryIcon, details: !required.datasource && <NavWarningDetails>You need to configure at least one Datasource.</NavWarningDetails> },
       ],
       sectionProps: { className: 'mt-auto mb-0' },
     });
@@ -155,13 +163,13 @@ function NavFooter () {
 
 function NavWarningDetails ({ children }: { children?: ReactNode }) {
   if (!children) {
-    return <AlertTriangleIcon className="text-yellow-600 dark:text-yellow-400 size-4" />;
+    return <AlertTriangleIcon className="text-warning size-4" />;
   }
   return (
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger>
-          <AlertTriangleIcon className="text-yellow-600 dark:text-yellow-400 size-4" />
+          <AlertTriangleIcon className="text-warning size-4" />
         </TooltipTrigger>
         <TooltipContent>
           {children}
@@ -176,21 +184,21 @@ function CountSpan ({ children }: { children?: ReactNode }) {
 }
 
 function KnowledgeBaseNavDetails () {
-  const { knowledgeBases, isLoading } = useKnowledgeBases(0, 10);
+  const { data: knowledgeBases, isLoading } = useAllKnowledgeBases();
 
   if (isLoading) {
     return <Skeleton className="flex-shrink-0 w-6 h-4" />;
   }
 
-  return <CountSpan>{knowledgeBases?.total}</CountSpan>;
+  return <CountSpan>{knowledgeBases?.length}</CountSpan>;
 }
 
 function ChatEnginesNavDetails () {
-  const { data, isLoading } = useSWR('api.chat-engines.list-all', () => listChatEngines({ page: 1, size: 100 }));
+  const { data, isLoading } = useAllChatEngines();
 
   if (isLoading) {
     return <Skeleton className="flex-shrink-0 w-6 h-4" />;
   }
 
-  return <CountSpan>{data?.total}</CountSpan>;
+  return <CountSpan>{data?.length}</CountSpan>;
 }

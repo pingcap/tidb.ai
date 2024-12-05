@@ -1,27 +1,27 @@
-from typing import Optional, Type
+from typing import List, Optional, Type
 from datetime import datetime, UTC
 
+from sqlalchemy import delete
 from sqlalchemy.orm.attributes import flag_modified
 from sqlmodel import select, Session, func, update
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
 
 from app.api.admin_routes.knowledge_base.models import VectorIndexError, KGIndexError, KnowledgeBaseUpdate
-from app.exceptions import KnowledgeBaseNotFoundError
+from app.exceptions import KBDataSourceNotFound, KBNotFound
 from app.models import (
     KnowledgeBase,
     Document,
     DocIndexTaskStatus,
     KgIndexStatus, Chunk, KnowledgeBaseDataSource,
 )
+from app.models.chat_engine import ChatEngine
 from app.models.chunk import get_kb_chunk_model
-from app.models.entity import get_kb_entity_model
+from app.models.data_source import DataSource
 from app.models.knowledge_base import IndexMethod
-from app.models.relationship import get_kb_relationship_model
 from app.repositories.base_repo import BaseRepo
 from app.repositories.chunk import ChunkRepo
-from app.repositories.entity import EntityRepo
-from app.repositories.relationship import RelationshipRepo
+from app.repositories.graph import get_kb_graph_repo
 
 
 class KnowledgeBaseRepo(BaseRepo):
@@ -35,18 +35,18 @@ class KnowledgeBaseRepo(BaseRepo):
         )
         return paginate(session, query, params)
 
-    def get(self, session: Session, knowledge_base_id: int, include_soft_deleted: bool = True) -> Optional[KnowledgeBase]:
+    def get(self, session: Session, knowledge_base_id: int, show_soft_deleted: bool = True) -> Optional[KnowledgeBase]:
         stmt = select(KnowledgeBase).where(KnowledgeBase.id == knowledge_base_id)
 
-        if not include_soft_deleted:
+        if not show_soft_deleted:
             stmt = stmt.where(KnowledgeBase.deleted_at == None)
 
         return session.exec(stmt).first()
     
-    def must_get(self, session: Session, knowledge_base_id: int) -> Optional[KnowledgeBase]:
-        kb = self.get(session, knowledge_base_id)
+    def must_get(self, session: Session, knowledge_base_id: int, show_soft_deleted: bool = True) -> Optional[KnowledgeBase]:
+        kb = self.get(session, knowledge_base_id, show_soft_deleted)
         if kb is None:
-            raise KnowledgeBaseNotFoundError(knowledge_base_id)
+            raise KBNotFound(knowledge_base_id)
         return kb
 
     def update(
@@ -114,14 +114,12 @@ class KnowledgeBaseRepo(BaseRepo):
         return chunk_repo.count(session)
 
     def count_relationships(self, session: Session, kb: KnowledgeBase):
-        relationship_model = get_kb_relationship_model(kb)
-        relationship_repo = RelationshipRepo(relationship_model)
-        return relationship_repo.count(session)
+        graph_repo = get_kb_graph_repo(kb)
+        return graph_repo.count_relationships(session)
 
     def count_entities(self, session: Session, kb: KnowledgeBase):
-        entity_model = get_kb_entity_model(kb)
-        entity_repo = EntityRepo(entity_model)
-        return entity_repo.count(session)
+        graph_repo = get_kb_graph_repo(kb)
+        return graph_repo.count_entities(session)
 
     def count_documents_by_vector_index_status(self, session: Session, kb: KnowledgeBase) -> dict:
         stmt = (
@@ -195,7 +193,6 @@ class KnowledgeBaseRepo(BaseRepo):
 
         return chunk_ids
 
-
     def list_vector_index_built_errors(
         self,
         session: Session,
@@ -226,7 +223,6 @@ class KnowledgeBaseRepo(BaseRepo):
                 for row in rows
             ]
         )
-
 
     def list_kg_index_built_errors(
         self,
@@ -263,6 +259,71 @@ class KnowledgeBaseRepo(BaseRepo):
             for row in rows
         ])
 
+    def get_kb_datasource(
+        self,
+        session: Session,
+        kb: KnowledgeBase,
+        datasource_id: int,
+        show_soft_deleted: bool = False
+    ) -> DataSource:
+        stmt = select(DataSource).where(DataSource.id == datasource_id)
+        if not show_soft_deleted:
+            stmt = stmt.where(DataSource.deleted_at == None)
+        return session.exec(stmt).first()
+    
+    def must_get_kb_datasource(
+        self,
+        session: Session,
+        kb: KnowledgeBase,
+        datasource_id: int,
+        show_soft_deleted: bool = False
+    ) -> DataSource:
+        data_source = self.get_kb_datasource(session, kb, datasource_id, show_soft_deleted)
+        if data_source is None:
+            raise KBDataSourceNotFound(kb.id, datasource_id)
+        return data_source
 
+    def add_kb_datasource(self, session: Session, kb: KnowledgeBase, data_source: DataSource) -> DataSource:
+        session.add(data_source)
+        kb.data_sources.append(data_source)
+        
+        session.add(kb)
+        session.commit()
+        session.refresh(data_source)
+        
+        return data_source
+
+    def list_kb_datasources(self, session: Session, kb_id: int, params: Params | None = Params()) -> Page[DataSource]:
+        query = (
+            select(DataSource)
+            .join(KnowledgeBaseDataSource)
+            .where(
+                DataSource.deleted_at == None,
+                KnowledgeBaseDataSource.knowledge_base_id == kb_id
+            )
+            .order_by(DataSource.created_at.desc())
+        )
+        return paginate(session, query, params)
+
+    def remove_kb_datasource(self, session: Session, kb: KnowledgeBase, data_source: DataSource) -> None:
+        # Flag the data source to be deleted.
+        data_source.deleted_at = datetime.now(UTC)
+        session.add(data_source)
+
+        # Remove the data source from the knowledge base.
+        stmt = delete(KnowledgeBaseDataSource).where(
+            KnowledgeBaseDataSource.knowledge_base_id == kb.id,
+            KnowledgeBaseDataSource.data_source_id == data_source.id
+        )
+        session.exec(stmt)
+
+    def list_linked_chat_engines(self, session: Session, kb_id: int) -> List[ChatEngine]:
+        return session.exec(
+            select(ChatEngine)
+                .where(
+                    ChatEngine.deleted_at == None,
+                    func.JSON_UNQUOTE(func.JSON_EXTRACT(ChatEngine.engine_options, '$.knowledge_base.linked_knowledge_base.id')) == kb_id
+                )
+        ).all()
 
 knowledge_base_repo = KnowledgeBaseRepo()
