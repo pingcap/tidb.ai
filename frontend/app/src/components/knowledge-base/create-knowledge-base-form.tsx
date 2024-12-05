@@ -37,9 +37,10 @@ export function CreateKnowledgeBaseForm ({}: {}) {
     });
 
     startTransition(() => {
+      router.refresh();
       router.push(`/knowledge-bases/${kb.id}/data-sources`);
-      mutateKnowledgeBases();
     });
+    void mutateKnowledgeBases();
   });
 
   return (
