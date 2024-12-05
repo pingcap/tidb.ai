@@ -88,7 +88,7 @@ def delete_llm(
     session: SessionDep,
     user: CurrentSuperuserDep,
 ) -> AdminLLM:
-    llm = llm_repo.must_get(LLM, llm_id)
+    llm = llm_repo.must_get(session, llm_id)
 
     # FIXME: Should be replaced with a new LLM or prohibit users from operating,
     #  If the current LLM is used by a Chat Engine or Knowledge Base.
