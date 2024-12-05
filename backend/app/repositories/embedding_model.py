@@ -2,7 +2,6 @@ from typing import Type
 
 from fastapi_pagination import Params, Page
 from fastapi_pagination.ext.sqlmodel import paginate
-from sqlalchemy import func
 from sqlalchemy.orm.attributes import flag_modified
 from sqlmodel import Session, select, update
 
@@ -45,7 +44,7 @@ class EmbeddingModelRepo(BaseRepo):
         return session.exec(stmt).one_or_none() is not None
 
 
-    def must_get(self, session, model_id: int) -> Type[EmbeddingModel]:
+    def must_get(self, session: Session, model_id: int) -> Type[EmbeddingModel]:
         db_embed_model = self.get(session, model_id)
         if db_embed_model is None:
             raise EmbeddingModelNotFound(model_id)
