@@ -17,7 +17,7 @@ export default function KnowledgeBaseLayout ({ params, children }: { params: { i
     <>
       <AdminPageHeading
         breadcrumbs={[
-          { title: 'Knowledge Bases', url: '/knowledge-bases' },
+          { title: 'Knowledge Bases', url: '/knowledge-bases', docsUrl: '/docs/knowledge-base' },
           {
             alert: knowledgeBase?.data_sources_total === 0 ? {
               variant: 'warning',

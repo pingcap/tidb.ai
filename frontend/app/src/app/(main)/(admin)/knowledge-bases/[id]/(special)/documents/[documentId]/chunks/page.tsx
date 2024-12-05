@@ -24,7 +24,7 @@ export default function DocumentChunksPage ({ params }: { params: { id: string, 
     <>
       <AdminPageHeading
         breadcrumbs={[
-          { title: 'Knowledge Bases', url: '/knowledge-bases' },
+          { title: 'Knowledge Bases', url: '/knowledge-bases', docsUrl: '/docs/knowledge-base' },
           { title: knowledgeBase?.name ?? <Loader2Icon className="size-4 animate-spin repeat-infinite" />, url: `/knowledge-bases/${kbId}` },
           { title: document?.name ?? <Loader2Icon className="size-4 animate-spin repeat-infinite" /> },
           { title: 'Chunks' },
