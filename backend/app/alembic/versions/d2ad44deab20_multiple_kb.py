@@ -8,8 +8,13 @@ Create Date: 2024-11-15 09:51:42.493749
 from alembic import op
 import sqlalchemy as sa
 import sqlmodel.sql.sqltypes
-from tidb_vector.sqlalchemy import VectorType
+from sqlalchemy import update
+from sqlmodel import Session
 from sqlalchemy.dialects import mysql
+
+from app.core.config import settings
+from app.core.db import engine
+from app.models import EmbeddingModel
 
 # revision identifiers, used by Alembic.
 revision = 'd2ad44deab20'
@@ -54,6 +59,17 @@ def upgrade():
     op.create_foreign_key("fk_d_on_knowledge_base_id", 'documents', 'knowledge_bases', ['knowledge_base_id'], ['id'])
     op.add_column('embedding_models', sa.Column('vector_dimension', sa.Integer(), nullable=False))
     # ### end Alembic commands ###
+
+    # ### Data Migration ###
+    with Session(engine) as session:
+        stmt = (
+            update(EmbeddingModel)
+                .where(EmbeddingModel.vector_dimension==0)
+                .values(vector_dimension=settings.EMBEDDING_DIMS)
+        )
+        session.exec(stmt)
+        session.commit()
+    # ### end Data Migration ###
 
 
 def downgrade():
