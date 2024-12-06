@@ -12,18 +12,17 @@ from fastapi.responses import StreamingResponse
 from fastapi_pagination import Params, Page
 
 from app.api.deps import SessionDep, OptionalUserDep, CurrentUserDep
-from app.rag.chat_config import ChatEngineConfig, must_get_default_embed_model
-from app.rag.knowledge_base.config import get_kb_embed_model
-from app.rag.knowledge_base.index_store import get_kb_tidb_graph_editor
-from app.rag.knowledge_graph.graph_store.tidb_graph_editor import legacy_tidb_graph_editor
-from app.repositories import chat_repo, knowledge_base_repo
+from app.rag.chat_config import ChatEngineConfig
+from app.repositories import chat_repo
 from app.models import Chat, ChatUpdate
 from app.rag.chat import (
     ChatService,
     ChatEvent,
     user_can_view_chat,
     user_can_edit_chat,
-    get_chat_message_subgraph, get_chat_message_recommend_questions, remove_chat_message_recommend_questions,
+    get_chat_message_subgraph,
+    get_chat_message_recommend_questions,
+    remove_chat_message_recommend_questions
 )
 from app.rag.types import (
     MessageRole,
@@ -31,9 +30,14 @@ from app.rag.types import (
     ChatEventType,
     ChatMessageSate,
 )
-from app.exceptions import ChatNotFound, DefaultLLMNotFound, DefaultEmbeddingModelNotFound, LLMNotFound, \
-    EmbeddingModelNotFound, KBNotFound, InternalServerError, RerankerModelNotFound, \
-    DefaultRerankerModelNotFound, LLMException, EmbeddingModelException, RerankerModelException
+from app.exceptions import (
+    ChatNotFound,
+    KBNotFound,
+    LLMException,
+    EmbeddingModelException,
+    RerankerModelException,
+    InternalServerError,
+)
 
 logger = logging.getLogger(__name__)
 
