@@ -82,6 +82,7 @@ class LLMRepo(BaseRepo):
                 .where(DBLLM.id == new_default_model_id)
                 .values(is_default=True)
         )
+        session.commit()
 
 
 llm_repo = LLMRepo()
