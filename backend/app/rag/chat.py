@@ -53,12 +53,14 @@ from app.rag.chat_stream_protocol import (
 )
 from app.models.relationship import get_kb_relationship_model
 from app.rag.knowledge_base.config import get_kb_embed_model
+from app.rag.knowledge_base.index_store import get_kb_tidb_graph_editor
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
-from app.rag.knowledge_graph.graph_store.tidb_graph_editor import TiDBGraphEditor
+from app.rag.knowledge_graph.graph_store.tidb_graph_editor import TiDBGraphEditor, legacy_tidb_graph_editor
 
 from app.rag.knowledge_graph import KnowledgeGraphIndex
-from app.rag.chat_config import ChatEngineConfig, get_default_embed_model, KnowledgeGraphOption
+from app.rag.chat_config import ChatEngineConfig, get_default_embed_model, KnowledgeGraphOption, \
+    must_get_default_embed_model
 from app.rag.types import (
     MyCBEventType,
     ChatMessageSate,
@@ -1019,15 +1021,16 @@ def get_graph_data_from_langfuse(trace_url: str):
 
 
 def get_chat_message_subgraph(
-    graph_editor: TiDBGraphEditor,
+    chat_engine_config: ChatEngineConfig,
     session: Session,
-    chat_message: DBChatMessage,
-    embed_model: BaseEmbedding,
-    entity_db_model: SQLModel = DBEntity,
-    relationship_db_model: SQLModel = DBRelationship,
+    chat_message: DBChatMessage
 ) -> Tuple[List, List]:
     if chat_message.role != MessageRole.USER:
         return [], []
+
+    kb = None
+    if chat_engine_config.knowledge_base:
+        kb = knowledge_base_repo.must_get(session, chat_engine_config.knowledge_base.linked_knowledge_base.id)
 
     # try to get subgraph from chat_message.graph_data
     try:
@@ -1036,6 +1039,7 @@ def get_chat_message_subgraph(
             and "relationships" in chat_message.graph_data
             and len(chat_message.graph_data["relationships"]) > 0
         ):
+            graph_editor = get_kb_tidb_graph_editor(session, kb) if kb else legacy_tidb_graph_editor
             relationship_ids = chat_message.graph_data["relationships"]
             all_entities, all_relationships = graph_editor.get_relationship_by_ids(
                 session, relationship_ids
@@ -1067,7 +1071,7 @@ def get_chat_message_subgraph(
     except Exception as e:
         logger.error(f"Failed to get subgraph from chat_message.graph_data: {e}")
 
-    # try to get subgraph from langfuse trace
+    # try to get subgraph from langfuse trace.
     try:
         entities, relationships = get_graph_data_from_langfuse(chat_message.trace_url)
         if len(relationships) > 0:
@@ -1075,9 +1079,10 @@ def get_chat_message_subgraph(
     except Exception as e:
         logger.error(f"Failed to get subgraph from langfuse trace: {e}")
 
-    chat: DBChat = chat_message.chat
-    chat_engine_config = ChatEngineConfig.load_from_db(session, chat.engine.name)
-    kg_config = chat_engine_config.knowledge_graph
+    # try to get subgraph from graph store instead of cached result.
+    embed_model = get_kb_embed_model(session, kb) if kb else must_get_default_embed_model(session)
+    entity_db_model = get_kb_entity_model(kb) if kb else DBEntity
+    relationship_db_model = get_kb_relationship_model(kb) if kb else DBRelationship
     graph_store = TiDBGraphStore(
         dspy_lm=chat_engine_config.get_fast_dspy_lm(session),
         session=session,
@@ -1085,6 +1090,8 @@ def get_chat_message_subgraph(
         entity_db_model=entity_db_model,
         relationship_db_model=relationship_db_model,
     )
+
+    kg_config = chat_engine_config.knowledge_graph
     entities, relations, _ = graph_store.retrieve_with_weight(
         chat_message.content,
         [],
@@ -1093,6 +1100,7 @@ def get_chat_message_subgraph(
         with_degree=kg_config.with_degree,
         with_chunks=False,
     )
+
     return entities, relations
 
 
