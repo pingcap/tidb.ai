@@ -207,16 +207,8 @@ def get_chat_subgraph(session: SessionDep, user: OptionalUserDep, chat_message_i
 
     engine_options = chat_message.chat.engine_options
     chat_engine_config = ChatEngineConfig.model_validate(engine_options)
+    entities, relations = get_chat_message_subgraph(chat_engine_config, session, chat_message)
 
-    if chat_engine_config.knowledge_base:
-        kb = knowledge_base_repo.must_get(session, chat_engine_config.knowledge_base.linked_knowledge_base.id)
-        embed_model = get_kb_embed_model(session, kb)
-        graph_editor = get_kb_tidb_graph_editor(session, kb)
-    else:
-        embed_model = must_get_default_embed_model(session)
-        graph_editor = legacy_tidb_graph_editor
-
-    entities, relations = get_chat_message_subgraph(graph_editor, session, chat_message, embed_model)
     return SubgraphResponse(entities=entities, relationships=relations)
 
 
