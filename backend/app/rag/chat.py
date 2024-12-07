@@ -972,7 +972,55 @@ def user_can_edit_chat(chat: DBChat, user: Optional[User]) -> bool:
     return chat.user_id == user.id
 
 
-def get_graph_data_from_langfuse(trace_url: str):
+def get_graph_data_from_chat_message(
+    graph_editor: TiDBGraphEditor,
+    session: Session,
+    chat_message: ChatMessage
+) -> Tuple[list[dict], list[dict]]:
+    if not chat_message.content:
+        return [], []
+
+    if "relationships" not in chat_message.graph_data:
+        return [], []
+
+    if len(chat_message.graph_data["relationships"]) == 0:
+        return [], []
+
+    # FIXME: Why not store the complete data in chat_message.graph_data.
+    relationship_ids = chat_message.graph_data["relationships"]
+    all_entities, all_relationships = graph_editor.get_relationship_by_ids(
+        session, relationship_ids
+    )
+    entities = [
+        {
+            "id": e.id,
+            "name": e.name,
+            "description": e.description,
+            "meta": e.meta,
+            "entity_type": e.entity_type,
+        }
+        for e in all_entities
+    ]
+    relationships = [
+        {
+            "id": r.id,
+            "source_entity_id": r.source_entity_id,
+            "target_entity_id": r.target_entity_id,
+            "description": r.description,
+            "rag_description": f"{r.source_entity.name} -> {r.description} -> {r.target_entity.name}",
+            "meta": r.meta,
+            "weight": r.weight,
+            "last_modified_at": r.last_modified_at,
+        }
+        for r in all_relationships
+    ]
+
+    return entities, relationships
+
+
+def get_graph_data_from_langfuse(
+    trace_url: str
+) -> Tuple[list[dict], list[dict]]:
     start_time = time.time()
     langfuse_host = SiteSetting.langfuse_host
     langfuse_secret_key = SiteSetting.langfuse_secret_key
@@ -1020,13 +1068,12 @@ def get_graph_data_from_langfuse(trace_url: str):
         return [], []
 
 
-def get_chat_message_subgraph(
-    chat_engine_config: ChatEngineConfig,
-    session: Session,
-    chat_message: DBChatMessage
-) -> Tuple[List, List]:
+def get_chat_message_subgraph(session: Session, chat_message: DBChatMessage) -> Tuple[List, List]:
     if chat_message.role != MessageRole.USER:
         return [], []
+
+    engine_options = chat_message.chat.engine_options
+    chat_engine_config = ChatEngineConfig.model_validate(engine_options)
 
     kb = None
     if chat_engine_config.knowledge_base:
@@ -1034,40 +1081,10 @@ def get_chat_message_subgraph(
 
     # try to get subgraph from chat_message.graph_data
     try:
-        if (
-            chat_message.graph_data
-            and "relationships" in chat_message.graph_data
-            and len(chat_message.graph_data["relationships"]) > 0
-        ):
-            graph_editor = get_kb_tidb_graph_editor(session, kb) if kb else legacy_tidb_graph_editor
-            relationship_ids = chat_message.graph_data["relationships"]
-            all_entities, all_relationships = graph_editor.get_relationship_by_ids(
-                session, relationship_ids
-            )
-            entities = [
-                {
-                    "id": e.id,
-                    "name": e.name,
-                    "description": e.description,
-                    "meta": e.meta,
-                    "entity_type": e.entity_type,
-                }
-                for e in all_entities
-            ]
-            relationships = [
-                {
-                    "id": r.id,
-                    "source_entity_id": r.source_entity_id,
-                    "target_entity_id": r.target_entity_id,
-                    "description": r.description,
-                    "rag_description": f"{r.source_entity.name} -> {r.description} -> {r.target_entity.name}",
-                    "meta": r.meta,
-                    "weight": r.weight,
-                    "last_modified_at": r.last_modified_at,
-                }
-                for r in all_relationships
-            ]
-            return entities, relationships
+        graph_editor = get_kb_tidb_graph_editor(session, kb) if kb else legacy_tidb_graph_editor
+        entities, relationships = get_graph_data_from_chat_message(graph_editor, session, chat_message)
+        if len(relationships) > 0:
+            return list(entities), list(relationships)
     except Exception as e:
         logger.error(f"Failed to get subgraph from chat_message.graph_data: {e}")
 
@@ -1080,6 +1097,11 @@ def get_chat_message_subgraph(
         logger.error(f"Failed to get subgraph from langfuse trace: {e}")
 
     # try to get subgraph from graph store instead of cached result.
+
+    # FIXME: Use the configuration in chat_message.engine_options instead of the current configuration.
+    chat_engine: ChatEngine = chat_message.chat.engine
+    chat_engine_config = ChatEngineConfig.load_from_db(session, chat_engine.name)
+
     embed_model = get_kb_embed_model(session, kb) if kb else must_get_default_embed_model(session)
     entity_db_model = get_kb_entity_model(kb) if kb else DBEntity
     relationship_db_model = get_kb_relationship_model(kb) if kb else DBRelationship
@@ -1090,7 +1112,6 @@ def get_chat_message_subgraph(
         entity_db_model=entity_db_model,
         relationship_db_model=relationship_db_model,
     )
-
     kg_config = chat_engine_config.knowledge_graph
     entities, relations, _ = graph_store.retrieve_with_weight(
         chat_message.content,

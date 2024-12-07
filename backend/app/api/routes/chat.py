@@ -209,9 +209,7 @@ def get_chat_subgraph(session: SessionDep, user: OptionalUserDep, chat_message_i
     if not user_can_view_chat(chat_message.chat, user):
         raise HTTPException(status_code=HTTPStatus.FORBIDDEN, detail="Access denied")
 
-    engine_options = chat_message.chat.engine_options
-    chat_engine_config = ChatEngineConfig.model_validate(engine_options)
-    entities, relations = get_chat_message_subgraph(chat_engine_config, session, chat_message)
+    entities, relations = get_chat_message_subgraph(session, chat_message)
 
     return SubgraphResponse(entities=entities, relationships=relations)
 
