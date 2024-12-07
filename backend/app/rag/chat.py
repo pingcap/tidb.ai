@@ -1074,10 +1074,7 @@ def get_chat_message_subgraph(session: Session, chat_message: DBChatMessage) -> 
 
     engine_options = chat_message.chat.engine_options
     chat_engine_config = ChatEngineConfig.model_validate(engine_options)
-
-    kb = None
-    if chat_engine_config.knowledge_base:
-        kb = knowledge_base_repo.must_get(session, chat_engine_config.knowledge_base.linked_knowledge_base.id)
+    kb = knowledge_base_repo.must_get(session, chat_engine_config.knowledge_base.linked_knowledge_base.id) if chat_engine_config.knowledge_base else None
 
     # try to get subgraph from chat_message.graph_data
     try:
@@ -1097,11 +1094,6 @@ def get_chat_message_subgraph(session: Session, chat_message: DBChatMessage) -> 
         logger.error(f"Failed to get subgraph from langfuse trace: {e}")
 
     # try to get subgraph from graph store instead of cached result.
-
-    # FIXME: Use the configuration in chat_message.engine_options instead of the current configuration.
-    chat_engine: ChatEngine = chat_message.chat.engine
-    chat_engine_config = ChatEngineConfig.load_from_db(session, chat_engine.name)
-
     embed_model = get_kb_embed_model(session, kb) if kb else must_get_default_embed_model(session)
     entity_db_model = get_kb_entity_model(kb) if kb else DBEntity
     relationship_db_model = get_kb_relationship_model(kb) if kb else DBRelationship
