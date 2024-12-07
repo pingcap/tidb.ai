@@ -22,9 +22,6 @@ export default {
   "llm": {
     "title": "LLM - Large Language Model"
   },
-  "chat-engine": {
-    "title": "Chat Engine"
-  },
   "embedding-model": {
     "title": "Embedding Model"
   },
@@ -36,6 +33,9 @@ export default {
   },
   "data-source": {
     "title": "Data Source"
+  },
+  "chat-engine": {
+    "title": "Chat Engine"
   },
   "javascript": {
     "title": "Pop Up Chat Window"
