@@ -39,14 +39,14 @@ test('Bootstrap', async ({ page }) => {
   }
 
   await test.step('Login to configure models', async () => {
-    if (await page.getByRole('button', { name: 'Login', exact: true }).count() === 0) {
+    if (await page.getByRole('link', { name: 'Login', exact: true }).count() === 0) {
       console.warn('Already logged in');
       return;
     }
 
     const usernameInput = await page.waitForSelector('[name=username]');
     const passwordInput = await page.waitForSelector('[name=password]');
-    const loginButton = page.getByRole('button', { name: 'Login', exact: true });
+    const loginButton = page.getByRole('link', { name: 'Login', exact: true });
 
     // Fill in credentials
     await usernameInput.fill(USERNAME);
