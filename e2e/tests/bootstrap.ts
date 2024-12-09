@@ -170,6 +170,9 @@ test('Bootstrap', async ({ page }) => {
       const credentialsInput = await page.waitForSelector('[name=credentials]');
       await credentialsInput.fill(E2E_EMBEDDING_CREDENTIALS);
 
+      const vectorDimensionInput = await page.waitForSelector('[name=vector_dimension]');
+      await vectorDimensionInput.fill('1536');
+
       // Click create button
       const createButton = page.getByText('Create Embedding Model');
       await createButton.scrollIntoViewIfNeeded();
@@ -180,47 +183,70 @@ test('Bootstrap', async ({ page }) => {
     }
   });
 
-  // SHOULD FAIL FROM HERE
-  // Create Datasource
-  test.fail();
-  await test.step('Create Datasource', async () => {
-    const header = page.getByText('Setup Datasource');
-    if (await header.locator('.lucide-circle-alert').count() === 0) {
-      // Already configured.
-      console.warn('Datasource already configured.');
-    } else {
-      await header.click();
+  // Create Knowledge Base
+  await test.step('Create Knowledge Base', async () => {
+    await clickTab('Knowledge Bases', '/knowledge-bases');
 
-      const nameInput = await page.waitForSelector('[name=name]');
-      await nameInput.fill('sample.pdf');
+    if (await page.getByText('E2E LLM').count() === 0) {
+      await page.getByText('New Knowledge Base').click();
+      await page.waitForSelector('[name=name]');
+      await page.fill('[name=name]', 'E2E Knowledge Base');
+      await page.fill('[name=description]', 'This is E2E Knowledge Base.');
+      await page.getByRole('button', { name: 'Submit', exact: true }).click();
 
-      const descriptionInput = await page.waitForSelector('textarea[name=description]');
-      await descriptionInput.fill('This is sample.pdf.');
-
-      await page.setInputFiles('[name=files]', 'sample.pdf');
-
-      const createButton = page.getByText('Create Datasource');
-      await createButton.scrollIntoViewIfNeeded();
-
-      await createButton.click();
-
-      await header.locator('.lucide-circle-alert').waitFor({ state: 'detached', timeout: 10000 });
+      await page.waitForURL(/\/knowledge-bases\/1\/data-sources/);
     }
+
+    // Create Datasource
+    await test.step('Create Datasource', async () => {
+      await page.goto('/knowledge-bases/1/data-sources');
+
+      if (await page.getByText('sample.pdf').count() === 0) {
+        await page.getByRole('button', { name: 'Files' }).click();
+
+        const nameInput = await page.waitForSelector('[name=name]');
+        await nameInput.fill('sample.pdf');
+
+        await page.setInputFiles('[name=files]', 'sample.pdf');
+
+        const createButton = page.getByText('Create Datasource');
+        await createButton.scrollIntoViewIfNeeded();
+
+        await createButton.click();
+
+        // Jump back to KB data source page
+        await page.waitForURL(/\/knowledge-bases\/1\/data-sources/);
+      }
+    });
   });
 
-  await test.step('Reload and check wizard dialog', async () => {
-    await page.reload();
-    await expect(page.getByText('Almost there...')).toHaveCount(0);
+  // Update default Chat Engine
+  await test.step('Update Chat Engine', async () => {
+    await clickTab('Chat Engines', '/chat-engines');
+    await page.getByRole('link', { name: 'default' }).click();
+    await page.waitForURL('/chat-engines/1');
+
+    await page.getByRole('tab', { name: 'Retrieval' }).click();
+    await page.getByLabel('Knowledge Base', { exact: true }).click();
+    await page.getByRole('option', { name: 'default' }).click();
+
+    await page.getByRole('button', { name: 'Save' }).click();
+    await page.getByRole('button', { name: 'Save' }).waitFor({ state: 'detached' });
+  });
+
+  await test.step('Reload and check wizard alert', async () => {
+    await page.goto('/');
+    await page.getByText('This site is not ready to use yet.').waitFor({ state: 'detached' });
   });
 
   await test.step('Documents count greater than 0', async () => {
-    await page.goto('/documents');
+    await page.goto('/knowledge-bases/1');
     await page.getByRole('link', { name: 'sample.pdf' }).waitFor({ state: 'visible' });
   });
 
   await test.step('Wait for indexing', async () => {
     while (true) {
-      const response = await page.request.get('/api/v1/admin/rag/index-progress');
+      const response = await page.request.get('/api/v1/admin/knowledge_bases/1/overview');
       if (!response.ok()) {
         console.warn(`${response.status()} ${response.statusText()}`, await response.text());
       } else {
