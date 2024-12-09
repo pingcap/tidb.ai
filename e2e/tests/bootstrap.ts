@@ -43,10 +43,11 @@ test('Bootstrap', async ({ page }) => {
       console.warn('Already logged in');
       return;
     }
+    await page.getByRole('link', { name: 'Login', exact: true }).click();
 
     const usernameInput = await page.waitForSelector('[name=username]');
     const passwordInput = await page.waitForSelector('[name=password]');
-    const loginButton = page.getByRole('link', { name: 'Login', exact: true });
+    const loginButton = page.getByRole('button', { name: 'Login', exact: true });
 
     // Fill in credentials
     await usernameInput.fill(USERNAME);
