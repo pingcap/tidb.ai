@@ -974,7 +974,7 @@ def get_graph_data_from_chat_message(
     session: Session,
     chat_message: ChatMessage
 ) -> Tuple[list[dict], list[dict]]:
-    if not chat_message.content:
+    if not chat_message.graph_data:
         return [], []
 
     if "relationships" not in chat_message.graph_data:
