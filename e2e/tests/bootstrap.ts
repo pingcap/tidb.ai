@@ -38,7 +38,7 @@ test('Bootstrap', async ({ page }) => {
     return;
   }
 
-  await test.step('Login to configure models', async () => {
+  await test.step('Login', async () => {
     if (await page.getByRole('link', { name: 'Login', exact: true }).count() === 0) {
       console.warn('Already logged in');
       return;
@@ -56,6 +56,8 @@ test('Bootstrap', async ({ page }) => {
     // Click login
     await loginButton.click();
 
+    await page.reload();
+
     // Wait login
     await page.getByText(USERNAME).waitFor({ state: 'visible' });
   });
@@ -69,7 +71,7 @@ test('Bootstrap', async ({ page }) => {
 
   async function clickTab (text: string, url: string) {
     await test.step(`Goto ${text} page`, async () => {
-      await page.getByText(text, { exact: true }).and(page.locator('[data-sidebar="menu-sub-button"]')).click();
+      await page.getByText(text, { exact: true }).and(page.locator('[data-sidebar="menu-sub-button"]').or(page.locator('[data-sidebar="menu-button"]'))).click();
       await page.waitForURL(url);
       await page.getByText(`New ${text.replace(/s$/, '')}`).waitFor({ state: 'visible' });
     });
