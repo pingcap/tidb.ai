@@ -102,13 +102,6 @@ test('Bootstrap', async ({ page }) => {
         await credentialsInput.fill(E2E_RERANKER_CREDENTIALS);
       }
 
-      // Toggle default switch
-      // TODO: should enable by default and and readOnly
-      const toggleDefaultRerankerSwitchButton = page.getByRole('switch');
-      if ((await toggleDefaultRerankerSwitchButton.evaluate(node => node.getAttribute('aria-checked'))) !== 'true') {
-        await toggleDefaultRerankerSwitchButton.click();
-      }
-
       // Click create button
       const createButton = page.getByText('Create Reranker');
       await createButton.scrollIntoViewIfNeeded();
@@ -142,13 +135,6 @@ test('Bootstrap', async ({ page }) => {
       // Fill credentials
       const credentialsInput = await page.waitForSelector('[name=credentials]');
       await credentialsInput.fill(E2E_LLM_CREDENTIALS);
-
-      // Toggle default switch
-      // TODO: should enable by default and and readOnly
-      const toggleDefaultLLMSwitchButton = page.getByRole('switch');
-      if ((await toggleDefaultLLMSwitchButton.evaluate(node => node.getAttribute('aria-checked'))) !== 'true') {
-        await toggleDefaultLLMSwitchButton.click();
-      }
 
       // Click create button
       const createButton = page.getByText('Create LLM');
