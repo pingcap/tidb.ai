@@ -9,7 +9,7 @@ import { forwardRef, useEffect, useRef, useState } from 'react';
 export interface CodeInputProps extends FormControlWidgetProps {
   className?: string;
   placeholder?: string;
-  language: 'json';
+  language: 'json' | 'markdown';
 }
 
 export const CodeInput = forwardRef<any, CodeInputProps>(({
@@ -51,6 +51,7 @@ export const CodeInput = forwardRef<any, CodeInputProps>(({
           glyphMargin: false,
           lineDecorationsWidth: 0,
           lineNumbersMinChars: 2,
+          scrollBeyondLastLine: false,
           minimap: {
             enabled: false,
           },

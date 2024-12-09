@@ -13,7 +13,7 @@ export default function KnowledgeBasesPage () {
     <>
       <AdminPageHeading
         breadcrumbs={[
-          { title: 'Knowledge Bases' },
+          { title: 'Knowledge Bases', docsUrl: '/docs/knowledge-base' },
         ]}
       />
       <NextLink href="/knowledge-bases/new">

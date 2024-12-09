@@ -2,8 +2,8 @@
 
 import { createLlm, listLlmOptions, type LLM, testLlm } from '@/api/llms';
 import { ProviderSelect } from '@/components/form/biz';
-import { FormInput, FormSwitch } from '@/components/form/control-widget';
-import { FormFieldBasicLayout, FormFieldContainedLayout } from '@/components/form/field-layout';
+import { FormInput } from '@/components/form/control-widget';
+import { FormFieldBasicLayout } from '@/components/form/field-layout';
 import { FormRootError } from '@/components/form/root-error';
 import { handleSubmitHelper } from '@/components/form/utils';
 import { CodeInput } from '@/components/form/widgets/CodeInput';
@@ -133,9 +133,6 @@ export function CreateLLMForm ({ transitioning, onCreated }: { transitioning?: b
               </Accordion>
             </>
           )}
-          <FormFieldContainedLayout name="is_default" label="Is Default LLM" description="Enable will unset original default LLM.">
-            <FormSwitch />
-          </FormFieldContainedLayout>
           <FormRootError title="Failed to create LLM" />
           <Button disabled={form.formState.disabled || !provider || form.formState.isSubmitting || transitioning} type="submit" form={id}>
             {(form.formState.isSubmitting || transitioning) && <Loader2Icon className="size-4 mr-1 animate-spin repeat-infinite" />}

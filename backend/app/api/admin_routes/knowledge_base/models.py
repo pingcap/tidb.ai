@@ -3,9 +3,9 @@ from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel, field_validator, Field
 
-from app.api.admin_routes.knowledge_base.data_sources.models import KBDataSource, KBDataSourceCreate
+from app.api.admin_routes.knowledge_base.data_source.models import KBDataSource, KBDataSourceCreate
 from app.api.admin_routes.models import EmbeddingModelDescriptor, LLMDescriptor, UserDescriptor
-from app.exceptions import KBNoVectorIndexConfiguredError
+from app.exceptions import KBNoVectorIndexConfigured
 from app.models import KgIndexStatus
 from app.models.knowledge_base import IndexMethod
 
@@ -15,7 +15,7 @@ class KnowledgeBaseCreate(BaseModel):
     index_methods: list[IndexMethod] = Field(default_factory=lambda: [IndexMethod.VECTOR])
     llm_id: Optional[int] = None
     embedding_model_id: Optional[int] = None
-    data_sources: Optional[list[KBDataSourceCreate]] = Field(default_factory=list)
+    data_sources: list[KBDataSourceCreate] = Field(default_factory=list)
 
     @field_validator("name")
     def name_must_not_be_blank(cls, v: str) -> str:
@@ -28,7 +28,7 @@ class KnowledgeBaseCreate(BaseModel):
         # Notice: For now, knowledge base must be configured vector index method,
         # we will remove this limit in the feature.
         if IndexMethod.VECTOR not in v:
-            raise KBNoVectorIndexConfiguredError()
+            raise KBNoVectorIndexConfigured()
         return v
 
 

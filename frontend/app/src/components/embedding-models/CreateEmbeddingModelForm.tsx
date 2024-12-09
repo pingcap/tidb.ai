@@ -2,8 +2,8 @@
 
 import { createEmbeddingModel, type EmbeddingModel, listEmbeddingModelOptions, testEmbeddingModel } from '@/api/embedding-models';
 import { ProviderSelect } from '@/components/form/biz';
-import { FormInput, FormSwitch } from '@/components/form/control-widget';
-import { FormFieldBasicLayout, FormFieldContainedLayout } from '@/components/form/field-layout';
+import { FormInput } from '@/components/form/control-widget';
+import { FormFieldBasicLayout } from '@/components/form/field-layout';
 import { FormRootError } from '@/components/form/root-error';
 import { handleSubmitHelper } from '@/components/form/utils';
 import { CodeInput } from '@/components/form/widgets/CodeInput';
@@ -132,9 +132,6 @@ export function CreateEmbeddingModelForm ({ transitioning, onCreated }: { transi
               </Accordion>
             </>
           )}
-          <FormFieldContainedLayout name="is_default" label="Is Default Embedding Model" description="Enable will unset original default Embedding Model.">
-            <FormSwitch />
-          </FormFieldContainedLayout>
           <FormRootError title="Failed to create Embedding Model" />
           <Button type="submit" form={id} disabled={form.formState.disabled || !provider || form.formState.isSubmitting || transitioning}>
             {(form.formState.isSubmitting || transitioning) && <Loader2Icon className="size-4 mr-1 animate-spin repeat-infinite" />}

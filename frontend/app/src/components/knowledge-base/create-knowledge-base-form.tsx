@@ -2,6 +2,7 @@ import { createKnowledgeBase } from '@/api/knowledge-base';
 import { EmbeddingModelSelect, LLMSelect } from '@/components/form/biz';
 import { FormInput, FormTextarea } from '@/components/form/control-widget';
 import { FormFieldBasicLayout } from '@/components/form/field-layout';
+import { FormRootError } from '@/components/form/root-error';
 import { handleSubmitHelper } from '@/components/form/utils';
 import { FormIndexMethods } from '@/components/knowledge-base/form-index-methods';
 import { mutateKnowledgeBases } from '@/components/knowledge-base/hooks';
@@ -30,16 +31,16 @@ export function CreateKnowledgeBaseForm ({}: {}) {
   });
 
   const handleSubmit = handleSubmitHelper(form, async (data) => {
-
     const kb = await createKnowledgeBase({
       ...data,
       data_sources: [],
     });
 
     startTransition(() => {
+      router.refresh();
       router.push(`/knowledge-bases/${kb.id}/data-sources`);
-      mutateKnowledgeBases();
     });
+    void mutateKnowledgeBases();
   });
 
   return (
@@ -60,6 +61,7 @@ export function CreateKnowledgeBaseForm ({}: {}) {
         <FormFieldBasicLayout name="index_methods" label="Index Methods">
           <FormIndexMethods />
         </FormFieldBasicLayout>
+        <FormRootError />
         <Button type="submit" form={id} disabled={form.formState.disabled || form.formState.isSubmitting || transitioning}>Submit</Button>
       </form>
     </Form>
@@ -67,7 +69,7 @@ export function CreateKnowledgeBaseForm ({}: {}) {
 }
 
 const createKnowledgeBaseParamsSchema = z.object({
-  name: z.string(),
+  name: z.string().min(1),
   description: z.string(),
   index_methods: z.enum(['knowledge_graph', 'vector']).array(),
   llm_id: z.number().nullable().optional(),

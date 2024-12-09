@@ -1,11 +1,16 @@
 'use client';
 
+import { setDefault } from '@/api/commons';
 import { listLlms, type LLM } from '@/api/llms';
+import { actions } from '@/components/cells/actions';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { Badge } from '@/components/ui/badge';
+import { getErrorMessage } from '@/lib/errors';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import Link from 'next/link';
+import { startTransition } from 'react';
+import { toast } from 'sonner';
 
 export function LLMsTable () {
   return (
@@ -42,5 +47,32 @@ const columns: ColumnDef<LLM, any>[] = [
         </>
       );
     },
+  }),
+  helper.display({
+    id: 'Operations',
+    header: 'Operations',
+    cell: actions(row => ([
+      {
+        key: 'set-default',
+        title: 'Set Default',
+        disabled: row.is_default,
+        action: async (context) => {
+          try {
+            await setDefault('llms', row.id);
+            context.table.reload?.();
+            startTransition(() => {
+              context.router.refresh();
+            });
+            context.setDropdownOpen(false);
+            toast.success(`Successfully set default LLM to ${row.name}.`);
+          } catch (e) {
+            toast.error(`Failed to set default LLM to ${row.name}.`, {
+              description: getErrorMessage(e),
+            });
+            throw e;
+          }
+        },
+      },
+    ])),
   }),
 ];

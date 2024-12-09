@@ -3,20 +3,21 @@
 import { login } from '@/api/auth';
 import { FormInput } from '@/components/form/control-widget';
 import { FormFieldBasicLayout } from '@/components/form/field-layout';
-import { useReplace } from '@/components/nextjs/app-router-hooks';
 // import { supportedProviders } from '@/app/(main)/(admin)/settings/authentication/providers';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
 import { getErrorMessage } from '@/lib/errors';
 import { Loader2Icon } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 // import { fetcher } from '@/lib/fetch';
 // import { signIn } from 'next-auth/react';
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 
 export function Signin ({ noRedirect = false, onLoggedIn, callbackUrl }: { noRedirect?: boolean, onLoggedIn?: () => void, callbackUrl?: string }) {
-  const [transitioning, replace] = useReplace(true);
+  const [transitioning, startTransition] = useTransition();
+  const router = useRouter();
   const [error, setError] = useState<string>();
   const form = useForm<{ username: string; password: string }>({
     defaultValues: {
@@ -31,7 +32,7 @@ export function Signin ({ noRedirect = false, onLoggedIn, callbackUrl }: { noRed
       await login(data);
       onLoggedIn?.();
       if (!noRedirect) {
-        replace(refineCallbackUrl(callbackUrl));
+        router.replace(refineCallbackUrl(callbackUrl));
       }
     } catch (error) {
       setError(getErrorMessage(error));

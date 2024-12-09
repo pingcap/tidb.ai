@@ -14,7 +14,7 @@ import jinja2
 from llama_index.core.base.embeddings.base import BaseEmbedding
 from llama_index.core.llms import LLM
 from pydantic import BaseModel
-from sqlalchemy import text
+from sqlalchemy import text, delete
 from sqlmodel import Session, select, func, SQLModel
 from llama_index.core import VectorStoreIndex
 from llama_index.core.base.llms.base import ChatMessage
@@ -33,9 +33,6 @@ from app.models import (
     ChatVisibility,
     Chat as DBChat,
     ChatMessage as DBChatMessage,
-    LLM as DBLLM,
-    EmbeddingModel as DBEmbeddingModel,
-    DataSource as DBDataSource,
     KnowledgeBase as DBKnowledgeBase,
     RerankerModel as DBRerankerModel,
     Chunk as DBChunk,
@@ -53,19 +50,23 @@ from app.rag.chat_stream_protocol import (
 )
 from app.models.relationship import get_kb_relationship_model
 from app.rag.knowledge_base.config import get_kb_embed_model
+from app.rag.knowledge_base.index_store import get_kb_tidb_graph_editor
 from app.rag.knowledge_graph.graph_store import TiDBGraphStore
 from app.rag.vector_store.tidb_vector_store import TiDBVectorStore
-from app.rag.knowledge_graph.graph_store.tidb_graph_editor import TiDBGraphEditor
+from app.rag.knowledge_graph.graph_store.tidb_graph_editor import TiDBGraphEditor, legacy_tidb_graph_editor
 
 from app.rag.knowledge_graph import KnowledgeGraphIndex
-from app.rag.chat_config import ChatEngineConfig, get_default_embedding_model, KnowledgeGraphOption
+from app.rag.chat_config import ChatEngineConfig, get_default_embed_model, KnowledgeGraphOption, \
+    must_get_default_embed_model
 from app.rag.types import (
     MyCBEventType,
     ChatMessageSate,
     ChatEventType,
     MessageRole,
 )
-from app.repositories import chat_repo, knowledge_base_repo
+from app.repositories import chat_repo, knowledge_base_repo, chat_engine_repo
+from app.repositories.embedding_model import embed_model_repo
+from app.repositories.llm import llm_repo
 from app.site_settings import SiteSetting
 from app.exceptions import ChatNotFound
 
@@ -175,11 +176,14 @@ class ChatService:
             self._entity_db_model = get_kb_entity_model(kb)
             self._relationship_db_model = get_kb_relationship_model(kb)
         else:
-            self._embed_model = get_default_embedding_model(db_session)
+            self._embed_model = get_default_embed_model(db_session)
 
     def chat(self) -> Generator[ChatEvent | str, None, None]:
         try:
-            if self.chat_engine_config.external_engine_config:
+            if (
+                self.chat_engine_config.external_engine_config and
+                self.chat_engine_config.external_engine_config.stream_chat_api_url
+            ):
                 for event in self._external_chat():
                     yield event
             else:
@@ -965,7 +969,55 @@ def user_can_edit_chat(chat: DBChat, user: Optional[User]) -> bool:
     return chat.user_id == user.id
 
 
-def get_graph_data_from_langfuse(trace_url: str):
+def get_graph_data_from_chat_message(
+    graph_editor: TiDBGraphEditor,
+    session: Session,
+    chat_message: ChatMessage
+) -> Tuple[list[dict], list[dict]]:
+    if not chat_message.graph_data:
+        return [], []
+
+    if "relationships" not in chat_message.graph_data:
+        return [], []
+
+    if len(chat_message.graph_data["relationships"]) == 0:
+        return [], []
+
+    # FIXME: Why not store the complete data in chat_message.graph_data.
+    relationship_ids = chat_message.graph_data["relationships"]
+    all_entities, all_relationships = graph_editor.get_relationship_by_ids(
+        session, relationship_ids
+    )
+    entities = [
+        {
+            "id": e.id,
+            "name": e.name,
+            "description": e.description,
+            "meta": e.meta,
+            "entity_type": e.entity_type,
+        }
+        for e in all_entities
+    ]
+    relationships = [
+        {
+            "id": r.id,
+            "source_entity_id": r.source_entity_id,
+            "target_entity_id": r.target_entity_id,
+            "description": r.description,
+            "rag_description": f"{r.source_entity.name} -> {r.description} -> {r.target_entity.name}",
+            "meta": r.meta,
+            "weight": r.weight,
+            "last_modified_at": r.last_modified_at,
+        }
+        for r in all_relationships
+    ]
+
+    return entities, relationships
+
+
+def get_graph_data_from_langfuse(
+    trace_url: str
+) -> Tuple[list[dict], list[dict]]:
     start_time = time.time()
     langfuse_host = SiteSetting.langfuse_host
     langfuse_secret_key = SiteSetting.langfuse_secret_key
@@ -1013,56 +1065,24 @@ def get_graph_data_from_langfuse(trace_url: str):
         return [], []
 
 
-def get_chat_message_subgraph(
-    graph_editor: TiDBGraphEditor,
-    session: Session,
-    chat_message: DBChatMessage,
-    embed_model: BaseEmbedding,
-    entity_db_model: SQLModel = DBEntity,
-    relationship_db_model: SQLModel = DBRelationship,
-) -> Tuple[List, List]:
+def get_chat_message_subgraph(session: Session, chat_message: DBChatMessage) -> Tuple[List, List]:
     if chat_message.role != MessageRole.USER:
         return [], []
 
+    engine_options = chat_message.chat.engine_options
+    chat_engine_config = ChatEngineConfig.model_validate(engine_options)
+    kb = chat_engine_config.get_linked_knowledge_base(session)
+
     # try to get subgraph from chat_message.graph_data
     try:
-        if (
-            chat_message.graph_data
-            and "relationships" in chat_message.graph_data
-            and len(chat_message.graph_data["relationships"]) > 0
-        ):
-            relationship_ids = chat_message.graph_data["relationships"]
-            all_entities, all_relationships = graph_editor.get_relationship_by_ids(
-                session, relationship_ids
-            )
-            entities = [
-                {
-                    "id": e.id,
-                    "name": e.name,
-                    "description": e.description,
-                    "meta": e.meta,
-                    "entity_type": e.entity_type,
-                }
-                for e in all_entities
-            ]
-            relationships = [
-                {
-                    "id": r.id,
-                    "source_entity_id": r.source_entity_id,
-                    "target_entity_id": r.target_entity_id,
-                    "description": r.description,
-                    "rag_description": f"{r.source_entity.name} -> {r.description} -> {r.target_entity.name}",
-                    "meta": r.meta,
-                    "weight": r.weight,
-                    "last_modified_at": r.last_modified_at,
-                }
-                for r in all_relationships
-            ]
-            return entities, relationships
+        graph_editor = get_kb_tidb_graph_editor(session, kb) if kb else legacy_tidb_graph_editor
+        entities, relationships = get_graph_data_from_chat_message(graph_editor, session, chat_message)
+        if len(relationships) > 0:
+            return list(entities), list(relationships)
     except Exception as e:
         logger.error(f"Failed to get subgraph from chat_message.graph_data: {e}")
 
-    # try to get subgraph from langfuse trace
+    # try to get subgraph from langfuse trace.
     try:
         entities, relationships = get_graph_data_from_langfuse(chat_message.trace_url)
         if len(relationships) > 0:
@@ -1070,9 +1090,16 @@ def get_chat_message_subgraph(
     except Exception as e:
         logger.error(f"Failed to get subgraph from langfuse trace: {e}")
 
-    chat: DBChat = chat_message.chat
-    chat_engine_config = ChatEngineConfig.load_from_db(session, chat.engine.name)
-    kg_config = chat_engine_config.knowledge_graph
+    # try to get subgraph from graph store instead of cached result.
+
+    # Notice: using new chat engine config.
+    chat_engine: ChatEngine = chat_message.chat.engine
+    chat_engine_config = ChatEngineConfig.load_from_db(session, chat_engine.name)
+    kb = chat_engine_config.get_linked_knowledge_base(session)
+
+    embed_model = get_kb_embed_model(session, kb) if kb else must_get_default_embed_model(session)
+    entity_db_model = get_kb_entity_model(kb) if kb else DBEntity
+    relationship_db_model = get_kb_relationship_model(kb) if kb else DBRelationship
     graph_store = TiDBGraphStore(
         dspy_lm=chat_engine_config.get_fast_dspy_lm(session),
         session=session,
@@ -1080,6 +1107,7 @@ def get_chat_message_subgraph(
         entity_db_model=entity_db_model,
         relationship_db_model=relationship_db_model,
     )
+    kg_config = chat_engine_config.knowledge_graph
     entities, relations, _ = graph_store.retrieve_with_weight(
         chat_message.content,
         [],
@@ -1088,6 +1116,7 @@ def get_chat_message_subgraph(
         with_degree=kg_config.with_degree,
         with_chunks=False,
     )
+
     return entities, relations
 
 
@@ -1096,26 +1125,15 @@ def check_rag_required_config(session: Session) -> RequiredConfigStatus:
     Check if the required configuration items have been configured, it any of them is
     missing, the RAG application can not complete its work.
     """
-    has_default_llm = session.scalar(select(func.count(DBLLM.id))) > 0
-    has_default_embedding_model = (session.scalar(select(func.count(DBEmbeddingModel.id))) > 0)
-    has_default_chat_engine = (
-        session.scalar(select(func.count(ChatEngine.id)).where(ChatEngine.is_default == True)) > 0
-    )
-
-    # TODO: Remove it after the multiple KB feature is stable.
-    has_datasource = session.scalar(select(func.count(DBDataSource.id))) > 0
-
-    try:
-        has_knowledge_base = session.scalar(select(func.count(DBKnowledgeBase.id))) > 0
-    except Exception as e:
-        has_knowledge_base = False
-        logger.exception(e)
+    has_default_llm = llm_repo.has_default(session)
+    has_default_embedding_model = embed_model_repo.has_default(session)
+    has_default_chat_engine = chat_engine_repo.has_default(session)
+    has_knowledge_base = session.scalar(select(func.count(DBKnowledgeBase.id))) > 0
 
     return RequiredConfigStatus(
         default_llm=has_default_llm,
         default_embedding_model=has_default_embedding_model,
         default_chat_engine=has_default_chat_engine,
-        datasource=has_datasource,
         knowledge_base=has_knowledge_base
     )
 
@@ -1141,7 +1159,7 @@ def check_rag_config_need_migration(session: Session) -> NeedMigrationStatus:
         session.exec(
             select(ChatEngine.id)
             .where(ChatEngine.deleted_at == None)
-            .where(text("NOT JSON_CONTAINS_PATH(engine_options, 'one', '$.knowledge_base')"))
+            .where(text("JSON_EXTRACT(engine_options, '$.knowledge_base.linked_knowledge_base') IS NULL"))
         )
     )
 
@@ -1152,6 +1170,15 @@ def check_rag_config_need_migration(session: Session) -> NeedMigrationStatus:
 class LLMRecommendQuestions(BaseModel):
     """recommend questions respond model"""
     questions: List[str]
+
+
+def remove_chat_message_recommend_questions(
+    db_session: Session,
+    chat_message_id: int,
+) -> None:
+    delete_stmt = delete(RecommendQuestion).where(RecommendQuestion.chat_message_id == chat_message_id)
+    db_session.exec(delete_stmt)
+    db_session.commit()
 
 
 def get_chat_message_recommend_questions(

@@ -22,13 +22,13 @@ class EntityUpdate(BaseModel):
     meta: Optional[dict] = None
 
 
-class RelationUpdate(BaseModel):
+class RelationshipUpdate(BaseModel):
     description: Optional[str] = None
     meta: Optional[dict] = None
     weight: Optional[int] = None
 
 
-class SearchRequest(BaseModel):
+class GraphSearchRequest(BaseModel):
     query: str
     include_meta: bool = True
     depth: int = 2

@@ -1,9 +1,8 @@
+from datetime import datetime
 from typing import Any
 
 from pydantic import BaseModel, field_validator
 from typing_extensions import Optional
-
-from app.models.embed_model import DEFAULT_VECTOR_DIMENSION
 from app.types import EmbeddingProvider
 
 
@@ -17,7 +16,7 @@ class EmbeddingModelCreate(BaseModel):
     is_default: Optional[bool] = False
 
     @field_validator("vector_dimension")
-    def name_must_not_be_blank(cls, v: int) -> int:
+    def vector_dimension_must_gt_1(cls, v: int) -> int:
         if v <= 0:
             raise ValueError("The vector dimension of the Embedding model should be at least greater than 1.")
         return v
@@ -47,6 +46,8 @@ class EmbeddingModelDetail(BaseModel):
     vector_dimension: int
     config: dict | list | None
     is_default: bool
+    created_at: datetime
+    updated_at: datetime
 
 
 class EmbeddingModelTestResult(BaseModel):
