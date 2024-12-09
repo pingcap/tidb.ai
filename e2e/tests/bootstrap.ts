@@ -56,6 +56,10 @@ test('Bootstrap', async ({ page }) => {
     // Click login
     await loginButton.click();
 
+    // Wait for dialog dismiss
+    await page.getByRole('dialog', { name: 'Sign In' }).waitFor({ state: 'detached' });
+
+    // TODO: Remove this
     await page.reload();
 
     // Wait login
