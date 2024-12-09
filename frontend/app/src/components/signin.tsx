@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import { useState, useTransition } from 'react';
 import { useForm } from 'react-hook-form';
 
-export function Signin ({ noRedirect = false, onLoggedIn, callbackUrl }: { noRedirect?: boolean, onLoggedIn?: () => void, callbackUrl?: string }) {
+export function Signin ({ noRedirect = false, callbackUrl }: { noRedirect?: boolean, callbackUrl?: string }) {
   const [transitioning, startTransition] = useTransition();
   const router = useRouter();
   const [error, setError] = useState<string>();
@@ -30,10 +30,10 @@ export function Signin ({ noRedirect = false, onLoggedIn, callbackUrl }: { noRed
     setError(undefined);
     try {
       await login(data);
-      onLoggedIn?.();
       if (!noRedirect) {
         router.replace(refineCallbackUrl(callbackUrl));
       }
+      router.refresh();
     } catch (error) {
       setError(getErrorMessage(error));
     }

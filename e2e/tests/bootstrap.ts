@@ -29,6 +29,7 @@ test.fail('Bootstrap', async ({ page }) => {
       content: `[name=credentials] { filter: blur(1.5rem); }`,
     });
     await expect(page).toHaveTitle('TiDB.AI');
+    await expect(page.getByText('Ask anything about TiDB')).toBeVisible();
   });
 
   const hasWizardAlert = await page.getByText('This site is not ready to use yet.').isVisible();
