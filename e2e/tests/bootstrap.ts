@@ -4,7 +4,7 @@ test.use({
   trace: !!process.env.CI ? 'off' : 'on',
 });
 
-test.fail('Bootstrap', async ({ page }) => {
+test('Bootstrap', async ({ page }) => {
   test.slow();
 
   const {
@@ -39,8 +39,6 @@ test.fail('Bootstrap', async ({ page }) => {
   }
 
   await test.step('Login to configure models', async () => {
-    await page.waitForLoadState('networkidle');
-
     if (await page.getByRole('button', { name: 'Login', exact: true }).count() === 0) {
       console.warn('Already logged in');
       return;
@@ -69,9 +67,11 @@ test.fail('Bootstrap', async ({ page }) => {
   });
 
   async function clickTab (text: string, url: string) {
-    await page.getByText(text, { exact: true }).and(page.locator('[data-sidebar="menu-sub-button"]')).click();
-    await page.waitForURL(url);
-    await page.waitForLoadState('networkidle');
+    await test.step(`Goto ${text} page`, async () => {
+      await page.getByText(text, { exact: true }).and(page.locator('[data-sidebar="menu-sub-button"]')).click();
+      await page.waitForURL(url);
+      await page.getByText(`New ${text.replace(/s$/, '')}`).waitFor({ state: 'visible' });
+    });
   }
 
   // Setup reranker
@@ -195,6 +195,7 @@ test.fail('Bootstrap', async ({ page }) => {
 
   // SHOULD FAIL FROM HERE
   // Create Datasource
+  test.fail();
   await test.step('Create Datasource', async () => {
     const header = page.getByText('Setup Datasource');
     if (await header.locator('.lucide-circle-alert').count() === 0) {
