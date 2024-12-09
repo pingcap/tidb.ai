@@ -102,7 +102,7 @@ class Settings(BaseSettings):
     # For example:
     #   maidalun1020/bce-embedding-base_v1: EMBEDDING_DIMS=768   EMBEDDING_MAX_TOKENS=512
     EMBEDDING_DIMS: int = 1536
-    EMBEDDING_MAX_TOKENS: int = 8191
+    EMBEDDING_MAX_TOKENS: int = 2048
 
     EVALUATION_OPENAI_API_KEY: str | None = None
 

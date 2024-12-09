@@ -117,15 +117,16 @@ class TiDBGraphEditor:
         return session.get(self._relationship_db_model, relationship_id)
 
 
-    def get_relationship_by_ids(self, session: Session, ids: list[int]) -> List[SQLModel]:
-        relationships_queryset = session.exec(
+    def get_relationship_by_ids(self, session: Session, ids: list[int]) -> Tuple[List[SQLModel], List[SQLModel]]:
+        stmt = (
             select(self._relationship_db_model)
-            .where(self._relationship_db_model.id.in_(ids))
-            .options(
-                joinedload(self._relationship_db_model.source_entity),
-                joinedload(self._relationship_db_model.target_entity),
-            )
+                .where(self._relationship_db_model.id.in_(ids))
+                .options(
+                    joinedload(self._relationship_db_model.source_entity),
+                    joinedload(self._relationship_db_model.target_entity),
+                )
         )
+        relationships_queryset = session.exec(stmt)
 
         relationships = []
         entities = []

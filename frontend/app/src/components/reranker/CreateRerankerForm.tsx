@@ -2,8 +2,8 @@
 
 import { createReranker, listRerankerOptions, type Reranker, testReranker } from '@/api/rerankers';
 import { ProviderSelect } from '@/components/form/biz';
-import { FormInput, FormSwitch } from '@/components/form/control-widget';
-import { FormFieldBasicLayout, FormFieldContainedLayout } from '@/components/form/field-layout';
+import { FormInput } from '@/components/form/control-widget';
+import { FormFieldBasicLayout } from '@/components/form/field-layout';
 import { FormRootError } from '@/components/form/root-error';
 import { handleSubmitHelper } from '@/components/form/utils';
 import { CodeInput } from '@/components/form/widgets/CodeInput';
@@ -140,9 +140,6 @@ export function CreateRerankerForm ({ transitioning, onCreated }: { transitionin
           <FormFieldBasicLayout name="top_n" label="Top N">
             <FormInput type="number" min={1} step={1} />
           </FormFieldBasicLayout>
-          <FormFieldContainedLayout name="is_default" label="Is Default Reranker" description="Enable will unset original default RERANKER.">
-            <FormSwitch />
-          </FormFieldContainedLayout>
           <FormRootError title="Failed to create Reranker" />
           <Button type="submit" form={id} disabled={form.formState.disabled || !provider || form.formState.isSubmitting || transitioning}>
             {(form.formState.isSubmitting || transitioning) && <Loader2Icon className="size-4 mr-1 animate-spin repeat-infinite" />}

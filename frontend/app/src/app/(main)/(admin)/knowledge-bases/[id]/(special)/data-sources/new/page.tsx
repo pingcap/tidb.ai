@@ -15,7 +15,7 @@ export default function NewKnowledgeBaseDataSourcePage ({ params }: { params: { 
     <>
       <AdminPageHeading
         breadcrumbs={[
-          { title: 'Knowledge Bases', url: '/knowledge-bases' },
+          { title: 'Knowledge Bases', url: '/knowledge-bases', docsUrl: '/docs/knowledge-base' },
           { title: knowledgeBase?.name ?? <Loader2Icon className="size-4 animate-spin repeat-infinite" />, url: `/knowledge-bases/${id}` },
           { title: 'DataSources', url: `/knowledge-bases/${id}/data-sources` },
           { title: 'New' },
