@@ -119,7 +119,7 @@ let themeConfig: DocsThemeConfig = {
         />
       </svg>
       <span style={{ marginLeft: '.5em', fontWeight: 300, fontSize: '20px' }}>
-        TiDB.AI
+        AutoFlow
       </span>
     </>
   ),
