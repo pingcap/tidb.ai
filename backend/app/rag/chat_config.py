@@ -20,7 +20,7 @@ from llama_index.embeddings.cohere import CohereEmbedding
 from llama_index.embeddings.ollama import OllamaEmbedding
 from llama_index.postprocessor.jinaai_rerank import JinaRerank
 from llama_index.postprocessor.cohere_rerank import CohereRerank
-from sqlmodel import Session, select
+from sqlmodel import Session
 from google.oauth2 import service_account
 from google.auth.transport.requests import Request
 
@@ -30,7 +30,7 @@ from app.rag.node_postprocessor.metadata_post_filter import MetadataFilters
 from app.rag.node_postprocessor.baisheng_reranker import BaishengRerank
 from app.rag.node_postprocessor.local_reranker import LocalRerank
 from app.rag.embeddings.local_embedding import LocalEmbedding
-from app.repositories import chat_engine_repo
+from app.repositories import chat_engine_repo, knowledge_base_repo
 from app.repositories.embedding_model import embed_model_repo
 from app.repositories.llm import llm_repo
 from app.repositories.reranker_model import reranker_model_repo
@@ -49,7 +49,7 @@ from app.rag.default_prompt import (
 from app.models import (
     ChatEngine as DBChatEngine,
     LLM as DBLLM,
-    RerankerModel as DBRerankerModel,
+    RerankerModel as DBRerankerModel, KnowledgeBase,
 )
 
 from app.rag.llms.anthropic_vertex import AnthropicVertex
@@ -118,6 +118,11 @@ class ChatEngineConfig(BaseModel):
 
     def get_db_chat_engine(self) -> Optional[DBChatEngine]:
         return self._db_chat_engine
+
+    def get_linked_knowledge_base(self, session: Session) -> KnowledgeBase | None:
+        if not self.knowledge_base:
+            return None
+        return knowledge_base_repo.must_get(session, self.knowledge_base.linked_knowledge_base.id)
 
     @classmethod
     def load_from_db(cls, session: Session, engine_name: str) -> "ChatEngineConfig":
