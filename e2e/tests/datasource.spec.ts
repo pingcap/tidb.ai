@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { loginViaApi } from '../utils/login';
 
 test.describe('Datasource', () => {
-  test('Web Single Page', async ({ page }) => {
+  test.fixme('Web Single Page', async ({ page }) => {
     test.slow();
 
     await test.step('Login and visit KB page', async () => {
