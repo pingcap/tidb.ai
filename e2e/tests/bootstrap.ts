@@ -225,7 +225,7 @@ test('Bootstrap', async ({ page }) => {
 
         await page.setInputFiles('[name=files]', 'sample.pdf');
 
-        const createButton = page.getByText('Create Datasource');
+        const createButton = page.getByRole('button', { name: 'Create' });
         await createButton.scrollIntoViewIfNeeded();
 
         await createButton.click();

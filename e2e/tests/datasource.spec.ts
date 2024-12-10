@@ -5,11 +5,9 @@ test.describe('Datasource', () => {
   test('Web Single Page', async ({ page }) => {
     test.slow();
 
-    await test.step('Login and visit page', async () => {
+    await test.step('Login and visit KB page', async () => {
       await loginViaApi(page);
-
-      await page.goto('/datasources');
-      await expect(page.getByRole('heading', { name: 'Create Data Source' })).toBeVisible();
+      await page.goto('/knowledge-bases/1/data-sources');
     });
 
     await test.step('Add Single Page Datasource', async () => {

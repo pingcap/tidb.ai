@@ -57,7 +57,7 @@ test.describe('API', () => {
     await expectGetOkStep('/api/v1/admin/documents?page=1&size=10&language=en');
     await expectGetOkStep('/api/v1/admin/documents?page=1&size=10&source_uri=system-variables&created_at_start=2024-07-04T11:58:00&created_at_end=2024-07-04T12:58:00&updated_at_start=2024-08-22T14:36:59&updated_at_end=2024-08-23T14:37:59&last_modified_at_start=2024-07-04T11:57:58&last_modified_at_end=2024-07-05T11:57:59&name=System&mime_type=text/markdown&index_status=failed');
 
-    await expectGetOkStep('/api/v1/admin/datasources');
+    await expectGetOkStep('/api/v1/admin/knowledge_bases');
 
     await expectGetOkStep('/api/v1/admin/site-settings');
 
