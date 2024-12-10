@@ -5,9 +5,9 @@ from fastapi_pagination import Params, Page
 from sqlalchemy import func
 from sqlmodel import select, case, desc
 
-from app.api.admin_routes.models import CreateEvaluationTask, EvaluationTaskSummary
+from app.api.admin_routes.evaluation.models import CreateEvaluationTask, EvaluationTaskSummary
 from app.file_storage import default_file_storage
-from app.models import EvaluationTask, EvaluationItem, Upload, EvaluationStatus
+from app.models import EvaluationTask, EvaluationItem, EvaluationStatus, EvaluationDataset, EvaluationDatasetItem
 from app.api.deps import SessionDep, CurrentSuperuserDep
 
 import pandas as pd
@@ -26,18 +26,11 @@ def create_evaluation_task(
     user: CurrentSuperuserDep
 ) -> Optional[EvaluationTask]:
     """
-    Create an evaluation task for a given question and chat engine.
-    This API depends on the /admin/uploads API to upload the evaluation data.
-    The evaluation data is expected to be a CSV file with the following columns:
-
-    - query: The query to evaluate
-    - reference: The expected response to the query
-
-    You can add more columns to the CSV file, and the extra columns will adhere to the results.
+    Create an evaluation task from the evaluation dataset.
 
     Args:
         evaluation_task.name: The name of the evaluation task.
-        evaluation_task.upload_id: The ID of the uploaded evaluation CSV file.
+        evaluation_task.evaluation_dataset_id: The ID of the uploaded evaluation dataset.
         evaluation_task.chat_engine: The chat engine to evaluate the queries against. Default is "default".
         evaluation_task.run_size: The number of queries to evaluate. Default is None, which means all queries in the CSV file.
 
@@ -46,64 +39,43 @@ def create_evaluation_task(
     """
 
     name = evaluation_task.name
-    evaluation_file_id = evaluation_task.upload_id
+    evaluation_dataset_id = evaluation_task.evaluation_dataset_id
     chat_engine = evaluation_task.chat_engine
     run_size = evaluation_task.run_size
 
-    upload = session.get(Upload, evaluation_file_id)
+    dataset = session.get(EvaluationDataset, evaluation_dataset_id)
 
-    # csv file handler
-    if not upload or upload.user_id != user.id:
+    # dataset exists checker
+    if not dataset or dataset.user_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Uploaded file not found",
+            detail="Evaluation dataset not found",
         )
 
-    if upload.mime_type != MimeTypes.CSV:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="The uploaded file must be a CSV file.",
-        )
+    # create evaluation items
+    # caveat: Do the deep copy on purpose to avoid the side effect of the original dataset modification
+    evaluation_items = [EvaluationItem(
+        status=EvaluationStatus.NOT_START,
+        chat_engine=chat_engine,
+        query=item.query,
+        reference=item.reference,
+        retrieved_contexts=item.retrieved_contexts,
+        extra=item.extra,
+    ) for item in dataset.evaluation_data_list]
 
-    # retrieve the csv file and check the columns
-    with default_file_storage.open(upload.path) as f:
-        df = pd.read_csv(f)
+    evaluation_task = EvaluationTask(
+        name=name,
+        user_id=user.id,
+        evaluation_items=evaluation_items,
+        dataset_id=evaluation_dataset_id,
+    )
 
-        # check essential columns
-        must_have_columns = ["query", "reference"]
-        if not set(must_have_columns).issubset(df.columns):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"The uploaded file must have the following columns: {must_have_columns}",
-            )
+    session.add(evaluation_task)
+    session.commit()
 
-        eval_list = df.to_dict(orient='records')
-        if run_size is not None and run_size < len(eval_list):
-            eval_list = eval_list[:run_size]
+    add_evaluation_task.delay(evaluation_task.id)
 
-        evaluation_task = EvaluationTask(
-            name=name,
-            user_id=user.id,
-            upload_id=evaluation_file_id,
-        )
-
-        # create evaluation items
-        evaluation_items = [EvaluationItem(
-            status=EvaluationStatus.NOT_START,
-            chat_engine=chat_engine,
-            query=item["query"],
-            reference=item["reference"],
-            extra={k: item[k] for k in item if k not in must_have_columns},
-        ) for item in eval_list]
-
-        evaluation_task.evaluation_items = evaluation_items
-
-        session.add(evaluation_task)
-        session.commit()
-
-        add_evaluation_task.delay(evaluation_task.id)
-
-        return evaluation_task
+    return evaluation_task
 
 
 @router.get("/admin/evaluation/task-summary/{evaluation_task_id}")
@@ -184,7 +156,7 @@ def list_evaluation_task(
     return paginate(session, stmt, params)
 
 
-@router.get("/admin/evaluation/all-items/{evaluation_task_id}")
+@router.get("/admin/evaluation/task/all-items/{evaluation_task_id}")
 def list_evaluation_task(
     evaluation_task_id: int,
     session: SessionDep,

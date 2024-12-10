@@ -33,13 +33,7 @@ class EvaluationTask(UpdatableBaseModel, table=True):
         },
     )
 
-    upload_id: int = Field(foreign_key="uploads.id", nullable=True)
-    upload: "Upload" = SQLRelationship(
-        sa_relationship_kwargs={
-            "lazy": "joined",
-            "primaryjoin": "EvaluationTask.upload_id == Upload.id",
-        },
-    )
+    dataset_id: int = Field(nullable=True)
 
     evaluation_items: List["EvaluationItem"] = SQLRelationship(back_populates="evaluation_task")
 
