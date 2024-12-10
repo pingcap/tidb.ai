@@ -85,6 +85,7 @@ test('Bootstrap', async ({ page }) => {
   await test.step(`Create Default Reranker (${E2E_RERANKER_PROVIDER} ${E2E_RERANKER_MODEL})`, async () => {
     await clickTab('Reranker Models', '/reranker-models');
 
+    await page.getByText('Loading Data').waitFor({ state: 'detached' });
     if (await page.getByText('My Reranker').count() === 0) {
       await page.getByText('New Reranker Model').click();
 
@@ -123,6 +124,7 @@ test('Bootstrap', async ({ page }) => {
   await test.step(`Create Default LLM (${E2E_LLM_PROVIDER} ${E2E_LLM_MODEL})`, async () => {
     await clickTab('LLMs', '/llms');
 
+    await page.getByText('Loading Data').waitFor({ state: 'detached' });
     if (await page.getByText('My LLM').count() === 0) {
       await page.getByText('New LLM').click();
 
@@ -159,6 +161,7 @@ test('Bootstrap', async ({ page }) => {
   await test.step(`Create Default Embedding model (${E2E_EMBEDDING_PROVIDER} ${E2E_EMBEDDING_MODEL || 'default'})`, async () => {
     await clickTab('Embedding Models', '/embedding-models');
 
+    await page.getByText('Loading Data').waitFor({ state: 'detached' });
     if (await page.getByText('My Embedding Model').count() === 0) {
       await page.getByText('New Embedding Model').click();
 
@@ -199,11 +202,12 @@ test('Bootstrap', async ({ page }) => {
   await test.step('Create Knowledge Base', async () => {
     await clickTab('Knowledge Bases', '/knowledge-bases');
 
-    if (await page.getByText('E2E LLM').count() === 0) {
+    await page.getByText('Loading Data').waitFor({ state: 'detached' });
+    if (await page.getByText('My Knowledge Base').count() === 0) {
       await page.getByText('New Knowledge Base').click();
       await page.waitForSelector('[name=name]');
-      await page.fill('[name=name]', 'E2E Knowledge Base');
-      await page.fill('[name=description]', 'This is E2E Knowledge Base.');
+      await page.fill('input[name=name]', 'My Knowledge Base');
+      await page.fill('textarea[name=description]', 'This is E2E Knowledge Base.');
       await page.getByRole('button', { name: 'Submit', exact: true }).click();
 
       await page.waitForURL(/\/knowledge-bases\/1\/data-sources/);
@@ -240,7 +244,7 @@ test('Bootstrap', async ({ page }) => {
 
     await page.getByRole('tab', { name: 'Retrieval' }).click();
     await page.getByLabel('Knowledge Base', { exact: true }).click();
-    await page.getByRole('option', { name: 'default' }).click();
+    await page.getByRole('option', { name: 'default' }).filter({ has: page.getByText('My Knowledge Base') }).click();
 
     await page.getByRole('button', { name: 'Save' }).click();
     await page.getByRole('button', { name: 'Save' }).waitFor({ state: 'detached' });
