@@ -85,7 +85,7 @@ test('Bootstrap', async ({ page }) => {
   await test.step(`Create Default Reranker (${E2E_RERANKER_PROVIDER} ${E2E_RERANKER_MODEL})`, async () => {
     await clickTab('Reranker Models', '/reranker-models');
 
-    if (await page.getByText('E2E Reranker').count() === 0) {
+    if (await page.getByText('My Reranker').count() === 0) {
       await page.getByText('New Reranker Model').click();
 
       // Fill name
@@ -94,7 +94,9 @@ test('Bootstrap', async ({ page }) => {
 
       // Select provider
       await page.getByLabel('Provider').locator('..').locator('button').click();
-      await page.getByText(E2E_RERANKER_PROVIDER, { exact: true }).click();
+      await page.getByRole('option').filter({
+        has: page.getByText(E2E_RERANKER_PROVIDER, { exact: true }),
+      }).click();
 
       // Fill model if provided
       if (E2E_RERANKER_MODEL) {
@@ -109,7 +111,7 @@ test('Bootstrap', async ({ page }) => {
       }
 
       // Click create button
-      const createButton = page.getByText('Create Reranker');
+      const createButton = page.getByRole('button', { name: 'Create Reranker' });
       await createButton.scrollIntoViewIfNeeded();
       await createButton.click();
 
@@ -121,7 +123,7 @@ test('Bootstrap', async ({ page }) => {
   await test.step(`Create Default LLM (${E2E_LLM_PROVIDER} ${E2E_LLM_MODEL})`, async () => {
     await clickTab('LLMs', '/llms');
 
-    if (await page.getByText('E2E LLM').count() === 0) {
+    if (await page.getByText('My LLM').count() === 0) {
       await page.getByText('New LLM').click();
 
       // Fill name
@@ -130,7 +132,9 @@ test('Bootstrap', async ({ page }) => {
 
       // Select provider
       await page.getByLabel('Provider').locator('..').locator('button').click();
-      await page.getByText(E2E_LLM_PROVIDER, { exact: true }).click();
+      await page.getByRole('option').filter({
+        has: page.getByText(E2E_LLM_PROVIDER, { exact: true }),
+      }).click();
 
       // Fill model if provided
       if (E2E_LLM_MODEL) {
@@ -143,7 +147,7 @@ test('Bootstrap', async ({ page }) => {
       await credentialsInput.fill(E2E_LLM_CREDENTIALS);
 
       // Click create button
-      const createButton = page.getByText('Create LLM');
+      const createButton = page.getByRole('button', { name: 'Create LLM' });
       await createButton.scrollIntoViewIfNeeded();
       await createButton.click();
 
@@ -155,7 +159,7 @@ test('Bootstrap', async ({ page }) => {
   await test.step(`Create Default Embedding model (${E2E_EMBEDDING_PROVIDER} ${E2E_EMBEDDING_MODEL || 'default'})`, async () => {
     await clickTab('Embedding Models', '/embedding-models');
 
-    if (await page.getByText('E2E Embedding Model').count() === 0) {
+    if (await page.getByText('My Embedding Model').count() === 0) {
       await page.getByText('New Embedding Model').click();
 
       // Fill name
@@ -164,7 +168,9 @@ test('Bootstrap', async ({ page }) => {
 
       // Select provider
       await page.getByLabel('Provider').locator('..').locator('button').click();
-      await page.getByText(E2E_EMBEDDING_PROVIDER, { exact: true }).click();
+      await page.getByRole('option').filter({
+        has: page.getByText(E2E_EMBEDDING_PROVIDER, { exact: true }),
+      }).click();
 
       // Fill model if provided
       if (E2E_EMBEDDING_MODEL) {
@@ -180,7 +186,7 @@ test('Bootstrap', async ({ page }) => {
       await vectorDimensionInput.fill('1536');
 
       // Click create button
-      const createButton = page.getByText('Create Embedding Model');
+      const createButton = page.getByRole('button', { name: 'Create Embedding Model' });
       await createButton.scrollIntoViewIfNeeded();
       await createButton.click();
 
