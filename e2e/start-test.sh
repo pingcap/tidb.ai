@@ -9,6 +9,7 @@ F_UNDERLINED="\033[4m"
 C_AQUA="\033[38;5;14m"
 TAG="${F_BOLD}${F_UNDERLINED}${C_AQUA}[TiDB.AI Integration Test]${NO_FORMAT}"
 
+PATH=${PATH}:/home/runner/.tiup/bin
 
 echo -e "$TAG Creating temp dir"
 export E2E_DATA_STORAGE_DIR=$(mktemp -d "${TMPDIR:-/tmp/}"/tidbai-storage.XXXXXXXX | sed 's#//#/#g')
@@ -36,11 +37,11 @@ function clean_up {
   do
     sleep 1
   done
-  echo "$TAG Cleaning tiup playground data..."
+  echo "$TAG Cleanup tiup playground data..."
   tiup clean e2e
 
   # Remove temp dirs
-  echo "$TAG Cleaning temp data dirs"
+  echo "$TAG Cleaning"
   rm -rf ${E2E_DATA_STORAGE_DIR} ${E2E_DATA_REDIS_DIR} 2>/dev/null || echo "Failed to remove temp dirs. (It's OK in CI)"
 
   exit $ARG
