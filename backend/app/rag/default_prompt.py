@@ -73,8 +73,8 @@ Instructions:
    - If the user's question is too vague or lacks key information, identify what additional information would be necessary for clarity.
 
 2. Generate a Clarifying Question:
-   - If the question is clear and answerable, return "False" and leave the clarifying question empty ("").
-   - If clarification is needed, return "True" and generate a specific question to ask the user, directly addressing the information gap. Avoid general questions; focus on the specific details required for an accurate answer.
+   - If the question is clear and answerable, return exact "False" as the response.
+   - If clarification is needed, return a specific question to ask the user, directly addressing the information gap. Avoid general questions; focus on the specific details required for an accurate answer.
 
 3. Use the same language to ask the clarifying question as the user's original question.
 
@@ -85,8 +85,7 @@ Relevant Knowledge: TiDB supports foreign keys starting from version 6.6.0.
 
 Response:
 
-- Clarity Needed: True
-- Clarifying Question: "Which version of TiDB are you using?"
+Which version of TiDB are you using?
 
 Example 2:
 
@@ -95,8 +94,16 @@ Relevant Knowledge: TiDB supports nested transaction starting from version 6.2.0
 
 Response:
 
-- Clarity Needed: True
-- Clarifying Question: "Which version of TiDB are you using?"
+Which version of TiDB are you using?
+
+Example 3:
+
+user: "Does TiDB support foreign keys? I'm using TiDB 6.5.0."
+Relevant Knowledge: TiDB supports foreign keys starting from version 6.6.0.
+
+Response:
+
+False
 
 Your Turn:
 
@@ -288,6 +295,7 @@ Instructions:
 4. Keep questions concise yet insightful to maximize engagement.
 5. Use the same language with the chat message content.
 6. Each question should end with a question mark.
+7. Each question should be in a new line, DO NOT add any indexes or blank lines, just output the questions.
 
 Now, generate 3–5 follow-up questions below:
 """
