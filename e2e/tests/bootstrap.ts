@@ -116,7 +116,7 @@ test('Bootstrap', async ({ page }) => {
       await createButton.click();
 
       // Wait for finish by check the url changes
-      await page.waitForURL(/\/reranker-models\/.+/);
+      await page.waitForURL(/\/reranker-models\/\d+/);
     }
   });
 
@@ -152,7 +152,7 @@ test('Bootstrap', async ({ page }) => {
       await createButton.click();
 
       // Wait for finish by check the url changes
-      await page.waitForURL(/\/llms\/.+/);
+      await page.waitForURL(/\/llms\/\d+/);
     }
   });
 
@@ -191,7 +191,7 @@ test('Bootstrap', async ({ page }) => {
       await createButton.click();
 
       // Wait for finish by check the url changes
-      await page.waitForURL(/\/embedding-models\/.+/);
+      await page.waitForURL(/\/embedding-models\/\d+/);
     }
   });
 
