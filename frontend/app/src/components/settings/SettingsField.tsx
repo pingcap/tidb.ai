@@ -23,7 +23,7 @@ export interface SettingsFieldProps {
   objectSchema?: ZodType;
   onChanged?: () => void;
   disabled?: boolean;
-  children?: (props: ControllerRenderProps) => ReactElement;
+  children?: (props: ControllerRenderProps) => ReactElement<any>;
 }
 
 export function SettingsField ({ name, item, arrayItemSchema, objectSchema, onChanged, disabled, children }: SettingsFieldProps) {
