@@ -244,7 +244,7 @@ test('Bootstrap', async ({ page }) => {
     await page.goto('/chat-engines/1');
 
     await page.getByRole('tab', { name: 'Retrieval' }).click();
-    await page.getByLabel('Knowledge Base', { exact: true }).click();
+    await page.getByLabel('Select Knowledge Base', { exact: true }).click();
     await page.getByRole('option', { name: 'default' }).filter({ has: page.getByText('My Knowledge Base') }).click();
 
     await page.getByRole('button', { name: 'Save' }).click();
