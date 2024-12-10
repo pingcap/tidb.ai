@@ -174,6 +174,12 @@ jobs:
         - name: Install Playwright Browsers
           run: npx playwright install --with-deps chromium
 
+        - name: Find Docker Host IP
+          uses: addnab/docker-run-action@v1
+          with:
+            image: alpine:latest
+            run: apk update > /dev/null && apk add iproute2 > /dev/null && ip -4 route show default | cut -d' ' -f3
+
         - name: Prepare Tests
           run: ./prepare-test.sh
           env:
