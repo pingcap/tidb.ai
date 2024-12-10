@@ -1,7 +1,7 @@
 [project]
 name = "tidb-ai-python"
 version = "0.2.9"
-description = "TIDB AI Python Backend"
+description = "AutoFlow Python Backend"
 authors = [
     { name = "wd0517", email = "me@wangdi.ink" }
 ]
