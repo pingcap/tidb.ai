@@ -9,6 +9,8 @@ F_UNDERLINED="\033[4m"
 C_AQUA="\033[38;5;14m"
 TAG="${F_BOLD}${F_UNDERLINED}${C_AQUA}[TiDB.AI Integration Test]${NO_FORMAT}"
 
+TIDB_VERSION=v8.4.0
+
 PATH=${PATH}:/home/runner/.tiup/bin
 
 echo -e "$TAG Creating temp dir"
@@ -33,15 +35,15 @@ function clean_up {
   echo "$TAG Stopping tiup playground cluster..."
   echo -e "$TAG Wait until TiDB down..."
   kill $TIDB_PID
-  while [[ -n $(curl http://127.0.0.1:10080/status 2>/dev/null) ]]
+  while [[ -n $(tiup playground display e2e >/dev/null 2>/dev/null) ]]
   do
     sleep 1
   done
-  echo "$TAG Cleanup tiup playground data..."
+  echo "$TAG Cleaning tiup playground data..."
   tiup clean e2e
 
   # Remove temp dirs
-  echo "$TAG Cleaning"
+  echo "$TAG Cleaning temp data dirs"
   rm -rf ${E2E_DATA_STORAGE_DIR} ${E2E_DATA_REDIS_DIR} 2>/dev/null || echo "Failed to remove temp dirs. (It's OK in CI)"
 
   exit $ARG
@@ -50,10 +52,10 @@ function clean_up {
 trap clean_up EXIT
 
 echo -e "$TAG Create tiup playground cluster..."
-tiup playground v8.4.0 --tag "e2e" --db 1 --pd 1 --tiflash 1 --kv 1 --without-monitor &
+tiup playground ${TIDB_VERSION} --tag "e2e" --db 1 --pd 1 --tiflash 1 --kv 1 --without-monitor &
 TIDB_PID=$!
 echo -e "$TAG Wait until TiDB ready..."
-while ! [[ -n $(curl http://127.0.0.1:10080/status 2>/dev/null) ]]
+while ! [[ -n $(tiup playground display e2e >/dev/null 2>/dev/null) ]]
 do
   sleep 1
 done

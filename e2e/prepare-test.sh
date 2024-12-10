@@ -2,10 +2,13 @@
 
 set -e
 
+TIDB_VERSION=v8.4.0
+
 # Download tiup
 function prepare_tidb () {
   curl --proto '=https' --tlsv1.2 -sSf https://tiup-mirrors.pingcap.com/install.sh | sh
-  /home/runner/.tiup/bin/tiup install tidb:v8.4.0 pd tidb tikv tiflash
+  PATH=${PATH}:/home/runner/.tiup/bin/tiup
+  tiup install tidb:${TIDB_VERSION} pd:${TIDB_VERSION} tikv:${TIDB_VERSION} tiflash:${TIDB_VERSION}
 }
 
 # Pull docker images
