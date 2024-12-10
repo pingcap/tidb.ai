@@ -26,21 +26,36 @@ function clean_up {
   echo -e "$TAG Cleaning up..."
 
   # Stop dockers
+  echo -e "$TAG Shutdown dockers..."
   docker compose down frontend background backend redis static-web-server
 
-  echo "$TAG Dropping temp database"
-  node ./scripts/drop-temp-serverless-cluster.mjs
+  echo "$TAG Stopping tiup playground cluster..."
+  echo -e "$TAG Wait until TiDB down..."
+  kill $TIDB_PID
+  while [[ -n $(curl http://127.0.0.1:10080/status 2>/dev/null) ]]
+  do
+    sleep 1
+  done
+  echo "$TAG Cleaning tiup playground data..."
+  tiup clean e2e
 
   # Remove temp dirs
-  rm -rf ${E2E_DATA_STORAGE_DIR} ${E2E_DATA_REDIS_DIR} || echo "Failed to remove temp dirs."
+  echo "$TAG Cleaning temp data dirs"
+  rm -rf ${E2E_DATA_STORAGE_DIR} ${E2E_DATA_REDIS_DIR} 2>/dev/null || echo "Failed to remove temp dirs. (It's OK in CI)"
 
   exit $ARG
 }
 
 trap clean_up EXIT
 
-echo -e "$TAG Create temp database..."
-node ./scripts/create-temp-serverless-cluster.mjs
+echo -e "$TAG Create tiup playground cluster..."
+tiup playground v8.4.0 --tag "e2e" --db 1 --pd 1 --tiflash 1 --kv 1 --without-monitor &
+TIDB_PID=$!
+echo -e "$TAG Wait until TiDB ready..."
+while ! [[ -n $(curl http://127.0.0.1:10080/status 2>/dev/null) ]]
+do
+  sleep 1
+done
 
 echo -e "$TAG Execute migrations"
 docker compose run --rm backend /bin/sh -c "alembic upgrade head"
