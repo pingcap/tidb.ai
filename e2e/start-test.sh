@@ -32,18 +32,18 @@ function clean_up {
   echo -e "$TAG Shutdown dockers..."
   docker compose down frontend background backend redis static-web-server
 
-  echo "$TAG Stopping tiup playground cluster..."
+  echo -e "$TAG Stopping tiup playground cluster..."
   echo -e "$TAG Wait until TiDB down..."
   kill $TIDB_PID
   while [[ -n $(tiup playground display e2e >/dev/null 2>/dev/null) ]]
   do
     sleep 1
   done
-  echo "$TAG Cleaning tiup playground data..."
+  echo -e "$TAG Cleaning tiup playground data..."
   tiup clean e2e
 
   # Remove temp dirs
-  echo "$TAG Cleaning temp data dirs"
+  echo -e "$TAG Cleaning temp data dirs"
   rm -rf ${E2E_DATA_STORAGE_DIR} ${E2E_DATA_REDIS_DIR} 2>/dev/null || echo "Failed to remove temp dirs. (It's OK in CI)"
 
   exit $ARG

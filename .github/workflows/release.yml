@@ -174,7 +174,7 @@ jobs:
         - name: Install Playwright Browsers
           run: npx playwright install --with-deps chromium
 
-        - name: Fetch Images
+        - name: Prepare Tests
           run: ./prepare-test.sh
           env:
             E2E_DOCKER_TAG_FRONTEND: ${{needs.docker-metadata.outputs.e2e-frontend}}
