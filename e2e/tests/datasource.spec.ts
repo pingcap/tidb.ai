@@ -16,8 +16,9 @@ test.describe('Datasource', () => {
 
       await page.getByLabel('Name').fill('example site');
 
-      await page.locator('input[name="urls.0"]').locator('..').locator('button', { has: page.locator('svg.lucide-plus') }).click();
+      await page.getByRole('button', { name: 'New Item' }).click();
       await page.locator('input[name="urls.0"]').fill('https://example.com');
+      await page.getByRole('button', { name: 'New Item' }).click();
       await page.locator('input[name="urls.1"]').fill('https://www.iana.org/help/example-domains');
 
       await page.getByRole('button', { name: 'Create' }).click();
