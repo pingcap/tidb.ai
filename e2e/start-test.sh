@@ -35,7 +35,7 @@ function clean_up {
   echo -e "$TAG Stopping tiup playground cluster..."
   echo -e "$TAG Wait until TiDB down..."
   kill $TIDB_PID
-  while [[ -n $(tiup playground display e2e >/dev/null 2>/dev/null) ]]
+  while ! tiup playground display e2e >/dev/null 2>/dev/null
   do
     sleep 1
   done
@@ -55,7 +55,7 @@ echo -e "$TAG Create tiup playground cluster..."
 tiup playground ${TIDB_VERSION} --tag "e2e" --db 1 --pd 1 --tiflash 1 --kv 1 --without-monitor &
 TIDB_PID=$!
 echo -e "$TAG Wait until TiDB ready..."
-while ! [[ -n $(tiup playground display e2e >/dev/null 2>/dev/null) ]]
+while ! tiup playground display e2e >/dev/null 2>/dev/null
 do
   sleep 1
 done
