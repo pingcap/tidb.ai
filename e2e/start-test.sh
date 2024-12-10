@@ -52,7 +52,9 @@ function clean_up {
 trap clean_up EXIT
 
 echo -e "$TAG Create tiup playground cluster..."
-tiup playground ${TIDB_VERSION} --tag "e2e" --db 1 --pd 1 --tiflash 1 --kv 1 --without-monitor &
+tiup playground ${TIDB_VERSION} --tag "e2e" --without-monitor \
+  --db 1 --pd 1 --tiflash 1 --kv 1 \
+  --db.host 0.0.0.0 --pd.host 0.0.0.0 &
 TIDB_PID=$!
 echo -e "$TAG Wait until TiDB ready..."
 while ! tiup playground display e2e >/dev/null 2>/dev/null
