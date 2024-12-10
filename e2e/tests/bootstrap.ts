@@ -4,7 +4,7 @@ test.use({
   trace: !!process.env.CI ? 'off' : 'on',
 });
 
-test('Bootstrap', async ({ page }) => {
+test('Bootstrap', async ({ browser, page }) => {
   test.slow();
 
   const {
@@ -58,9 +58,6 @@ test('Bootstrap', async ({ page }) => {
 
     // Wait for dialog dismiss
     await page.getByRole('dialog', { name: 'Sign In' }).waitFor({ state: 'detached' });
-
-    // TODO: Remove this
-    await page.reload();
 
     // Wait login
     await page.getByText(USERNAME).waitFor({ state: 'visible' });
