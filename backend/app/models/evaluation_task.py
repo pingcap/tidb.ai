@@ -35,7 +35,9 @@ class EvaluationTask(UpdatableBaseModel, table=True):
 
     dataset_id: int = Field(nullable=True)
 
-    evaluation_task_items: List["EvaluationTaskItem"] = SQLRelationship(back_populates="evaluation_task")
+    evaluation_task_items: List["EvaluationTaskItem"] = SQLRelationship(
+        back_populates="evaluation_task"
+    )
 
     __tablename__ = "evaluation_tasks"
 

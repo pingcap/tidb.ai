@@ -17,4 +17,3 @@ __all__ = [
     "purge_kb_datasource_related_resources",
     "add_evaluation_task",
 ]
-

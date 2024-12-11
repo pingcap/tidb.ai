@@ -24,7 +24,9 @@ class EvaluationDataset(UpdatableBaseModel, table=True):
         },
     )
 
-    evaluation_data_list: List["EvaluationDatasetItem"] = SQLRelationship(back_populates="evaluation_dataset")
+    evaluation_data_list: List["EvaluationDatasetItem"] = SQLRelationship(
+        back_populates="evaluation_dataset"
+    )
 
     __tablename__ = "evaluation_datasets"
 
@@ -36,7 +38,9 @@ class EvaluationDatasetItem(UpdatableBaseModel, table=True):
     retrieved_contexts: list[str] = Field(default=[], sa_column=Column(JSON))
     extra: dict = Field(default={}, sa_column=Column(JSON))
 
-    evaluation_dataset_id: int = Field(foreign_key="evaluation_datasets.id", nullable=True)
+    evaluation_dataset_id: int = Field(
+        foreign_key="evaluation_datasets.id", nullable=True
+    )
     evaluation_dataset: "EvaluationDataset" = SQLRelationship(
         back_populates="evaluation_data_list",
         sa_relationship_kwargs={

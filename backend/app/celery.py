@@ -14,8 +14,8 @@ app.conf.update(
     task_reject_on_worker_lost=True,
     task_routes=[
         {"app.tasks.evaluate.*": {"queue": "evaluation"}},
-        {"*": {"queue": "default"}}
-    ]
+        {"*": {"queue": "default"}},
+    ],
 )
 
 app.autodiscover_tasks(["app"])

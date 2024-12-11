@@ -4,7 +4,7 @@ from typing import TypeVar, Type
 from fastapi import status, HTTPException
 from sqlmodel import SQLModel, Session
 
-T = TypeVar('T', bound=SQLModel)
+T = TypeVar("T", bound=SQLModel)
 
 
 def must_get(session: Session, model: Type[T], item_id: int) -> T:
@@ -17,10 +17,12 @@ def must_get(session: Session, model: Type[T], item_id: int) -> T:
     return item
 
 
-def must_get_and_belong(session: Session, model: Type[T], item_id: int, user_id: int) -> T:
+def must_get_and_belong(
+    session: Session, model: Type[T], item_id: int, user_id: int
+) -> T:
     item = must_get(session, model, item_id)
 
-    if not hasattr(item, 'user_id'):
+    if not hasattr(item, "user_id"):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"{model.__name__} does not have a 'user_id' field",

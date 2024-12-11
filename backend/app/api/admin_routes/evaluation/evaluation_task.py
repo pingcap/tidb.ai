@@ -5,10 +5,19 @@ from fastapi_pagination import Params, Page
 from sqlalchemy import func
 from sqlmodel import select, case, desc
 
-from app.api.admin_routes.evaluation.models import CreateEvaluationTask, EvaluationTaskSummary
+from app.api.admin_routes.evaluation.models import (
+    CreateEvaluationTask,
+    EvaluationTaskSummary,
+)
 from app.api.admin_routes.evaluation.tools import must_get_and_belong, must_get
 from app.file_storage import default_file_storage
-from app.models import EvaluationTask, EvaluationTaskItem, EvaluationStatus, EvaluationDataset, EvaluationDatasetItem
+from app.models import (
+    EvaluationTask,
+    EvaluationTaskItem,
+    EvaluationStatus,
+    EvaluationDataset,
+    EvaluationDatasetItem,
+)
 from app.api.deps import SessionDep, CurrentSuperuserDep
 
 import pandas as pd
@@ -24,7 +33,7 @@ router = APIRouter()
 def create_evaluation_task(
     evaluation_task: CreateEvaluationTask,
     session: SessionDep,
-    user: CurrentSuperuserDep
+    user: CurrentSuperuserDep,
 ) -> Optional[EvaluationTask]:
     """
     Create an evaluation task from the evaluation dataset.
@@ -44,18 +53,23 @@ def create_evaluation_task(
     chat_engine = evaluation_task.chat_engine
     run_size = evaluation_task.run_size
 
-    dataset = must_get_and_belong(session, EvaluationDataset, evaluation_dataset_id, user.id)
+    dataset = must_get_and_belong(
+        session, EvaluationDataset, evaluation_dataset_id, user.id
+    )
 
     # create evaluation items
     # caveat: Do the deep copy on purpose to avoid the side effect of the original dataset modification
-    evaluation_task_items = [EvaluationTaskItem(
-        status=EvaluationStatus.NOT_START,
-        chat_engine=chat_engine,
-        query=item.query,
-        reference=item.reference,
-        retrieved_contexts=item.retrieved_contexts,
-        extra=item.extra,
-    ) for item in dataset.evaluation_data_list]
+    evaluation_task_items = [
+        EvaluationTaskItem(
+            status=EvaluationStatus.NOT_START,
+            chat_engine=chat_engine,
+            query=item.query,
+            reference=item.reference,
+            retrieved_contexts=item.retrieved_contexts,
+            extra=item.extra,
+        )
+        for item in dataset.evaluation_data_list
+    ]
 
     evaluation_task = EvaluationTask(
         name=name,
@@ -74,11 +88,11 @@ def create_evaluation_task(
 
 @router.get("/admin/evaluation/tasks/{evaluation_task_id}/summary")
 def get_evaluation_task_summary(
-    evaluation_task_id: int,
-    session: SessionDep,
-    user: CurrentSuperuserDep
+    evaluation_task_id: int, session: SessionDep, user: CurrentSuperuserDep
 ) -> EvaluationTaskSummary:
-    task = session.exec(select(EvaluationTask).where(EvaluationTask.id == evaluation_task_id)).first()
+    task = session.exec(
+        select(EvaluationTask).where(EvaluationTask.id == evaluation_task_id)
+    ).first()
     if not task:
         raise HTTPException(status_code=404, detail="EvaluationTask not found")
 
@@ -87,11 +101,28 @@ def get_evaluation_task_summary(
 
     status_counts = (
         session.query(
-            func.count(case((EvaluationTaskItem.status == EvaluationStatus.NOT_START, 1), else_=None)).label("not_start"),
-            func.count(case((EvaluationTaskItem.status == EvaluationStatus.EVALUATING, 1), else_=None)).label(
-                "evaluating"),
-            func.count(case((EvaluationTaskItem.status == EvaluationStatus.DONE, 1), else_=None)).label("done"),
-            func.count(case((EvaluationTaskItem.status == EvaluationStatus.ERROR, 1), else_=None)).label("error"),
+            func.count(
+                case(
+                    (EvaluationTaskItem.status == EvaluationStatus.NOT_START, 1),
+                    else_=None,
+                )
+            ).label("not_start"),
+            func.count(
+                case(
+                    (EvaluationTaskItem.status == EvaluationStatus.EVALUATING, 1),
+                    else_=None,
+                )
+            ).label("evaluating"),
+            func.count(
+                case(
+                    (EvaluationTaskItem.status == EvaluationStatus.DONE, 1), else_=None
+                )
+            ).label("done"),
+            func.count(
+                case(
+                    (EvaluationTaskItem.status == EvaluationStatus.ERROR, 1), else_=None
+                )
+            ).label("error"),
         )
         .filter(EvaluationTaskItem.evaluation_task_id == evaluation_task_id)
         .one()
@@ -101,14 +132,30 @@ def get_evaluation_task_summary(
     if status_counts.not_start == 0 and status_counts.evaluating == 0:
         stats = (
             session.query(
-                func.avg(EvaluationTaskItem.factual_correctness).label('avg_factual_correctness'),
-                func.avg(EvaluationTaskItem.semantic_similarity).label('avg_semantic_similarity'),
-                func.min(EvaluationTaskItem.factual_correctness).label('min_factual_correctness'),
-                func.min(EvaluationTaskItem.semantic_similarity).label('min_semantic_similarity'),
-                func.max(EvaluationTaskItem.factual_correctness).label('max_factual_correctness'),
-                func.max(EvaluationTaskItem.semantic_similarity).label('max_semantic_similarity'),
-                func.stddev(EvaluationTaskItem.factual_correctness).label('std_factual_correctness'),
-                func.stddev(EvaluationTaskItem.semantic_similarity).label('std_semantic_similarity'),
+                func.avg(EvaluationTaskItem.factual_correctness).label(
+                    "avg_factual_correctness"
+                ),
+                func.avg(EvaluationTaskItem.semantic_similarity).label(
+                    "avg_semantic_similarity"
+                ),
+                func.min(EvaluationTaskItem.factual_correctness).label(
+                    "min_factual_correctness"
+                ),
+                func.min(EvaluationTaskItem.semantic_similarity).label(
+                    "min_semantic_similarity"
+                ),
+                func.max(EvaluationTaskItem.factual_correctness).label(
+                    "max_factual_correctness"
+                ),
+                func.max(EvaluationTaskItem.semantic_similarity).label(
+                    "max_semantic_similarity"
+                ),
+                func.stddev(EvaluationTaskItem.factual_correctness).label(
+                    "std_factual_correctness"
+                ),
+                func.stddev(EvaluationTaskItem.semantic_similarity).label(
+                    "std_semantic_similarity"
+                ),
             )
             .filter(
                 EvaluationTaskItem.evaluation_task_id == evaluation_task_id,
@@ -156,7 +203,9 @@ def list_evaluation_task_items(
     session: SessionDep,
     user: CurrentSuperuserDep,
 ) -> List[EvaluationTaskItem]:
-    task = session.exec(select(EvaluationTask).where(EvaluationTask.id == evaluation_task_id)).first()
+    task = session.exec(
+        select(EvaluationTask).where(EvaluationTask.id == evaluation_task_id)
+    ).first()
     if not task:
         raise HTTPException(status_code=404, detail="EvaluationTask not found")
 
