@@ -3,10 +3,11 @@ import traceback
 
 import httpx
 from app.celery import app as celery_app
-from langchain_openai import ChatOpenAI, OpenAIEmbeddings
+from llama_index.llms.openai import OpenAI
+from llama_index.embeddings.openai import OpenAIEmbedding
 from ragas import EvaluationDataset, evaluate
-from ragas.embeddings import LangchainEmbeddingsWrapper
-from ragas.llms import LangchainLLMWrapper
+from ragas.embeddings import LlamaIndexEmbeddingsWrapper
+from ragas.llms import LlamaIndexLLMWrapper
 from ragas.metrics import FactualCorrectness, SemanticSimilarity
 from sqlmodel import Session, select
 from celery.utils.log import get_task_logger
@@ -93,14 +94,6 @@ def add_evaluation_task_item(evaluation_task_item_id: int):
 
 
 def evaluate_task(evaluation_task_item: EvaluationTaskItem):
-    import os
-    # Workaround: set openai api key in the environment variable
-    #
-    # Ragas only support this way to set openai api key
-    # If we set it the metrics, it will show an error that the key is not set
-    # https://github.com/explodinggradients/ragas/issues/1725
-    os.environ['OPENAI_API_KEY'] = settings.EVALUATION_OPENAI_API_KEY
-
     logger.info(f"Enter evaluate_task with evaluation item #{evaluation_task_item.id}")
     ragas_list = [{
         "user_input": evaluation_task_item.query,
@@ -112,8 +105,8 @@ def evaluate_task(evaluation_task_item: EvaluationTaskItem):
     ragas_dataset = EvaluationDataset.from_list(ragas_list)
     logger.debug(f"Dataset {ragas_dataset.to_pandas().head()}")
 
-    evaluator_llm = LangchainLLMWrapper(ChatOpenAI(model="gpt-4o"))
-    evaluator_embeddings = LangchainEmbeddingsWrapper(OpenAIEmbeddings(model="text-embedding-3-large"))
+    evaluator_llm = LlamaIndexLLMWrapper(OpenAI(model="gpt-4o", api_key=settings.EVALUATION_OPENAI_API_KEY))
+    evaluator_embeddings = LlamaIndexEmbeddingsWrapper(OpenAIEmbedding(model="text-embedding-3-large", api_key=settings.EVALUATION_OPENAI_API_KEY))
 
     metrics = [
         # LLMContextRecall(llm=evaluator_llm),  # retrieved_contexts required
@@ -129,13 +122,12 @@ def evaluate_task(evaluation_task_item: EvaluationTaskItem):
         result_list = eval_result.to_pandas().to_dict(orient='records')
         logger.debug(f"result list {result_list}")
         if len(result_list) != 1:
-            evaluation_task_item.error_msg = f"Item {evaluation_task_item.id} cannot get evaluation from ragas"
-            evaluation_task_item.status = EvaluationStatus.ERROR
-        else:
-            logger.debug(f"result {result_list[0]}")
-            evaluation_task_item.factual_correctness = result_list[0][FactualCorrectness.name]
-            evaluation_task_item.semantic_similarity = result_list[0][SemanticSimilarity.name]
-            evaluation_task_item.status = EvaluationStatus.DONE
+            raise Exception(f"Item {evaluation_task_item.id} cannot get evaluation from ragas")
+
+        logger.debug(f"result {result_list[0]}")
+        evaluation_task_item.factual_correctness = result_list[0][FactualCorrectness.name]
+        evaluation_task_item.semantic_similarity = result_list[0][SemanticSimilarity.name]
+        evaluation_task_item.status = EvaluationStatus.DONE
 
         logger.info(f"Result evaluation item #{evaluation_task_item}")
         with Session(engine, expire_on_commit=False) as session:
@@ -166,7 +158,7 @@ def generate_answer_by_autoflow(messages: list, chat_engine: str) -> (str, str):
             "chat_engine": chat_engine,
             "stream": False,
         },
-        timeout=180,
+        timeout=300,
     )
 
     response.raise_for_status()
