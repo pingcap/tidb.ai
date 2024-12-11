@@ -128,14 +128,14 @@ def evaluate_task(evaluation_task_item: EvaluationTaskItem):
         logger.debug(f"eval_result to_pandas")
         result_list = eval_result.to_pandas().to_dict(orient='records')
         logger.debug(f"result list {result_list}")
-        if len(result_list) == 1:
+        if len(result_list) != 1:
+            evaluation_task_item.error_msg = f"Item {evaluation_task_item.id} cannot get evaluation from ragas"
+            evaluation_task_item.status = EvaluationStatus.ERROR
+        else:
             logger.debug(f"result {result_list[0]}")
             evaluation_task_item.factual_correctness = result_list[0][FactualCorrectness.name]
             evaluation_task_item.semantic_similarity = result_list[0][SemanticSimilarity.name]
             evaluation_task_item.status = EvaluationStatus.DONE
-        else:
-            evaluation_task_item.error_msg = f"Item {evaluation_task_item.id} cannot get evaluation from ragas"
-            evaluation_task_item.status = EvaluationStatus.ERROR
 
         logger.info(f"Result evaluation item #{evaluation_task_item}")
         with Session(engine, expire_on_commit=False) as session:
