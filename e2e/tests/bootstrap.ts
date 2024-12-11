@@ -228,24 +228,23 @@ test('Bootstrap', async ({ browser, page }) => {
         await createButton.click();
 
         // Jump back to KB data source page
-        await page.waitForURL(/\/knowledge-bases\/1\/data-sources/);
+        await page.waitForURL(/\/knowledge-bases\/1\/data-sources$/);
       }
     });
   });
 
   // Update default Chat Engine
   await test.step('Update Chat Engine', async () => {
-    // TODO: fixme
-    // await clickTab('Chat Engines', '/chat-engines');
-    // await page.getByRole('link', { name: 'default' }).click();
-    await page.goto('/chat-engines/1');
+    await clickTab('Chat Engines', '/chat-engines');
+    await page.getByText('Loading Data').waitFor({ state: 'detached' });
+    await page.getByRole('link', { name: 'default' }).click();
 
     await page.getByRole('tab', { name: 'Retrieval' }).click();
-    await page.getByLabel('Knowledge Base', { exact: true }).click();
-    await page.getByRole('option', { name: 'default' }).filter({ has: page.getByText('My Knowledge Base') }).click();
+    await page.getByRole('button', { name: 'Knowledge Base', exact: true }).click();
+    await page.getByRole('option').filter({ has: page.getByText('My Knowledge Base') }).click();
 
-    await page.getByRole('button', { name: 'Save' }).click();
-    await page.getByRole('button', { name: 'Save' }).waitFor({ state: 'detached' });
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await page.getByRole('button', { name: 'Save', exact: true }).waitFor({ state: 'detached' });
   });
 
   await test.step('Reload and check wizard alert', async () => {
@@ -255,7 +254,7 @@ test('Bootstrap', async ({ browser, page }) => {
 
   await test.step('Documents count greater than 0', async () => {
     await page.goto('/knowledge-bases/1');
-    await page.getByRole('link', { name: 'sample.pdf' }).waitFor({ state: 'visible' });
+    await page.getByRole('button', { name: 'sample.pdf' }).waitFor({ state: 'visible' });
   });
 
   await test.step('Wait for indexing', async () => {
