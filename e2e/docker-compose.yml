@@ -9,11 +9,12 @@ services:
 
   backend:
     image: tidbai/backend:${E2E_DOCKER_TAG_BACKEND}
+    platform: ${E2E_DOCKER_PLATFORM}
     restart: always
     depends_on:
       - redis
     ports:
-      - "5000:80"
+      - "5001:80"
     env_file:
       - .env.backend
     volumes:
@@ -26,11 +27,12 @@ services:
 
   frontend:
     image: tidbai/frontend:${E2E_DOCKER_TAG_FRONTEND}
+    platform: ${E2E_DOCKER_PLATFORM}
     restart: always
     depends_on:
       - backend
     ports:
-      - 3000:3000
+      - "3000:3000"
     environment:
       BASE_URL: http://backend
     env_file:
@@ -43,6 +45,7 @@ services:
 
   background:
     image: tidbai/backend:${E2E_DOCKER_TAG_BACKEND}
+    platform: ${E2E_DOCKER_PLATFORM}
     restart: always
     depends_on:
       - redis
