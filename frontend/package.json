@@ -17,6 +17,10 @@
     "patchedDependencies": {
       "jest-runtime@29.7.0": "patches/jest-runtime@29.7.0.patch",
       "@jest/environment@29.7.0": "patches/@jest__environment@29.7.0.patch"
+    },
+    "overrides": {
+      "@types/react": "19.0.1",
+      "@types/react-dom": "19.0.2"
     }
   }
 }

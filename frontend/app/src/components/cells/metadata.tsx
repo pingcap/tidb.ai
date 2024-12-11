@@ -14,7 +14,7 @@ export const metadataCell = (props: CellContext<any, any>) => {
   }
 
   const warnings = (metadata.loader?.warning as string[]) ?? [];
-  let warningEl: ReactElement | undefined;
+  let warningEl: ReactElement<any> | undefined;
   if (warnings.length > 0) {
     warningEl = (
       <Tooltip>

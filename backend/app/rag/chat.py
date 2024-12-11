@@ -480,23 +480,26 @@ class ChatService:
                     MyCBEventType.CLARIFYING_QUESTION,
                     payload={EventPayload.QUERY_STR: refined_question},
                 ) as event:
-                    clarity_result = fast_llm.structured_predict(
-                        output_cls=self.ClarityResult,
+                    clarity_result = fast_llm.predict(
                         prompt=get_prompt_by_jinja2_template(
                             self.chat_engine_config.llm.clarifying_question_prompt,
                             graph_knowledges=graph_knowledges_context,
                             chat_history=self.chat_history,
                             question=refined_question,
                         ),
-                    )
+                    ).strip().strip(".\"\'!")
+
+                    clarity_needed = clarity_result.lower() != "false"
+
                     event.on_end(
                         payload={
-                            EventPayload.COMPLETION: f"Need Clarification: {clarity_result.clarity_needed}, "
-                            f"Clarifying Question: {clarity_result.clarifying_question}"
+                            EventPayload.COMPLETION: f"Need Clarification: {clarity_needed}, "
+                            f"Clarifying Question: {clarity_result}"
                         }
                     )
 
-                    if clarity_result.clarity_needed:
+
+                    if clarity_needed:
                         if not annotation_silent:
                             yield ChatEvent(
                                 event_type=ChatEventType.MESSAGE_ANNOTATIONS_PART,
@@ -508,10 +511,10 @@ class ChatService:
 
                         yield ChatEvent(
                             event_type=ChatEventType.TEXT_PART,
-                            payload=clarity_result.clarifying_question,
+                            payload=clarity_result,
                         )
 
-                        return True, clarity_result.clarifying_question, ""
+                        return True, clarity_result, ""
 
         return False, "", refined_question
 
@@ -1235,12 +1238,6 @@ def check_rag_config_need_migration(session: Session) -> NeedMigrationStatus:
     )
 
 
-class LLMRecommendQuestions(BaseModel):
-    """recommend questions respond model"""
-
-    questions: List[str]
-
-
 def remove_chat_message_recommend_questions(
     db_session: Session,
     chat_message_id: int,
@@ -1270,29 +1267,28 @@ def get_chat_message_recommend_questions(
     if questions is not None:
         return questions
 
-    recommend_questions = llm.structured_predict(
-        output_cls=LLMRecommendQuestions,
+    recommend_questions = llm.predict(
         prompt=get_prompt_by_jinja2_template(
             chat_engine_config.llm.further_questions_prompt,
             chat_message_content=chat_message.content,
         ),
     )
+    recommend_question_list = recommend_questions.splitlines()
+    recommend_question_list = [question.strip() for question in recommend_question_list if question.strip()]
 
     longest_question = 0
-    for question in recommend_questions.questions:
+    for question in recommend_question_list:
         longest_question = max(longest_question, len(question))
 
     # check the output by if the output with format and the length
-    questions = ",".join(recommend_questions.questions)
-    if "##" in questions or "**" in questions or longest_question > 500:
+    if "##" in recommend_questions or "**" in recommend_questions or longest_question > 500:
         regenerate_content = f"""
         Please note that you are generating a question list. You previously generated it incorrectly; try again.
         ----------------------------------------
         {chat_message.content}
         """
         # with format or too long for per question, it's not a question list, generate again
-        recommend_questions = llm.structured_predict(
-            output_cls=LLMRecommendQuestions,
+        recommend_questions = llm.predict(
             prompt=get_prompt_by_jinja2_template(
                 chat_engine_config.llm.further_questions_prompt,
                 chat_message_content=regenerate_content,
@@ -1302,9 +1298,9 @@ def get_chat_message_recommend_questions(
     db_session.add(
         RecommendQuestion(
             chat_message_id=chat_message.id,
-            questions=recommend_questions.questions,
+            questions=recommend_question_list,
         )
     )
     db_session.commit()
 
-    return recommend_questions.questions
+    return recommend_question_list
