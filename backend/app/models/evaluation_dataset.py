@@ -44,4 +44,4 @@ class EvaluationDatasetItem(UpdatableBaseModel, table=True):
             "primaryjoin": "EvaluationDatasetItem.evaluation_dataset_id == EvaluationDataset.id",
         },
     )
-    __tablename__ = "evaluation_datasets_items"
+    __tablename__ = "evaluation_dataset_items"
