@@ -141,7 +141,7 @@ const renderBaseItemContent = (item: NavBaseItem) => {
 };
 
 function SiteParentItem ({ current, item, active }: { current: string, item: NavParentItem, active: boolean }) {
-  let el: ReactElement = renderParentBaseItemContent(item);
+  let el: ReactElement<any> = renderParentBaseItemContent(item);
 
   if (item.disabled && typeof item.disabled !== 'boolean') {
     el = (
@@ -178,7 +178,7 @@ function SiteParentItem ({ current, item, active }: { current: string, item: Nav
 }
 
 function SiteNavLinkItem ({ item, active, sub = false }: { item: NavLinkItem, active: boolean, sub?: boolean }) {
-  let el: ReactElement;
+  let el: ReactElement<any>;
   let badge: ReactNode | undefined;
 
   if (!!item.disabled) {
