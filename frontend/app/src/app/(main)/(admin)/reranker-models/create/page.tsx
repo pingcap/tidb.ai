@@ -22,8 +22,8 @@ export default function Page () {
         transitioning={transitioning}
         onCreated={reranker => {
           startTransition(() => {
-            router.refresh();
             router.push(`/reranker-models/${reranker.id}`);
+            router.refresh();
           });
 
         }}

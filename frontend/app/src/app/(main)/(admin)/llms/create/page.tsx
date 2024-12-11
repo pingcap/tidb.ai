@@ -22,8 +22,8 @@ export default function Page () {
         transitioning={transitioning}
         onCreated={llm => {
           startTransition(() => {
-            router.refresh();
             router.push(`/llms/${llm.id}`);
+            router.refresh();
           });
         }}
       />

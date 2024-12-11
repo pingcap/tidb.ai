@@ -57,8 +57,8 @@ export function CreateChatEngineForm ({ defaultChatEngineOptions }: { defaultCha
     // TODO: refactor types
     const ce = await createChatEngine(data as never);
     startTransition(() => {
-      router.refresh();
       router.push(`/chat-engines/${ce.id}`);
+      router.refresh();
     });
   }, () => {
     toast.error('Validation failed', { description: 'Please check your chat engine configurations.' });
