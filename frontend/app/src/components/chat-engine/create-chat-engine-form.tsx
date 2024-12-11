@@ -194,7 +194,7 @@ function SectionTabTrigger ({ value, required }: { value: string, required?: boo
       <span className={cn(!validated && 'text-destructive')}>
         {value}
       </span>
-      {required && <sup className="text-destructive">*</sup>}
+      {required && <sup className="text-destructive" aria-hidden>*</sup>}
     </SecondaryNavigatorItem>
   );
 }

@@ -49,7 +49,7 @@ export function FormFieldBasicLayout<
         <FormItem>
           <FormLabel>
             {label}
-            {required && <sup className="text-destructive">*</sup>}
+            {required && <sup className="text-destructive" aria-hidden>*</sup>}
           </FormLabel>
           <FormControl>
             {renderWidget(children, field, fallbackValue)}
@@ -110,7 +110,7 @@ export function FormFieldContainedLayout<
           <div className="space-y-0.5">
             <FormLabel className={cn(!unimportant && 'text-base')}>
               {label}
-              {required && <sup className="text-destructive">*</sup>}
+              {required && <sup className="text-destructive" aria-hidden>*</sup>}
             </FormLabel>
             {description && <FormDescription>
               {description}
