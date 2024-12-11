@@ -20,7 +20,7 @@ from app.types import MimeTypes
 router = APIRouter()
 
 
-@router.post("/admin/evaluation/task")
+@router.post("/admin/evaluation/tasks")
 def create_evaluation_task(
     evaluation_task: CreateEvaluationTask,
     session: SessionDep,
@@ -72,7 +72,7 @@ def create_evaluation_task(
     return evaluation_task
 
 
-@router.get("/admin/evaluation/task/{evaluation_task_id}/summary")
+@router.get("/admin/evaluation/tasks/{evaluation_task_id}/summary")
 def get_evaluation_task_summary(
     evaluation_task_id: int,
     session: SessionDep,

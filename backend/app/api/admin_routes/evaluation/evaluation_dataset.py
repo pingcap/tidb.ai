@@ -15,7 +15,7 @@ from app.types import MimeTypes
 router = APIRouter()
 
 
-@router.post("/admin/evaluation/dataset")
+@router.post("/admin/evaluation/datasets")
 def create_evaluation_dataset(
     evaluation_dataset: CreateEvaluationDataset,
     session: SessionDep,
@@ -83,7 +83,7 @@ def create_evaluation_dataset(
     return evaluation_dataset
 
 
-@router.delete("/admin/evaluation/dataset/{evaluation_dataset_id}")
+@router.delete("/admin/evaluation/datasets/{evaluation_dataset_id}")
 def delete_evaluation_dataset(
     evaluation_dataset_id: int,
     session: SessionDep,
@@ -97,7 +97,7 @@ def delete_evaluation_dataset(
     return True
 
 
-@router.put("/admin/evaluation/dataset/{evaluation_dataset_id}")
+@router.put("/admin/evaluation/datasets/{evaluation_dataset_id}")
 def update_evaluation_dataset(
     evaluation_dataset_id: int,
     updated_evaluation_dataset: UpdateEvaluationDataset,
@@ -128,7 +128,7 @@ def list_evaluation_dataset(
     return paginate(session, stmt, params)
 
 
-@router.post("/admin/evaluation/dataset-item")
+@router.post("/admin/evaluation/dataset-items")
 def create_evaluation_dataset_item(
     modify_evaluation_dataset_item: ModifyEvaluationDatasetItem,
     session: SessionDep,
@@ -148,7 +148,7 @@ def create_evaluation_dataset_item(
     return evaluation_dataset_item
 
 
-@router.delete("/admin/evaluation/dataset-item/{evaluation_dataset_item_id}")
+@router.delete("/admin/evaluation/dataset-items/{evaluation_dataset_item_id}")
 def delete_evaluation_dataset_item(
         evaluation_dataset_item_id: int,
         session: SessionDep,
@@ -162,7 +162,7 @@ def delete_evaluation_dataset_item(
     return True
 
 
-@router.put("/admin/evaluation/dataset-item/{evaluation_dataset_item_id}")
+@router.put("/admin/evaluation/dataset-items/{evaluation_dataset_item_id}")
 def update_evaluation_dataset_item(
     evaluation_dataset_item_id: int,
     updated_evaluation_dataset_item: ModifyEvaluationDatasetItem,
