@@ -22,7 +22,7 @@ In this section, we will cover the requirements for deploying the project.
 
 ## Web Hosting
 
-### Hardware
+### Hardware - If you are using a Cloud TiDB and SaaS LLM
 You can use any of the following web hosting services to deploy the project:
 * Cloud server providers like [AWS](https://aws.amazon.com/), [Google Cloud](https://cloud.google.com/), [Azure](https://azure.microsoft.com/), etc.
 * Or your own server.
@@ -31,15 +31,21 @@ We suggest the following configuration for the server:
 
 | Name                 | Value            |
 |----------------------|------------------|
-| Memory               | 8 GB RAM         |
 | CPU                  | 4 vCPUs          |
-| Disk                 | 100 GB SSD       |
+| Memory               | 8 GB RAM         |
+| Disk                 | 200 GB SSD       |
 | Number of servers    | 1                |
 
-Currently the corpus type is text, so 100 GB SSD is enough for most of the cases, but if your corpus is large then you may need more storage.
 
-### Domain name - Optional
-You need to have a domain name to deploy the project on the server. You can get a domain name from [GoDaddy](https://www.godaddy.com/), [Namecheap](https://www.namecheap.com/), [Google Domains](https://domains.google/), etc.
+### Hardware - If you are using a self-hosted TiDB and self-hosted LLM
+If you use a self-hosted TiDB and self-hosted LLM, you need a powerful server to handle the load. We suggest the following configuration for the server:
 
-### SSL certificate - Optional
-You need to have an SSL certificate to secure the communication between the client and the server. You can get a free SSL certificate from [Let's Encrypt](https://letsencrypt.org/).
+| Name                 | Value            |
+|----------------------|------------------|
+| CPU                  | 16 vCPUs         |
+| Memory               | 32 GB RAM        |
+| Disk                 | 500 GB SSD       |
+| GPU                  | 1 x NVIDIA A100  |
+| Number of servers    | 1                |
+
+GPU here is used for the LLM model, you can use any other GPU model that can be used for the LLM model which has capability more than gpt-3.5.
