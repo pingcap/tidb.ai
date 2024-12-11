@@ -1,9 +1,7 @@
-from typing import Optional
 from uuid import UUID
 from pydantic import BaseModel
 
 from app.api.admin_routes.embedding_model.models import EmbeddingModelItem
-from app.models import EvaluationTask
 from app.types import LLMProvider
 
 

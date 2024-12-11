@@ -6,6 +6,7 @@ from sqlalchemy import func
 from sqlmodel import select, case, desc
 
 from app.api.admin_routes.evaluation.models import CreateEvaluationTask, EvaluationTaskSummary
+from app.api.admin_routes.evaluation.tools import must_get_and_belong, must_get
 from app.file_storage import default_file_storage
 from app.models import EvaluationTask, EvaluationItem, EvaluationStatus, EvaluationDataset, EvaluationDatasetItem
 from app.api.deps import SessionDep, CurrentSuperuserDep
@@ -43,14 +44,7 @@ def create_evaluation_task(
     chat_engine = evaluation_task.chat_engine
     run_size = evaluation_task.run_size
 
-    dataset = session.get(EvaluationDataset, evaluation_dataset_id)
-
-    # dataset exists checker
-    if not dataset or dataset.user_id != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Evaluation dataset not found",
-        )
+    dataset = must_get_and_belong(session, EvaluationDataset, evaluation_dataset_id, user.id)
 
     # create evaluation items
     # caveat: Do the deep copy on purpose to avoid the side effect of the original dataset modification
@@ -78,7 +72,7 @@ def create_evaluation_task(
     return evaluation_task
 
 
-@router.get("/admin/evaluation/task-summary/{evaluation_task_id}")
+@router.get("/admin/evaluation/task/{evaluation_task_id}/summary")
 def get_evaluation_task_summary(
     evaluation_task_id: int,
     session: SessionDep,
@@ -142,7 +136,7 @@ def get_evaluation_task_summary(
     )
 
 
-@router.get("/admin/evaluation/task")
+@router.get("/admin/evaluation/tasks")
 def list_evaluation_task(
     session: SessionDep,
     user: CurrentSuperuserDep,
@@ -156,8 +150,8 @@ def list_evaluation_task(
     return paginate(session, stmt, params)
 
 
-@router.get("/admin/evaluation/task/all-items/{evaluation_task_id}")
-def list_evaluation_task(
+@router.get("/admin/evaluation/tasks/{evaluation_task_id}/items")
+def list_evaluation_task_items(
     evaluation_task_id: int,
     session: SessionDep,
     user: CurrentSuperuserDep,

@@ -1,21 +1,15 @@
-from typing import Optional, List
-
+import pandas as pd
 from fastapi import APIRouter, status, HTTPException, Depends
 from fastapi_pagination import Params, Page
-from sqlalchemy import func
-from sqlmodel import select, case, desc
+from fastapi_pagination.ext.sqlmodel import paginate
+from sqlmodel import select, desc
 
 from app.api.admin_routes.evaluation.models import CreateEvaluationDataset, UpdateEvaluationDataset, \
     ModifyEvaluationDatasetItem
-from app.file_storage import default_file_storage
-from app.models import EvaluationTask, EvaluationItem, Upload, EvaluationStatus, EvaluationDataset, \
-    EvaluationDatasetItem
+from app.api.admin_routes.evaluation.tools import must_get, must_get_and_belong
 from app.api.deps import SessionDep, CurrentSuperuserDep
-
-import pandas as pd
-from fastapi_pagination.ext.sqlmodel import paginate
-
-from app.tasks.evaluate import add_evaluation_task
+from app.file_storage import default_file_storage
+from app.models import Upload, EvaluationDataset, EvaluationDatasetItem
 from app.types import MimeTypes
 
 router = APIRouter()
@@ -49,13 +43,7 @@ def create_evaluation_dataset(
 
     if evaluation_file_id is not None:
         # If the evaluation_file_id is provided, validate the uploaded file
-        upload = session.get(Upload, evaluation_file_id)
-
-        if not upload or upload.user_id != user.id:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Uploaded file not found",
-            )
+        upload = must_get_and_belong(session, Upload, evaluation_file_id, user.id)
 
         if upload.mime_type != MimeTypes.CSV:
             raise HTTPException(
@@ -83,16 +71,16 @@ def create_evaluation_dataset(
                 extra={k: item[k] for k in item if k not in must_have_columns},
             ) for item in eval_list]
 
-    evaluation_task = EvaluationDataset(
+    evaluation_dataset = EvaluationDataset(
         name=name,
         user_id=user.id,
         evaluation_data_list=evaluation_data_list,
     )
 
-    session.add(evaluation_task)
+    session.add(evaluation_dataset)
     session.commit()
 
-    return evaluation_task
+    return evaluation_dataset
 
 
 @router.delete("/admin/evaluation/dataset/{evaluation_dataset_id}")
@@ -101,13 +89,7 @@ def delete_evaluation_dataset(
     session: SessionDep,
     user: CurrentSuperuserDep
 ) -> bool:
-    evaluation_dataset = session.get(EvaluationDataset, evaluation_dataset_id)
-
-    if not evaluation_dataset or evaluation_dataset.user_id != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Evaluation dataset not found",
-        )
+    evaluation_dataset = must_get_and_belong(session, EvaluationDataset, evaluation_dataset_id, user.id)
 
     session.delete(evaluation_dataset)
     session.commit()
@@ -122,13 +104,7 @@ def update_evaluation_dataset(
     session: SessionDep,
     user: CurrentSuperuserDep
 ) -> EvaluationDataset:
-    evaluation_dataset = session.get(EvaluationDataset, evaluation_dataset_id)
-
-    if not evaluation_dataset or evaluation_dataset.user_id != user.id:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Evaluation dataset not found",
-        )
+    evaluation_dataset = must_get_and_belong(session, EvaluationDataset, evaluation_dataset_id, user.id)
 
     evaluation_dataset.name = updated_evaluation_dataset.name
 
@@ -138,7 +114,7 @@ def update_evaluation_dataset(
     return evaluation_dataset
 
 
-@router.get("/admin/evaluation/dataset")
+@router.get("/admin/evaluation/datasets")
 def list_evaluation_dataset(
     session: SessionDep,
     user: CurrentSuperuserDep,
@@ -154,22 +130,22 @@ def list_evaluation_dataset(
 
 @router.post("/admin/evaluation/dataset-item")
 def create_evaluation_dataset_item(
-    evaluation_dataset_item: ModifyEvaluationDatasetItem,
+    modify_evaluation_dataset_item: ModifyEvaluationDatasetItem,
     session: SessionDep,
     user: CurrentSuperuserDep
 ) -> EvaluationDatasetItem:
-    evaluation_task_item = EvaluationDatasetItem(
-        query=evaluation_dataset_item.query,
-        reference=evaluation_dataset_item.reference,
-        retrieved_contexts=evaluation_dataset_item.retrieved_contexts,
-        extra=evaluation_dataset_item.extra,
-        evaluation_dataset_id=evaluation_dataset_item.evaluation_dataset_id,
+    evaluation_dataset_item = EvaluationDatasetItem(
+        query=modify_evaluation_dataset_item.query,
+        reference=modify_evaluation_dataset_item.reference,
+        retrieved_contexts=modify_evaluation_dataset_item.retrieved_contexts,
+        extra=modify_evaluation_dataset_item.extra,
+        evaluation_dataset_id=modify_evaluation_dataset_item.evaluation_dataset_id,
     )
 
-    session.add(evaluation_task_item)
+    session.add(evaluation_dataset_item)
     session.commit()
 
-    return evaluation_task_item
+    return evaluation_dataset_item
 
 
 @router.delete("/admin/evaluation/dataset-item/{evaluation_dataset_item_id}")
@@ -178,13 +154,7 @@ def delete_evaluation_dataset_item(
         session: SessionDep,
         user: CurrentSuperuserDep
 ) -> bool:
-    evaluation_dataset_item = session.get(EvaluationDatasetItem, evaluation_dataset_item_id)
-
-    if not evaluation_dataset_item:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Evaluation dataset item not found",
-        )
+    evaluation_dataset_item = must_get(session, EvaluationDataset, evaluation_dataset_item_id)
 
     session.delete(evaluation_dataset_item)
     session.commit()
@@ -199,13 +169,7 @@ def update_evaluation_dataset_item(
     session: SessionDep,
     user: CurrentSuperuserDep
 ) -> EvaluationDatasetItem:
-    evaluation_dataset_item = session.get(EvaluationDatasetItem, evaluation_dataset_item_id)
-
-    if not evaluation_dataset_item:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Evaluation dataset item not found",
-        )
+    evaluation_dataset_item = must_get(session, EvaluationDatasetItem, evaluation_dataset_item_id)
 
     evaluation_dataset_item.query = updated_evaluation_dataset_item.query
     evaluation_dataset_item.reference = updated_evaluation_dataset_item.reference
@@ -218,7 +182,7 @@ def update_evaluation_dataset_item(
     return evaluation_dataset_item
 
 
-@router.get("/admin/evaluation/dataset/{evaluation_dataset_id}/dataset-item")
+@router.get("/admin/evaluation/datasets/{evaluation_dataset_id}/dataset-items")
 def list_evaluation_dataset_item(
     session: SessionDep,
     user: CurrentSuperuserDep,
