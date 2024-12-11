@@ -4,7 +4,7 @@ import traceback
 import httpx
 from app.celery import app as celery_app
 from langchain_openai import ChatOpenAI, OpenAIEmbeddings
-from ragas import EvaluationDataset, evaluate, RunConfig
+from ragas import EvaluationDataset, evaluate
 from ragas.embeddings import LangchainEmbeddingsWrapper
 from ragas.llms import LangchainLLMWrapper
 from ragas.metrics import FactualCorrectness, SemanticSimilarity
@@ -15,7 +15,7 @@ from tenacity import retry, stop_after_attempt, wait_fixed
 from app.core.config import settings, Environment
 from app.core.db import engine
 from app.models import (
-    EvaluationTask, EvaluationStatus, EvaluationItem,
+    EvaluationTask, EvaluationStatus, EvaluationTaskItem,
 )
 from dotenv import load_dotenv
 
@@ -41,58 +41,58 @@ def add_evaluation_task(evaluation_task_id: int):
             return
 
         # get eval items
-        eval_item_stmt = select(EvaluationItem).where(EvaluationItem.evaluation_task_id == evaluation_task_id)
+        eval_item_stmt = select(EvaluationTaskItem).where(EvaluationTaskItem.evaluation_task_id == evaluation_task_id)
         eval_item_list = session.exec(eval_item_stmt).all()
         logger.info(f"[add_evaluation_task] get {len(eval_item_list)} evaluation items")
         for eval_item in eval_item_list:
             logger.debug(type(eval_item))
             logger.debug(f"[add_evaluation_task] deal with evaluation item #{eval_item.id}")
-            add_evaluation_item.delay(eval_item.id)
+            add_evaluation_task_item.delay(eval_item.id)
 
 
 @celery_app.task
-def add_evaluation_item(evaluation_item_id: int):
-    logger.info(f"Enter add_evaluation_item with evaluation item #{evaluation_item_id}")
+def add_evaluation_task_item(evaluation_task_item_id: int):
+    logger.info(f"Enter add_evaluation_task_item with evaluation item #{evaluation_task_item_id}")
 
     with Session(engine, expire_on_commit=False) as session:
-        evaluation_item = session.get(EvaluationItem, evaluation_item_id)
-        if evaluation_item is None:
-            logger.error(f"Evaluation item #{evaluation_item_id} is not found")
+        evaluation_task_item = session.get(EvaluationTaskItem, evaluation_task_item_id)
+        if evaluation_task_item is None:
+            logger.error(f"Evaluation item #{evaluation_task_item_id} is not found")
             return
-        if evaluation_item.status != EvaluationStatus.NOT_START:
-            logger.error(f"Evaluation item #{evaluation_item_id} is not in not start state")
+        if evaluation_task_item.status != EvaluationStatus.NOT_START:
+            logger.error(f"Evaluation item #{evaluation_task_item_id} is not in not start state")
             return
-    messages = [{"role": "user", "content": evaluation_item.query}]
+    messages = [{"role": "user", "content": evaluation_task_item.query}]
 
     try:
-        if evaluation_item.response is None or evaluation_item.response == "":
-            response, _ = generate_answer_by_autoflow(messages, evaluation_item.chat_engine)
+        if evaluation_task_item.response is None or evaluation_task_item.response == "":
+            response, _ = generate_answer_by_autoflow(messages, evaluation_task_item.chat_engine)
             if response is None or response == "":
                 raise Exception("Autoflow response is empty")
 
             response = response.replace('\n', '\\n').replace('\r', '\\r')
 
-            logger.info(f"Got response from autoflow for evaluation item #{evaluation_item_id}, {response}")
-            evaluation_item.response = response
-            logger.info(f"Successfully get response item #{evaluation_item_id}")
+            logger.info(f"Got response from autoflow for evaluation item #{evaluation_task_item_id}, {response}")
+            evaluation_task_item.response = response
+            logger.info(f"Successfully get response item #{evaluation_task_item_id}")
 
             with Session(engine, expire_on_commit=False) as session:
-                session.merge(evaluation_item)
+                session.merge(evaluation_task_item)
                 session.commit()
 
-        evaluate_task(evaluation_item)
+        evaluate_task(evaluation_task_item)
 
     except Exception as e:
-        logger.error(f"Failed to evaluate item #{evaluation_item_id}, error: {e}")
-        evaluation_item.error_msg = traceback.format_exc()
-        evaluation_item.status = EvaluationStatus.ERROR
+        logger.error(f"Failed to evaluate item #{evaluation_task_item_id}, error: {e}")
+        evaluation_task_item.error_msg = traceback.format_exc()
+        evaluation_task_item.status = EvaluationStatus.ERROR
 
         with Session(engine, expire_on_commit=False) as session:
-            session.merge(evaluation_item)
+            session.merge(evaluation_task_item)
             session.commit()
 
 
-def evaluate_task(evaluation_item: EvaluationItem):
+def evaluate_task(evaluation_task_item: EvaluationTaskItem):
     import os
     # Workaround: set openai api key in the environment variable
     #
@@ -101,13 +101,13 @@ def evaluate_task(evaluation_item: EvaluationItem):
     # https://github.com/explodinggradients/ragas/issues/1725
     os.environ['OPENAI_API_KEY'] = settings.EVALUATION_OPENAI_API_KEY
 
-    logger.info(f"Enter evaluate_task with evaluation item #{evaluation_item.id}")
+    logger.info(f"Enter evaluate_task with evaluation item #{evaluation_task_item.id}")
     ragas_list = [{
-        "user_input": evaluation_item.query,
-        "reference": evaluation_item.reference,
-        "response": evaluation_item.response,
+        "user_input": evaluation_task_item.query,
+        "reference": evaluation_task_item.reference,
+        "response": evaluation_task_item.response,
     }]
-    logger.debug(f"Response data {evaluation_item.response}")
+    logger.debug(f"Response data {evaluation_task_item.response}")
 
     ragas_dataset = EvaluationDataset.from_list(ragas_list)
     logger.debug(f"Dataset {ragas_dataset.to_pandas().head()}")
@@ -130,24 +130,24 @@ def evaluate_task(evaluation_item: EvaluationItem):
         logger.debug(f"result list {result_list}")
         if len(result_list) == 1:
             logger.debug(f"result {result_list[0]}")
-            evaluation_item.factual_correctness = result_list[0][FactualCorrectness.name]
-            evaluation_item.semantic_similarity = result_list[0][SemanticSimilarity.name]
-            evaluation_item.status = EvaluationStatus.DONE
+            evaluation_task_item.factual_correctness = result_list[0][FactualCorrectness.name]
+            evaluation_task_item.semantic_similarity = result_list[0][SemanticSimilarity.name]
+            evaluation_task_item.status = EvaluationStatus.DONE
         else:
-            evaluation_item.error_msg = f"Item {evaluation_item.id} cannot get evaluation from ragas"
-            evaluation_item.status = EvaluationStatus.ERROR
+            evaluation_task_item.error_msg = f"Item {evaluation_task_item.id} cannot get evaluation from ragas"
+            evaluation_task_item.status = EvaluationStatus.ERROR
 
-        logger.info(f"Result evaluation item #{evaluation_item}")
+        logger.info(f"Result evaluation item #{evaluation_task_item}")
         with Session(engine, expire_on_commit=False) as session:
-            session.merge(evaluation_item)
+            session.merge(evaluation_task_item)
             session.commit()
     except Exception as e:
-        logger.error(f"Failed to evaluate item #{evaluation_item.id}, error: {e}")
-        evaluation_item.error_msg = traceback.format_exc()
-        evaluation_item.status = EvaluationStatus.ERROR
+        logger.error(f"Failed to evaluate item #{evaluation_task_item.id}, error: {e}")
+        evaluation_task_item.error_msg = traceback.format_exc()
+        evaluation_task_item.status = EvaluationStatus.ERROR
 
         with Session(engine, expire_on_commit=False) as session:
-            session.merge(evaluation_item)
+            session.merge(evaluation_task_item)
             session.commit()
 
 

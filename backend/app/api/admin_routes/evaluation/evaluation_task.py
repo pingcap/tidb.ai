@@ -8,7 +8,7 @@ from sqlmodel import select, case, desc
 from app.api.admin_routes.evaluation.models import CreateEvaluationTask, EvaluationTaskSummary
 from app.api.admin_routes.evaluation.tools import must_get_and_belong, must_get
 from app.file_storage import default_file_storage
-from app.models import EvaluationTask, EvaluationItem, EvaluationStatus, EvaluationDataset, EvaluationDatasetItem
+from app.models import EvaluationTask, EvaluationTaskItem, EvaluationStatus, EvaluationDataset, EvaluationDatasetItem
 from app.api.deps import SessionDep, CurrentSuperuserDep
 
 import pandas as pd
@@ -48,7 +48,7 @@ def create_evaluation_task(
 
     # create evaluation items
     # caveat: Do the deep copy on purpose to avoid the side effect of the original dataset modification
-    evaluation_items = [EvaluationItem(
+    evaluation_task_items = [EvaluationTaskItem(
         status=EvaluationStatus.NOT_START,
         chat_engine=chat_engine,
         query=item.query,
@@ -60,7 +60,7 @@ def create_evaluation_task(
     evaluation_task = EvaluationTask(
         name=name,
         user_id=user.id,
-        evaluation_items=evaluation_items,
+        evaluation_task_items=evaluation_task_items,
         dataset_id=evaluation_dataset_id,
     )
 
@@ -87,13 +87,13 @@ def get_evaluation_task_summary(
 
     status_counts = (
         session.query(
-            func.count(case((EvaluationItem.status == EvaluationStatus.NOT_START, 1), else_=None)).label("not_start"),
-            func.count(case((EvaluationItem.status == EvaluationStatus.EVALUATING, 1), else_=None)).label(
+            func.count(case((EvaluationTaskItem.status == EvaluationStatus.NOT_START, 1), else_=None)).label("not_start"),
+            func.count(case((EvaluationTaskItem.status == EvaluationStatus.EVALUATING, 1), else_=None)).label(
                 "evaluating"),
-            func.count(case((EvaluationItem.status == EvaluationStatus.DONE, 1), else_=None)).label("done"),
-            func.count(case((EvaluationItem.status == EvaluationStatus.ERROR, 1), else_=None)).label("error"),
+            func.count(case((EvaluationTaskItem.status == EvaluationStatus.DONE, 1), else_=None)).label("done"),
+            func.count(case((EvaluationTaskItem.status == EvaluationStatus.ERROR, 1), else_=None)).label("error"),
         )
-        .filter(EvaluationItem.evaluation_task_id == evaluation_task_id)
+        .filter(EvaluationTaskItem.evaluation_task_id == evaluation_task_id)
         .one()
     )
 
@@ -101,20 +101,20 @@ def get_evaluation_task_summary(
     if status_counts.not_start == 0 and status_counts.evaluating == 0:
         stats = (
             session.query(
-                func.avg(EvaluationItem.factual_correctness).label('avg_factual_correctness'),
-                func.avg(EvaluationItem.semantic_similarity).label('avg_semantic_similarity'),
-                func.min(EvaluationItem.factual_correctness).label('min_factual_correctness'),
-                func.min(EvaluationItem.semantic_similarity).label('min_semantic_similarity'),
-                func.max(EvaluationItem.factual_correctness).label('max_factual_correctness'),
-                func.max(EvaluationItem.semantic_similarity).label('max_semantic_similarity'),
-                func.stddev(EvaluationItem.factual_correctness).label('std_factual_correctness'),
-                func.stddev(EvaluationItem.semantic_similarity).label('std_semantic_similarity'),
+                func.avg(EvaluationTaskItem.factual_correctness).label('avg_factual_correctness'),
+                func.avg(EvaluationTaskItem.semantic_similarity).label('avg_semantic_similarity'),
+                func.min(EvaluationTaskItem.factual_correctness).label('min_factual_correctness'),
+                func.min(EvaluationTaskItem.semantic_similarity).label('min_semantic_similarity'),
+                func.max(EvaluationTaskItem.factual_correctness).label('max_factual_correctness'),
+                func.max(EvaluationTaskItem.semantic_similarity).label('max_semantic_similarity'),
+                func.stddev(EvaluationTaskItem.factual_correctness).label('std_factual_correctness'),
+                func.stddev(EvaluationTaskItem.semantic_similarity).label('std_semantic_similarity'),
             )
             .filter(
-                EvaluationItem.evaluation_task_id == evaluation_task_id,
-                EvaluationItem.status == EvaluationStatus.DONE,
-                EvaluationItem.factual_correctness.isnot(None),
-                EvaluationItem.semantic_similarity.isnot(None),
+                EvaluationTaskItem.evaluation_task_id == evaluation_task_id,
+                EvaluationTaskItem.status == EvaluationStatus.DONE,
+                EvaluationTaskItem.factual_correctness.isnot(None),
+                EvaluationTaskItem.semantic_similarity.isnot(None),
             )
             .one()
         )
@@ -155,7 +155,7 @@ def list_evaluation_task_items(
     evaluation_task_id: int,
     session: SessionDep,
     user: CurrentSuperuserDep,
-) -> List[EvaluationItem]:
+) -> List[EvaluationTaskItem]:
     task = session.exec(select(EvaluationTask).where(EvaluationTask.id == evaluation_task_id)).first()
     if not task:
         raise HTTPException(status_code=404, detail="EvaluationTask not found")
@@ -163,4 +163,4 @@ def list_evaluation_task_items(
     if task.user_id != user.id:
         raise HTTPException(status_code=403, detail="Access denied")
 
-    return task.evaluation_items
+    return task.evaluation_task_items

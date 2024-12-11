@@ -35,12 +35,12 @@ class EvaluationTask(UpdatableBaseModel, table=True):
 
     dataset_id: int = Field(nullable=True)
 
-    evaluation_items: List["EvaluationItem"] = SQLRelationship(back_populates="evaluation_task")
+    evaluation_task_items: List["EvaluationTaskItem"] = SQLRelationship(back_populates="evaluation_task")
 
     __tablename__ = "evaluation_tasks"
 
 
-class EvaluationItem(UpdatableBaseModel, table=True):
+class EvaluationTaskItem(UpdatableBaseModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     chat_engine: str = Field(max_length=255)
     status: EvaluationStatus = Field(sa_column=Column(String(32), nullable=False))
@@ -55,10 +55,10 @@ class EvaluationItem(UpdatableBaseModel, table=True):
 
     evaluation_task_id: int = Field(foreign_key="evaluation_tasks.id", nullable=True)
     evaluation_task: "EvaluationTask" = SQLRelationship(
-        back_populates="evaluation_items",
+        back_populates="evaluation_task_items",
         sa_relationship_kwargs={
             "lazy": "joined",
-            "primaryjoin": "EvaluationItem.evaluation_task_id == EvaluationTask.id",
+            "primaryjoin": "EvaluationTaskItem.evaluation_task_id == EvaluationTask.id",
         },
     )
-    __tablename__ = "evaluation_items"
+    __tablename__ = "evaluation_task_items"
