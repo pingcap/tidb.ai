@@ -24,6 +24,8 @@ services:
       options:
         max-size: "50m"
         max-file: "6"
+    extra_hosts:
+      host.docker.internal: host-gateway
 
   frontend:
     image: tidbai/frontend:${E2E_DOCKER_TAG_FRONTEND}
@@ -61,6 +63,8 @@ services:
       options:
         max-size: "50m"
         max-file: "6"
+    extra_hosts:
+      host.docker.internal: host-gateway
 
   static-web-server:
     image: joseluisq/static-web-server:2
