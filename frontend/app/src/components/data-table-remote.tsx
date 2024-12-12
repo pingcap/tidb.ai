@@ -27,10 +27,18 @@ interface DataTableRemoteProps<TData, TValue> {
   selectable?: boolean;
   batchOperations?: (rows: string[], revalidate: () => void) => ReactNode;
   refreshInterval?: number | ((data: Page<TData> | undefined) => number);
+  /**
+   * @deprecated
+   */
   before?: ReactNode;
+  /**
+   * @deprecated
+   */
   after?: ReactNode;
+  /**
+   * @deprecated
+   */
   toolbar?: (table: ReactTable<TData>) => ReactNode;
-  ts?: number;
   defaultSorting?: SortingState;
 }
 
