@@ -30,6 +30,16 @@ export function zodFile () {
   return z.custom<File>(value => value instanceof File);
 }
 
+export function zodJson () {
+  return z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.any().array(),
+    z.object({}).passthrough(),
+  ]);
+}
+
 const d = z
   .custom<string>(data => {
     if (typeof data !== 'string') {
