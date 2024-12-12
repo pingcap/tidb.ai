@@ -13,7 +13,7 @@ export default function EvaluationTaskPage () {
     <>
       <AdminPageHeading
         breadcrumbs={[
-          { title: 'Evaluation' },
+          { title: 'Evaluation', docsUrl: '/docs/evaluation' },
           { title: 'Datasets', url: '/evaluation/datasets' },
           { title: 'Create' },
         ]}

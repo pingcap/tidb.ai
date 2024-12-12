@@ -7,7 +7,7 @@ export default function EvaluationDatasetsPage () {
     <>
       <AdminPageHeading
         breadcrumbs={[
-          { title: 'Evaluation' },
+          { title: 'Evaluation', docsUrl: '/docs/evaluation' },
           { title: 'Datasets' },
         ]}
       />

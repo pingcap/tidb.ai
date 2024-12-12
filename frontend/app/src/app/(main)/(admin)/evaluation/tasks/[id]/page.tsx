@@ -10,7 +10,7 @@ export default async function EvaluationTaskPage (props: { params: Promise<{ id:
     <>
       <AdminPageHeading
         breadcrumbs={[
-          { title: 'Evaluation' },
+          { title: 'Evaluation', docsUrl: '/docs/evaluation' },
           { title: 'Tasks', url: '/evaluation/tasks' },
           { title: String(evaluationTaskId) },
         ]}

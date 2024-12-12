@@ -7,7 +7,7 @@ export default function EvaluationTasksPage () {
     <>
       <AdminPageHeading
         breadcrumbs={[
-          { title: 'Evaluation' },
+          { title: 'Evaluation', docsUrl: '/docs/evaluation' },
           { title: 'Tasks' },
         ]}
       />
