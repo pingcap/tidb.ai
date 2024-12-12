@@ -1,7 +1,7 @@
 'use client';
 
 import { AdminPageHeading } from '@/components/admin-page-heading';
-import { CreateEvaluationTaskForm } from '@/components/evaluations/create-evaluation-task-form';
+import { CreateEvaluationDatasetForm } from '@/components/evaluations/create-evaluation-dataset-form';
 import { useRouter } from 'next/navigation';
 import { useTransition } from 'react';
 
@@ -14,15 +14,15 @@ export default function EvaluationTaskPage () {
       <AdminPageHeading
         breadcrumbs={[
           { title: 'Evaluation' },
-          { title: 'Tasks', url: '/evaluation/tasks' },
+          { title: 'Datasets', url: '/evaluation/datasets' },
           { title: 'Create' },
         ]}
       />
-      <CreateEvaluationTaskForm
+      <CreateEvaluationDatasetForm
         transitioning={transitioning}
-        onCreated={evaluationTask => {
+        onCreated={evaluationDataset => {
           startTransition(() => {
-            router.push(`/evaluation/tasks/${evaluationTask.id}`);
+            router.push(`/evaluation/datasets/${evaluationDataset.id}`);
             router.refresh();
           });
         }}
