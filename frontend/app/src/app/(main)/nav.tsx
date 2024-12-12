@@ -17,7 +17,7 @@ import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader } from '@/compone
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useHref } from '@/components/use-href';
-import { ActivitySquareIcon, AlertTriangleIcon, BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CogIcon, ComponentIcon, FileLineChart, HomeIcon, KeyRoundIcon, LibraryBigIcon, LogInIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon } from 'lucide-react';
+import { ActivitySquareIcon, AlertTriangleIcon, BinaryIcon, BotMessageSquareIcon, BrainCircuitIcon, CircleDotIcon, CogIcon, ComponentIcon, FileLineChart, HomeIcon, KeyRoundIcon, LibraryBigIcon, LibraryIcon, LogInIcon, MessageCircleQuestionIcon, MessagesSquareIcon, ShuffleIcon } from 'lucide-react';
 import NextLink from 'next/link';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -103,8 +103,8 @@ function NavContent () {
           title: 'Evaluation',
           icon: FileLineChart,
           children: [
-            { href: '/evaluation/tasks', title: 'Tasks', icon: FileLineChart },
-            { href: '/evaluation/datasets', title: 'Datasets', icon: FileLineChart },
+            { href: '/evaluation/tasks', title: 'Tasks', icon: CircleDotIcon },
+            { href: '/evaluation/datasets', title: 'Datasets', icon: LibraryIcon },
           ],
         },
         { href: '/site-settings', title: 'Settings', icon: CogIcon },
