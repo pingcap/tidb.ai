@@ -31,14 +31,11 @@ export default {
   "knowledge-base": {
     "title": "Knowledge Base"
   },
-  "data-source": {
-    "title": "Data Source"
-  },
   "chat-engine": {
     "title": "Chat Engine"
   },
   "javascript": {
-    "title": "Pop Up Chat Window"
+    "title": "JS Widget"
   },
   "README": {
     "display": "hidden"
