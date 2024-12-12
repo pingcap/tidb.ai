@@ -97,7 +97,16 @@ function NavContent () {
           ],
         },
         { href: '/feedbacks', title: 'Feedbacks', icon: MessageCircleQuestionIcon },
-        { href: '/evaluations', title: 'Evaluations', icon: FileLineChart },
+        {
+          parent: true,
+          key: 'evaluation',
+          title: 'Evaluation',
+          icon: FileLineChart,
+          children: [
+            { href: '/evaluation/tasks', title: 'Tasks', icon: FileLineChart },
+            { href: '/evaluation/datasets', title: 'Datasets', icon: FileLineChart },
+          ],
+        },
         { href: '/site-settings', title: 'Settings', icon: CogIcon },
       ],
       sectionProps: { className: 'mt-auto mb-0' },
