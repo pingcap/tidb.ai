@@ -18,6 +18,7 @@ import { ManagedDialog } from '@/components/managed-dialog';
 import { ManagedPanelContext } from '@/components/managed-panel';
 import { CreateRerankerForm } from '@/components/reranker/CreateRerankerForm';
 import { useAllRerankers } from '@/components/reranker/hooks';
+import { Badge } from '@/components/ui/badge';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertTriangleIcon, DotIcon, PlusIcon } from 'lucide-react';
 import { forwardRef, type Ref } from 'react';
@@ -326,7 +327,6 @@ export function EvaluationDatasetSelect ({ reverse = true, ref, ...props }: Omit
 }
 
 export function ChatEngineSelect ({ reverse = true, ref, ...props }: Omit<FormComboboxProps, 'config'> & { reverse?: boolean, ref?: Ref<any> }) {
-
   const { data: chatEngines, isLoading, error } = useAllChatEngines();
 
   return (
@@ -339,13 +339,22 @@ export function ChatEngineSelect ({ reverse = true, ref, ...props }: Omit<FormCo
         optionKeywords: option => [option.name],
         loading: isLoading,
         error,
-        renderValue: option => (<span>{option.name}</span>),
+        renderValue: option => (
+          <>
+            <strong>{option.name}</strong>
+            {!!option.engine_options.external_engine_config?.stream_chat_api_url && <Badge className="ml-2 font-normal" variant="secondary">External Chat Engine</Badge>}
+            {!!option.engine_options.knowledge_graph?.enabled && <Badge className="ml-2 font-normal" variant="secondary">Knowledge Graph</Badge>}
+          </>
+        ),
         renderOption: option => (
           <div>
             <strong>{option.name}</strong>
+            {option.is_default && <Badge className="ml-2">Default</Badge>}
+            {!!option.engine_options.external_engine_config?.stream_chat_api_url && <Badge className="ml-2 font-normal" variant="secondary">External Chat Engine</Badge>}
+            {!!option.engine_options.knowledge_graph?.enabled && <Badge className="ml-2 font-normal" variant="secondary">Knowledge Graph</Badge>}
           </div>
         ),
-        key: 'id',
+        key: 'name',
       } satisfies FormComboboxConfig<ChatEngine>}
     />
   );

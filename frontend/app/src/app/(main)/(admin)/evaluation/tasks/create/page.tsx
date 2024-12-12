@@ -15,7 +15,7 @@ export default function EvaluationTaskPage () {
         breadcrumbs={[
           { title: 'Evaluation' },
           { title: 'Tasks', url: '/admin/evaluation/tasks' },
-          { title: 'New' },
+          { title: 'Create' },
         ]}
       />
       <CreateEvaluationTaskForm
