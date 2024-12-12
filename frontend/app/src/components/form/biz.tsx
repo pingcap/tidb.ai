@@ -1,10 +1,15 @@
+import type { ChatEngine } from '@/api/chat-engines';
 import { type EmbeddingModel } from '@/api/embedding-models';
+import type { EvaluationDataset } from '@/api/evaluations';
 import { type KnowledgeBaseSummary } from '@/api/knowledge-base';
 import { type LLM } from '@/api/llms';
 import type { ProviderOption } from '@/api/providers';
 import { type Reranker } from '@/api/rerankers';
+import { useAllChatEngines } from '@/components/chat-engine/hooks';
+import { DateFormat } from '@/components/date-format';
 import { CreateEmbeddingModelForm } from '@/components/embedding-models/CreateEmbeddingModelForm';
 import { useAllEmbeddingModels } from '@/components/embedding-models/hooks';
+import { useAllEvaluationDatasets } from '@/components/evaluations/hooks';
 import { FormCombobox, type FormComboboxConfig, type FormComboboxProps } from '@/components/form/control-widget';
 import { useAllKnowledgeBases } from '@/components/knowledge-base/hooks';
 import { CreateLLMForm } from '@/components/llm/CreateLLMForm';
@@ -15,7 +20,7 @@ import { CreateRerankerForm } from '@/components/reranker/CreateRerankerForm';
 import { useAllRerankers } from '@/components/reranker/hooks';
 import { DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertTriangleIcon, DotIcon, PlusIcon } from 'lucide-react';
-import { forwardRef } from 'react';
+import { forwardRef, type Ref } from 'react';
 
 export const EmbeddingModelSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { reverse?: boolean }>(({ reverse = true, ...props }, ref) => {
   const { data: embeddingModels, isLoading, mutate, error } = useAllEmbeddingModels();
@@ -23,6 +28,7 @@ export const EmbeddingModelSelect = forwardRef<any, Omit<FormComboboxProps, 'con
   return (
     <FormCombobox
       {...props}
+      ref={ref}
       placeholder="Default Embedding Model"
       config={{
         options: embeddingModels ?? [],
@@ -83,6 +89,7 @@ export const LLMSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { r
   return (
     <FormCombobox
       {...props}
+      ref={ref}
       placeholder="Default LLM"
       config={{
         options: llms ?? [],
@@ -143,6 +150,7 @@ export const RerankerSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> 
   return (
     <FormCombobox
       {...props}
+      ref={ref}
       placeholder="Default Reranker Model"
       config={{
         options: rerankers ?? [],
@@ -287,3 +295,58 @@ export const KBSelect = forwardRef<any, Omit<FormComboboxProps, 'config'> & { re
 });
 
 KBSelect.displayName = 'KBSelect';
+
+export function EvaluationDatasetSelect ({ reverse = true, ref, ...props }: Omit<FormComboboxProps, 'config'> & { reverse?: boolean, ref?: Ref<any> }) {
+
+  const { data: evaluationDatasets, isLoading, error } = useAllEvaluationDatasets();
+
+  return (
+    <FormCombobox
+      {...props}
+      ref={ref}
+      placeholder="Select Evaluation Dataset"
+      config={{
+        options: evaluationDatasets ?? [],
+        optionKeywords: option => [option.name],
+        loading: isLoading,
+        error,
+        renderValue: option => (<span>{option.name}</span>),
+        renderOption: option => (
+          <div>
+            <div><strong>{option.name}</strong></div>
+            <div className="text-xs text-muted-foreground">
+              Updated At: <DateFormat date={option.updated_at} />
+            </div>
+          </div>
+        ),
+        key: 'id',
+      } satisfies FormComboboxConfig<EvaluationDataset>}
+    />
+  );
+}
+
+export function ChatEngineSelect ({ reverse = true, ref, ...props }: Omit<FormComboboxProps, 'config'> & { reverse?: boolean, ref?: Ref<any> }) {
+
+  const { data: chatEngines, isLoading, error } = useAllChatEngines();
+
+  return (
+    <FormCombobox
+      {...props}
+      ref={ref}
+      placeholder="Default Chat Engine"
+      config={{
+        options: chatEngines ?? [],
+        optionKeywords: option => [option.name],
+        loading: isLoading,
+        error,
+        renderValue: option => (<span>{option.name}</span>),
+        renderOption: option => (
+          <div>
+            <strong>{option.name}</strong>
+          </div>
+        ),
+        key: 'id',
+      } satisfies FormComboboxConfig<ChatEngine>}
+    />
+  );
+}

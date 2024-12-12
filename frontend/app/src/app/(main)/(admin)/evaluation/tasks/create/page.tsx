@@ -1,0 +1,32 @@
+'use client';
+
+import { AdminPageHeading } from '@/components/admin-page-heading';
+import { CreateEvaluationTaskForm } from '@/components/evaluations/create-evaluation-task-form';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+
+export default function EvaluationTaskPage () {
+  const [transitioning, startTransition] = useTransition();
+  const router = useRouter();
+
+  return (
+    <>
+      <AdminPageHeading
+        breadcrumbs={[
+          { title: 'Evaluation' },
+          { title: 'Tasks', url: '/admin/evaluation/tasks' },
+          { title: 'New' },
+        ]}
+      />
+      <CreateEvaluationTaskForm
+        transitioning={transitioning}
+        onCreated={evaluationTask => {
+          startTransition(() => {
+            router.push(`/evaluation/tasks/${evaluationTask.id}`);
+            router.refresh();
+          });
+        }}
+      />
+    </>
+  );
+}

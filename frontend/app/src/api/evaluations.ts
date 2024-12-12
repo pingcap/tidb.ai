@@ -96,8 +96,8 @@ export interface UpdateEvaluationDatasetItemParams {
 export interface CreateEvaluationTaskParams {
   name: string;
   evaluation_dataset_id: number;
-  chat_engine: string;
-  run_size: number;
+  chat_engine?: string;
+  run_size?: number;
 }
 
 const evaluationDatasetSchema = z.object({
