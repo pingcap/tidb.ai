@@ -8,6 +8,7 @@ import { mono } from '@/components/cells/mono';
 import { percent } from '@/components/cells/percent';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { evaluationTaskStatusCell, markdownCell, textChunksArrayCell } from '@/components/evaluations/cells';
+import { noPage } from '@/lib/zod';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 
@@ -33,7 +34,7 @@ export function EvaluationTaskItemsTable ({ evaluationTaskId }: { evaluationTask
     <DataTableRemote
       columns={columns}
       apiKey={`api.evaluation.tasks.${evaluationTaskId}.items.list`}
-      api={(page) => listEvaluationTaskItems(evaluationTaskId, page)}
+      api={() => listEvaluationTaskItems(evaluationTaskId).then(res => noPage(res))}
       idColumn="id"
     />
   );

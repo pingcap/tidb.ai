@@ -37,11 +37,11 @@ function StatusCell ({ row }: { row: EvaluationTaskItem }) {
   // TODO: popover error_msg
   return (
     <span className="inline-flex gap-1">
-      {status === 'not_start' && <CircleDashedIcon className="text-muted flex-shrink-0 size-4" />}
+      {status === 'not_start' && <CircleDashedIcon className="text-muted-foreground flex-shrink-0 size-4" />}
       {status === 'evaluating' && <Loader2Icon className="text-info flex-shrink-0 size-4 animate-spin repeat-infinite" />}
       {status === 'done' && <CircleCheckIcon className="text-success flex-shrink-0 size-4" />}
       {status === 'error' && <CircleXIcon className="text-destructive flex-shrink-0 size-4" />}
-      <span className="text-accent">
+      <span className="text-accent-foreground">
         {status === 'not_start' ? 'not start' : status === 'evaluating' ? 'evaluating' : status === 'done' ? 'done' : 'error'}
       </span>
     </span>

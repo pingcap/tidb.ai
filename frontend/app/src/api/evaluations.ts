@@ -43,7 +43,7 @@ export const EvaluationTaskSummaryMetrics = [
 
 export type EvaluationTaskSummaryMetric = typeof EvaluationTaskSummaryMetrics[number];
 
-export interface EvaluationTaskSummary extends Record<EvaluationTaskSummaryMetric, number> {
+export interface EvaluationTaskSummary extends Record<EvaluationTaskSummaryMetric, number | null> {
   task: EvaluationTask;
   not_start: number;
   succeed: number;
@@ -65,8 +65,8 @@ export interface EvaluationTaskItem {
   retrieved_contexts: string[] | null
   extra: any | null
   error_msg: string
-  factual_correctness: number,
-  semantic_similarity: number
+  factual_correctness: number | null
+  semantic_similarity: number | null
   evaluation_task_id: number
 }
 
@@ -134,14 +134,14 @@ const evaluationTaskSummarySchema = z.object({
   succeed: z.number(),
   errored: z.number(),
   progressing: z.number(),
-  avg_factual_correctness: z.number(),
-  avg_semantic_similarity: z.number(),
-  min_factual_correctness: z.number(),
-  min_semantic_similarity: z.number(),
-  max_factual_correctness: z.number(),
-  max_semantic_similarity: z.number(),
-  std_factual_correctness: z.number(),
-  std_semantic_similarity: z.number(),
+  avg_factual_correctness: z.number().nullable(),
+  avg_semantic_similarity: z.number().nullable(),
+  min_factual_correctness: z.number().nullable(),
+  min_semantic_similarity: z.number().nullable(),
+  max_factual_correctness: z.number().nullable(),
+  max_semantic_similarity: z.number().nullable(),
+  std_factual_correctness: z.number().nullable(),
+  std_semantic_similarity: z.number().nullable(),
 }) satisfies ZodType<EvaluationTaskSummary, any, any>;
 
 const evaluationTaskItemSchema = z.object({
@@ -156,8 +156,8 @@ const evaluationTaskItemSchema = z.object({
   retrieved_contexts: z.string().array().nullable(),
   extra: zodJson().nullable(),
   error_msg: z.string(),
-  factual_correctness: z.number(),
-  semantic_similarity: z.number(),
+  factual_correctness: z.number().nullable(),
+  semantic_similarity: z.number().nullable(),
   evaluation_task_id: z.number(),
 }) satisfies ZodType<EvaluationTaskItem, any, any>;
 
@@ -280,9 +280,9 @@ export async function getEvaluationTaskSummary (id: number): Promise<EvaluationT
     .then(handleResponse(evaluationTaskSummarySchema));
 }
 
-export async function listEvaluationTaskItems (id: number, { ...params }: PageParams): Promise<Page<EvaluationTaskItem>> {
-  return fetch(requestUrl(`/api/v1/admin/evaluation/tasks/${id}/items`, params), {
+export async function listEvaluationTaskItems (id: number): Promise<EvaluationTaskItem[]> {
+  return fetch(requestUrl(`/api/v1/admin/evaluation/tasks/${id}/items`), {
     headers: await authenticationHeaders(),
   })
-    .then(handleResponse(zodPage(evaluationTaskItemSchema)));
+    .then(handleResponse(evaluationTaskItemSchema.array()));
 }

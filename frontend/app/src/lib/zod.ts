@@ -75,3 +75,13 @@ export function zodPage<Z extends ZodType> (itemSchema: Z) {
     pages: z.number(),
   });
 }
+
+export function noPage<T> (data: T[]): Page<T> {
+  return {
+    items: data,
+    total: data.length,
+    page: 1,
+    size: data.length,
+    pages: 1,
+  };
+}
