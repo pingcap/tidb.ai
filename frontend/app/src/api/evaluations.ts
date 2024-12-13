@@ -64,7 +64,7 @@ export interface EvaluationTaskItem {
   response: string
   retrieved_contexts: string[] | null
   extra: any | null
-  error_msg: string
+  error_msg: string | null
   factual_correctness: number | null
   semantic_similarity: number | null
   evaluation_task_id: number
@@ -155,7 +155,7 @@ const evaluationTaskItemSchema = z.object({
   response: z.string(),
   retrieved_contexts: z.string().array().nullable(),
   extra: zodJson().nullable(),
-  error_msg: z.string(),
+  error_msg: z.string().nullable(),
   factual_correctness: z.number().nullable(),
   semantic_similarity: z.number().nullable(),
   evaluation_task_id: z.number(),
