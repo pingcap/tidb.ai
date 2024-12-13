@@ -115,3 +115,10 @@ chat:
     data_type: bool
     description: "Enable post verification for chats from js widgets."
     client: true
+
+upload:
+  upload_max_body_size:
+    default: 10485760
+    data_type: int
+    description: "Max body size of upload file."
+    client: true
