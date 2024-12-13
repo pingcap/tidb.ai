@@ -12,7 +12,7 @@ export default function EvaluationTasksPage () {
         ]}
       />
       <NextLink href="/evaluation/tasks/create">New Evaluation Task</NextLink>
-      <EvaluationTasksTable />;
+      <EvaluationTasksTable />
     </>
   );
 }
