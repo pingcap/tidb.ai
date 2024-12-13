@@ -13,9 +13,9 @@ export default function EvaluationTaskPage (props: { params: Promise<{ id: strin
   const params = use(props.params);
   const evaluationTaskId = parseInt(decodeURIComponent(params.id));
 
-  const { evaluationTask, isValidating, isLoading, error } = useEvaluationTask(evaluationTaskId);
+  const { evaluationTask, error } = useEvaluationTask(evaluationTaskId);
 
-  if (isServerError(error, 404) || (!isLoading && !isValidating && !evaluationTask)) {
+  if (isServerError(error, 404)) {
     notFound();
   }
 

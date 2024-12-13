@@ -15,7 +15,7 @@ export default function EvaluationDatasetPage (props: { params: Promise<{ id: st
 
   const { evaluationDataset, isLoading, isValidating, error } = useEvaluationDataset(evaluationDatasetId);
 
-  if (isServerError(error, 404) || (!isLoading && !isValidating && !evaluationDataset)) {
+  if (isServerError(error, 404)) {
     notFound();
   }
 
