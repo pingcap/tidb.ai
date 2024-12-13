@@ -59,7 +59,7 @@ This document provides instructions for deploying the entire Autoflow applicatio
     docker compose run backend /bin/sh -c "python bootstrap.py -r"
 
     # Or specify a new password
-    docker compose run backend /bin/sh -c "python bootstrap.py -r -np <new_password>"
+    docker compose run backend /bin/sh -c "python bootstrap.py -r --password <new_password>"
     ```
 
 5. Start the services:

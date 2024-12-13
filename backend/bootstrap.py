@@ -46,7 +46,7 @@ async def reset_admin_password(session: AsyncSession, new_password: str | None =
         admin_password = new_password or secrets.token_urlsafe(16)
         updated_user = await update_user_password(
             session,
-            id=user.id,
+            user_id=user.id,
             new_password=admin_password,
         )
         print(
@@ -73,23 +73,21 @@ async def ensure_default_chat_engine(session: AsyncSession) -> None:
 
 
 async def bootstrap(email: str | None = None, password: str | None = None, 
-                    reset_password: bool = False, new_password: str | None = None) -> None:
+                    reset_password: bool = False) -> None:
     async with get_db_async_session_context() as session:
         await ensure_admin_user(session, email, password)
         await ensure_default_chat_engine(session)
         if reset_password:
-            await reset_admin_password(session, new_password)
+            await reset_admin_password(session, password)
 
 @click.command()
 @click.option("--email", default=None, help="Admin user email, default=admin@example.com")
 @click.option("--password", default=None, help="Admin user password, default=random generated")
 @click.option('--reset-password', '-r', is_flag=True, help='Reset admin user password.')
-@click.option("--new-password", '-np', default=None, help="New admin user password, default=random generated")
-def main(email: str | None, password: str | None, 
-         reset_password: bool, new_password: str | None):
+def main(email: str | None, password: str | None, reset_password: bool):
     """Bootstrap the application with optional admin credentials."""
     print(Fore.GREEN + "Bootstrapping the application..." + Style.RESET_ALL)
-    asyncio.run(bootstrap(email, password, reset_password, new_password))
+    asyncio.run(bootstrap(email, password, reset_password))
     print(Fore.GREEN + "Bootstrapping completed." + Style.RESET_ALL)
 
 if __name__ == "__main__":
