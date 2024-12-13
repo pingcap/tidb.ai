@@ -173,7 +173,7 @@ async def update_user_password(
                 user_update = UserUpdate(password=new_password)
                 await user_manager.update(user_update, user)
                 # verify
-                updated_user = await user_manager.get(id)
+                updated_user = await user_manager.get(user_id)
                 return updated_user
 
     except UserNotExists as e:
