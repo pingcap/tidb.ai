@@ -61,7 +61,7 @@ export interface EvaluationTaskItem {
   status: EvaluationTaskItemStatus
   query: string
   reference: string
-  response: string
+  response: string | null
   retrieved_contexts: string[] | null
   extra: any | null
   error_msg: string | null
@@ -152,7 +152,7 @@ const evaluationTaskItemSchema = z.object({
   status: z.enum(['not_start', 'evaluating', 'done', 'error']),
   query: z.string(),
   reference: z.string(),
-  response: z.string(),
+  response: z.string().nullable(),
   retrieved_contexts: z.string().array().nullable(),
   extra: zodJson().nullable(),
   error_msg: z.string().nullable(),
