@@ -3,6 +3,7 @@ import { DocumentPreviewDialog } from '@/components/document-viewer';
 import type { CellContext } from '@tanstack/react-table';
 import { CircleCheckIcon, CircleDashedIcon, CircleXIcon, Loader2Icon } from 'lucide-react';
 
+// eslint-disable-next-line react/display-name
 export const markdownCell = (title: string, length = 25) => (context: CellContext<any, string | undefined | null>) => {
   const content = context.getValue();
   if (!content) {
