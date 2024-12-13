@@ -54,6 +54,14 @@ This document provides instructions for deploying the entire Autoflow applicatio
 
     Running the bootstrap script creates an admin user. You can find the username and password in the output.
 
+    ```bash
+    # Reset admin password (random generated)
+    docker compose run backend /bin/sh -c "python bootstrap.py -r"
+
+    # Or specify a new password
+    docker compose run backend /bin/sh -c "python bootstrap.py -r -np <new_password>"
+    ```
+
 5. Start the services:
 
     ```bash
