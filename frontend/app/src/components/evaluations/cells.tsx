@@ -4,7 +4,7 @@ import type { CellContext } from '@tanstack/react-table';
 import { CircleCheckIcon, CircleDashedIcon, CircleXIcon, Loader2Icon } from 'lucide-react';
 
 // eslint-disable-next-line react/display-name
-export const markdownCell = (title: string, length = 25) => (context: CellContext<any, string | undefined | null>) => {
+export const documentCell = (title: string, length = 25, mime = 'text/markdown') => (context: CellContext<any, string | undefined | null>) => {
   const content = context.getValue();
   if (!content) {
     return '--';
@@ -18,7 +18,7 @@ export const markdownCell = (title: string, length = 25) => (context: CellContex
     <DocumentPreviewDialog
       title={title}
       name={content.slice(0, length) + '...'}
-      mime="text/markdown"
+      mime={mime}
       content={content}
     />
   );
