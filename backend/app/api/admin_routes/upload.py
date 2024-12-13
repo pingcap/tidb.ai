@@ -34,12 +34,13 @@ def upload_files(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="File name cannot be empty",
             )
-        if SiteSetting.setting_exists("upload_max_body_size"):
-            sys_upload_max_body_size = SiteSetting.get_setting("upload_max_body_size")
+        sys_upload_max_body_size = SiteSetting.upload_max_body_size
+        if sys_upload_max_body_size:
             if file.size > sys_upload_max_body_size:
+                max_body_size_in_mb = sys_upload_max_body_size / 1024 / 1024
                 raise HTTPException(
                     status_code=status.HTTP_413_REQUEST_ENTITY_TOO_LARGE,
-                    detail=f"File size({file.size}) exceeds maximum allowed size({sys_upload_max_body_size})",
+                    detail=f"File size({file.size} bytes) exceeds maximum allowed size({sys_upload_max_body_size} bytes)",
                 )
 
         file_ext = os.path.splitext(file.filename)[1].lower()
