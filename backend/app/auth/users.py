@@ -168,7 +168,7 @@ async def update_user_password(
             async with get_user_manager_context(user_db) as user_manager:
                 user = await user_manager.get(user_id)
                 if not user:
-                    raise UserNotExists(f"User {id} does not exist")
+                    raise UserNotExists(f"User {user_id} does not exist")
 
                 user_update = UserUpdate(password=new_password)
                 await user_manager.update(user_update, user)
