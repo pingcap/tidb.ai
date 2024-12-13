@@ -2,25 +2,28 @@
 
 import { type EvaluationTaskItem, listEvaluationTaskItems } from '@/api/evaluations';
 import { datetime } from '@/components/cells/datetime';
+import { longText } from '@/components/cells/long-text';
+import { metadataCell } from '@/components/cells/metadata';
 import { mono } from '@/components/cells/mono';
+import { percent } from '@/components/cells/percent';
 import { DataTableRemote } from '@/components/data-table-remote';
+import { evaluationTaskStatusCell, markdownCell, textChunksArrayCell } from '@/components/evaluations/cells';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
-import { CircleCheckIcon, CircleDashedIcon, CircleXIcon, Loader2Icon } from 'lucide-react';
 
 const helper = createColumnHelper<EvaluationTaskItem>();
 
 const columns = [
   helper.accessor('id', { header: 'ID', cell: mono }),
   helper.accessor('chat_engine', { header: 'ChatEngine' }),
-  helper.accessor('status', { header: 'Status', cell: ctx => <StatusCell row={ctx.row.original} /> }),
-  helper.accessor('query', { header: 'Query' }),
-  helper.accessor('factual_correctness', { header: 'factual_correctness' }),
-  helper.accessor('semantic_similarity', { header: 'semantic_similarity' }),
-  helper.accessor('reference', { header: 'Reference' }),
-  helper.accessor('response', { header: 'Response' }),
-  helper.accessor('retrieved_contexts', { header: 'Retrieved Contexts' }),
-  helper.accessor('extra', { header: 'Extra' }),
+  helper.accessor('status', { header: 'Status', cell: evaluationTaskStatusCell }),
+  helper.accessor('query', { header: 'Query', cell: longText }),
+  helper.accessor('factual_correctness', { header: 'factual_correctness', cell: context => percent(context) }),
+  helper.accessor('semantic_similarity', { header: 'semantic_similarity', cell: context => percent(context) }),
+  helper.accessor('reference', { header: 'Reference', cell: markdownCell('Reference', 25) }),
+  helper.accessor('response', { header: 'Response', cell: markdownCell('Response', 25) }),
+  helper.accessor('retrieved_contexts', { header: 'Retrieved Contexts', cell: textChunksArrayCell }),
+  helper.accessor('extra', { header: 'Extra', cell: metadataCell }),
   helper.accessor('created_at', { header: 'Created At', cell: datetime }),
   helper.accessor('updated_at', { header: 'Updated At', cell: datetime }),
 ] as ColumnDef<EvaluationTaskItem>[];
@@ -33,21 +36,5 @@ export function EvaluationTaskItemsTable ({ evaluationTaskId }: { evaluationTask
       api={(page) => listEvaluationTaskItems(evaluationTaskId, page)}
       idColumn="id"
     />
-  );
-}
-
-function StatusCell ({ row }: { row: EvaluationTaskItem }) {
-  const { status, error_msg } = row;
-  // TODO: popover error_msg
-  return (
-    <span className="inline-flex gap-1">
-      {status === 'not_start' && <CircleDashedIcon className="text-muted flex-shrink-0 size-4" />}
-      {status === 'evaluating' && <Loader2Icon className="text-info flex-shrink-0 size-4 animate-spin repeat-infinite" />}
-      {status === 'done' && <CircleCheckIcon className="text-success flex-shrink-0 size-4" />}
-      {status === 'error' && <CircleXIcon className="text-destructive flex-shrink-0 size-4" />}
-      <span className="text-accent">
-        {status === 'not_start' ? 'not start' : status === 'evaluating' ? 'evaluating' : status === 'done' ? 'done' : 'error'}
-      </span>
-    </span>
   );
 }
