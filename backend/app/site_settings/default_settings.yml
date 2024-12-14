@@ -118,7 +118,7 @@ chat:
 
 upload:
   max_upload_file_size:
-    default: 10485760    # 10MB
+    default: 10485760    # 10 MiB
     data_type: int
     description: "Max body size (in bytes) of upload file."
     client: true
