@@ -62,7 +62,7 @@ from app.rag.knowledge_graph.graph_store.tidb_graph_editor import (
     TiDBGraphEditor,
     legacy_tidb_graph_editor,
 )
-
+from app.rag.utils import parse_goal_response_format
 from app.rag.knowledge_graph import KnowledgeGraphIndex
 from app.rag.chat_config import (
     ChatEngineConfig,
@@ -822,16 +822,28 @@ class ChatService:
             logger.error(f"Failed to search kg or refine question: {e}")
             goal = self.user_question
 
+        response_format = {}
+        try:
+            clean_goal, response_format = parse_goal_response_format(goal)
+            logger.info(f"clean goal: {clean_goal}, response_format: {response_format}")
+            if clean_goal:
+                goal = clean_goal
+        except Exception as e:
+            logger.error(f"Failed to parse goal and response format: {e}")
+
         cache_messages = None
         if settings.ENABLE_QUESTION_CACHE:
             try:
                 logger.info(
-                    f"start to find_recent_assistant_messages_by_goal with goal: {goal}"
+                    f"start to find_recent_assistant_messages_by_goal with goal: {goal}, response_format: {response_format}"
                 )
                 cache_messages = chat_repo.find_recent_assistant_messages_by_goal(
-                    self.db_session, goal, 90
+                    self.db_session, {
+                        "goal": goal,
+                        "Lang": response_format.get("Lang", "English")
+                    }, 90
                 )
-                logger.debug(
+                logger.info(
                     f"find_recent_assistant_messages_by_goal result: {cache_messages}"
                 )
             except Exception as e:
@@ -908,6 +920,7 @@ class ChatService:
         db_assistant_message.meta = {
             "task_id": task_id,
             "goal": goal,
+            **response_format,
         }
         db_assistant_message.updated_at = datetime.now(UTC)
         db_assistant_message.finished_at = datetime.now(UTC)
@@ -916,6 +929,7 @@ class ChatService:
         db_user_message.meta = {
             "task_id": task_id,
             "goal": goal,
+            **response_format,
         }
         db_user_message.updated_at = datetime.now(UTC)
         db_user_message.finished_at = datetime.now(UTC)
