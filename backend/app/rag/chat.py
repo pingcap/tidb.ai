@@ -829,7 +829,7 @@ class ChatService:
                     f"start to find_recent_assistant_messages_by_goal with goal: {goal}"
                 )
                 cache_messages = chat_repo.find_recent_assistant_messages_by_goal(
-                    self.db_session, goal
+                    self.db_session, goal, 90
                 )
                 logger.debug(
                     f"find_recent_assistant_messages_by_goal result: {cache_messages}"
