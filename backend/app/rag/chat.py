@@ -846,7 +846,7 @@ class ChatService:
                     }, 90
                 )
                 logger.info(
-                    f"find_recent_assistant_messages_by_goal result: {cache_messages}"
+                    f"find_recent_assistant_messages_by_goal result {len(cache_messages)} for goal {goal}"
                 )
             except Exception as e:
                 logger.error(f"Failed to find recent assistant messages by goal: {e}")
@@ -871,6 +871,7 @@ class ChatService:
             )
             chat_params = {
                 "goal": goal,
+                "response_format": response_format,
             }
             res = requests.post(stream_chat_api_url, json=chat_params, stream=True)
 
