@@ -42,10 +42,6 @@ AutoFlow is an open source graph rag (graphrag: knowledge graph rag) based knowl
 - [Next.js](https://nextjs.org/) – Framework
 - [shadcn/ui](https://ui.shadcn.com/) - Design
 
-## Contact Us
-
-You can reach out to us on [@TiDB_Developer](https://twitter.com/TiDB_Developer) on Twitter.
-
 ## Contributing
 
 We welcome contributions from the community. If you are interested in contributing to the project, please read the [Contributing Guidelines](/CONTRIBUTING.md).
@@ -61,3 +57,7 @@ We welcome contributions from the community. If you are interested in contributi
 ## License
 
 AutoFlow is open-source under the Apache License, Version 2.0. You can [find it here](/LICENSE.txt).
+
+## Contact
+
+You can reach out to us on [@TiDB_Developer](https://twitter.com/TiDB_Developer) on Twitter.
