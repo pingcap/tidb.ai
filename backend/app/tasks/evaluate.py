@@ -85,8 +85,6 @@ def add_evaluation_task_item(evaluation_task_item_id: int):
             if response is None or response == "":
                 raise Exception("Autoflow response is empty")
 
-            response = response.replace("\n", "\\n").replace("\r", "\\r")
-
             logger.info(
                 f"Got response from autoflow for evaluation item #{evaluation_task_item_id}, {response}"
             )

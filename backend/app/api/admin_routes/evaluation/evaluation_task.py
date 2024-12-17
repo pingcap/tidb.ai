@@ -31,9 +31,9 @@ router = APIRouter()
 
 @router.post("/admin/evaluation/tasks")
 def create_evaluation_task(
-    evaluation_task: CreateEvaluationTask,
-    session: SessionDep,
-    user: CurrentSuperuserDep,
+        evaluation_task: CreateEvaluationTask,
+        session: SessionDep,
+        user: CurrentSuperuserDep,
 ) -> Optional[EvaluationTask]:
     """
     Create an evaluation task from the evaluation dataset.
@@ -88,7 +88,7 @@ def create_evaluation_task(
 
 @router.get("/admin/evaluation/tasks/{evaluation_task_id}/summary")
 def get_evaluation_task_summary(
-    evaluation_task_id: int, session: SessionDep, user: CurrentSuperuserDep
+        evaluation_task_id: int, session: SessionDep, user: CurrentSuperuserDep
 ) -> EvaluationTaskSummary:
     task = session.exec(
         select(EvaluationTask).where(EvaluationTask.id == evaluation_task_id)
@@ -166,28 +166,31 @@ def get_evaluation_task_summary(
             .one()
         )
 
+    def stats_get_value(field):
+        return stats[field] if field in stats else None
+
     return EvaluationTaskSummary(
         task=task,
         not_start=status_counts.not_start,
         succeed=status_counts.done,
         errored=status_counts.error,
         progressing=status_counts.evaluating,
-        avg_factual_correctness=stats.avg_factual_correctness,
-        avg_semantic_similarity=stats.avg_semantic_similarity,
-        min_factual_correctness=stats.min_factual_correctness,
-        min_semantic_similarity=stats.min_semantic_similarity,
-        max_factual_correctness=stats.max_factual_correctness,
-        max_semantic_similarity=stats.max_semantic_similarity,
-        std_factual_correctness=stats.std_factual_correctness,
-        std_semantic_similarity=stats.std_semantic_similarity,
+        avg_factual_correctness=stats_get_value('avg_factual_correctness'),
+        avg_semantic_similarity=stats_get_value('avg_semantic_similarity'),
+        min_factual_correctness=stats_get_value('min_factual_correctness'),
+        min_semantic_similarity=stats_get_value('min_semantic_similarity'),
+        max_factual_correctness=stats_get_value('max_factual_correctness'),
+        max_semantic_similarity=stats_get_value('max_semantic_similarity'),
+        std_factual_correctness=stats_get_value('std_factual_correctness'),
+        std_semantic_similarity=stats_get_value('std_semantic_similarity'),
     )
 
 
 @router.get("/admin/evaluation/tasks")
 def list_evaluation_task(
-    session: SessionDep,
-    user: CurrentSuperuserDep,
-    params: Params = Depends(),
+        session: SessionDep,
+        user: CurrentSuperuserDep,
+        params: Params = Depends(),
 ) -> Page[EvaluationTask]:
     stmt = (
         select(EvaluationTask)
@@ -199,9 +202,9 @@ def list_evaluation_task(
 
 @router.get("/admin/evaluation/tasks/{evaluation_task_id}/items")
 def list_evaluation_task_items(
-    evaluation_task_id: int,
-    session: SessionDep,
-    user: CurrentSuperuserDep,
+        evaluation_task_id: int,
+        session: SessionDep,
+        user: CurrentSuperuserDep,
 ) -> List[EvaluationTaskItem]:
     task = session.exec(
         select(EvaluationTask).where(EvaluationTask.id == evaluation_task_id)
