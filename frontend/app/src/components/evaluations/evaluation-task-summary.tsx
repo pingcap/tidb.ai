@@ -115,7 +115,7 @@ function StatusPieChart ({ summary }: { summary: Pick<EvaluationTaskSummaryType,
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
-        <CardTitle className="text-lg font-normal">Tasks Status</CardTitle>
+        <CardTitle className="text-lg font-normal">Evaluation Items</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -156,7 +156,7 @@ function StatusPieChart ({ summary }: { summary: Pick<EvaluationTaskSummaryType,
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Tasks
+                          Items
                         </tspan>
                       </text>
                     );
@@ -177,7 +177,7 @@ function StatusPieChartSkeleton () {
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
-        <CardTitle className='text-lg font-normal'>Tasks Status</CardTitle>
+        <CardTitle className='text-lg font-normal'>Evaluation Items</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -215,7 +215,7 @@ function StatusPieChartSkeleton () {
                           y={(viewBox.cy || 0) + 24}
                           className="fill-muted-foreground"
                         >
-                          Tasks
+                          Items
                         </tspan>
                       </text>
                     );
