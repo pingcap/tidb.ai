@@ -34,6 +34,15 @@ export function mutateEvaluationDatasets () {
   });
 }
 
+export function mutateEvaluationDataset (id: number) {
+  return mutate(key => {
+    if (typeof key === 'string') {
+      return key.startsWith(`api.evaluation.datasets.${id}.`);
+    }
+    return false;
+  });
+}
+
 export function useAllEvaluationTasks (flag = true) {
   return useSWR(flag && 'api.evaluation.tasks.list-all', () => listAllHelper(listEvaluationTasks, 'id'));
 }
