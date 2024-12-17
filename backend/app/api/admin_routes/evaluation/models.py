@@ -1,5 +1,6 @@
 from typing import Optional
 
+from fastapi_pagination import Params
 from pydantic import BaseModel
 
 from app.models import EvaluationTask
@@ -18,6 +19,7 @@ class EvaluationTaskSummary(BaseModel):
     succeed: int
     errored: int
     progressing: int
+    cancel: int
     avg_factual_correctness: Optional[float]
     avg_semantic_similarity: Optional[float]
     min_factual_correctness: Optional[float]
@@ -43,3 +45,7 @@ class ModifyEvaluationDatasetItem(BaseModel):
     retrieved_contexts: list[str]
     extra: dict
     evaluation_dataset_id: int
+
+
+class ParamsWithKeyword(Params):
+    keyword: Optional[str] = None

@@ -1,6 +1,6 @@
 import pandas as pd
 from fastapi import APIRouter, status, HTTPException, Depends
-from fastapi_pagination import Params, Page
+from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlmodel import select, desc
 
@@ -8,6 +8,7 @@ from app.api.admin_routes.evaluation.models import (
     CreateEvaluationDataset,
     UpdateEvaluationDataset,
     ModifyEvaluationDatasetItem,
+    ParamsWithKeyword,
 )
 from app.api.admin_routes.evaluation.tools import must_get, must_get_and_belong
 from app.api.deps import SessionDep, CurrentSuperuserDep
@@ -126,13 +127,17 @@ def update_evaluation_dataset(
 def list_evaluation_dataset(
     session: SessionDep,
     user: CurrentSuperuserDep,
-    params: Params = Depends(),
+    params: ParamsWithKeyword = Depends(),
 ) -> Page[EvaluationDataset]:
     stmt = (
         select(EvaluationDataset)
         .where(EvaluationDataset.user_id == user.id)
         .order_by(desc(EvaluationDataset.id))
     )
+
+    if params.keyword:
+        stmt = stmt.where(EvaluationDataset.name.ilike(f"%{params.keyword}%"))
+
     return paginate(session, stmt, params)
 
 
@@ -201,11 +206,23 @@ def list_evaluation_dataset_item(
     session: SessionDep,
     user: CurrentSuperuserDep,
     evaluation_dataset_id: int,
-    params: Params = Depends(),
+    params: ParamsWithKeyword = Depends(),
 ) -> Page[EvaluationDatasetItem]:
     stmt = (
         select(EvaluationDatasetItem)
         .where(EvaluationDatasetItem.evaluation_dataset_id == evaluation_dataset_id)
         .order_by(EvaluationDatasetItem.id)
     )
+
+    if params.keyword:
+        stmt = stmt.where(EvaluationDatasetItem.query.ilike(f"%{params.keyword}%"))
     return paginate(session, stmt, params)
+
+
+@router.get("/admin/evaluation/dataset-items/{evaluation_dataset_item_id}")
+def get_evaluation_dataset_item(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    evaluation_dataset_item_id: int,
+) -> EvaluationDatasetItem:
+    return must_get(session, EvaluationDatasetItem, evaluation_dataset_item_id)

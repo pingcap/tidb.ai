@@ -1,39 +1,39 @@
+import logging
 from typing import Optional, List
 
-from fastapi import APIRouter, status, HTTPException, Depends
-from fastapi_pagination import Params, Page
-from sqlalchemy import func
+import sqlmodel
+from fastapi import APIRouter, Depends
+from fastapi_pagination import Page
+from fastapi_pagination.ext.sqlmodel import paginate
+from sqlalchemy import func, update
+from sqlalchemy.orm import Session
 from sqlmodel import select, case, desc
 
 from app.api.admin_routes.evaluation.models import (
     CreateEvaluationTask,
     EvaluationTaskSummary,
+    ParamsWithKeyword,
 )
-from app.api.admin_routes.evaluation.tools import must_get_and_belong, must_get
-from app.file_storage import default_file_storage
+from app.api.admin_routes.evaluation.tools import must_get_and_belong
+from app.api.deps import SessionDep, CurrentSuperuserDep
 from app.models import (
     EvaluationTask,
     EvaluationTaskItem,
     EvaluationStatus,
     EvaluationDataset,
-    EvaluationDatasetItem,
 )
-from app.api.deps import SessionDep, CurrentSuperuserDep
-
-import pandas as pd
-from fastapi_pagination.ext.sqlmodel import paginate
-
 from app.tasks.evaluate import add_evaluation_task
-from app.types import MimeTypes
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
 
 
 @router.post("/admin/evaluation/tasks")
 def create_evaluation_task(
-        evaluation_task: CreateEvaluationTask,
-        session: SessionDep,
-        user: CurrentSuperuserDep,
+    evaluation_task: CreateEvaluationTask,
+    session: SessionDep,
+    user: CurrentSuperuserDep,
 ) -> Optional[EvaluationTask]:
     """
     Create an evaluation task from the evaluation dataset.
@@ -56,6 +56,9 @@ def create_evaluation_task(
     dataset = must_get_and_belong(
         session, EvaluationDataset, evaluation_dataset_id, user.id
     )
+
+    if run_size is not None and run_size < len(dataset.evaluation_data_list):
+        dataset.evaluation_data_list = dataset.evaluation_data_list[:run_size]
 
     # create evaluation items
     # caveat: Do the deep copy on purpose to avoid the side effect of the original dataset modification
@@ -86,19 +89,25 @@ def create_evaluation_task(
     return evaluation_task
 
 
-@router.get("/admin/evaluation/tasks/{evaluation_task_id}/summary")
+@router.delete("/admin/evaluation/tasks/{evaluation_task_id}")
+def cancel_evaluation_task(
+    evaluation_task_id: int, session: SessionDep, user: CurrentSuperuserDep
+) -> Optional[bool]:
+    must_get_and_belong(session, EvaluationTask, evaluation_task_id, user.id)
+
+    session.exec(
+        update(EvaluationTaskItem)
+        .where(EvaluationTaskItem.evaluation_task_id == evaluation_task_id)
+        .values(status=EvaluationStatus.CANCEL)
+    )
+    session.commit()
+
+    return True
+
+
 def get_evaluation_task_summary(
-        evaluation_task_id: int, session: SessionDep, user: CurrentSuperuserDep
+    evaluation_task: EvaluationTask, session: Session
 ) -> EvaluationTaskSummary:
-    task = session.exec(
-        select(EvaluationTask).where(EvaluationTask.id == evaluation_task_id)
-    ).first()
-    if not task:
-        raise HTTPException(status_code=404, detail="EvaluationTask not found")
-
-    if task.user_id != user.id:
-        raise HTTPException(status_code=403, detail="Access denied")
-
     status_counts = (
         session.query(
             func.count(
@@ -123,8 +132,14 @@ def get_evaluation_task_summary(
                     (EvaluationTaskItem.status == EvaluationStatus.ERROR, 1), else_=None
                 )
             ).label("error"),
+            func.count(
+                case(
+                    (EvaluationTaskItem.status == EvaluationStatus.CANCEL, 1),
+                    else_=None,
+                )
+            ).label("cancel"),
         )
-        .filter(EvaluationTaskItem.evaluation_task_id == evaluation_task_id)
+        .filter(EvaluationTaskItem.evaluation_task_id == evaluation_task.id)
         .one()
     )
 
@@ -158,7 +173,7 @@ def get_evaluation_task_summary(
                 ),
             )
             .filter(
-                EvaluationTaskItem.evaluation_task_id == evaluation_task_id,
+                EvaluationTaskItem.evaluation_task_id == evaluation_task.id,
                 EvaluationTaskItem.status == EvaluationStatus.DONE,
                 EvaluationTaskItem.factual_correctness.isnot(None),
                 EvaluationTaskItem.semantic_similarity.isnot(None),
@@ -166,53 +181,67 @@ def get_evaluation_task_summary(
             .one()
         )
 
-    def stats_get_value(field):
-        return stats[field] if field in stats else None
+        logger.info(stats)
 
     return EvaluationTaskSummary(
-        task=task,
+        task=evaluation_task,
         not_start=status_counts.not_start,
         succeed=status_counts.done,
         errored=status_counts.error,
         progressing=status_counts.evaluating,
-        avg_factual_correctness=stats_get_value('avg_factual_correctness'),
-        avg_semantic_similarity=stats_get_value('avg_semantic_similarity'),
-        min_factual_correctness=stats_get_value('min_factual_correctness'),
-        min_semantic_similarity=stats_get_value('min_semantic_similarity'),
-        max_factual_correctness=stats_get_value('max_factual_correctness'),
-        max_semantic_similarity=stats_get_value('max_semantic_similarity'),
-        std_factual_correctness=stats_get_value('std_factual_correctness'),
-        std_semantic_similarity=stats_get_value('std_semantic_similarity'),
+        cancel=status_counts.cancel,
+        avg_factual_correctness=getattr(stats, "avg_factual_correctness"),
+        avg_semantic_similarity=getattr(stats, "avg_semantic_similarity"),
+        min_factual_correctness=getattr(stats, "min_factual_correctness"),
+        min_semantic_similarity=getattr(stats, "min_semantic_similarity"),
+        max_factual_correctness=getattr(stats, "max_factual_correctness"),
+        max_semantic_similarity=getattr(stats, "max_semantic_similarity"),
+        std_factual_correctness=getattr(stats, "std_factual_correctness"),
+        std_semantic_similarity=getattr(stats, "std_semantic_similarity"),
     )
 
 
 @router.get("/admin/evaluation/tasks")
 def list_evaluation_task(
-        session: SessionDep,
-        user: CurrentSuperuserDep,
-        params: Params = Depends(),
-) -> Page[EvaluationTask]:
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    params: ParamsWithKeyword = Depends(),
+) -> Page[EvaluationTaskSummary]:
     stmt = (
         select(EvaluationTask)
         .where(EvaluationTask.user_id == user.id)
         .order_by(desc(EvaluationTask.id))
     )
-    return paginate(session, stmt, params)
+    if params.keyword:
+        stmt = stmt.where(EvaluationTask.name.ilike(f"%{params.keyword}%"))
+
+    task_page: Page[EvaluationTask] = paginate(session, stmt, params)
+    summaries: List[EvaluationTaskSummary] = []
+    for task in task_page.items:
+        summaries.append(get_evaluation_task_summary(task, session))
+
+    return Page[EvaluationTaskSummary](
+        items=summaries, total=task_page.total, page=task_page.page, size=task_page.size
+    )
 
 
 @router.get("/admin/evaluation/tasks/{evaluation_task_id}/items")
 def list_evaluation_task_items(
-        evaluation_task_id: int,
-        session: SessionDep,
-        user: CurrentSuperuserDep,
-) -> List[EvaluationTaskItem]:
-    task = session.exec(
-        select(EvaluationTask).where(EvaluationTask.id == evaluation_task_id)
-    ).first()
-    if not task:
-        raise HTTPException(status_code=404, detail="EvaluationTask not found")
+    evaluation_task_id: int,
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    params: ParamsWithKeyword = Depends(),
+) -> Page[EvaluationTaskItem]:
+    must_get_and_belong(session, EvaluationTask, evaluation_task_id, user.id)
+    stmt = select(EvaluationTaskItem).where(
+        EvaluationTaskItem.evaluation_task_id == evaluation_task_id
+    )
+    if params.keyword:
+        stmt = stmt.where(
+            sqlmodel.or_(
+                EvaluationTaskItem.query.ilike(f"%{params.keyword}%"),
+                EvaluationTaskItem.reference.ilike(f"%{params.keyword}%"),
+            )
+        )
 
-    if task.user_id != user.id:
-        raise HTTPException(status_code=403, detail="Access denied")
-
-    return task.evaluation_task_items
+    return paginate(session, stmt, params)
