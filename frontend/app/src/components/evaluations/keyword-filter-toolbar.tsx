@@ -18,8 +18,9 @@ export function KeywordFilterToolbar ({ onFilterChange }: { onFilterChange: (fil
   });
 
   const handleSubmit = form.handleSubmit(({ keyword, ...rest }) => {
+    const trimmedKeyword = keyword.trim();
     onFilterChange({
-      keyword: keyword.trim(),
+      keyword: trimmedKeyword ? trimmedKeyword : undefined,
       ...rest,
     });
   });
@@ -48,7 +49,7 @@ export function KeywordFilterToolbar ({ onFilterChange }: { onFilterChange: (fil
 }
 
 const keywordFilter = z.object({
-  keyword: z.string(),
+  keyword: z.string().optional(),
 });
 
 export type KeywordFilter = z.infer<typeof keywordFilter>;

@@ -51,7 +51,7 @@ const columns = [
 ] as ColumnDef<EvaluationDataset>[];
 
 export function EvaluationDatasetsTable () {
-  const [filter, setFilter] = useState<KeywordFilter>({ keyword: '' });
+  const [filter, setFilter] = useState<KeywordFilter>({});
   return (
     <DataTableRemote
       toolbar={() => (

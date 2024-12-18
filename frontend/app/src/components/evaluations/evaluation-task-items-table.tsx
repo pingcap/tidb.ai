@@ -30,7 +30,7 @@ const columns = [
 ] as ColumnDef<EvaluationTaskItem>[];
 
 export function EvaluationTaskItemsTable ({ evaluationTaskId }: { evaluationTaskId: number }) {
-  const [filter, setFilter] = useState<KeywordFilter>({ keyword: '' });
+  const [filter, setFilter] = useState<KeywordFilter>({});
   return (
     <DataTableRemote
       columns={columns}

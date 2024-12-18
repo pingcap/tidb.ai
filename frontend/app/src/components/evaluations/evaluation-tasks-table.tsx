@@ -22,7 +22,7 @@ const columns = [
 ] as ColumnDef<EvaluationTask>[];
 
 export function EvaluationTasksTable () {
-  const [filter, setFilter] = useState<KeywordFilter>({ keyword: '' });
+  const [filter, setFilter] = useState<KeywordFilter>({});
   return (
     <DataTableRemote
       columns={columns}

@@ -7,6 +7,8 @@ interface AccessorHelper<Row> {
 
   dateField<K extends string & KeyOfType<Row, Date>> (key: K): GeneralSettingsFieldAccessor<Row, string>;
 
+  jsonTextField<K extends string & keyof Row> (key: K): GeneralSettingsFieldAccessor<Row, string>;
+
   nestedField<
     K0 extends string & KeyOfType<Row, Record<string, any>>,
     K1 extends string & keyof Row[K0]
@@ -44,6 +46,20 @@ export function createAccessorHelper<Row> (): AccessorHelper<Row> {
           return {
             ...data,
             [key]: date,
+          };
+        },
+      };
+    },
+    jsonTextField<K extends string & KeyOfType<Row, Date>> (key: K): GeneralSettingsFieldAccessor<Row, string> {
+      return {
+        path: [key],
+        get (data) {
+          return JSON.stringify(data[key], undefined, 2);
+        },
+        set (data, value) {
+          return {
+            ...data,
+            [key]: JSON.parse(value),
           };
         },
       };
