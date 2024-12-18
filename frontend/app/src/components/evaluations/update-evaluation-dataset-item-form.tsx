@@ -42,7 +42,7 @@ export function UpdateEvaluationDatasetItemForm ({ evaluationDatasetId, evaluati
           </FormFieldBasicLayout>
         </GeneralSettingsField>
         <GeneralSettingsField accessor={reference} schema={textSchema}>
-          <FormFieldBasicLayout name="value" label="Query">
+          <FormFieldBasicLayout name="value" label="Reference">
             <CodeInput language="markdown" />
           </FormFieldBasicLayout>
         </GeneralSettingsField>
