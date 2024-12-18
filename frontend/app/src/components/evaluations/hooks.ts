@@ -1,4 +1,4 @@
-import { type EvaluationDataset, type EvaluationTask, listEvaluationDatasets, listEvaluationTasks } from '@/api/evaluations';
+import { type EvaluationDataset, type EvaluationTask, getEvaluationDatasetItem, listEvaluationDatasets, listEvaluationTasks } from '@/api/evaluations';
 import { listAllHelper, ServerError } from '@/lib/request';
 import useSWR, { mutate } from 'swr';
 
@@ -22,6 +22,15 @@ export function useEvaluationDataset (id: number | null | undefined) {
     evaluationDataset: data?.find(evaluationDataset => evaluationDataset.id === id),
     ...rest,
     error,
+  };
+}
+
+export function useEvaluationDatasetItem (datasetId: number, id: number) {
+  const { data, ...rest } = useSWR(`api.evaluation.datasets.${datasetId}.items.${id}`, () => getEvaluationDatasetItem(datasetId, id));
+
+  return {
+    evaluationDatasetItem: data,
+    ...rest,
   };
 }
 

@@ -7,10 +7,10 @@ import { mono } from '@/components/cells/mono';
 import { percent } from '@/components/cells/percent';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { documentCell, evaluationTaskStatusCell, textChunksArrayCell } from '@/components/evaluations/cells';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
-import { noPage } from '@/lib/zod';
+import { type KeywordFilter, KeywordFilterToolbar } from '@/components/evaluations/keyword-filter-toolbar';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
+import { useState } from 'react';
 
 const helper = createColumnHelper<EvaluationTaskItem>();
 
@@ -30,11 +30,16 @@ const columns = [
 ] as ColumnDef<EvaluationTaskItem>[];
 
 export function EvaluationTaskItemsTable ({ evaluationTaskId }: { evaluationTaskId: number }) {
+  const [filter, setFilter] = useState<KeywordFilter>({ keyword: '' });
   return (
     <DataTableRemote
       columns={columns}
+      toolbar={() => (
+        <KeywordFilterToolbar onFilterChange={setFilter} />
+      )}
       apiKey={`api.evaluation.tasks.${evaluationTaskId}.items.list`}
-      api={() => listEvaluationTaskItems(evaluationTaskId).then(res => noPage(res))}
+      api={(page) => listEvaluationTaskItems(evaluationTaskId, { ...page, ...filter })}
+      apiDeps={[filter.keyword]}
       idColumn="id"
     />
   );

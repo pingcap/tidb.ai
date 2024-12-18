@@ -7,8 +7,10 @@ import { link } from '@/components/cells/link';
 import { metadataCell } from '@/components/cells/metadata';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { documentCell, textChunksArrayCell } from '@/components/evaluations/cells';
+import { type KeywordFilter, KeywordFilterToolbar } from '@/components/evaluations/keyword-filter-toolbar';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
+import { useState } from 'react';
 
 const helper = createColumnHelper<EvaluationDatasetItem>();
 
@@ -51,11 +53,16 @@ const columns = [
 ] as ColumnDef<EvaluationDatasetItem>[];
 
 export function EvaluationDatasetItemsTable ({ evaluationDatasetId }: { evaluationDatasetId: number }) {
+  const [filter, setFilter] = useState<KeywordFilter>({ keyword: '' })
   return (
     <DataTableRemote
       columns={columns}
+      toolbar={() => (
+        <KeywordFilterToolbar onFilterChange={setFilter} />
+      )}
       apiKey={`api.evaluation.datasets.${evaluationDatasetId}.all-items`}
-      api={(page) => listEvaluationDatasetItems(evaluationDatasetId, page)}
+      api={(page) => listEvaluationDatasetItems(evaluationDatasetId, { ...page, ...filter })}
+      apiDeps={[filter.keyword]}
       idColumn="id"
     />
   );

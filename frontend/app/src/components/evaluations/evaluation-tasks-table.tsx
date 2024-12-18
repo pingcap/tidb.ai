@@ -5,8 +5,10 @@ import { datetime } from '@/components/cells/datetime';
 import { link } from '@/components/cells/link';
 import { mono } from '@/components/cells/mono';
 import { DataTableRemote } from '@/components/data-table-remote';
+import { type KeywordFilter, KeywordFilterToolbar } from '@/components/evaluations/keyword-filter-toolbar';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
+import { useState } from 'react';
 
 const helper = createColumnHelper<EvaluationTask>();
 
@@ -20,11 +22,16 @@ const columns = [
 ] as ColumnDef<EvaluationTask>[];
 
 export function EvaluationTasksTable () {
+  const [filter, setFilter] = useState<KeywordFilter>({ keyword: '' });
   return (
     <DataTableRemote
       columns={columns}
+      toolbar={() => (
+        <KeywordFilterToolbar onFilterChange={setFilter} />
+      )}
       apiKey="api.evaluation.tasks.list"
-      api={listEvaluationTasks}
+      api={page => listEvaluationTasks({ ...page, ...filter })}
+      apiDeps={[filter.keyword]}
       idColumn="id"
     />
   );

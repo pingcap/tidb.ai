@@ -72,7 +72,7 @@ export interface EvaluationTaskItem {
 
 export interface CreateEvaluationDatasetParams {
   name: string;
-  upload_id: number;
+  upload_id?: number;
 }
 
 export interface UpdateEvaluationDatasetParams {
@@ -205,7 +205,7 @@ export async function deleteEvaluationDataset (id: number): Promise<void> {
 
 // Dataset Items
 
-export async function listEvaluationDatasetItems (datasetId: number, { ...params }: PageParams): Promise<Page<EvaluationDatasetItem>> {
+export async function listEvaluationDatasetItems (datasetId: number, { ...params }: PageParams & { keyword?: string }): Promise<Page<EvaluationDatasetItem>> {
   return fetch(requestUrl(`/api/v1/admin/evaluation/datasets/${datasetId}/dataset-items`, params), {
     headers: await authenticationHeaders(),
   })
@@ -242,6 +242,16 @@ export async function updateEvaluationDatasetItem (datasetId: number, id: number
     .then(handleResponse(evaluationDatasetItemSchema));
 }
 
+export async function getEvaluationDatasetItem (datasetId: number, id: number) {
+  return await fetch(requestUrl(`/api/v1/admin/evaluation/dataset-items/${id}`), {
+    method: 'GET',
+    headers: {
+      ...await authenticationHeaders(),
+    },
+  })
+    .then(handleResponse(evaluationDatasetItemSchema));
+}
+
 export async function deleteEvaluationDatasetItem (datasetId: number, id: number): Promise<void> {
   await fetch(requestUrl(`/api/v1/admin/evaluation/dataset-items/${id}`), {
     method: 'DELETE',
@@ -266,7 +276,7 @@ export async function createEvaluationTask (params: CreateEvaluationTaskParams):
     .then(handleResponse(evaluationTaskSchema));
 }
 
-export async function listEvaluationTasks ({ ...params }: PageParams): Promise<Page<EvaluationTask>> {
+export async function listEvaluationTasks ({ ...params }: PageParams & { keyword?: string }): Promise<Page<EvaluationTask>> {
   return fetch(requestUrl('/api/v1/admin/evaluation/tasks', params), {
     headers: await authenticationHeaders(),
   })
@@ -280,9 +290,9 @@ export async function getEvaluationTaskSummary (id: number): Promise<EvaluationT
     .then(handleResponse(evaluationTaskSummarySchema));
 }
 
-export async function listEvaluationTaskItems (id: number): Promise<EvaluationTaskItem[]> {
-  return fetch(requestUrl(`/api/v1/admin/evaluation/tasks/${id}/items`), {
+export async function listEvaluationTaskItems (id: number, params: PageParams & { keyword?: string }): Promise<Page<EvaluationTaskItem>> {
+  return fetch(requestUrl(`/api/v1/admin/evaluation/tasks/${id}/items`, params), {
     headers: await authenticationHeaders(),
   })
-    .then(handleResponse(evaluationTaskItemSchema.array()));
+    .then(handleResponse(zodPage(evaluationTaskItemSchema)));
 }

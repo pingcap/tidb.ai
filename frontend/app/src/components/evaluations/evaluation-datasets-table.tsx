@@ -7,16 +7,10 @@ import { link } from '@/components/cells/link';
 import { mono } from '@/components/cells/mono';
 import { DataTableRemote } from '@/components/data-table-remote';
 import { mutateEvaluationDatasets } from '@/components/evaluations/hooks';
-import { Button } from '@/components/ui/button';
-import { Form, FormControl, FormField } from '@/components/ui/form';
-import { Input } from '@/components/ui/input';
-import { useDataTable } from '@/components/use-data-table';
-import { zodResolver } from '@hookform/resolvers/zod';
+import { type KeywordFilter, KeywordFilterToolbar } from '@/components/evaluations/keyword-filter-toolbar';
 import type { ColumnDef } from '@tanstack/react-table';
 import { createColumnHelper } from '@tanstack/table-core';
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
 
 const helper = createColumnHelper<EvaluationDataset>();
 
@@ -57,11 +51,11 @@ const columns = [
 ] as ColumnDef<EvaluationDataset>[];
 
 export function EvaluationDatasetsTable () {
-  const [filter, setFilter] = useState<EvaluationDatasetFilter>({ keyword: '' });
+  const [filter, setFilter] = useState<KeywordFilter>({ keyword: '' });
   return (
     <DataTableRemote
       toolbar={() => (
-        <EvaluationDatasetsFilter onFilterChange={setFilter} />
+        <KeywordFilterToolbar onFilterChange={setFilter} />
       )}
       columns={columns}
       apiKey="api.evaluation.datasets.list"
@@ -71,50 +65,3 @@ export function EvaluationDatasetsTable () {
     />
   );
 }
-
-function EvaluationDatasetsFilter ({ onFilterChange }: { onFilterChange: (filters: EvaluationDatasetFilter) => void }) {
-  const { loading } = useDataTable();
-
-  const form = useForm({
-    resolver: zodResolver(evaluationDatasetFilterSchema),
-    defaultValues: {
-      keyword: '',
-    },
-    disabled: loading,
-  });
-
-  const handleSubmit = form.handleSubmit(({ keyword, ...rest }) => {
-    onFilterChange({
-      keyword: keyword.trim(),
-      ...rest,
-    });
-  });
-
-  return (
-    <Form {...form}>
-      <form className="flex gap-2 items-center" onSubmit={handleSubmit}>
-        <FormField
-          name="keyword"
-          render={({ field }) => (
-            <FormControl>
-              <Input
-                className="flex-1"
-                placeholder="Search Evaluation Datasets..."
-                {...field}
-              />
-            </FormControl>
-          )}
-        />
-        <Button variant='secondary' disabled={form.formState.disabled} type="submit">
-          Search
-        </Button>
-      </form>
-    </Form>
-  );
-}
-
-const evaluationDatasetFilterSchema = z.object({
-  keyword: z.string(),
-});
-
-type EvaluationDatasetFilter = z.infer<typeof evaluationDatasetFilterSchema>;
