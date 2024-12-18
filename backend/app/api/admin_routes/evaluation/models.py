@@ -36,7 +36,7 @@ class UpdateEvaluationDataset(BaseModel):
 
 class CreateEvaluationDataset(BaseModel):
     name: str
-    upload_id: Optional[int]
+    upload_id: Optional[int] = None
 
 
 class ModifyEvaluationDatasetItem(BaseModel):

@@ -83,6 +83,7 @@ def create_evaluation_task(
 
     session.add(evaluation_task)
     session.commit()
+    session.refresh(evaluation_task)
 
     add_evaluation_task.delay(evaluation_task.id)
 
@@ -199,6 +200,15 @@ def get_evaluation_task_summary(
         std_factual_correctness=getattr(stats, "std_factual_correctness"),
         std_semantic_similarity=getattr(stats, "std_semantic_similarity"),
     )
+
+
+@router.get("/admin/evaluation/tasks/{task_id}")
+def list_evaluation_task(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    task_id: int,
+) -> EvaluationTask:
+    return must_get_and_belong(session, EvaluationTask, task_id, user.id)
 
 
 @router.get("/admin/evaluation/tasks")

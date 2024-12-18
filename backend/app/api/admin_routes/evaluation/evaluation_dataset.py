@@ -43,10 +43,10 @@ def create_evaluation_dataset(
         True if the evaluation dataset is created successfully.
     """
     name = evaluation_dataset.name
-    evaluation_file_id = evaluation_dataset.upload_id
-
-    if evaluation_file_id is not None:
+    evaluation_data_list = []
+    if evaluation_dataset.upload_id is not None:
         # If the evaluation_file_id is provided, validate the uploaded file
+        evaluation_file_id = evaluation_dataset.upload_id
         upload = must_get_and_belong(session, Upload, evaluation_file_id, user.id)
 
         if upload.mime_type != MimeTypes.CSV:
@@ -86,6 +86,7 @@ def create_evaluation_dataset(
 
     session.add(evaluation_dataset)
     session.commit()
+    session.refresh(evaluation_dataset)
 
     return evaluation_dataset
 
@@ -157,6 +158,7 @@ def create_evaluation_dataset_item(
 
     session.add(evaluation_dataset_item)
     session.commit()
+    session.refresh(evaluation_dataset_item)
 
     return evaluation_dataset_item
 
