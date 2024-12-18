@@ -32,7 +32,7 @@ export function DocumentPreviewDialog ({ title, name, mime, content }: { title: 
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button className="text-xs p-2 font-normal" variant="ghost" size="sm">
+        <Button className="text-xs p-2 font-normal font-mono" variant="ghost" size="sm">
           {name} <span className="text-muted-foreground">({nf.format(content.length)} characters)</span>
         </Button>
       </DialogTrigger>

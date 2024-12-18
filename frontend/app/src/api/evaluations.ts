@@ -51,23 +51,23 @@ export interface EvaluationTaskSummary extends Record<EvaluationTaskSummaryMetri
   progressing: number;
 }
 
-export type EvaluationTaskItemStatus = 'not_start' | 'evaluating' | 'done' | 'error'
+export type EvaluationTaskItemStatus = 'not_start' | 'evaluating' | 'done' | 'error' | 'cancel'
 
 export interface EvaluationTaskItem {
-  created_at: Date
-  updated_at: Date
-  id: number
-  chat_engine: string
-  status: EvaluationTaskItemStatus
-  query: string
-  reference: string
-  response: string | null
-  retrieved_contexts: string[] | null
-  extra: any | null
-  error_msg: string | null
-  factual_correctness: number | null
-  semantic_similarity: number | null
-  evaluation_task_id: number
+  created_at: Date;
+  updated_at: Date;
+  id: number;
+  chat_engine: string;
+  status: EvaluationTaskItemStatus;
+  query: string;
+  reference: string;
+  response: string | null;
+  retrieved_contexts: string[] | null;
+  extra: any | null;
+  error_msg: string | null;
+  factual_correctness: number | null;
+  semantic_similarity: number | null;
+  evaluation_task_id: number;
 }
 
 export interface CreateEvaluationDatasetParams {
@@ -149,7 +149,7 @@ const evaluationTaskItemSchema = z.object({
   updated_at: zodJsonDate(),
   id: z.number(),
   chat_engine: z.string(),
-  status: z.enum(['not_start', 'evaluating', 'done', 'error']),
+  status: z.enum(['not_start', 'evaluating', 'done', 'error', 'cancel']),
   query: z.string(),
   reference: z.string(),
   response: z.string().nullable(),

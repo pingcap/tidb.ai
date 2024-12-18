@@ -14,8 +14,8 @@ const helper = createColumnHelper<EvaluationDatasetItem>();
 
 const columns = [
   helper.accessor('id', { header: 'ID', cell: link({ url: row => `/evaluation/datasets/${row.evaluation_dataset_id}/items/${row.id}` }) }),
-  helper.accessor('query', { header: 'Query', cell: documentCell('Query', 25) }),
-  helper.accessor('reference', { header: 'Reference', cell: documentCell('Reference', 25) }),
+  helper.accessor('query', { header: 'Query', cell: documentCell('Query') }),
+  helper.accessor('reference', { header: 'Reference', cell: documentCell('Reference') }),
   helper.accessor('retrieved_contexts', { header: 'Retrieved Contexts', cell: textChunksArrayCell }),
   helper.accessor('extra', { header: 'extra', cell: metadataCell }),
   helper.accessor('created_at', { header: 'Created At', cell: datetime }),
