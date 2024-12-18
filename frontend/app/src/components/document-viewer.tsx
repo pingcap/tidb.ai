@@ -57,7 +57,7 @@ function MarkdownViewer ({ value: propValue }: { value: string }) {
   useEffect(() => {
     setValue(propValue);
     try {
-      const { value: result } = Highlight.highlight('markdown', propValue);
+      const { value: result } = Highlight.highlight(propValue, { language: 'markdown' });
       setValue(result);
     } catch {
     }
