@@ -120,6 +120,7 @@ def update_evaluation_dataset(
 
     session.merge(evaluation_dataset)
     session.commit()
+    session.refresh(evaluation_dataset)
 
     return evaluation_dataset
 
@@ -197,8 +198,9 @@ def update_evaluation_dataset_item(
     evaluation_dataset_item.evaluation_dataset_id = (
         updated_evaluation_dataset_item.evaluation_dataset_id
     )
-
+    session.merge(evaluation_dataset_item)
     session.commit()
+    session.refresh(evaluation_dataset_item)
 
     return evaluation_dataset_item
 

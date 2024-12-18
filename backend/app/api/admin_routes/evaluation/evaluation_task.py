@@ -12,7 +12,7 @@ from sqlmodel import select, case, desc
 from app.api.admin_routes.evaluation.models import (
     CreateEvaluationTask,
     EvaluationTaskSummary,
-    ParamsWithKeyword,
+    ParamsWithKeyword, EvaluationTaskOverview,
 )
 from app.api.admin_routes.evaluation.tools import must_get_and_belong
 from app.api.deps import SessionDep, CurrentSuperuserDep
@@ -262,18 +262,20 @@ def get_evaluation_task_summary(
         logger.info(stats)
 
     return EvaluationTaskSummary(
-        task=evaluation_task,
-        not_start=status_counts.not_start,
-        succeed=status_counts.done,
-        errored=status_counts.error,
-        progressing=status_counts.evaluating,
-        cancel=status_counts.cancel,
-        avg_factual_correctness=getattr(stats, "avg_factual_correctness"),
-        avg_semantic_similarity=getattr(stats, "avg_semantic_similarity"),
-        min_factual_correctness=getattr(stats, "min_factual_correctness"),
-        min_semantic_similarity=getattr(stats, "min_semantic_similarity"),
-        max_factual_correctness=getattr(stats, "max_factual_correctness"),
-        max_semantic_similarity=getattr(stats, "max_semantic_similarity"),
-        std_factual_correctness=getattr(stats, "std_factual_correctness"),
-        std_semantic_similarity=getattr(stats, "std_semantic_similarity"),
+        summary=EvaluationTaskOverview(
+            not_start=status_counts.not_start,
+            succeed=status_counts.done,
+            errored=status_counts.error,
+            progressing=status_counts.evaluating,
+            cancel=status_counts.cancel,
+            avg_factual_correctness=getattr(stats, "avg_factual_correctness"),
+            avg_semantic_similarity=getattr(stats, "avg_semantic_similarity"),
+            min_factual_correctness=getattr(stats, "min_factual_correctness"),
+            min_semantic_similarity=getattr(stats, "min_semantic_similarity"),
+            max_factual_correctness=getattr(stats, "max_factual_correctness"),
+            max_semantic_similarity=getattr(stats, "max_semantic_similarity"),
+            std_factual_correctness=getattr(stats, "std_factual_correctness"),
+            std_semantic_similarity=getattr(stats, "std_semantic_similarity"),
+        ),
+        **evaluation_task.model_dump(),
     )
