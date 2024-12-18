@@ -1,5 +1,5 @@
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 import Highlight from 'highlight.js/lib/core';
@@ -41,6 +41,7 @@ export function DocumentPreviewDialog ({ title, name, mime, content }: { title: 
           <DialogTitle>
             {title}
           </DialogTitle>
+          <DialogDescription className="sr-only" />
         </DialogHeader>
         <ScrollArea className="h-[80vh]">
           <DocumentViewer mime={mime} content={content} />
