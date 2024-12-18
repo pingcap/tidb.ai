@@ -106,6 +106,73 @@ def cancel_evaluation_task(
     return True
 
 
+@router.get("/admin/evaluation/tasks/{evaluation_task_id}")
+def list_evaluation_task(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    evaluation_task_id: int,
+) -> EvaluationTask:
+    return must_get_and_belong(session, EvaluationTask, evaluation_task_id, user.id)
+
+
+@router.get("/admin/evaluation/tasks/{evaluation_task_id}/summary")
+def get_evaluation_task_summary(
+        evaluation_task_id: int, session: SessionDep, user: CurrentSuperuserDep
+) -> EvaluationTaskSummary:
+    task = must_get_and_belong(session, EvaluationTask, evaluation_task_id, user.id)
+    return get_evaluation_task_summary(task, session)
+
+
+@router.get("/admin/evaluation/tasks")
+def list_evaluation_task(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    params: ParamsWithKeyword = Depends(),
+) -> Page[EvaluationTaskSummary]:
+    stmt = (
+        select(EvaluationTask)
+        .where(EvaluationTask.user_id == user.id)
+        .order_by(desc(EvaluationTask.id))
+    )
+    if params.keyword:
+        stmt = stmt.where(EvaluationTask.name.ilike(f"%{params.keyword}%"))
+
+    task_page: Page[EvaluationTask] = paginate(session, stmt, params)
+    summaries: List[EvaluationTaskSummary] = []
+    for task in task_page.items:
+        summaries.append(get_evaluation_task_summary(task, session))
+
+    return Page[EvaluationTaskSummary](
+        items=summaries,
+        total=task_page.total,
+        page=task_page.page,
+        size=task_page.size,
+        pages=task_page.pages
+    )
+
+
+@router.get("/admin/evaluation/tasks/{evaluation_task_id}/items")
+def list_evaluation_task_items(
+    evaluation_task_id: int,
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    params: ParamsWithKeyword = Depends(),
+) -> Page[EvaluationTaskItem]:
+    must_get_and_belong(session, EvaluationTask, evaluation_task_id, user.id)
+    stmt = select(EvaluationTaskItem).where(
+        EvaluationTaskItem.evaluation_task_id == evaluation_task_id
+    )
+    if params.keyword:
+        stmt = stmt.where(
+            sqlmodel.or_(
+                EvaluationTaskItem.query.ilike(f"%{params.keyword}%"),
+                EvaluationTaskItem.reference.ilike(f"%{params.keyword}%"),
+            )
+        )
+
+    return paginate(session, stmt, params)
+
+
 def get_evaluation_task_summary(
     evaluation_task: EvaluationTask, session: Session
 ) -> EvaluationTaskSummary:
@@ -144,7 +211,17 @@ def get_evaluation_task_summary(
         .one()
     )
 
-    stats = {}
+    stats = {
+        "avg_factual_correctness": None,
+        "avg_semantic_similarity": None,
+        "min_factual_correctness": None,
+        "min_semantic_similarity": None,
+        "max_factual_correctness": None,
+        "max_semantic_similarity": None,
+        "std_factual_correctness": None,
+        "std_semantic_similarity": None,
+    }
+
     if status_counts.not_start == 0 and status_counts.evaluating == 0:
         stats = (
             session.query(
@@ -200,58 +277,3 @@ def get_evaluation_task_summary(
         std_factual_correctness=getattr(stats, "std_factual_correctness"),
         std_semantic_similarity=getattr(stats, "std_semantic_similarity"),
     )
-
-
-@router.get("/admin/evaluation/tasks/{task_id}")
-def list_evaluation_task(
-    session: SessionDep,
-    user: CurrentSuperuserDep,
-    task_id: int,
-) -> EvaluationTask:
-    return must_get_and_belong(session, EvaluationTask, task_id, user.id)
-
-
-@router.get("/admin/evaluation/tasks")
-def list_evaluation_task(
-    session: SessionDep,
-    user: CurrentSuperuserDep,
-    params: ParamsWithKeyword = Depends(),
-) -> Page[EvaluationTaskSummary]:
-    stmt = (
-        select(EvaluationTask)
-        .where(EvaluationTask.user_id == user.id)
-        .order_by(desc(EvaluationTask.id))
-    )
-    if params.keyword:
-        stmt = stmt.where(EvaluationTask.name.ilike(f"%{params.keyword}%"))
-
-    task_page: Page[EvaluationTask] = paginate(session, stmt, params)
-    summaries: List[EvaluationTaskSummary] = []
-    for task in task_page.items:
-        summaries.append(get_evaluation_task_summary(task, session))
-
-    return Page[EvaluationTaskSummary](
-        items=summaries, total=task_page.total, page=task_page.page, size=task_page.size
-    )
-
-
-@router.get("/admin/evaluation/tasks/{evaluation_task_id}/items")
-def list_evaluation_task_items(
-    evaluation_task_id: int,
-    session: SessionDep,
-    user: CurrentSuperuserDep,
-    params: ParamsWithKeyword = Depends(),
-) -> Page[EvaluationTaskItem]:
-    must_get_and_belong(session, EvaluationTask, evaluation_task_id, user.id)
-    stmt = select(EvaluationTaskItem).where(
-        EvaluationTaskItem.evaluation_task_id == evaluation_task_id
-    )
-    if params.keyword:
-        stmt = stmt.where(
-            sqlmodel.or_(
-                EvaluationTaskItem.query.ilike(f"%{params.keyword}%"),
-                EvaluationTaskItem.reference.ilike(f"%{params.keyword}%"),
-            )
-        )
-
-    return paginate(session, stmt, params)
