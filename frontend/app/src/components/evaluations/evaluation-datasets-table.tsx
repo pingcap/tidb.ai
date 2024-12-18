@@ -105,7 +105,7 @@ function EvaluationDatasetsFilter ({ onFilterChange }: { onFilterChange: (filter
             </FormControl>
           )}
         />
-        <Button disabled={form.formState.disabled} type="submit">
+        <Button variant='secondary' disabled={form.formState.disabled} type="submit">
           Search
         </Button>
       </form>
