@@ -69,6 +69,8 @@ export function EvaluationTaskInfoDisplay ({ task: { summary, ...task } }: { tas
         <div>User ID: {task.user_id}</div>
         {canCancel && <div>
           <DangerousActionButton
+            size='sm'
+            variant='destructive'
             action={async () => {
               await cancelEvaluationTask(task.id);
               void mutateEvaluationTasks();
