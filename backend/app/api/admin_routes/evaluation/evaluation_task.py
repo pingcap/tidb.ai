@@ -211,54 +211,41 @@ def get_evaluation_task_summary(
         .one()
     )
 
-    stats = {
-        "avg_factual_correctness": None,
-        "avg_semantic_similarity": None,
-        "min_factual_correctness": None,
-        "min_semantic_similarity": None,
-        "max_factual_correctness": None,
-        "max_semantic_similarity": None,
-        "std_factual_correctness": None,
-        "std_semantic_similarity": None,
-    }
-
+    stats = {}
     if status_counts.not_start == 0 and status_counts.evaluating == 0:
-        stats = (
-            session.query(
-                func.avg(EvaluationTaskItem.factual_correctness).label(
-                    "avg_factual_correctness"
-                ),
-                func.avg(EvaluationTaskItem.semantic_similarity).label(
-                    "avg_semantic_similarity"
-                ),
-                func.min(EvaluationTaskItem.factual_correctness).label(
-                    "min_factual_correctness"
-                ),
-                func.min(EvaluationTaskItem.semantic_similarity).label(
-                    "min_semantic_similarity"
-                ),
-                func.max(EvaluationTaskItem.factual_correctness).label(
-                    "max_factual_correctness"
-                ),
-                func.max(EvaluationTaskItem.semantic_similarity).label(
-                    "max_semantic_similarity"
-                ),
-                func.stddev(EvaluationTaskItem.factual_correctness).label(
-                    "std_factual_correctness"
-                ),
-                func.stddev(EvaluationTaskItem.semantic_similarity).label(
-                    "std_semantic_similarity"
-                ),
-            )
-            .filter(
-                EvaluationTaskItem.evaluation_task_id == evaluation_task.id,
-                EvaluationTaskItem.status == EvaluationStatus.DONE,
-                EvaluationTaskItem.factual_correctness.isnot(None),
-                EvaluationTaskItem.semantic_similarity.isnot(None),
-            )
-            .one()
-        )
+        stats_tuple = session.query(
+            func.avg(EvaluationTaskItem.factual_correctness).label(
+                "avg_factual_correctness"
+            ),
+            func.avg(EvaluationTaskItem.semantic_similarity).label(
+                "avg_semantic_similarity"
+            ),
+            func.min(EvaluationTaskItem.factual_correctness).label(
+                "min_factual_correctness"
+            ),
+            func.min(EvaluationTaskItem.semantic_similarity).label(
+                "min_semantic_similarity"
+            ),
+            func.max(EvaluationTaskItem.factual_correctness).label(
+                "max_factual_correctness"
+            ),
+            func.max(EvaluationTaskItem.semantic_similarity).label(
+                "max_semantic_similarity"
+            ),
+            func.stddev(EvaluationTaskItem.factual_correctness).label(
+                "std_factual_correctness"
+            ),
+            func.stddev(EvaluationTaskItem.semantic_similarity).label(
+                "std_semantic_similarity"
+            ),
+        ).filter(
+            EvaluationTaskItem.evaluation_task_id == evaluation_task.id,
+            EvaluationTaskItem.status == EvaluationStatus.DONE,
+            EvaluationTaskItem.factual_correctness.isnot(None),
+            EvaluationTaskItem.semantic_similarity.isnot(None),
+        ).one()
 
+        stats = dict(stats_tuple._mapping)
         logger.info(stats)
 
     return EvaluationTaskSummary(
@@ -268,14 +255,14 @@ def get_evaluation_task_summary(
             errored=status_counts.error,
             progressing=status_counts.evaluating,
             cancel=status_counts.cancel,
-            avg_factual_correctness=getattr(stats, "avg_factual_correctness"),
-            avg_semantic_similarity=getattr(stats, "avg_semantic_similarity"),
-            min_factual_correctness=getattr(stats, "min_factual_correctness"),
-            min_semantic_similarity=getattr(stats, "min_semantic_similarity"),
-            max_factual_correctness=getattr(stats, "max_factual_correctness"),
-            max_semantic_similarity=getattr(stats, "max_semantic_similarity"),
-            std_factual_correctness=getattr(stats, "std_factual_correctness"),
-            std_semantic_similarity=getattr(stats, "std_semantic_similarity"),
+            avg_factual_correctness=stats.get("avg_factual_correctness", 0),
+            avg_semantic_similarity=stats.get("avg_semantic_similarity", 0),
+            min_factual_correctness=stats.get("min_factual_correctness", 0),
+            min_semantic_similarity=stats.get("min_semantic_similarity", 0),
+            max_factual_correctness=stats.get("max_factual_correctness", 0),
+            max_semantic_similarity=stats.get("max_semantic_similarity", 0),
+            std_factual_correctness=stats.get("std_factual_correctness", 0),
+            std_semantic_similarity=stats.get("std_semantic_similarity", 0),
         ),
         **evaluation_task.model_dump(),
     )
