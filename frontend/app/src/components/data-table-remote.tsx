@@ -37,9 +37,6 @@ interface DataTableRemoteProps<TData, TValue> {
    * @deprecated
    */
   after?: ReactNode;
-  /**
-   * @deprecated
-   */
   toolbar?: (table: ReactTable<TData>) => ReactNode;
   defaultSorting?: SortingState;
 }
@@ -146,7 +143,13 @@ export function DataTableRemote<TData, TValue> ({
   });
 
   return (
-    <DataTableProvider value={{ ...table, reload: () => { mutate(); } }}>
+    <DataTableProvider
+      value={{
+        ...table,
+        reload: () => { mutate(); },
+        loading: isLoading,
+      }}
+    >
       {before}
       {toolbar ? toolbar(table) : null}
       <TooltipProvider>

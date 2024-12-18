@@ -163,7 +163,7 @@ const evaluationTaskItemSchema = z.object({
 
 // Datasets
 
-export async function listEvaluationDatasets ({ ...params }: PageParams): Promise<Page<EvaluationDataset>> {
+export async function listEvaluationDatasets ({ ...params }: PageParams & { keyword?: string }): Promise<Page<EvaluationDataset>> {
   return fetch(requestUrl('/api/v1/admin/evaluation/datasets', params), {
     headers: await authenticationHeaders(),
   })
