@@ -284,7 +284,7 @@ export async function listEvaluationTasks ({ ...params }: PageParams & { keyword
 }
 
 export async function getEvaluationTask (id: number): Promise<EvaluationTask> {
-  return fetch(requestUrl(`/api/v1/admin/evaluation/tasks/${id}`), {
+  return fetch(requestUrl(`/api/v1/admin/evaluation/tasks/${id}/summary`), {
     headers: await authenticationHeaders(),
   })
     .then(handleResponse(evaluationTaskSchema));
