@@ -16,11 +16,33 @@ const helper = createColumnHelper<EvaluationTaskItem>();
 
 const columns = [
   helper.accessor('id', { header: 'ID', cell: mono }),
-  helper.accessor('chat_engine', { header: 'ChatEngine' }),
   helper.accessor('status', { header: 'Status', cell: evaluationTaskStatusCell }),
+  helper.accessor('factual_correctness', {
+    header: 'factual_correctness',
+    cell: context => percent(context, {
+      colorStops: [
+        { checkpoint: 0, color: 'hsl(var(--destructive))' },
+        { checkpoint: 1 - 0.618, color: 'hsl(var(--destructive))' },
+        { checkpoint: 0.5, color: 'hsl(var(--warning))' },
+        { checkpoint: 0.618, color: 'hsl(var(--success))' },
+        { checkpoint: 1, color: 'hsl(var(--success))' },
+      ],
+    }),
+  }),
+  helper.accessor('semantic_similarity', {
+    header: 'semantic_similarity',
+    cell: context => percent(context, {
+      colorStops: [
+        { checkpoint: 0, color: 'hsl(var(--destructive))' },
+        { checkpoint: 1 - 0.618, color: 'hsl(var(--destructive))' },
+        { checkpoint: 0.5, color: 'hsl(var(--warning))' },
+        { checkpoint: 0.618, color: 'hsl(var(--success))' },
+        { checkpoint: 1, color: 'hsl(var(--success))' },
+      ],
+    }),
+  }),
   helper.accessor('query', { header: 'Query', cell: documentCell('Query') }),
-  helper.accessor('factual_correctness', { header: 'factual_correctness', cell: context => percent(context) }),
-  helper.accessor('semantic_similarity', { header: 'semantic_similarity', cell: context => percent(context) }),
+  helper.accessor('chat_engine', { header: 'ChatEngine' }),
   helper.accessor('reference', { header: 'Reference', cell: documentCell('Reference') }),
   helper.accessor('response', { header: 'Response', cell: documentCell('Response') }),
   helper.accessor('retrieved_contexts', { header: 'Retrieved Contexts', cell: textChunksArrayCell }),
