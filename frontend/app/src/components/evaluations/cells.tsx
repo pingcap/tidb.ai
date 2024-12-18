@@ -66,7 +66,7 @@ function StatusCell ({ row }: { row: EvaluationTaskItem }) {
       <span className="text-accent-foreground">
         {status === 'not_start' ? 'Not started' : status === 'evaluating' ? 'Evaluating' : status === 'done' ? 'Done' : status === 'cancel' ? 'Cancelled' : 'Error:'}
       </span>
-      {status === 'error' && <AutoErrorMessagePopper trimLength={12}>{error_msg}</AutoErrorMessagePopper>}
+      {status === 'error' && <AutoErrorMessagePopper trimLength={28}>{error_msg}</AutoErrorMessagePopper>}
     </span>
   );
 }

@@ -16,7 +16,7 @@ const helper = createColumnHelper<EvaluationTaskItem>();
 
 const columns = [
   helper.accessor('id', { header: 'ID', cell: mono }),
-  helper.accessor('status', { header: 'Status', cell: evaluationTaskStatusCell }),
+  helper.accessor('status', { header: 'Status', cell: evaluationTaskStatusCell, meta: { colSpan: context => context.row.original.status === 'error' ? 3 : 1 } }),
   helper.accessor('factual_correctness', {
     header: 'factual_correctness',
     cell: context => percent(context, {
@@ -28,6 +28,7 @@ const columns = [
         { checkpoint: 1, color: 'hsl(var(--success))' },
       ],
     }),
+    meta: { colSpan: context => context.row.original.status === 'error' ? 0 : 1 }
   }),
   helper.accessor('semantic_similarity', {
     header: 'semantic_similarity',
@@ -40,6 +41,7 @@ const columns = [
         { checkpoint: 1, color: 'hsl(var(--success))' },
       ],
     }),
+    meta: { colSpan: context => context.row.original.status === 'error' ? 0 : 1 }
   }),
   helper.accessor('query', { header: 'Query', cell: documentCell('Query') }),
   helper.accessor('chat_engine', { header: 'ChatEngine' }),
