@@ -1,9 +1,9 @@
 import type { FormControlWidgetProps } from '@/components/form/control-widget';
+import { useActiveTheme } from '@/components/use-active-theme';
 import { cn } from '@/lib/utils';
 import { Loader2Icon } from 'lucide-react';
 import mergeRefs from 'merge-refs';
 import type * as monaco from 'monaco-editor';
-import { useTheme } from 'next-themes';
 import { forwardRef, useEffect, useRef, useState } from 'react';
 
 export interface CodeInputProps extends FormControlWidgetProps {
@@ -30,7 +30,7 @@ export const CodeInput = forwardRef<any, CodeInputProps>(({
 
   // useImperativeHandle(forwardedRef, () => editor, [editor]);
 
-  const { theme } = useTheme();
+  const theme = useActiveTheme();
 
   const ref = useRef<HTMLDivElement>(null);
 
