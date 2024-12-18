@@ -64,7 +64,7 @@ function StatusCell ({ row }: { row: EvaluationTaskItem }) {
       {status === 'done' && <CircleCheckIcon className="text-success flex-shrink-0 size-4" />}
       {status === 'error' && <CircleXIcon className="text-destructive flex-shrink-0 size-4" />}
       <span className="text-accent-foreground">
-        {status === 'not_start' ? 'not start' : status === 'evaluating' ? 'evaluating' : status === 'done' ? 'done' : 'error:'}
+        {status === 'not_start' ? 'Not started' : status === 'evaluating' ? 'Evaluating' : status === 'done' ? 'Done' : status === 'cancel' ? 'Cancelled' : 'Error:'}
       </span>
       {status === 'error' && <AutoErrorMessagePopper trimLength={12}>{error_msg}</AutoErrorMessagePopper>}
     </span>
