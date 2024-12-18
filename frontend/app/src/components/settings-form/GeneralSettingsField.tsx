@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import type { ReactNode } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
+import { createColumnHelper} from '@tanstack/table-core'
 
 export interface GeneralSettingsFieldAccessor<Data, FieldData> {
   path: [keyof Data, ...(string | number | symbol)[]]

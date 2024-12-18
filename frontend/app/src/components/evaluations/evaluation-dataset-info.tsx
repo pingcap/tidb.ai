@@ -2,10 +2,8 @@ import { type EvaluationDataset, updateEvaluationDataset } from '@/api/evaluatio
 import { mutateEvaluationDatasets, useEvaluationDataset } from '@/components/evaluations/hooks';
 import { FormInput } from '@/components/form/control-widget';
 import { FormFieldBasicLayout } from '@/components/form/field-layout';
-import { fieldAccessor, GeneralSettingsField, type GeneralSettingsFieldAccessor, GeneralSettingsForm } from '@/components/settings-form';
+import { createAccessorHelper, GeneralSettingsField, GeneralSettingsForm } from '@/components/settings-form';
 import { Skeleton } from '@/components/ui/skeleton';
-import type { KeyOfType } from '@/lib/typing-utils';
-import { format } from 'date-fns';
 import { useRouter } from 'next/navigation';
 import * as React from 'react';
 import { useTransition } from 'react';
@@ -41,7 +39,7 @@ export function EvaluationDatasetInfoDisplay ({ evaluationDataset }: { evaluatio
       >
         <GeneralSettingsField
           accessor={id}
-          schema={whatever}
+          schema={whateverSchema}
           readonly
         >
           <FormFieldBasicLayout name="value" label="ID">
@@ -58,7 +56,7 @@ export function EvaluationDatasetInfoDisplay ({ evaluationDataset }: { evaluatio
         </GeneralSettingsField>
         <GeneralSettingsField
           accessor={createdAt}
-          schema={whatever}
+          schema={whateverSchema}
           readonly
         >
           <FormFieldBasicLayout name="value" label="Created At">
@@ -67,7 +65,7 @@ export function EvaluationDatasetInfoDisplay ({ evaluationDataset }: { evaluatio
         </GeneralSettingsField>
         <GeneralSettingsField
           accessor={updatedAt}
-          schema={whatever}
+          schema={whateverSchema}
           readonly
         >
           <FormFieldBasicLayout name="value" label="Updated At">
@@ -76,7 +74,7 @@ export function EvaluationDatasetInfoDisplay ({ evaluationDataset }: { evaluatio
         </GeneralSettingsField>
         <GeneralSettingsField
           accessor={userId}
-          schema={whatever}
+          schema={whateverSchema}
           readonly
         >
           <FormFieldBasicLayout name="value" label="User ID">
@@ -106,24 +104,13 @@ export function EvaluationDatasetInfoSkeleton ({}: {}) {
   );
 }
 
-const whatever = z.any();
+const helper = createAccessorHelper<EvaluationDataset>();
 
-const getDatetimeAccessor = (key: KeyOfType<EvaluationDataset, Date>): GeneralSettingsFieldAccessor<EvaluationDataset, string> => {
-  return {
-    path: [key],
-    get (data) {
-      return format(data[key], 'yyyy-MM-dd HH:mm:ss');
-    },
-    set () {
-      throw new Error(`update ${key} is not supported`);
-    },
-  };
-};
+const id = helper.field('id');
+const name = helper.field('name');
+const userId = helper.field('user_id');
+const createdAt = helper.dateField('created_at');
+const updatedAt = helper.dateField('updated_at');
 
-const id = fieldAccessor<EvaluationDataset, 'id'>('id');
-const name = fieldAccessor<EvaluationDataset, 'name'>('name');
-const userId = fieldAccessor<EvaluationDataset, 'user_id'>('user_id');
-const createdAt = getDatetimeAccessor('created_at');
-const updatedAt = getDatetimeAccessor('updated_at');
-
+const whateverSchema = z.any();
 const nameSchema = z.string().min(1);
