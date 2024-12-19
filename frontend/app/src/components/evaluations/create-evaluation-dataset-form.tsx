@@ -1,5 +1,5 @@
 import { uploadFiles } from '@/api/datasources';
-import { createEvaluationDataset, type EvaluationDataset } from '@/api/evaluations';
+import { createEvaluationDataset } from '@/api/evaluations';
 import { FormInput } from '@/components/form/control-widget';
 import { withCreateEntityForm } from '@/components/form/create-entity-form';
 import { FormFieldBasicLayout } from '@/components/form/field-layout';
@@ -10,15 +10,21 @@ import { z } from 'zod';
 
 const schema = z.object({
   name: z.string().min(1),
-  upload_file: zodFile(),
+  upload_file: zodFile().optional(),
 });
 
 const FormImpl = withCreateEntityForm(schema, async ({ upload_file, ...params }) => {
-  const [file] = await uploadFiles([upload_file]);
-  return await createEvaluationDataset({
-    ...params,
-    upload_id: file.id,
-  });
+  if (upload_file != null) {
+    const [file] = await uploadFiles([upload_file]);
+    return await createEvaluationDataset({
+      ...params,
+      upload_id: file.id,
+    });
+  } else {
+    return await createEvaluationDataset({
+      ...params,
+    });
+  }
 });
 
 export function CreateEvaluationDatasetForm ({ transitioning, onCreated }: Omit<ComponentProps<typeof FormImpl>, 'defaultValues' | 'children'>) {
@@ -33,7 +39,7 @@ export function CreateEvaluationDatasetForm ({ transitioning, onCreated }: Omit<
       <FormFieldBasicLayout name="name" label="Name" required>
         <FormInput />
       </FormFieldBasicLayout>
-      <FormFieldBasicLayout name="upload_file" label="Upload File" required>
+      <FormFieldBasicLayout name="upload_file" label="Upload File">
         <FileInput accept={['.csv']} />
       </FormFieldBasicLayout>
     </FormImpl>

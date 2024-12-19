@@ -30,10 +30,12 @@ export function Signin ({ noRedirect = false, callbackUrl }: { noRedirect?: bool
     setError(undefined);
     try {
       await login(data);
-      if (!noRedirect) {
-        router.replace(refineCallbackUrl(callbackUrl));
-      }
-      router.refresh();
+      startTransition(() => {
+        if (!noRedirect) {
+          router.replace(refineCallbackUrl(callbackUrl));
+        }
+        router.refresh();
+      })
     } catch (error) {
       setError(getErrorMessage(error));
     }
