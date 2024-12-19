@@ -1,6 +1,6 @@
 import pandas as pd
 from fastapi import APIRouter, status, HTTPException, Depends
-from fastapi_pagination import Params, Page
+from fastapi_pagination import Page
 from fastapi_pagination.ext.sqlmodel import paginate
 from sqlmodel import select, desc
 
@@ -8,6 +8,7 @@ from app.api.admin_routes.evaluation.models import (
     CreateEvaluationDataset,
     UpdateEvaluationDataset,
     ModifyEvaluationDatasetItem,
+    ParamsWithKeyword,
 )
 from app.api.admin_routes.evaluation.tools import must_get, must_get_and_belong
 from app.api.deps import SessionDep, CurrentSuperuserDep
@@ -42,10 +43,10 @@ def create_evaluation_dataset(
         True if the evaluation dataset is created successfully.
     """
     name = evaluation_dataset.name
-    evaluation_file_id = evaluation_dataset.upload_id
-
-    if evaluation_file_id is not None:
+    evaluation_data_list = []
+    if evaluation_dataset.upload_id is not None:
         # If the evaluation_file_id is provided, validate the uploaded file
+        evaluation_file_id = evaluation_dataset.upload_id
         upload = must_get_and_belong(session, Upload, evaluation_file_id, user.id)
 
         if upload.mime_type != MimeTypes.CSV:
@@ -85,6 +86,7 @@ def create_evaluation_dataset(
 
     session.add(evaluation_dataset)
     session.commit()
+    session.refresh(evaluation_dataset)
 
     return evaluation_dataset
 
@@ -118,6 +120,7 @@ def update_evaluation_dataset(
 
     session.merge(evaluation_dataset)
     session.commit()
+    session.refresh(evaluation_dataset)
 
     return evaluation_dataset
 
@@ -126,13 +129,17 @@ def update_evaluation_dataset(
 def list_evaluation_dataset(
     session: SessionDep,
     user: CurrentSuperuserDep,
-    params: Params = Depends(),
+    params: ParamsWithKeyword = Depends(),
 ) -> Page[EvaluationDataset]:
     stmt = (
         select(EvaluationDataset)
         .where(EvaluationDataset.user_id == user.id)
         .order_by(desc(EvaluationDataset.id))
     )
+
+    if params.keyword:
+        stmt = stmt.where(EvaluationDataset.name.ilike(f"%{params.keyword}%"))
+
     return paginate(session, stmt, params)
 
 
@@ -152,6 +159,7 @@ def create_evaluation_dataset_item(
 
     session.add(evaluation_dataset_item)
     session.commit()
+    session.refresh(evaluation_dataset_item)
 
     return evaluation_dataset_item
 
@@ -190,8 +198,9 @@ def update_evaluation_dataset_item(
     evaluation_dataset_item.evaluation_dataset_id = (
         updated_evaluation_dataset_item.evaluation_dataset_id
     )
-
+    session.merge(evaluation_dataset_item)
     session.commit()
+    session.refresh(evaluation_dataset_item)
 
     return evaluation_dataset_item
 
@@ -201,11 +210,23 @@ def list_evaluation_dataset_item(
     session: SessionDep,
     user: CurrentSuperuserDep,
     evaluation_dataset_id: int,
-    params: Params = Depends(),
+    params: ParamsWithKeyword = Depends(),
 ) -> Page[EvaluationDatasetItem]:
     stmt = (
         select(EvaluationDatasetItem)
         .where(EvaluationDatasetItem.evaluation_dataset_id == evaluation_dataset_id)
         .order_by(EvaluationDatasetItem.id)
     )
+
+    if params.keyword:
+        stmt = stmt.where(EvaluationDatasetItem.query.ilike(f"%{params.keyword}%"))
     return paginate(session, stmt, params)
+
+
+@router.get("/admin/evaluation/dataset-items/{evaluation_dataset_item_id}")
+def get_evaluation_dataset_item(
+    session: SessionDep,
+    user: CurrentSuperuserDep,
+    evaluation_dataset_item_id: int,
+) -> EvaluationDatasetItem:
+    return must_get(session, EvaluationDatasetItem, evaluation_dataset_item_id)
