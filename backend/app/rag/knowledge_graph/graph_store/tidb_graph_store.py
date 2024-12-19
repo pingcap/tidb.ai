@@ -964,7 +964,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
                             matching_paths = [
                                 p
                                 for p in all_paths
-                                if p["path"][-1]["to_entity"].id == from_entity.id
+                                if p["path"][-1]["to_entity"]['id'] == from_entity.id
                             ]
                             for existing_path in matching_paths:
                                 # Create new path by extending existing path
