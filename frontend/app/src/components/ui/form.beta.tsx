@@ -42,7 +42,7 @@ function formDomEventHandlers (form: FormApi<any>, disabled?: boolean): Pick<Com
       event.preventDefault();
       event.stopPropagation();
       if (!disabled) {
-        void form.handleSubmit();
+        void form.reset();
       }
     },
   };
