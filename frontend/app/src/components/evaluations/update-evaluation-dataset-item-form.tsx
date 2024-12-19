@@ -1,9 +1,10 @@
 import { updateEvaluationDatasetItem, type UpdateEvaluationDatasetItemParams } from '@/api/evaluations';
 import { mutateEvaluationDataset, useEvaluationDatasetItem } from '@/components/evaluations/hooks';
 import { FormTextarea } from '@/components/form/control-widget';
-import { FormFieldBasicLayout, FormPrimitiveArrayFieldBasicLayout } from '@/components/form/field-layout';
+import { FormFieldBasicLayout, FormPrimitiveArrayFieldBasicLayout } from '@/components/form/field-layout.beta';
 import { CodeInput } from '@/components/form/widgets/CodeInput';
-import { createAccessorHelper, GeneralSettingsField, GeneralSettingsForm } from '@/components/settings-form';
+import { createAccessorHelper, GeneralSettingsForm } from '@/components/settings-form';
+import { GeneralSettingsFieldBeta } from '@/components/settings-form/GeneralSettingsField';
 import { z } from 'zod';
 
 export function UpdateEvaluationDatasetItemForm ({ evaluationDatasetId, evaluationDatasetItemId }: { evaluationDatasetId: number, evaluationDatasetItemId: number }) {
@@ -36,26 +37,26 @@ export function UpdateEvaluationDatasetItemForm ({ evaluationDatasetId, evaluati
           void mutateEvaluationDataset(evaluationDatasetId);
         }}
       >
-        <GeneralSettingsField accessor={query} schema={textSchema}>
+        <GeneralSettingsFieldBeta accessor={query} schema={textSchema}>
           <FormFieldBasicLayout name="value" label="Query">
             <CodeInput language="markdown" />
           </FormFieldBasicLayout>
-        </GeneralSettingsField>
-        <GeneralSettingsField accessor={reference} schema={textSchema}>
+        </GeneralSettingsFieldBeta>
+        <GeneralSettingsFieldBeta accessor={reference} schema={textSchema}>
           <FormFieldBasicLayout name="value" label="Reference">
             <CodeInput language="markdown" />
           </FormFieldBasicLayout>
-        </GeneralSettingsField>
-        <GeneralSettingsField accessor={retrievedContexts} schema={textListSchema}>
+        </GeneralSettingsFieldBeta>
+        <GeneralSettingsFieldBeta accessor={retrievedContexts} schema={textListSchema}>
           <FormPrimitiveArrayFieldBasicLayout name="value" label="Retrieved Contexts" defaultValue={() => ''}>
             <FormTextarea />
           </FormPrimitiveArrayFieldBasicLayout>
-        </GeneralSettingsField>
-        <GeneralSettingsField accessor={extra} schema={jsonSchema}>
+        </GeneralSettingsFieldBeta>
+        <GeneralSettingsFieldBeta accessor={extra} schema={jsonSchema}>
           <FormFieldBasicLayout name="value" label="Extra">
             <CodeInput language="json" />
           </FormFieldBasicLayout>
-        </GeneralSettingsField>
+        </GeneralSettingsFieldBeta>
       </GeneralSettingsForm>
     </div>
   );
