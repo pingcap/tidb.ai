@@ -13,12 +13,16 @@ import sqlalchemy
 from sqlmodel import Session, asc, func, select, text, SQLModel
 from sqlalchemy.orm import aliased, defer, joinedload
 from tidb_vector.sqlalchemy import VectorAdaptor
-from sqlalchemy import or_
+from sqlalchemy import or_, desc
 
 from app.core.db import engine
 from app.rag.knowledge_graph.base import KnowledgeGraphStore
 from app.rag.knowledge_graph.schema import Entity, Relationship, SynopsisEntity
-from app.models import Entity as DBEntity, Relationship as DBRelationship
+from app.models import (
+    Entity as DBEntity,
+    Relationship as DBRelationship,
+    Chunk as DBChunk,
+)
 from app.models import EntityType
 from app.rag.knowledge_graph.graph_store.helpers import (
     calculate_relationship_score,
@@ -76,6 +80,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         description_similarity_threshold=0.9,
         entity_db_model: Type[SQLModel] = DBEntity,
         relationship_db_model: Type[SQLModel] = DBRelationship,
+        chunk_db_model: Type[SQLModel] = DBChunk,
     ):
         self._session = session
         self._owns_session = session is None
@@ -96,6 +101,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         )
         self._entity_model = entity_db_model
         self._relationship_model = relationship_db_model
+        self._chunk_model = chunk_db_model
 
     def ensure_table_schema(self) -> None:
         inspector = sqlalchemy.inspect(engine)
@@ -744,50 +750,95 @@ class TiDBGraphStore(KnowledgeGraphStore):
 
         return new_entity_set
 
-    def retrieve_nodes(
+    def retrieve_graph_data(
         self,
         query_text: str,
         top_k: int = 5,
         similarity_threshold: float = 0.7,
-        entity_type: Optional[EntityType] = None,
-    ) -> List[Dict[str, Any]]:
-        """Retrieve related nodes using semantic search.
+    ) -> Dict[str, List[Dict[str, Any]]]:
+        """Retrieve related entities and relationships using semantic search.
 
         Args:
             query_text: The search query text
-            top_k: Maximum number of results to return
+            top_k: Maximum number of results to return for each type
             similarity_threshold: Minimum similarity score threshold
-            entity_type: Optional filter for entity type
 
         Returns:
-            List of dictionaries containing entities and their similarity scores
+            Dictionary containing:
+            - entities: List of similar entities with similarity scores
+            - relationships: List of similar relationships with similarity scores
         """
-        # Get query embedding
         query_embedding = get_query_embedding(query_text, self._embed_model)
 
-        # Use existing fetch_similar_entities with post-filter for more accurate results
-        entities = self.fetch_similar_entities(
-            embedding=query_embedding,
-            top_k=top_k * 4,  # Fetch more to filter by threshold
-            entity_type=entity_type or EntityType.original,
+        # Query similar entities
+        entity_query = (
+            select(
+                self._entity_model,
+                (
+                    1
+                    - self._entity_model.description_vec.cosine_distance(
+                        query_embedding
+                    )
+                ).label("similarity"),
+            )
+            .options(
+                defer(self._entity_model.description_vec),
+                defer(self._entity_model.meta_vec),
+            )
+            .order_by(desc("similarity"))
+            .having(text("similarity >= :threshold"))
+            .params(threshold=similarity_threshold)
+            .limit(top_k)
         )
 
-        # Calculate similarity scores and filter by threshold
-        results = []
-        for entity in entities:
-            # Calculate cosine similarity (1 - distance)
-            similarity = 1 - cosine_distance(query_embedding, entity.description_vec)
+        # Query similar relationships
+        relationship_query = (
+            select(
+                self._relationship_model,
+                (
+                    1
+                    - self._relationship_model.description_vec.cosine_distance(
+                        query_embedding
+                    )
+                ).label("similarity"),
+            )
+            .options(
+                defer(self._relationship_model.description_vec),
+                joinedload(self._relationship_model.source_entity)
+                .defer(self._entity_model.meta_vec)
+                .defer(self._entity_model.description_vec),
+                joinedload(self._relationship_model.target_entity)
+                .defer(self._entity_model.meta_vec)
+                .defer(self._entity_model.description_vec),
+            )
+            .order_by(desc("similarity"))
+            .having(text("similarity >= :threshold"))
+            .params(threshold=similarity_threshold)
+            .limit(top_k)
+        )
 
-            if similarity >= similarity_threshold:
-                results.append({"entity": entity, "similarity_score": similarity})
+        # Execute both queries
+        entities = []
+        relationships = []
 
-        # Sort by similarity score and limit to top_k
-        results.sort(key=lambda x: x["similarity_score"], reverse=True)
-        return results[:top_k]
+        for entity, similarity in self._session.exec(entity_query).all():
+            entities.append({"entity": entity, "similarity_score": similarity})
+
+        for relationship, similarity in self._session.exec(relationship_query).all():
+            relationships.append(
+                {
+                    "relationship": relationship,
+                    "source_entity": relationship.source_entity,
+                    "target_entity": relationship.target_entity,
+                    "similarity_score": similarity,
+                }
+            )
+
+        return {"entities": entities, "relationships": relationships}
 
     def retrieve_neighbors(
         self,
-        node_ids: List[int],
+        entities_ids: List[int],
         query: str,
         max_depth: int = 1,
         max_neighbors: int = 20,
@@ -809,12 +860,17 @@ class TiDBGraphStore(KnowledgeGraphStore):
 
         # Get all source entities
         source_entities = self._session.exec(
-            select(self._entity_model).where(self._entity_model.id.in_(node_ids))
+            select(self._entity_model)
+            .options(
+                defer(self._entity_model.description_vec),
+                defer(self._entity_model.meta_vec),
+            )
+            .where(self._entity_model.id.in_(entities_ids))
         ).all()
 
         # Track visited nodes and discovered paths
-        all_visited = set(node_ids)
-        current_level_nodes = set(node_ids)
+        all_visited = set(entities_ids)
+        current_level_nodes = set(entities_ids)
         all_paths = []  # Store all discovered paths with their relevance scores
 
         for depth in range(max_depth):
@@ -825,8 +881,13 @@ class TiDBGraphStore(KnowledgeGraphStore):
             relationships = self._session.exec(
                 select(self._relationship_model)
                 .options(
-                    joinedload(self._relationship_model.source_entity),
-                    joinedload(self._relationship_model.target_entity),
+                    defer(self._relationship_model.description_vec),
+                    joinedload(self._relationship_model.source_entity)
+                    .defer(self._entity_model.meta_vec)
+                    .defer(self._entity_model.description_vec),
+                    joinedload(self._relationship_model.target_entity)
+                    .defer(self._entity_model.meta_vec)
+                    .defer(self._entity_model.description_vec),
                 )
                 .where(
                     or_(
@@ -919,7 +980,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         # Sort all paths by similarity score and return top max_neighbors
         all_paths.sort(key=lambda x: x["similarity_score"], reverse=True)
 
-        return {"results": all_paths[:max_neighbors]}
+        return all_paths[:max_neighbors]
 
     def get_chunks_by_relationships(
         self,
