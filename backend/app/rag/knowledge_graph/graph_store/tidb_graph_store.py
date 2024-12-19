@@ -928,12 +928,27 @@ class TiDBGraphStore(KnowledgeGraphStore):
                     for source_entity in source_entities:
                         if source_entity.id == from_entity.id:
                             path = {
-                                "source_entity": source_entity,
+                                "source_entity": {
+                                    "id": from_entity.id,
+                                    "name": from_entity.name,
+                                    "description": from_entity.description,
+                                },
                                 "path": [
                                     {
-                                        "from_entity": from_entity,
-                                        "relationship": rel,
-                                        "to_entity": to_entity,
+                                        "from_entity": {
+                                            "id": from_entity.id,
+                                            "name": from_entity.name,
+                                            "description": from_entity.description,
+                                        },
+                                        "relationship": {
+                                            "id": rel.id,
+                                            "description": rel.description,
+                                        },
+                                        "to_entity": {
+                                            "id": to_entity.id,
+                                            "name": to_entity.name,
+                                            "description": to_entity.description,
+                                        },
                                         "direction": direction,
                                         "depth": depth + 1,
                                     }
@@ -958,9 +973,20 @@ class TiDBGraphStore(KnowledgeGraphStore):
                                     "path": existing_path["path"]
                                     + [
                                         {
-                                            "from_entity": from_entity,
-                                            "relationship": rel,
-                                            "to_entity": to_entity,
+                                            "from_entity": {
+                                                "id": from_entity.id,
+                                                "name": from_entity.name,
+                                                "description": from_entity.description,
+                                            },
+                                            "relationship": {
+                                                "id": rel.id,
+                                                "description": rel.description,
+                                            },
+                                            "to_entity": {
+                                                "id": to_entity.id,
+                                                "name": to_entity.name,
+                                                "description": to_entity.description,
+                                            },
                                             "direction": direction,
                                             "depth": depth + 1,
                                         }
@@ -981,6 +1007,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         all_paths.sort(key=lambda x: x["similarity_score"], reverse=True)
 
         return all_paths[:max_neighbors]
+
 
     def get_chunks_by_relationships(
         self,
