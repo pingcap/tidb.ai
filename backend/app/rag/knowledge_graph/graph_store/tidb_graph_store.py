@@ -984,7 +984,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
 
     def get_chunks_by_relationships(
         self,
-        relationships: List[SQLModel],
+        relationships_ids: List[int],
         session: Optional[Session] = None,
     ) -> List[Dict[str, Any]]:
         """Get chunks for a list of relationships.
@@ -1000,6 +1000,11 @@ class TiDBGraphStore(KnowledgeGraphStore):
             - meta: chunk metadata
         """
         session = session or self._session
+
+        relationships = session.exec(
+            select(self._relationship_model)
+            .where(self._relationship_model.id.in_(relationships_ids))
+        ).all()
 
         # Extract chunk IDs from relationships
         chunk_ids = {
@@ -1020,95 +1025,3 @@ class TiDBGraphStore(KnowledgeGraphStore):
             {"text": chunk.text, "document_id": chunk.document_id, "meta": chunk.meta}
             for chunk in chunks
         ]
-
-    def find_paths_between_entities(
-        self,
-        source_entities: List[SQLModel],
-        target_entities: List[SQLModel],
-        max_depth: int = 1,
-        session: Optional[Session] = None,
-    ) -> List[List[Dict[str, Any]]]:
-        """Find all relationship paths between two groups of entities.
-
-        Args:
-            source_entities: List of source entities (representing similar concepts)
-            target_entities: List of target entities (representing similar concepts)
-            max_depth: Maximum path length between entities
-            session: Optional database session
-
-        Returns:
-            List of paths, where each path is a list of relationships dictionaries containing:
-            - relationship: relationship object
-            - from_entity: source entity for this step
-            - to_entity: target entity for this step
-            - direction: direction of relationship ("forward" or "backward")
-        """
-        session = session or self._session
-
-        source_ids = {e.id for e in source_entities}
-        target_ids = {e.id for e in target_entities}
-        all_paths = []
-
-        # Track visited nodes to avoid cycles
-        visited = set()
-
-        def explore_path(current_id: int, current_path: list, depth: int):
-            if depth > max_depth:
-                return
-
-            visited.add(current_id)
-
-            # Query all relationships connected to current node
-            relationships = session.exec(
-                select(self._relationship_model)
-                .options(
-                    joinedload(self._relationship_model.source_entity),
-                    joinedload(self._relationship_model.target_entity),
-                )
-                .where(
-                    or_(
-                        self._relationship_model.source_entity_id == current_id,
-                        self._relationship_model.target_entity_id == current_id,
-                    )
-                )
-            ).all()
-
-            for rel in relationships:
-                # Determine direction and next node
-                if rel.source_entity_id == current_id:
-                    next_id = rel.target_entity_id
-                    direction = "forward"
-                    from_entity = rel.source_entity
-                    to_entity = rel.target_entity
-                else:
-                    next_id = rel.source_entity_id
-                    direction = "backward"
-                    from_entity = rel.target_entity
-                    to_entity = rel.source_entity
-
-                # Skip if already visited
-                if next_id in visited:
-                    continue
-
-                # Create path step
-                path_step = {
-                    "relationship": rel,
-                    "from_entity": from_entity,
-                    "to_entity": to_entity,
-                    "direction": direction,
-                }
-
-                # If reached target, save the path
-                if next_id in target_ids:
-                    all_paths.append(current_path + [path_step])
-                # Otherwise continue exploring if not at max depth
-                elif depth < max_depth:
-                    explore_path(next_id, current_path + [path_step], depth + 1)
-
-            visited.remove(current_id)
-
-        # Start exploration from each source entity
-        for source_entity in source_entities:
-            explore_path(source_entity.id, [], 0)
-
-        return all_paths
