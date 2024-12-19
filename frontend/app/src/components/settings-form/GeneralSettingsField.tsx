@@ -2,7 +2,7 @@ import { FormRootErrorBeta } from '@/components/form/root-error';
 import { useGeneralSettingsFormContext } from '@/components/settings-form/context';
 import { Button } from '@/components/ui/button';
 import { Form } from '@/components/ui/form';
-import { Form as BetaForm } from '@/components/ui/form.beta';
+import { Form as BetaForm, formDomEventHandlers } from '@/components/ui/form.beta';
 import { getErrorMessage } from '@/lib/errors';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm as useTanstackForm } from '@tanstack/react-form';
@@ -112,16 +112,7 @@ export function GeneralSettingsFieldBeta<Data, FieldData> ({
 
   return (
     <BetaForm<{ value: FieldData }, undefined> disabled={disabled || readonly || fieldReadonly} form={form}>
-      <form
-        className="space-y-6"
-        onSubmit={(event) => {
-          event.preventDefault();
-          void form.handleSubmit();
-        }}
-        onReset={(event) => {
-          event.preventDefault();
-          form.reset();
-        }}>
+      <form className="space-y-6" {...formDomEventHandlers(form)}>
         {children}
         <FormRootErrorBeta />
         {!readonly && (
