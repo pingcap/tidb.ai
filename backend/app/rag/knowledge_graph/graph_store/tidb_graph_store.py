@@ -4,7 +4,7 @@ import numpy as np
 import tidb_vector
 from dspy.functional import TypedPredictor
 from deepdiff import DeepDiff
-from typing import List, Optional, Tuple, Dict, Set, Type
+from typing import List, Optional, Tuple, Dict, Set, Type, Any
 from collections import defaultdict
 
 from llama_index.core.embeddings.utils import EmbedType, resolve_embed_model
@@ -13,6 +13,7 @@ import sqlalchemy
 from sqlmodel import Session, asc, func, select, text, SQLModel
 from sqlalchemy.orm import aliased, defer, joinedload
 from tidb_vector.sqlalchemy import VectorAdaptor
+from sqlalchemy import or_
 
 from app.core.db import engine
 from app.rag.knowledge_graph.base import KnowledgeGraphStore
@@ -742,3 +743,311 @@ class TiDBGraphStore(KnowledgeGraphStore):
             new_entity_set.add(entity)
 
         return new_entity_set
+
+    def retrieve_nodes(
+        self,
+        query_text: str,
+        top_k: int = 5,
+        similarity_threshold: float = 0.7,
+        entity_type: Optional[EntityType] = None,
+    ) -> List[Dict[str, Any]]:
+        """Retrieve related nodes using semantic search.
+
+        Args:
+            query_text: The search query text
+            top_k: Maximum number of results to return
+            similarity_threshold: Minimum similarity score threshold
+            entity_type: Optional filter for entity type
+
+        Returns:
+            List of dictionaries containing entities and their similarity scores
+        """
+        # Get query embedding
+        query_embedding = get_query_embedding(query_text, self._embed_model)
+
+        # Use existing fetch_similar_entities with post-filter for more accurate results
+        entities = self.fetch_similar_entities(
+            embedding=query_embedding,
+            top_k=top_k * 4,  # Fetch more to filter by threshold
+            entity_type=entity_type or EntityType.original,
+        )
+
+        # Calculate similarity scores and filter by threshold
+        results = []
+        for entity in entities:
+            # Calculate cosine similarity (1 - distance)
+            similarity = 1 - cosine_distance(query_embedding, entity.description_vec)
+
+            if similarity >= similarity_threshold:
+                results.append({"entity": entity, "similarity_score": similarity})
+
+        # Sort by similarity score and limit to top_k
+        results.sort(key=lambda x: x["similarity_score"], reverse=True)
+        return results[:top_k]
+
+    def retrieve_neighbors(
+        self,
+        node_ids: List[int],
+        query: str,
+        max_depth: int = 1,
+        max_neighbors: int = 20,
+        similarity_threshold: float = 0.7,
+    ) -> Dict[str, List[Dict]]:
+        """Retrieve most relevant neighbor paths for a group of similar nodes.
+
+        Args:
+            node_ids: List of source node IDs (representing similar entities)
+            query: Search query for relevant relationships
+            max_depth: Maximum depth for relationship traversal
+            max_neighbors: Maximum number of total neighbor paths to return
+            similarity_threshold: Minimum similarity score threshold
+
+        Returns:
+            Dictionary containing most relevant paths from source nodes to neighbors
+        """
+        query_embedding = get_query_embedding(query, self._embed_model)
+
+        # Get all source entities
+        source_entities = self._session.exec(
+            select(self._entity_model).where(self._entity_model.id.in_(node_ids))
+        ).all()
+
+        # Track visited nodes and discovered paths
+        all_visited = set(node_ids)
+        current_level_nodes = set(node_ids)
+        all_paths = []  # Store all discovered paths with their relevance scores
+
+        for depth in range(max_depth):
+            if not current_level_nodes:
+                break
+
+            # Query relationships for current level
+            relationships = self._session.exec(
+                select(self._relationship_model)
+                .options(
+                    joinedload(self._relationship_model.source_entity),
+                    joinedload(self._relationship_model.target_entity),
+                )
+                .where(
+                    or_(
+                        self._relationship_model.source_entity_id.in_(
+                            current_level_nodes
+                        ),
+                        self._relationship_model.target_entity_id.in_(
+                            current_level_nodes
+                        ),
+                    )
+                )
+            ).all()
+
+            next_level_nodes = set()
+
+            for rel in relationships:
+                # Determine direction and connected entity
+                if rel.source_entity_id in current_level_nodes:
+                    from_entity = rel.source_entity
+                    to_entity = rel.target_entity
+                    direction = "outgoing"
+                    connected_id = rel.target_entity_id
+                else:
+                    from_entity = rel.target_entity
+                    to_entity = rel.source_entity
+                    direction = "incoming"
+                    connected_id = rel.source_entity_id
+
+                # Skip if already visited
+                if connected_id in all_visited:
+                    continue
+
+                # Calculate relationship relevance
+                similarity = 1 - cosine_distance(query_embedding, rel.description_vec)
+
+                if similarity >= similarity_threshold:
+                    # Find the original source node that led to this path
+                    for source_entity in source_entities:
+                        if source_entity.id == from_entity.id:
+                            path = {
+                                "source_entity": source_entity,
+                                "path": [
+                                    {
+                                        "from_entity": from_entity,
+                                        "relationship": rel,
+                                        "to_entity": to_entity,
+                                        "direction": direction,
+                                        "depth": depth + 1,
+                                    }
+                                ],
+                                "similarity_score": similarity,
+                            }
+                            all_paths.append(path)
+                            next_level_nodes.add(connected_id)
+                            all_visited.add(connected_id)
+
+                        # For paths longer than depth 1, find existing paths that end at from_entity
+                        elif depth > 0:
+                            matching_paths = [
+                                p
+                                for p in all_paths
+                                if p["path"][-1]["to_entity"].id == from_entity.id
+                            ]
+                            for existing_path in matching_paths:
+                                # Create new path by extending existing path
+                                new_path = {
+                                    "source_entity": existing_path["source_entity"],
+                                    "path": existing_path["path"]
+                                    + [
+                                        {
+                                            "from_entity": from_entity,
+                                            "relationship": rel,
+                                            "to_entity": to_entity,
+                                            "direction": direction,
+                                            "depth": depth + 1,
+                                        }
+                                    ],
+                                    # Combine similarities (you might want to adjust this formula)
+                                    "similarity_score": (
+                                        existing_path["similarity_score"] + similarity
+                                    )
+                                    / 2,
+                                }
+                                all_paths.append(new_path)
+                                next_level_nodes.add(connected_id)
+                                all_visited.add(connected_id)
+
+            current_level_nodes = next_level_nodes
+
+        # Sort all paths by similarity score and return top max_neighbors
+        all_paths.sort(key=lambda x: x["similarity_score"], reverse=True)
+
+        return {"results": all_paths[:max_neighbors]}
+
+    def get_chunks_by_relationships(
+        self,
+        relationships: List[SQLModel],
+        session: Optional[Session] = None,
+    ) -> List[Dict[str, Any]]:
+        """Get chunks for a list of relationships.
+
+        Args:
+            relationships: List of relationship objects
+            session: Optional database session
+
+        Returns:
+            List of dictionaries containing chunk information:
+            - text: chunk text content
+            - document_id: associated document id
+            - meta: chunk metadata
+        """
+        session = session or self._session
+
+        # Extract chunk IDs from relationships
+        chunk_ids = {
+            rel.meta.get("chunk_id")
+            for rel in relationships
+            if rel.meta.get("chunk_id") is not None
+        }
+
+        if not chunk_ids:
+            return []
+
+        # Query chunks
+        chunks = session.exec(
+            select(self._chunk_model).where(self._chunk_model.id.in_(chunk_ids))
+        ).all()
+
+        return [
+            {"text": chunk.text, "document_id": chunk.document_id, "meta": chunk.meta}
+            for chunk in chunks
+        ]
+
+    def find_paths_between_entities(
+        self,
+        source_entities: List[SQLModel],
+        target_entities: List[SQLModel],
+        max_depth: int = 1,
+        session: Optional[Session] = None,
+    ) -> List[List[Dict[str, Any]]]:
+        """Find all relationship paths between two groups of entities.
+
+        Args:
+            source_entities: List of source entities (representing similar concepts)
+            target_entities: List of target entities (representing similar concepts)
+            max_depth: Maximum path length between entities
+            session: Optional database session
+
+        Returns:
+            List of paths, where each path is a list of relationships dictionaries containing:
+            - relationship: relationship object
+            - from_entity: source entity for this step
+            - to_entity: target entity for this step
+            - direction: direction of relationship ("forward" or "backward")
+        """
+        session = session or self._session
+
+        source_ids = {e.id for e in source_entities}
+        target_ids = {e.id for e in target_entities}
+        all_paths = []
+
+        # Track visited nodes to avoid cycles
+        visited = set()
+
+        def explore_path(current_id: int, current_path: list, depth: int):
+            if depth > max_depth:
+                return
+
+            visited.add(current_id)
+
+            # Query all relationships connected to current node
+            relationships = session.exec(
+                select(self._relationship_model)
+                .options(
+                    joinedload(self._relationship_model.source_entity),
+                    joinedload(self._relationship_model.target_entity),
+                )
+                .where(
+                    or_(
+                        self._relationship_model.source_entity_id == current_id,
+                        self._relationship_model.target_entity_id == current_id,
+                    )
+                )
+            ).all()
+
+            for rel in relationships:
+                # Determine direction and next node
+                if rel.source_entity_id == current_id:
+                    next_id = rel.target_entity_id
+                    direction = "forward"
+                    from_entity = rel.source_entity
+                    to_entity = rel.target_entity
+                else:
+                    next_id = rel.source_entity_id
+                    direction = "backward"
+                    from_entity = rel.target_entity
+                    to_entity = rel.source_entity
+
+                # Skip if already visited
+                if next_id in visited:
+                    continue
+
+                # Create path step
+                path_step = {
+                    "relationship": rel,
+                    "from_entity": from_entity,
+                    "to_entity": to_entity,
+                    "direction": direction,
+                }
+
+                # If reached target, save the path
+                if next_id in target_ids:
+                    all_paths.append(current_path + [path_step])
+                # Otherwise continue exploring if not at max depth
+                elif depth < max_depth:
+                    explore_path(next_id, current_path + [path_step], depth + 1)
+
+            visited.remove(current_id)
+
+        # Start exploration from each source entity
+        for source_entity in source_entities:
+            explore_path(source_entity.id, [], 0)
+
+        return all_paths
