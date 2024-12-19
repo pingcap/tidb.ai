@@ -967,7 +967,7 @@ class TiDBGraphStore(KnowledgeGraphStore):
         # Sort all paths by similarity score and return top max_neighbors
         neighbors.sort(key=lambda x: x["similarity_score"], reverse=True)
 
-        return neighbors[:max_neighbors]
+        return {"relationships": neighbors[:max_neighbors]}
 
     def get_chunks_by_relationships(
         self,
